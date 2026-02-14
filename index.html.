@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spirit Infinity - Dashboard & Marketplace</title>
+    <style>
+        :root {
+            --neon-orange: #ff6600;
+            --dark-bg: #0a0a0a;
+            --card-bg: #161616;
+            --text-gray: #a0a0a0;
+            --spirit-green: #44ff44;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 1.25em;
+        }
+
+        .container {
+            max-width: 650px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 5px solid var(--neon-orange);
+            padding-bottom: 15px;
+            box-shadow: 0 10px 20px -10px var(--neon-orange);
+        }
+
+        .ht-logo {
+            font-size: 3em;
+            font-weight: 900;
+            letter-spacing: -1px;
+            margin: 0;
+            line-height: 1;
+        }
+        .si-logo {
+            font-size: 1em;
+            color: var(--neon-orange);
+            letter-spacing: 4px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 4px solid #333;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-line {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--neon-orange);
+            box-shadow: 0 0 15px var(--neon-orange);
+            animation: scan 2s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .neon-text {
+            color: var(--neon-orange);
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 2px;
+            font-size: 1.1em;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: #1f1f1f;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: var(--neon-orange);
+        }
+
+        .btn-market {
+            background: none;
+            border: 4px solid var(--neon-orange);
+            color: white;
+            padding: 22px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+            font-size: 1em;
+        }
+
+        .btn-market:hover {
+            background: var(--neon-orange);
+            color: black;
+            box-shadow: 0 0 20px var(--neon-orange);
+        }
+
+        .badge-verified {
+            background: #1a3a1a;
+            color: var(--spirit-green);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            float: right;
+            border: 1px solid var(--spirit-green);
+        }
+
+        .photo-upload {
+            background: #000;
+            border: 3px dashed var(--neon-orange);
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.8em;
+            color: var(--text-gray);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        /* Nouveauté : État validé par IA pour les photos */
+        .photo-upload.verified-ia {
+            border: 3px solid var(--spirit-green);
+            color: var(--spirit-green);
+            background: rgba(68, 255, 68, 0.05);
+            box-shadow: inset 0 0 10px rgba(68, 255, 68, 0.2);
+        }
+
+        select, input, textarea {
+            width: 100%;
+            background: #1f1f1f;
+            color: white;
+            border: 3px solid #333;
+            padding: 18px;
+            margin-top: 10px;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 1.1em;
+        }
+
+        .type-selector {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .type-option {
+            flex: 1;
+            padding: 20px 10px;
+            border: 3px solid #333;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 0.85em;
+            cursor: pointer;
+            background: #111;
+        }
+
+        .type-option.active {
+            border-color: var(--neon-orange);
+            background: #221100;
+        }
+
+        .market-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        .market-table th {
+            text-align: left;
+            color: var(--text-gray);
+            border-bottom: 4px solid #333;
+            padding: 20px 10px;
+        }
+
+        .market-table td {
+            padding: 30px 10px;
+            border-bottom: 1px solid #222;
+            cursor: pointer;
+        }
+
+        .thumb {
+            width: 80px;
+            height: 80px;
+            background: #000;
+            border: 3px solid var(--neon-orange);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+        }
+
+        .full-simulation {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            background: var(--dark-bg);
+        }
+
+        .shipping-opt {
+            border: 3px solid #333;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer; 
+        }
+
+        .shipping-opt.active { border-color: var(--neon-orange); background: #1a0d00; }
+
+        .price-detail {
+            background: #000;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #333;
+        }
+
+        .price-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .price-total {
+            border-top: 1px solid var(--neon-orange);
+            margin-top: 10px;
+            padding-top: 10px;
+            font-weight: bold;
+            color: var(--neon-orange);
+        }
+
+        .gallery-grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .gallery-item {
+            background: #111;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .gallery-box {
+            height: 140px;
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-dashboard">
+    <header>
+        <div class="ht-logo">HOT TOYS</div>
+        <div class="si-logo">SPIRIT INFINITY</div>
+        <p style="font-size: 0.8em; color: var(--text-gray); margin-top: 10px;">Système d'Audit & Marketplace</p>
+    </header>
+
+    <div class="status-card">
+        <span class="badge-verified">SPIRIT LEDGER VERIFIED</span>
+        <span class="neon-text">Ma Collection</span>
+        <h2 style="margin: 10px 0;">Joker (The Dark Knight)</h2>
+        <div class="stat-grid">
+            <div class="stat-item">
+                <span style="font-size: 0.8em; color: var(--text-gray);">Heures Néon</span>
+                <span class="stat-value">124h</span>
+            </div>
+            <div class="stat-item">
+                <span style="font-size: 0.8em; color: var(--text-gray);">Batterie</span>
+                <span class="stat-value" style="color: var(--spirit-green);">85%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-card" style="border-color: var(--spirit-green);">
+        <span class="neon-text" style="color: var(--spirit-green);">Précommandes</span>
+        <div style="display:flex; align-items:center; gap:15px; margin-top:15px; background:#000; padding:15px; border-radius:8px;">
+            <div class="thumb" style="border-color:var(--spirit-green)">🦇</div>
+            <div style="flex:1"><b>Batman (2.0) DX26</b><br><small>Sortie : Q3 2028</small></div>
+            <div style="text-align:right"><b style="color:var(--spirit-green)">380€</b></div>
+        </div>
+        <button class="btn-market" style="border-color: var(--spirit-green);" onclick="showProduct('Batman DX26', 380, '🦇', true)">Précommander</button>
+    </div>
+
+    <div class="status-card">
+        <span class="neon-text">Marketplace</span>
+        <p style="font-size: 1.2em; margin: 15px 0;">Valeur actuelle estimée : <b style="color:var(--neon-orange)">320 €</b></p>
+        <button class="btn-market" onclick="showSellPage()">Mettre en vente</button>
+        <button class="btn-market" style="border-color: #555; color: #888; margin-top: 10px;" onclick="showOffersPage()">Consulter les offres</button>
+    </div>
+</div>
+
+<div id="sell-page" class="container" style="display:none;">
+    <header>
+        <div onclick="showDashboard()" style="float:left; color:var(--neon-orange); cursor:pointer; font-weight:bold; padding: 10px 0;">[ RETOUR ]</div>
+        <h1 style="margin:0; font-size: 1.2em; text-align:right;">MISE EN VENTE</h1>
+    </header>
+
+    <div class="status-card">
+        <span class="neon-text">Type de Figurine</span>
+        <div class="type-selector">
+            <div class="type-option active" id="opt-native" onclick="setType('native')">SPIRIT NATIVE<br>(PCB Équipé)</div>
+            <div class="type-option" id="opt-legacy" onclick="setType('legacy')">LEGACY<br>(Ancienne Gen)</div>
+        </div>
+    </div>
+
+    <div class="status-card" id="diagnostic-zone">
+        <div class="scan-line" id="diag-scan"></div>
+        <span class="neon-text" id="diag-title">Étape 1 : Diagnostic Matériel</span>
+        <p id="diag-desc" style="font-size: 0.8em; color: var(--text-gray); margin: 10px 0;">Vérification via le PCB Spirit Infinity.</p>
+        <div id="progress-container" style="display:none; background:#000; height:15px; border-radius:10px; margin:15px 0; overflow:hidden; border: 3px solid #333;">
+            <div id="progress-bar" style="width:0%; height:100%; background:var(--neon-orange); transition: width 0.5s;"></div>
+        </div>
+        <button class="btn-market" id="btn-check" onclick="startCheck()">LANCER LE CHECK d'AUTHENTICITÉ</button>
+        <p id="check-status" style="text-align:center; font-size:1em; margin-top:10px; min-height: 1.2em; font-weight: bold;"></p>
+        <div id="legacy-cert" style="display:none; border: 2px solid #ffcc00; background: rgba(255, 204, 0, 0.05); padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 0.8em; color: #ffcc00; text-align: center;">📜 CERTIFICAT d'AUTHENTICITÉ GÉNÉRÉ PAR IA</div>
+    </div>
+
+    <div class="status-card">
+        <span class="neon-text">Étape 2 : Galerie de Preuves</span>
+        <p style="font-size: 0.7em; color: var(--spirit-green); margin-bottom: 10px;">L'IA valide l'état en temps réel.</p>
+        <div class="stat-grid" style="grid-template-columns: 1fr 1fr 1fr; margin-top:15px;">
+            <div class="photo-upload" onclick="this.classList.toggle('verified-ia')">📸 Tête</div>
+            <div class="photo-upload" onclick="this.classList.toggle('verified-ia')">📸 Corps</div>
+            <div class="photo-upload" onclick="this.classList.toggle('verified-ia')">📸 Acc.</div>
+            <div class="photo-upload" onclick="this.classList.toggle('verified-ia')">📸 Box</div>
+            <div class="photo-upload" onclick="this.classList.toggle('verified-ia')">📸 Surcarton</div>
+            <div class="photo-upload" onclick="this.classList.toggle('verified-ia')">📸 Autre</div>
+        </div>
+    </div>
+
+    <div class="status-card">
+        <span class="neon-text">Étape 3 : Informations</span>
+        <textarea id="desc-field" placeholder="Description de l'état..."></textarea>
+        <input type="number" placeholder="Prix" value="320">
+        <button class="btn-market" style="background:var(--neon-orange); color:black; margin-top:20px;">PUBLIER L'ANNONCE</button>
+    </div>
+</div>
+
+<div id="offers-page" class="container" style="display:none;">
+    <header>
+        <div onclick="showDashboard()" style="float:left; color:var(--neon-orange); cursor:pointer; font-weight:bold; padding: 10px 0;">[ RETOUR ]</div>
+        <div class="ht-logo" style="font-size: 1.8em; text-align: right;">HOT TOYS</div>
+    </header>
+    <div class="status-card" style="padding: 10px;">
+        <table class="market-table">
+            <thead><tr><th>Photo</th><th>Nom</th><th>État</th><th>Prix</th></tr></thead>
+            <tbody>
+                <tr onclick="showProduct('Joker DX11', 320, '🃏', false)"><td><div class="thumb">🃏</div></td><td><b>Joker DX11</b></td><td>Neuf</td><td style="color:var(--neon-orange); font-weight:bold;">320€</td></tr>
+                <tr onclick="showProduct('Iron Man MK85', 280, '🤖', false)"><td><div class="thumb">🤖</div></td><td><b>Iron Man MK85</b></td><td>Occasion</td><td style="color:var(--neon-orange); font-weight:bold;">280€</td></tr>
+                <tr onclick="showProduct('Batman DX19', 350, '🦇', false)"><td><div class="thumb">🦇</div></td><td><b>Batman DX19</b></td><td>Neuf</td><td style="color:var(--neon-orange); font-weight:bold;">350€</td></tr>
+                <tr onclick="showProduct('Darth Vader DX17', 420, '⚔️', false)"><td><div class="thumb">⚔️</div></td><td><b>Darth Vader DX17</b></td><td>Neuf</td><td style="color:var(--neon-orange); font-weight:bold;">420€</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="product-page" class="container" style="display:none;">
+    <header>
+        <div onclick="showDashboard()" style="float:left; color:var(--neon-orange); cursor:pointer; font-weight:bold;">[ RETOUR ]</div>
+        <div class="ht-logo" style="font-size: 1.8em; text-align: right;">HOT TOYS</div>
+    </header>
+    <div class="status-card">
+        <span class="badge-verified">CERTIFIÉ SPIRIT LEDGER</span>
+        <h2 id="prod-name" style="margin: 15px 0;">Nom Produit</h2>
+        
+        <div class="gallery-grid-4">
+            <div class="gallery-item"><small>USINE</small><div id="img-factory" class="gallery-box" style="border-color:var(--spirit-green)">🖼️</div></div>
+            <div class="gallery-item"><small>VENDEUR</small><div id="img-seller" class="gallery-box" style="border-color:var(--neon-orange)">📸</div></div>
+            <div class="gallery-item"><small>ACCESSOIRES</small><div class="gallery-box">📦</div></div>
+            <div class="gallery-item"><small>BOITE</small><div class="gallery-box">🛡️</div></div>
+        </div>
+
+        <span class="neon-text">Description</span>
+        <p style="font-size: 0.9em; background:#000; padding:20px; border-radius:8px; border:1px solid #333;">
+            Pièce de collection certifiée. Audit PCB Spirit Ledger réalisé. Boite et accessoires d'origine inclus. [Zero-Trace Concept].
+        </p>
+
+        <p id="protection-warning" style="font-size: 0.8em; color: var(--spirit-green); text-align: center; margin-bottom: 15px; display: none;">
+            🛡️ Protection Acheteur (+5%) incluse au paiement
+        </p>
+
+        <div id="standard-buy-zone">
+            <button class="btn-market" style="background:var(--neon-orange); color:black;" onclick="startOrder(false)">ACHETER <span id="prod-price-display"></span>€</button>
+            <button class="btn-market" style="border-color: #555; color: #888; margin-top:10px;">FAIRE UNE OFFRE</button>
+        </div>
+
+        <div id="preorder-buy-zone" style="display:none;">
+            <button class="btn-market" style="background:var(--spirit-green); color:black;" onclick="startOrder(false)">PAIEMENT TOTALITÉ (380€)</button>
+            <button class="btn-market" style="border-color:var(--spirit-green); color:var(--spirit-green); margin-top:10px;" onclick="startOrder(true)">PAIEMENT ACOMPTE 20% (76€)</button>
+        </div>
+    </div>
+</div>
+
+<div id="ship-page" class="full-simulation container">
+    <h2 style="color:var(--neon-orange)">COORDONNÉES & LIVRAISON</h2>
+    <div class="status-card">
+        <span class="neon-text">Vos Informations</span>
+        <div style="display:flex; gap:10px;"><input type="text" placeholder="Nom"><input type="text" placeholder="Prénom"></div>
+        <input type="text" placeholder="Adresse"><div style="display:flex; gap:10px;"><input type="text" placeholder="CP"><input type="text" placeholder="Ville"></div>
+        <input type="text" placeholder="Pays"><input type="email" placeholder="Email">
+        
+        <hr style="border:0; border-top:1px solid #333; margin:25px 0;">
+        <span class="neon-text">Mode de transport</span>
+        <div class="shipping-opt active" onclick="updateTransport(this, 15)"><b>DHL EXPRESS (24h)</b> <b>15,00€</b></div>
+        <div class="shipping-opt" onclick="updateTransport(this, 12)"><b>FEDEX PRIORITY</b> <b>12,00€</b></div>
+        <div class="shipping-opt" onclick="updateTransport(this, 10)"><b>UPS SAVER</b> <b>10,00€</b></div>
+        <div class="shipping-opt" onclick="updateTransport(this, 6)"><b>MONDIAL RELAY</b> <b>6,00€</b></div>
+        
+        <div class="price-detail">
+            <div class="price-line"><span id="label-price-type">Prix :</span> <span id="ship-fig-price">0€</span></div>
+            <div class="price-line"><span>Livraison :</span> <span id="ship-cost">15€</span></div>
+            <div class="price-line" id="protection-line" style="color:var(--spirit-green); display:none;"><span>Protection Acheteur (5%) :</span> <span id="ship-fee">0€</span></div>
+            <div class="price-line price-total"><span>TOTAL À RÉGLER :</span> <span id="ship-subtotal">0€</span></div>
+        </div>
+        <button class="btn-market" onclick="showPayPage()">VALIDER ET PAYER</button>
+    </div>
+</div>
+
+<div id="pay-page" class="full-simulation container">
+    <h2 style="color:var(--neon-orange)">PAIEMENT SÉCURISÉ</h2>
+    <div class="status-card">
+        <div class="price-detail">
+            <div class="price-line"><span>Séléction :</span> <span id="pay-fig-price"></span></div>
+            <div class="price-line"><span>Livraison :</span> <span id="pay-ship-cost"></span></div>
+            <div class="price-line" id="pay-protection-line" style="color:var(--spirit-green); display:none;"><span>Protection (5%) :</span> <span id="pay-fee"></span></div>
+            <div class="price-total price-line"><span>TOTAL FINAL :</span> <span id="pay-final-total"></span></div>
+        </div>
+        <div style="background:#000; padding:20px; border-radius:10px; border:2px solid #333;">
+            <input type="text" placeholder="Titulaire de la carte">
+            <input type="text" placeholder="Numéro de carte">
+            <div style="display:flex; gap:10px;"><input type="text" placeholder="MM/YY"><input type="text" placeholder="CVC"></div>
+        </div>
+        <button class="btn-market" onclick="showConfirmPage()">CONFIRMER LE PAIEMENT</button>
+    </div>
+</div>
+
+<div id="confirm-page" class="full-simulation container" style="text-align:center;">
+    <div class="status-card" style="border-color:var(--spirit-green); margin-top:60px; padding: 50px;">
+        <span style="font-size: 5em;">📦</span>
+        <h2 style="color:var(--spirit-green)">PAIEMENT ACCEPTÉ</h2>
+        <button class="btn-market" onclick="showDashboard()">RETOUR AU DASHBOARD</button>
+    </div>
+</div>
+
+<p style="text-align: center; font-size: 0.7em; color: #444; margin-top: 40px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
+
+<script>
+    let currentPrice = 0;
+    let transportCost = 15;
+    let isDeposit = false;
+    let isMarketItem = false;
+
+    function hideAll() { document.querySelectorAll('.container, .full-simulation').forEach(e => e.style.display = 'none'); }
+    function showDashboard() { hideAll(); document.getElementById('main-dashboard').style.display = 'block'; }
+    function showSellPage() { hideAll(); document.getElementById('sell-page').style.display = 'block'; }
+    function showOffersPage() { hideAll(); document.getElementById('offers-page').style.display = 'block'; }
+    
+    function showProduct(name, price, icon, isPreorder) { 
+        hideAll(); 
+        currentPrice = price;
+        isMarketItem = !isPreorder;
+        document.getElementById('product-page').style.display = 'block'; 
+        document.getElementById('prod-name').innerText = name;
+        document.getElementById('prod-price-display').innerText = price;
+        document.getElementById('img-factory').innerText = icon;
+        document.getElementById('img-seller').innerText = icon;
+        
+        document.getElementById('standard-buy-zone').style.display = isPreorder ? 'none' : 'block';
+        document.getElementById('preorder-buy-zone').style.display = isPreorder ? 'block' : 'none';
+        
+        // Alerte protection si occasion
+        document.getElementById('protection-warning').style.display = isPreorder ? 'none' : 'block';
+    }
+
+    function startOrder(depositMode) { 
+        isDeposit = depositMode;
+        hideAll(); 
+        document.getElementById('ship-page').style.display = 'block'; 
+        updateFinalPrices();
+    }
+
+    function updateTransport(element, cost) {
+        document.querySelectorAll('.shipping-opt').forEach(opt => opt.classList.remove('active'));
+        element.classList.add('active');
+        transportCost = cost;
+        updateFinalPrices();
+    }
+
+    function updateFinalPrices() {
+        let base = isDeposit ? (currentPrice * 0.2) : currentPrice;
+        let fee = isMarketItem ? (base * 0.05) : 0;
+        let total = base + transportCost + fee;
+
+        document.getElementById('label-price-type').innerText = isDeposit ? "Acompte (20%) :" : "Prix Figurine :";
+        document.getElementById('ship-fig-price').innerText = base + "€";
+        document.getElementById('ship-cost').innerText = transportCost + "€";
+        
+        const protLine = document.getElementById('protection-line');
+        const payProtLine = document.getElementById('pay-protection-line');
+        if(isMarketItem) {
+            protLine.style.display = 'flex';
+            payProtLine.style.display = 'flex';
+            document.getElementById('ship-fee').innerText = fee.toFixed(2) + "€";
+            document.getElementById('pay-fee').innerText = fee.toFixed(2) + "€";
+        } else {
+            protLine.style.display = 'none';
+            payProtLine.style.display = 'none';
+        }
+
+        document.getElementById('ship-subtotal').innerText = total.toFixed(2) + "€";
+        document.getElementById('pay-fig-price').innerText = base + "€";
+        document.getElementById('pay-ship-cost').innerText = transportCost + "€";
+        document.getElementById('pay-final-total').innerText = total.toFixed(2) + "€";
+    }
+
+    function setType(type) {
+        document.getElementById('opt-native').classList.toggle('active', type === 'native');
+        document.getElementById('opt-legacy').classList.toggle('active', type === 'legacy');
+    }
+
+    function startCheck() {
+        const bar = document.getElementById('progress-bar');
+        const status = document.getElementById('check-status');
+        document.getElementById('progress-container').style.display = 'block';
+        document.getElementById('diag-scan').style.display = 'block';
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 100) { 
+                clearInterval(interval); 
+                status.innerText = "✅ AUTHENTICITÉ VALIDÉE"; 
+                document.getElementById('diag-scan').style.display = 'none';
+                if(window.navigator.vibrate) window.navigator.vibrate(200); // Retour haptique
+            }
+            else { width += 10; bar.style.width = width + "%"; status.innerText = "ANALYSE PCB SPIRIT..."; }
+        }, 150);
+    }
+    function showPayPage() { hideAll(); document.getElementById('pay-page').style.display = 'block'; }
+    function showConfirmPage() { hideAll(); document.getElementById('confirm-page').style.display = 'block'; }
+</script>
+</body>
+</html>
+
