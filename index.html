@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spirit Infinity | Écosystème Global</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-dark: #050505;
@@ -272,32 +273,39 @@
     </div>
 </div>
 
-<div id="registerModal" class="overlay">
-    <div class="modal-content" style="max-width:500px;">
-        <h2 style="color:var(--neon-orange)">INSCRIPTION COLLECTOR</h2>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <input type="text" placeholder="Nom"><input type="text" placeholder="Prénom">
-        </div>
-        <input type="text" placeholder="Pseudo"><input type="email" placeholder="Mail">
-        <input type="text" placeholder="Adresse Postale">
-        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
-            <input type="text" placeholder="CP"><input type="text" placeholder="Ville">
-        </div>
-        <input type="text" placeholder="Pays">
-        <button class="btn-action" style="width:100%;" onclick="alert('Inscription réussie !'); closeModals();">REJOINDRE LE RÉSEAU</button>
-    </div>
-</div>
-
 <div id="ledgerModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <h2>MON LEDGER SÉCURISÉ</h2>
-        <div id="realTimeData" class="ledger-status">[ STATUT : DÉCONNECTÉ ]</div>
+        <div id="realTimeData" class="ledger-status">
+            [ STATUT : CONNECTÉ ]<br><br>
+            ROYALTIES TOTALES : <span id="l-roy" style="color:white">0.00 €</span><br>
+            PARTENAIRE (2.5%) : <span id="l-part" style="color:white">0.00 €</span><br>
+            SPIRIT (2.5%) : <span id="l-spi" style="color:white">0.00 €</span>
+        </div>
         <button class="btn-action" onclick="connectESP()">ACTIVER LA LECTURE DIRECTE (WebSerial)</button>
     </div>
 </div>
 
 <script>
+    // GREFFE DU MOTEUR SUPABASE (INVISIBLE)
+    const SUPABASE_URL = 'https://mkgskobkcpslnyyidmvo.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZ3Nrb2JrY3BzbG55eWlkbXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg0MjM0NTYsImV4cCI6MjA1NDAwOTQ1Nn0.V7_t5mF8Y3m0M6o5S9k0Q_XvV9T8n5vY_7T8W9U5m4';
+    const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function syncLedger() {
+        let { data } = await _spirit.from('transactions').select('*');
+        if (data) {
+            let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
+            let p = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
+            let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0);
+            if(document.getElementById('l-roy')) document.getElementById('l-roy').innerText = r.toFixed(2) + " €";
+            if(document.getElementById('l-part')) document.getElementById('l-part').innerText = p.toFixed(2) + " €";
+            if(document.getElementById('l-spi')) document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
+        }
+    }
+    setInterval(syncLedger, 3000); syncLedger();
+
     function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
 
     function applyFilters() {
@@ -383,15 +391,6 @@
         } catch (e) { alert("Erreur : " + e); }
     }
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  // Connexion au cerveau Spirit Infinity
-  const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co'; 
-  const SUPABASE_KEY = 'sb_publishable_od0pcSeKYD3XB6wfFbaDPw_3cxYw'; // J'ai repris ta clé sur la photo
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  console.log("Spirit Infinity : Marketplace connectée au Ledger.");
-</script>
 </body>
 </html>
+
