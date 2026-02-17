@@ -2,70 +2,62 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Spirit Infinity | Ledger Test</title>
+    <title>Spirit Infinity - Test Force</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #050505; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
-        .btn { background: #ff6600; color: black; border: none; padding: 20px; font-weight: bold; cursor: pointer; margin: 10px; }
-        .ledger { border: 1px solid #00ffaa; padding: 20px; margin-top: 20px; display: inline-block; }
+        body { background: #000; color: #ff6600; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { border: 2px solid #ff6600; padding: 40px; background: #0a0a0a; text-align: center; box-shadow: 0 0 20px rgba(255, 102, 0, 0.2); }
+        button { background: #ff6600; color: #000; border: none; padding: 20px 40px; font-size: 1.2rem; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 20px; }
+        button:hover { background: #fff; }
+        #status { margin-top: 20px; color: #00ffaa; font-family: monospace; }
     </style>
 </head>
 <body>
 
-    <h1>SPIRIT INFINITY - CONNECT</h1>
-    
-    <div class="ledger">
-        <h3>ÉTAT DU LEDGER</h3>
-        <p>Royalties (3€) : <span id="r">0</span> €</p>
-        <p>Com Partenaire : <span id="p">0</span> €</p>
+    <div class="box">
+        <h1>SPIRIT INFINITY</h1>
+        <p>TEST DE LIAISON SUPABASE</p>
+        <button id="btnTest" onclick="envoyerVente()">TESTER ACHAT 100€</button>
+        <div id="status">En attente d'action...</div>
     </div>
-
-    <br><br>
-    <button class="btn" onclick="testVente()">TEST ACHAT 100€</button>
 
 <script>
     // (c) 2026 Spirit Infinity - Tous droits réservés
     const URL = 'https://eagmxrbtcaqglhivvpww.supabase.co';
-    const KEY = 'sb_publishable_od0pcSeKYD3XB6wfFbaDPw_3cxYwQ6N7R9X1m5z8k2';
+    const KEY = 'sb_publishable_od0pcSeKYD3XB6wfFbaDPw_3cxYwQ6N7R9X1m5z8k2'; // Ta clé issue des captures
     const _spirit = supabase.createClient(URL, KEY);
 
-    async function chargerLedger() {
+    async function envoyerVente() {
+        const statusDiv = document.getElementById('status');
+        statusDiv.innerText = "Envoi en cours...";
+        statusDiv.style.color = "orange";
+
         try {
-            const { data, error } = await _spirit.from('transactions').select('*');
-            if (error) throw error;
-            let roy = 0; let part = 0;
-            data.forEach(t => {
-                roy += (t.spirit_royalty || 0);
-                part += (t.commission_partner_2_5_percent || 0);
-            });
-            document.getElementById('r').innerText = roy.toFixed(2);
-            document.getElementById('p').innerText = part.toFixed(2);
-        } catch (e) {
-            console.error(e);
-            document.getElementById('r').innerText = "ERREUR";
+            const { data, error } = await _spirit
+                .from('transactions')
+                .insert([{ 
+                    price_sold: 100, 
+                    spirit_royalty: 3.00, 
+                    commission_partner_2_5_percent: 2.50, 
+                    commission_spirit_2_5_percent: 2.50,
+                    status: 'COMPLETED'
+                }])
+                .select();
+
+            if (error) {
+                statusDiv.innerText = "ERREUR : " + error.message;
+                statusDiv.style.color = "red";
+                console.error(error);
+            } else {
+                statusDiv.innerText = "SUCCÈS : Transaction enregistrée !";
+                statusDiv.style.color = "#00ffaa";
+                alert("La base de données a répondu positivement !");
+            }
+        } catch (err) {
+            statusDiv.innerText = "ERREUR RÉSEAU : " + err.message;
+            statusDiv.style.color = "red";
         }
     }
-
-    async function testVente() {
-        const prix = 100;
-        const { error } = await _spirit.from('transactions').insert([{
-            price_sold: prix,
-            spirit_royalty: 3.00,
-            commission_partner_2_5_percent: 2.5,
-            commission_spirit_2_5_percent: 2.5,
-            status: 'COMPLETED'
-        }]);
-
-        if (error) {
-            alert("Erreur : " + error.message);
-        } else {
-            alert("Vente réussie !");
-            chargerLedger();
-        }
-    }
-
-    // Chargement initial
-    chargerLedger();
 </script>
 </body>
 </html>
