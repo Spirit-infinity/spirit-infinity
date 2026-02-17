@@ -187,52 +187,88 @@
         <h2>MON LEDGER SÉCURISÉ</h2>
         <div id="realTimeData" class="ledger-status">
             [ STATUT : CONNECTÉ ]<br><br>
-            ROYALTIES TOTALES (3€/u) : <span id="l-roy" style="color:white">-- €</span><br>
-            PARTENAIRE (2.5%) : <span id="l-part" style="color:white">-- €</span><br>
-            SPIRIT (2.5%) : <span id="l-spi" style="color:white">-- €</span>
+            ROYALTIES TOTALES (3€/u) : <span id="l-roy" style="color:white">Calcul...</span><br>
+            PARTENAIRE (2.5%) : <span id="l-part" style="color:white">Calcul...</span><br>
+            SPIRIT (2.5%) : <span id="l-spi" style="color:white">Calcul...</span>
         </div>
         <button class="btn-action" onclick="connectESP()">ACTIVER LA LECTURE DIRECTE (WebSerial)</button>
     </div>
 </div>
 
 <script>
-    // 3. GREFFE LOGIQUE : Les clés de ta base Supabase
+    // CONFIGURATION SUPABASE
     const SUPABASE_URL = 'https://mkgskobkcpslnyyidmvo.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZ3Nrb2JrY3BzbG55eWlkbXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg0MjM0NTYsImV4cCI6MjA1NDAwOTQ1Nn0.V7_t5mF8Y3m0M6o5S9k0Q_XvV9T8n5vY_7T8W9U5m4';
-    const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Fonction de synchronisation temps réel
-    async function syncLedger() {
-        let { data, error } = await _spirit.from('transactions').select('*');
-        if (data) {
-            // Calcul automatique basé sur tes règles (2.5% / 2.5% et 3€ de royalties)
-            let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
-            let p = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
-            let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0);
-            
-            document.getElementById('l-roy').innerText = r.toFixed(2) + " €";
-            document.getElementById('l-part').innerText = p.toFixed(2) + " €";
-            document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
+    // FONCTION DE MISE À JOUR DU LEDGER (GREFFE RÉUSSIE)
+    async function updateDashboard() {
+        let { data: trans, error } = await _supabase.from('transactions').select('*');
+
+        if (error) {
+            console.error('Erreur Supabase:', error);
+            return;
+        }
+
+        if (trans) {
+            let totalR = trans.reduce((sum, t) => sum + (Number(t.spirit_royalty) || 0), 0);
+            let totalP = trans.reduce((sum, t) => sum + (Number(t.commission_partner_2_5_percent) || 0), 0);
+            let totalS = trans.reduce((sum, t) => sum + (Number(t.commission_spirit_2_5_percent) || 0), 0);
+
+            if(document.getElementById('l-roy')) document.getElementById('l-roy').innerText = totalR.toFixed(2) + " €";
+            if(document.getElementById('l-part')) document.getElementById('l-part').innerText = totalP.toFixed(2) + " €";
+            if(document.getElementById('l-spi')) document.getElementById('l-spi').innerText = totalS.toFixed(2) + " €";
         }
     }
-    
-    // Lancement de la synchro
-    setInterval(syncLedger, 3000); 
-    syncLedger();
 
+    // INTERFACE
+    function openLedger() { 
+        document.getElementById('ledgerModal').style.display = 'flex'; 
+        updateDashboard(); // Mise à jour immédiate à l'ouverture
+    }
     function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
-    function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
-    function openAccount() { alert('Mon Compte'); }
-    function openSAV() { window.open('https://www.hottoys.com.hk/contact.php', '_blank'); }
-    function startCertification() { alert('Certification'); }
+    
+    // Rafraîchissement automatique
+    setInterval(updateDashboard, 5000);
 
-    // Reste de tes fonctions (Filters, Product, Message) identiques...
-    function applyFilters() { /* ... */ }
-    function openProduct(t, p, m, ty, c, h) { 
+    // AUTRES FONCTIONS (FILTRES, PRODUITS, MESSAGES)
+    function applyFilters() {
+        const country = document.getElementById('fCountry').value;
+        const cond = document.getElementById('fCond').value;
+        document.querySelectorAll('.card').forEach(card => {
+            const mC = (country === 'all' || card.dataset.country === country);
+            const mS = (cond === 'all' || card.dataset.cond === cond);
+            card.style.display = (mC && mS) ? 'block' : 'none';
+        });
+    }
+
+    function openProduct(title, price, mac, type, country, hand) {
         document.getElementById('productModal').style.display = 'flex';
-        document.getElementById('pTitle').innerText = t;
-        document.getElementById('sumPrice').innerText = p + " €";
-        document.getElementById('sumTotal').innerText = (p + 25).toFixed(2) + " €";
+        document.getElementById('pTitle').innerText = title;
+        document.getElementById('pOrigin').innerText = country + " | " + hand;
+        document.getElementById('sumPrice').innerText = price + " €";
+        document.getElementById('sumProt').innerText = (price * 0.05).toFixed(2) + " €";
+        document.getElementById('sumTotal').innerText = (price + 25 + (price * 0.05)).toFixed(2) + " €";
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const list = document.getElementById('chatMsgs');
+        if(input.value.trim() === "") return;
+        const div = document.createElement('div');
+        div.style.marginBottom = "8px";
+        div.innerHTML = "<strong>Vous :</strong> " + input.value;
+        list.appendChild(div);
+        input.value = "";
+        list.scrollTop = list.scrollHeight;
+    }
+
+    async function connectESP() {
+        try {
+            const port = await navigator.serial.requestPort();
+            await port.open({ baudRate: 115200 });
+            document.getElementById('realTimeData').innerHTML = "[ STATUS : CONNECTÉ AU HARDWARE ]";
+        } catch (e) { console.log("WebSerial non supporté ou annulé."); }
     }
 </script>
 </body>
