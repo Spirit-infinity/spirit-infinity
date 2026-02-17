@@ -2,19 +2,21 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Spirit Infinity - Liaison Forcée</title>
+    <title>Spirit Infinity - Connexion Rétablie</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background: #000; color: #ff6600; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .terminal { border: 2px solid #ff6600; padding: 30px; background: #050505; width: 400px; text-align: center; }
-        button { background: #ff6600; color: #000; border: none; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        #log { margin-top: 20px; font-family: monospace; font-size: 0.75rem; color: #555; text-align: left; background: #000; padding: 10px; border: 1px solid #111; }
+        .terminal { border: 2px solid #ff6600; padding: 30px; background: #050505; width: 400px; text-align: center; border-radius: 4px; }
+        button { background: #ff6600; color: #000; border: none; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 1rem; }
+        button:hover { background: #fff; }
+        #log { margin-top: 20px; font-family: monospace; font-size: 0.8rem; color: #555; text-align: left; background: #000; padding: 10px; border: 1px solid #111; min-height: 40px; }
     </style>
 </head>
 <body>
 
 <div class="terminal">
     <h2 style="margin:0 0 20px 0;">SPIRIT INFINITY</h2>
+    <p style="font-size: 0.7rem; color: #777; margin-bottom: 20px;">ID : eagmxrbtca**jqlh**ivvpww</p>
     <button onclick="spiritConnect()">FORCER L'ENVOI (100€)</button>
     <div id="log">> Système prêt...</div>
 </div>
@@ -22,18 +24,17 @@
 <script>
     // (c) 2026 Spirit Infinity - Tous droits réservés
 
+    // Correction de l'ID projet d'après ta photo 804ebc9d
+    const PROJECT_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co'; 
+    const PUBLIC_KEY = 'sb_publishable_od0pcSeKYD3XB6wfFbaDPw_3cxYwQ6N7R9X1m5z8k2';
+
     async function spiritConnect() {
         const logger = document.getElementById('log');
-        logger.innerText = "> Initialisation...";
+        logger.innerText = "> Initialisation du tunnel...";
+        logger.style.color = "#ff6600";
         
         try {
-            // Initialisation locale pour éviter les erreurs de portée
-            const client = supabase.createClient(
-                'https://eagmxrbtcaqglhivvpww.supabase.co', 
-                'sb_publishable_od0pcSeKYD3XB6wfFbaDPw_3cxYwQ6N7R9X1m5z8k2'
-            );
-
-            logger.innerText = "> Tentative d'insertion...";
+            const client = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
             const { data, error } = await client
                 .from('transactions')
@@ -47,13 +48,13 @@
                 .select();
 
             if (error) {
-                logger.innerHTML = "<span style='color:red'>> REFUS : " + error.message + "</span>";
+                logger.innerHTML = "<span style='color:red'>> ERREUR TABLE : " + error.message + "</span>";
             } else {
-                logger.innerHTML = "<span style='color:#00ffaa'>> SUCCÈS : Transaction enregistrée !</span>";
-                alert("SPIRIT INFINITY : Connexion établie avec succès.");
+                logger.innerHTML = "<span style='color:#00ffaa'>> SUCCÈS : Données envoyées à Spirit Ledger !</span>";
+                alert("SPIRIT INFINITY : Liaison validée avec le bon ID !");
             }
         } catch (e) {
-            logger.innerHTML = "<span style='color:red'>> ERREUR NAVIGATEUR : " + e.message + "</span>";
+            logger.innerHTML = "<span style='color:red'>> ERREUR RÉSEAU : " + e.message + "</span>";
         }
     }
 </script>
