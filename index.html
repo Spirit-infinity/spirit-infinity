@@ -21,7 +21,6 @@
             margin: 0; 
             overflow-x: hidden;
         }
-        /* Design Industrial Dark */
         header { 
             padding: 15px 5%; 
             background: #000; 
@@ -32,13 +31,11 @@
             position: sticky; 
             top: 0; 
             z-index: 1000;
-            box-shadow: 0 4px 15px rgba(255, 102, 0, 0.2);
         }
         .logo { font-weight: 900; font-size: 1.4rem; letter-spacing: 2px; }
         .logo span { color: var(--neon-orange); }
         
         .container { display: flex; padding: 20px 5%; gap: 20px; }
-        
         .grid { flex: 1; }
         .cat-title { 
             color: var(--neon-orange); 
@@ -56,16 +53,14 @@
             gap: 20px; 
         }
 
-        /* Cartes Figurines */
         .card { 
             background: var(--card-bg); 
             border: 1px solid var(--border); 
             border-radius: 4px; 
             overflow: hidden; 
             transition: 0.3s;
-            position: relative;
         }
-        .card:hover { border-color: var(--neon-orange); transform: translateY(-5px); }
+        .card:hover { border-color: var(--neon-orange); }
         
         .img-placeholder { 
             width: 100%; 
@@ -91,11 +86,8 @@
             text-transform: uppercase; 
             width: 100%;
             margin-top: 10px;
-            transition: 0.2s;
         }
-        .btn-action:hover { background: white; }
 
-        /* Ledger Modal */
         .overlay { 
             display: none; 
             position: fixed; 
@@ -111,7 +103,6 @@
             padding: 30px; 
             max-width: 500px; 
             width: 90%; 
-            box-shadow: 0 0 30px rgba(255, 102, 0, 0.3);
         }
         .ledger-status { 
             padding: 20px; 
@@ -120,7 +111,6 @@
             font-family: monospace; 
             background: rgba(0,255,170,0.05); 
             line-height: 1.6;
-            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -128,26 +118,25 @@
 
 <header>
     <div class="logo">SPIRIT <span>INFINITY</span></div>
-    <button onclick="openLedger()" style="background:none; border:1px solid var(--neon-orange); color:white; padding:10px 20px; cursor:pointer; font-weight:bold;">01. LEDGER RÉEL</button>
+    <button onclick="openLedger()" style="background:none; border:1px solid var(--neon-orange); color:white; padding:10px 20px; cursor:pointer;">MON LEDGER</button>
 </header>
 
 <div class="container">
     <div class="grid">
-        <div class="cat-title">Marketplace Sécurisée</div>
+        <div class="cat-title">Marketplace</div>
         <div class="grid-layout">
-            <div class="card">
-                <div class="img-placeholder">IRON MAN MK85</div>
-                <div class="card-info">
-                    <div class="price">650.00 €</div>
-                    <button class="btn-action" onclick="simulatePayment(650)">ACHAT DIRECT</button>
-                </div>
-            </div>
-            
             <div class="card">
                 <div class="img-placeholder">BATMAN PURE EDITION</div>
                 <div class="card-info">
                     <div class="price">890.00 €</div>
                     <button class="btn-action" onclick="simulatePayment(890)">ACHAT DIRECT</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="img-placeholder">IRON MAN MK85</div>
+                <div class="card-info">
+                    <div class="price">650.00 €</div>
+                    <button class="btn-action" onclick="simulatePayment(650)">ACHAT DIRECT</button>
                 </div>
             </div>
         </div>
@@ -156,33 +145,27 @@
 
 <div id="ledgerModal" class="overlay">
     <div class="modal-content">
-        <h2 style="color:var(--neon-orange); margin-top:0;">SPIRIT LEDGER SÉCURISÉ</h2>
+        <h2 style="color:var(--neon-orange)">LEDGER SÉCURISÉ</h2>
         <div class="ledger-status">
-            STATUT : <span style="color:white">CONNECTÉ (REAL-TIME)</span><br><br>
-            TOTAL ROYALTIES : <span id="l-roy" style="color:white">0.00 €</span><br>
-            PARTENAIRE (2.5%) : <span id="l-part" style="color:white">0.00 €</span><br>
-            SPIRIT (2.5%) : <span id="l-spi" style="color:white">0.00 €</span>
+            TOTAL ROYALTIES : <span id="l-roy" style="color:white">--</span><br>
+            PARTENAIRE (2.5%) : <span id="l-part" style="color:white">--</span><br>
+            SPIRIT (2.5%) : <span id="l-spi" style="color:white">--</span>
         </div>
-        <p style="font-size:0.8rem; color:var(--text-gray); margin-top:15px;">
-            (c) 2026 Spirit Infinity - Toutes les transactions sont authentifiées via Spirit Ledger.
-        </p>
-        <button class="btn-action" onclick="closeModals()">RETOUR</button>
+        <button class="btn-action" onclick="closeModals()">FERMER</button>
     </div>
 </div>
 
 <script>
-    // --- CONFIGURATION GREFEE ---
+    // CONFIGURATION CONNECTÉE AU PROJET eagmx...
     const S_URL = 'https://eagmxrbtcaqqlhivvpww.supabase.co';
     const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
     
     const _spirit = supabase.createClient(S_URL, S_KEY);
 
-    // Synchronisation du Ledger
     async function syncLedger() {
         try {
             const { data, error } = await _spirit.from('transactions').select('*');
             if (error) throw error;
-
             if (data) {
                 let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
                 let p = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
@@ -193,16 +176,13 @@
                 document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
             }
         } catch (e) {
-            console.error("Erreur de synchro :", e.message);
+            console.error("Erreur connexion Supabase:", e.message);
         }
     }
 
-    // Simulation d'achat
     async function simulatePayment(price) {
-        if(!confirm("Voulez-vous procéder à l'achat sécurisé ?")) return;
-        
-        const comm = price * 0.025; // 2.5%
-
+        if(!confirm("Confirmer l'achat ?")) return;
+        const comm = price * 0.025;
         const { error } = await _spirit.from('transactions').insert([{ 
             price_sold: price, 
             spirit_royalty: 3.00, 
@@ -211,29 +191,17 @@
             status: 'COMPLETED'
         }]);
 
-        if (error) {
-            alert("Erreur transactionnelle : " + error.message);
-        } else {
-            alert("PAIEMENT SPIRIT VALIDÉ ! La base de données a été mise à jour.");
-            syncLedger();
-        }
+        if (error) alert("Erreur réseau (vérifiez votre connexion) : " + error.message);
+        else { alert("Paiement Spirit Validé !"); syncLedger(); }
     }
 
-    // Gestion de l'interface
-    function openLedger() {
-        document.getElementById('ledgerModal').style.display = 'flex';
-        syncLedger();
-    }
+    function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; syncLedger(); }
+    function closeModals() { document.getElementById('ledgerModal').style.display = 'none'; }
 
-    function closeModals() {
-        document.getElementById('ledgerModal').style.display = 'none';
-    }
-
-    // Lancement Initial
+    // Initialisation
     syncLedger();
-    // Rafraîchissement toutes les 10 secondes
     setInterval(syncLedger, 10000);
 </script>
-
 </body>
 </html>
+
