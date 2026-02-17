@@ -67,10 +67,23 @@
         .msg-safety-alert { background: rgba(255,51,51,0.1); color: var(--danger); padding: 10px; font-size: 0.7rem; border: 1px solid var(--danger); margin-bottom: 10px; text-align: center; }
         .chat-input-area { display: flex; padding: 10px; border-top: 1px solid #222; }
 
-        /* ANIMATIONS */
+        /* ANIMATIONS & LEDGER STATUS */
         .laser { height: 2px; background: var(--neon-orange); box-shadow: 0 0 15px var(--neon-orange); animation: move 2s infinite ease-in-out; }
         @keyframes move { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(100px); } }
-        .ledger-status { padding: 20px; border: 1px solid var(--spirit-green); color: var(--spirit-green); margin-bottom: 20px; font-family: monospace; background: rgba(0,255,170,0.05); }
+        
+        .ledger-status { 
+            padding: 20px; 
+            border: 1px solid var(--spirit-green); 
+            color: var(--spirit-green); 
+            margin-bottom: 20px; 
+            font-family: monospace; 
+            background: rgba(0,255,170,0.05);
+            animation: pulse-border 2s infinite alternate;
+        }
+        @keyframes pulse-border {
+            from { box-shadow: 0 0 5px rgba(0, 255, 170, 0.1); }
+            to { box-shadow: 0 0 15px rgba(0, 255, 170, 0.4); }
+        }
 
         /* STEPS CERTIFICATION */
         .steps { display: flex; justify-content: space-between; margin-bottom: 30px; }
@@ -236,7 +249,7 @@
             <select id="saleCond">
                 <option>État: Neuf</option><option>État: Très bon état</option><option>État: Bon état</option>
             </select>
-            <input type="number" placeholder="Prix (€)">
+            <input type="number" id="inputPrice" placeholder="Prix (€)">
             <textarea placeholder="Description..."></textarea>
             <button class="btn-action" style="width:100%;" onclick="finishCertif()">GÉNÉRER LE CERTIFICAT</button>
         </div>
@@ -305,27 +318,53 @@
 </div>
 
 <script>
-    // --- GREFFE DU MOTEUR SUPABASE ---
+    // --- CONFIGURATION SUPABASE ---
     const SUPABASE_URL = 'https://mkgskobkcpslnyyidmvo.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZ3Nrb2JrY3BzbG55eWlkbXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg0MjM0NTYsImV4cCI6MjA1NDAwOTQ1Nn0.V7_t5mF8Y3m0M6o5S9k0Q_XvV9T8n5vY_7T8W9U5m4';
     const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // --- MOTEUR FINANCIER LEDGER ---
     async function syncLedger() {
-        let { data } = await _spirit.from('transactions').select('*');
+        let { data, error } = await _spirit.from('transactions').select('*');
         if (data) {
             let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
             let p = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
             let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0);
+            
             if(document.getElementById('l-roy')) document.getElementById('l-roy').innerText = r.toFixed(2) + " €";
             if(document.getElementById('l-part')) document.getElementById('l-part').innerText = p.toFixed(2) + " €";
             if(document.getElementById('l-spi')) document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
         }
     }
-    // Lancement du moteur de synchro toutes les 3s
-    setInterval(syncLedger, 3000); 
-    syncLedger();
 
-    // --- TES FONCTIONS DE BASE PRÉSERVÉES ---
+    async function processSpiritTransaction(price) {
+        const ROYALTY_FIXE = 3.00;
+        const TOTAL_COMMISSION_RATE = 0.05; // 5% total (2.5+2.5)
+        
+        const commissionTotale = price * TOTAL_COMMISSION_RATE;
+        const partPartenaire = commissionTotale / 2;
+        const partSpirit = commissionTotale / 2;
+        
+        const { data, error } = await _spirit
+            .from('transactions')
+            .insert([{ 
+                price_sold: price, 
+                spirit_royalty: ROYALTY_FIXE, 
+                commission_partner_2_5_percent: partPartenaire, 
+                commission_spirit_2_5_percent: partSpirit,
+                status: 'COMPLETED'
+            }]);
+
+        if (!error) {
+            alert(`Paiement Spirit Validé !\nRoyalties: ${ROYALTY_FIXE}€\nSplit: ${partPartenaire}€ Partenaire / ${partSpirit}€ Spirit`);
+            syncLedger();
+            closeModals();
+        } else {
+            alert("Erreur Ledger: " + error.message);
+        }
+    }
+
+    // --- GESTION INTERFACE ---
     function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
 
     function applyFilters() {
@@ -357,16 +396,21 @@
         b.className = (type === 'Native') ? 'badge native' : 'badge legacy';
     }
 
+    function simulatePayment() {
+        const priceStr = document.getElementById('sumPrice').innerText;
+        const price = parseFloat(priceStr.replace(' €', ''));
+        if(confirm("Confirmer l'achat sécurisé Spirit Infinity ?")) {
+            processSpiritTransaction(price);
+        }
+    }
+
     function sendMessage() {
         const input = document.getElementById('chatInput');
         const list = document.getElementById('chatMsgs');
         const forbidden = ["paypal", "06", "phone", "whatsapp", "virement", "@", ".com", "contact"];
-        
         if(input.value.trim() === "") return;
-        
         let safe = true;
         forbidden.forEach(word => { if(input.value.toLowerCase().includes(word)) safe = false; });
-        
         const div = document.createElement('div');
         div.style.marginBottom = "8px";
         if(!safe) {
@@ -400,7 +444,6 @@
     function openAccount() { document.getElementById('accountModal').style.display = 'flex'; }
     function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
     function openSAV() { window.open('https://www.hottoys.com.hk/contact.php', '_blank'); }
-    function simulatePayment() { alert("Accès à la passerelle de paiement sécurisée Spirit..."); }
     function startCertification() { document.getElementById('certifModal').style.display = 'flex'; }
 
     async function connectESP() {
@@ -408,8 +451,12 @@
             const port = await navigator.serial.requestPort();
             await port.open({ baudRate: 115200 });
             document.getElementById('realTimeData').innerHTML = "STATUS : CONNECTÉ [24:0A:C4:9B:54:28]";
-        } catch (e) { alert("Erreur : " + e); }
+        } catch (e) { alert("Erreur WebSerial : " + e); }
     }
+
+    // Init
+    setInterval(syncLedger, 5000);
+    syncLedger();
 </script>
 </body>
 </html>
