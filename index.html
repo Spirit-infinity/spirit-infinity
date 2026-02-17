@@ -1,59 +1,239 @@
-// Tes nouveaux identifiants Supabase (Projet eagmx...)
-const SUPABASE_URL = 'https://eagmxrbtcaqqlhivvpww.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
-
-// Initialisation du client Supabase
-const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// FONCTION : Synchronisation du Ledger
-async function syncLedger() {
-    try {
-        // On récupère les données de la table 'transactions' que tu as créée (Photo n°8)
-        const { data, error } = await _spirit.from('transactions').select('*');
-        
-        if (error) throw error;
-
-        if (data) {
-            // Calcul des montants (Royalties 3€ et Split 2.5%)
-            let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
-            let p = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
-            let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0);
-            
-            // Affichage dans ton interface (ID l-roy, l-part, l-spi de ta photo n°3)
-            if(document.getElementById('l-roy')) document.getElementById('l-roy').innerText = r.toFixed(2) + " €";
-            if(document.getElementById('l-part')) document.getElementById('l-part').innerText = p.toFixed(2) + " €";
-            if(document.getElementById('l-spi')) document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
-            
-            console.log("Ledger Spirit Infinity synchronisé.");
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spirit Infinity | Écosystème Global</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { 
+            --bg-dark: #050505; 
+            --card-bg: #0f0f0f; 
+            --neon-orange: #ff6600; 
+            --text-gray: #777; 
+            --spirit-green: #00ffaa; 
+            --border: #1a1a1a; 
         }
-    } catch (e) {
-        console.error("Erreur de connexion :", e.message);
-    }
-}
+        body { 
+            background-color: var(--bg-dark); 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            overflow-x: hidden;
+        }
+        /* Design Industrial Dark */
+        header { 
+            padding: 15px 5%; 
+            background: #000; 
+            border-bottom: 2px solid var(--neon-orange); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(255, 102, 0, 0.2);
+        }
+        .logo { font-weight: 900; font-size: 1.4rem; letter-spacing: 2px; }
+        .logo span { color: var(--neon-orange); }
+        
+        .container { display: flex; padding: 20px 5%; gap: 20px; }
+        
+        .grid { flex: 1; }
+        .cat-title { 
+            color: var(--neon-orange); 
+            font-size: 1.2rem; 
+            font-weight: 900; 
+            margin: 30px 0 15px 0; 
+            border-left: 4px solid var(--neon-orange); 
+            padding-left: 15px; 
+            text-transform: uppercase; 
+        }
 
-// FONCTION : Simuler un achat (Action du bouton)
-async function simulatePayment(price) {
-    if(!confirm("Confirmer la transaction sur Spirit Infinity ?")) return;
+        .grid-layout { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 20px; 
+        }
+
+        /* Cartes Figurines */
+        .card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 4px; 
+            overflow: hidden; 
+            transition: 0.3s;
+            position: relative;
+        }
+        .card:hover { border-color: var(--neon-orange); transform: translateY(-5px); }
+        
+        .img-placeholder { 
+            width: 100%; 
+            height: 250px; 
+            background: #1a1a1a; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold;
+            color: var(--text-gray);
+        }
+
+        .card-info { padding: 15px; border-top: 1px solid var(--border); }
+        .price { font-size: 1.5rem; font-weight: 800; color: white; }
+        
+        .btn-action { 
+            background: var(--neon-orange); 
+            color: black; 
+            border: none; 
+            padding: 12px 25px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            width: 100%;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+        .btn-action:hover { background: white; }
+
+        /* Ledger Modal */
+        .overlay { 
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.95); 
+            z-index: 2000; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .modal-content { 
+            background: #0a0a0a; 
+            border: 1px solid var(--neon-orange); 
+            padding: 30px; 
+            max-width: 500px; 
+            width: 90%; 
+            box-shadow: 0 0 30px rgba(255, 102, 0, 0.3);
+        }
+        .ledger-status { 
+            padding: 20px; 
+            border: 1px solid var(--spirit-green); 
+            color: var(--spirit-green); 
+            font-family: monospace; 
+            background: rgba(0,255,170,0.05); 
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">SPIRIT <span>INFINITY</span></div>
+    <button onclick="openLedger()" style="background:none; border:1px solid var(--neon-orange); color:white; padding:10px 20px; cursor:pointer; font-weight:bold;">01. LEDGER RÉEL</button>
+</header>
+
+<div class="container">
+    <div class="grid">
+        <div class="cat-title">Marketplace Sécurisée</div>
+        <div class="grid-layout">
+            <div class="card">
+                <div class="img-placeholder">IRON MAN MK85</div>
+                <div class="card-info">
+                    <div class="price">650.00 €</div>
+                    <button class="btn-action" onclick="simulatePayment(650)">ACHAT DIRECT</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="img-placeholder">BATMAN PURE EDITION</div>
+                <div class="card-info">
+                    <div class="price">890.00 €</div>
+                    <button class="btn-action" onclick="simulatePayment(890)">ACHAT DIRECT</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ledgerModal" class="overlay">
+    <div class="modal-content">
+        <h2 style="color:var(--neon-orange); margin-top:0;">SPIRIT LEDGER SÉCURISÉ</h2>
+        <div class="ledger-status">
+            STATUT : <span style="color:white">CONNECTÉ (REAL-TIME)</span><br><br>
+            TOTAL ROYALTIES : <span id="l-roy" style="color:white">0.00 €</span><br>
+            PARTENAIRE (2.5%) : <span id="l-part" style="color:white">0.00 €</span><br>
+            SPIRIT (2.5%) : <span id="l-spi" style="color:white">0.00 €</span>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-gray); margin-top:15px;">
+            (c) 2026 Spirit Infinity - Toutes les transactions sont authentifiées via Spirit Ledger.
+        </p>
+        <button class="btn-action" onclick="closeModals()">RETOUR</button>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURATION GREFEE ---
+    const S_URL = 'https://eagmxrbtcaqqlhivvpww.supabase.co';
+    const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
     
-    const comm = price * 0.025; // Commission de 2.5%
+    const _spirit = supabase.createClient(S_URL, S_KEY);
 
-    const { error } = await _spirit.from('transactions').insert([{ 
-        price_sold: price, 
-        spirit_royalty: 3.00, 
-        commission_partner_2_5_percent: comm, 
-        commission_spirit_2_5_percent: comm,
-        status: 'COMPLETED'
-    }]);
+    // Synchronisation du Ledger
+    async function syncLedger() {
+        try {
+            const { data, error } = await _spirit.from('transactions').select('*');
+            if (error) throw error;
 
-    if (error) {
-        alert("Erreur Supabase : " + error.message);
-    } else {
-        alert("Paiement Spirit Validé !");
-        syncLedger(); // Mise à jour immédiate
+            if (data) {
+                let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
+                let p = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
+                let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0);
+                
+                document.getElementById('l-roy').innerText = r.toFixed(2) + " €";
+                document.getElementById('l-part').innerText = p.toFixed(2) + " €";
+                document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
+            }
+        } catch (e) {
+            console.error("Erreur de synchro :", e.message);
+        }
     }
-}
 
-// Lancement automatique
-syncLedger(); 
-setInterval(syncLedger, 10000); // Rafraîchissement toutes les 10 secondes
+    // Simulation d'achat
+    async function simulatePayment(price) {
+        if(!confirm("Voulez-vous procéder à l'achat sécurisé ?")) return;
+        
+        const comm = price * 0.025; // 2.5%
 
+        const { error } = await _spirit.from('transactions').insert([{ 
+            price_sold: price, 
+            spirit_royalty: 3.00, 
+            commission_partner_2_5_percent: comm, 
+            commission_spirit_2_5_percent: comm,
+            status: 'COMPLETED'
+        }]);
+
+        if (error) {
+            alert("Erreur transactionnelle : " + error.message);
+        } else {
+            alert("PAIEMENT SPIRIT VALIDÉ ! La base de données a été mise à jour.");
+            syncLedger();
+        }
+    }
+
+    // Gestion de l'interface
+    function openLedger() {
+        document.getElementById('ledgerModal').style.display = 'flex';
+        syncLedger();
+    }
+
+    function closeModals() {
+        document.getElementById('ledgerModal').style.display = 'none';
+    }
+
+    // Lancement Initial
+    syncLedger();
+    // Rafraîchissement toutes les 10 secondes
+    setInterval(syncLedger, 10000);
+</script>
+
+</body>
+</html>
