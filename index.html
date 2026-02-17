@@ -1,62 +1,146 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spirit Infinity | Marketplace</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { background: #050505; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
-        .btn { background: #ff6600; color: black; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; }
-        .ledger { border: 1px solid #00ffaa; padding: 20px; margin-top: 20px; display: inline-block; }
-    </style>
-</head>
-<body>
-    <h1>SPIRIT INFINITY</h1>
-    <div class="ledger">
-        ROYALTIES : <span id="l-roy">0.00</span> €
-    </div><br><br>
-    <button class="btn" onclick="simulatePayment(100)">TEST ACHAT 100€</button>
-
-<script>
-    const S_URL = 'https://eagmxrbtcaqqlhivvpww.supabase.co';
-    const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
+script>
+    // (c) 2026 Spirit Infinity - Tous droits réservés
     
-    // Initialisation forcée
-    const _spirit = supabase.createClient(S_URL, S_KEY, {
-        auth: { persistSession: false }
-    });
+    // --- CONFIGURATION SUPABASE GREFFÉE (CORRIGÉE SELON TES CAPTURES) ---
+    const SUPABASE_URL = 'https://eagmxrbtcaqglhivvpww.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FxZ2xoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg0MjM0NTYsImV4cCI6MjA1NDAwOTQ1Nn0.V7_t5mF8Y3m0M6o5S9k0Q_XvV9T8n5vY_7T8W9U5m4';
+    const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // --- MOTEUR FINANCIER LEDGER ---
     async function syncLedger() {
         try {
-            const { data, error } = await _spirit.from('transactions').select('*');
+            let { data, error } = await _spirit.from('transactions').select('*');
             if (error) throw error;
-            const total = data ? data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0) : 0;
-            document.getElementById('l-roy').innerText = total.toFixed(2);
-        } catch (e) {
-            console.error(e);
-            document.getElementById('l-roy').innerText = "ERREUR";
-        }
+            if (data) {
+                let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
+                let p = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
+                let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0);
+                
+                if(document.getElementById('l-roy')) document.getElementById('l-roy').innerText = r.toFixed(2) + " €";
+                if(document.getElementById('l-part')) document.getElementById('l-part').innerText = p.toFixed(2) + " €";
+                if(document.getElementById('l-spi')) document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
+            }
+        } catch (e) { console.log("Erreur synchro:", e.message); }
     }
 
-    async function simulatePayment(price) {
-        try {
-            const { error } = await _spirit.from('transactions').insert([{ 
+    async function processSpiritTransaction(price) {
+        const ROYALTY_FIXE = 3.00;
+        const TOTAL_COMMISSION_RATE = 0.05; // 5% total (2.5+2.5)
+        
+        const commissionTotale = price * TOTAL_COMMISSION_RATE;
+        const partPartenaire = commissionTotale / 2;
+        const partSpirit = commissionTotale / 2;
+        
+        const { data, error } = await _spirit
+            .from('transactions')
+            .insert([{ 
                 price_sold: price, 
-                spirit_royalty: 3.00, 
-                commission_partner_2_5_percent: price * 0.025, 
-                commission_spirit_2_5_percent: price * 0.025,
+                spirit_royalty: ROYALTY_FIXE, 
+                commission_partner_2_5_percent: partPartenaire, 
+                commission_spirit_2_5_percent: partSpirit,
                 status: 'COMPLETED'
             }]);
-            if (error) throw error;
-            alert("SUCCÈS !");
+
+        if (!error) {
+            alert(`Paiement Spirit Validé !\nRoyalties: ${ROYALTY_FIXE}€\nSplit: ${partPartenaire}€ Partenaire / ${partSpirit}€ Spirit`);
             syncLedger();
-        } catch (e) {
-            alert("ÉCHEC : " + e.message);
+            closeModals();
+        } else {
+            alert("Erreur Ledger: " + error.message);
         }
     }
 
+    // --- GESTION INTERFACE ---
+    function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
+
+    function applyFilters() {
+        const country = document.getElementById('fCountry').value;
+        const cond = document.getElementById('fCond').value;
+        document.querySelectorAll('.card').forEach(card => {
+            const mC = (country === 'all' || card.dataset.country === country);
+            const mS = (cond === 'all' || card.dataset.cond === cond);
+            card.style.display = (mC && mS) ? 'block' : 'none';
+        });
+    }
+
+    function openProduct(title, price, mac, type, country, hand) {
+        document.getElementById('productModal').style.display = 'flex';
+        document.getElementById('pTitle').innerText = title;
+        document.getElementById('pOrigin').innerText = country + " | " + hand;
+        document.getElementById('pFigDesc').innerText = "Authentification via " + type + ". Figurine scannée par Spirit IA.";
+        
+        const prot = price * 0.05;
+        const duty = (country !== 'France') ? price * 0.20 : 0;
+        document.getElementById('sumPrice').innerText = price + " €";
+        document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
+        document.getElementById('dutyLine').style.display = (duty > 0) ? 'flex' : 'none';
+        document.getElementById('sumDuty').innerText = duty.toFixed(2) + " €";
+        document.getElementById('sumTotal').innerText = (price + 25 + prot + duty).toFixed(2) + " €";
+        
+        const b = document.getElementById('pBadge');
+        b.innerText = (type === 'Native') ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
+        b.className = (type === 'Native') ? 'badge native' : 'badge legacy';
+    }
+
+    function simulatePayment() {
+        const priceStr = document.getElementById('sumPrice').innerText;
+        const price = parseFloat(priceStr.replace(' €', ''));
+        if(confirm("Confirmer l'achat sécurisé Spirit Infinity ?")) {
+            processSpiritTransaction(price);
+        }
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const list = document.getElementById('chatMsgs');
+        const forbidden = ["paypal", "06", "phone", "whatsapp", "virement", "@", ".com", "contact"];
+        if(input.value.trim() === "") return;
+        let safe = true;
+        forbidden.forEach(word => { if(input.value.toLowerCase().includes(word)) safe = false; });
+        const div = document.createElement('div');
+        div.style.marginBottom = "8px";
+        if(!safe) {
+            div.innerHTML = "<span style='color:var(--danger)'>[ALERTE SÉCURITÉ] Message bloqué : Tentative de vente hors-circuit détectée.</span>";
+        } else {
+            div.innerHTML = "<strong>Vous :</strong> " + input.value;
+        }
+        list.appendChild(div);
+        input.value = "";
+        list.scrollTop = list.scrollHeight;
+    }
+
+    let currentMethod = '';
+    function chooseMethod(m) {
+        currentMethod = m;
+        document.getElementById('stepMethod').style.display = 'none';
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('scanStatus').innerText = (m === 'native') ? "Recherche Ledger..." : "Analyse IA...";
+        setTimeout(() => {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+        }, 3000);
+    }
+
+    function finishCertif() {
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step3').style.display = 'block';
+    }
+
+    function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
+    function openAccount() { document.getElementById('accountModal').style.display = 'flex'; }
+    function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
+    function openSAV() { window.open('https://www.hottoys.com.hk/contact.php', '_blank'); }
+    function startCertification() { document.getElementById('certifModal').style.display = 'flex'; }
+
+    async function connectESP() {
+        try {
+            const port = await navigator.serial.requestPort();
+            await port.open({ baudRate: 115200 });
+            document.getElementById('realTimeData').innerHTML = "STATUS : CONNECTÉ [24:0A:C4:9B:54:28]";
+        } catch (e) { alert("Erreur WebSerial : " + e); }
+    }
+
+    // Init
+    setInterval(syncLedger, 5000);
     syncLedger();
 </script>
-</body>
-</html>
