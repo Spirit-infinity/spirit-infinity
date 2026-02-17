@@ -2,49 +2,44 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Spirit Infinity | Validation Ledger</title>
+    <title>Spirit Infinity | Liaison Finale</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --neon-orange: #ff6600;
-            --spirit-green: #00ffaa;
-            --bg: #050505;
-        }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .panel { border: 2px solid var(--neon-orange); background: #0a0a0a; padding: 40px; width: 450px; text-align: center; box-shadow: 0 0 30px rgba(255, 102, 0, 0.15); }
-        h1 { letter-spacing: 3px; font-weight: 900; margin: 0 0 10px 0; }
-        .status-box { background: #000; border: 1px solid #222; padding: 15px; margin: 20px 0; font-family: monospace; font-size: 0.85rem; text-align: left; min-height: 60px; }
-        button { background: var(--neon-orange); color: black; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        button:hover { background: white; transform: scale(1.02); }
-        .success { color: var(--spirit-green); }
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .panel { border: 2px solid #ff6600; background: #0a0a0a; padding: 40px; width: 450px; text-align: center; box-shadow: 0 0 40px rgba(255, 102, 0, 0.2); }
+        .status-box { background: #000; border: 1px solid #222; padding: 20px; margin: 25px 0; font-family: monospace; font-size: 0.8rem; text-align: left; min-height: 80px; line-height: 1.5; }
+        button { background: #ff6600; color: black; border: none; padding: 20px; width: 100%; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        button:hover { background: #00ffaa; color: #000; }
+        .success { color: #00ffaa; }
         .error { color: #ff3333; }
     </style>
 </head>
 <body>
 
 <div class="panel">
-    <h1>SPIRIT INFINITY</h1>
-    <p style="color: #666; font-size: 0.75rem;">SÉCURISATION DU DOSSIER PARTENAIRE</p>
+    <h1 style="margin:0; font-size: 1.5rem; letter-spacing: 3px;">SPIRIT INFINITY</h1>
+    <p style="color: #666; font-size: 0.7rem; margin-top: 5px;">DOSSIER PARTENAIRE : LIAISON SÉCURISÉE</p>
     
-    <div class="status-box" id="terminal">> Prêt pour injection...</div>
+    <div class="status-box" id="term">> Prêt pour le test final...</div>
     
-    <button onclick="runSync()">FORCER LA SYNCHRONISATION</button>
+    <button onclick="spiritSync()">FORCER LA SYNCHRONISATION</button>
 </div>
 
 <script>
     // (c) 2026 Spirit Infinity - Tous droits réservés
 
-    // CONFIGURATION FINALE VALIDÉE
-    const PROJECT_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co'; 
-    const PROJECT_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
+    // CONFIGURATION NETTOYÉE (ZÉRO ESPACE)
+    const SUPA_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
+    const SUPA_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
 
-    async function runSync() {
-        const term = document.getElementById('terminal');
-        term.innerHTML = "> Initialisation du client Supabase...<br>> Tentative d'écriture...";
-        term.style.color = "white";
+    async function spiritSync() {
+        const out = document.getElementById('term');
+        out.innerHTML = "> Initialisation...<br>> Envoi des données Ledger...";
+        out.style.color = "white";
 
         try {
-            const _spirit = supabase.createClient(PROJECT_URL, PROJECT_KEY);
+            // Création du client sans variables globales pour éviter les conflits
+            const _spirit = supabase.createClient(SUPA_URL, SUPA_KEY.trim());
 
             const { data, error } = await _spirit
                 .from('transactions')
@@ -53,18 +48,19 @@
                     spirit_royalty: 3.00, 
                     commission_partner_2_5_percent: 2.50, 
                     commission_spirit_2_5_percent: 2.50,
-                    status: 'COMPLETED'
+                    status: 'VALIDÉ_FINAL'
                 }])
                 .select();
 
             if (error) {
-                term.innerHTML = "<span class='error'>> ÉCHEC : " + error.message + "</span><br>> Vérifiez le RLS sur Supabase.";
+                // Si l'erreur persiste, cela signifie que la clé a expiré ou a été modifiée dans Supabase
+                out.innerHTML = "<span class='error'>> ÉCHEC : " + error.message + "</span><br>> Vérifie que la clé 'anon/public' est la même sur ton Dashboard.";
             } else {
-                term.innerHTML = "<span class='success'>> SUCCÈS : Transaction 100€ injectée.<br>> Ledger mis à jour en temps réel.</span>";
-                alert("SPIRIT INFINITY : Liaison établie et sécurisée.");
+                out.innerHTML = "<span class='success'>> SUCCÈS : 100€ ajoutés au Ledger !<br>> Liaison Spirit Infinity 100% OK.</span>";
+                console.log("Données :", data);
             }
         } catch (err) {
-            term.innerHTML = "<span class='error'>> ERREUR RÉSEAU : " + err.message + "</span>";
+            out.innerHTML = "<span class='error'>> ERREUR CRITIQUE : " + err.message + "</span>";
         }
     }
 </script>
