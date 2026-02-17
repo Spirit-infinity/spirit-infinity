@@ -2,41 +2,38 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Spirit Infinity - Test Connection</title>
+    <title>Spirit Infinity - Force Connect</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background: #000; color: #ff6600; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box { border: 2px solid #ff6600; padding: 40px; background: #0a0a0a; text-align: center; width: 400px; }
-        button { background: #fff; color: #000; border: none; padding: 20px 30px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 20px; width: 100%; }
-        #status { margin-top: 20px; font-family: monospace; font-size: 0.9rem; min-height: 40px; color: #777; }
+        .box { border: 2px solid #ff6600; padding: 40px; background: #0a0a0a; text-align: center; width: 450px; border-radius: 4px; }
+        button { background: #ff6600; color: #000; border: none; padding: 20px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; }
+        #status { margin-top: 25px; font-family: monospace; font-size: 0.8rem; color: #888; background: #111; padding: 10px; border: 1px solid #222; min-height: 50px; word-break: break-all; }
     </style>
 </head>
 <body>
 
     <div class="box">
-        <h2 style="margin:0">SPIRIT INFINITY</h2>
-        <p style="font-size: 0.8rem; color: #777;">TEST DE LIAISON DIRECTE</p>
+        <h2 style="margin-bottom:10px;">SPIRIT INFINITY</h2>
+        <p style="color:#555; font-size:0.7rem; margin-bottom:20px;">VÉRIFICATION DU TUNNEL DE DONNÉES</p>
         
-        <button id="btnAction" onclick="lancerAction()">TESTER ACHAT 100€</button>
+        <button onclick="lancerTest()">FORCER L'ENVOI (100€)</button>
         
-        <div id="status">Système prêt.</div>
+        <div id="status">En attente de clic...</div>
     </div>
 
 <script>
-    // (c) 2026 Spirit Infinity - Tous droits réservés
-
-    // 1. Définition des constantes
-    const SUPA_URL = 'https://eagmxrbtcaqglhivvpww.supabase.co';
-    const SUPA_KEY = 'sb_publishable_od0pcSeKYD3XB6wfFbaDPw_3cxYwQ6N7R9X1m5z8k2'; // Clé de ta capture 92c307ff
+    // --- INITIALISATION SÉCURISÉE ---
+    const S_URL = 'https://eagmxrbtcaqglhivvpww.supabase.co';
+    const S_KEY = 'sb_publishable_od0pcSeKYD3XB6wfFbaDPw_3cxYwQ6N7R9X1m5z8k2';
     
-    // 2. Initialisation immédiate
-    const _spirit = supabase.createClient(SUPA_URL, SUPA_KEY);
+    // On initialise ici pour éviter l'erreur "before initialization"
+    const _spirit = supabase.createClient(S_URL, S_KEY);
 
-    // 3. Fonction d'action
-    async function lancerAction() {
-        const div = document.getElementById('status');
-        div.innerText = "Connexion en cours...";
-        div.style.color = "white";
+    async function lancerTest() {
+        const logger = document.getElementById('status');
+        logger.innerText = "Tentative de connexion...";
+        logger.style.color = "#ff6600";
 
         try {
             const { data, error } = await _spirit
@@ -51,21 +48,18 @@
                 .select();
 
             if (error) {
-                // Si l'erreur est "Failed to fetch", c'est le réseau/CORS
-                div.innerText = "ERREUR BASE : " + error.message;
-                div.style.color = "red";
-                console.error("Détails:", error);
+                logger.innerText = "REFUS SUPABASE : " + error.message;
+                logger.style.color = "#ff3333";
             } else {
-                div.innerText = "SUCCÈS : Données envoyées !";
-                div.style.color = "#00ffaa";
-                alert("La transaction est dans ton Ledger Supabase !");
+                logger.innerText = "CONNECTÉ : Transaction enregistrée avec succès !";
+                logger.style.color = "#00ffaa";
+                alert("SPIRIT LEDGER : Succès !");
             }
         } catch (err) {
-            div.innerText = "ERREUR NAVIGATEUR : " + err.message;
-            div.style.color = "red";
+            logger.innerText = "BLOCAGE NAVIGATEUR : " + err.message + "\n(Vérifiez CORS ou Antivirus)";
+            logger.style.color = "#ff3333";
         }
     }
 </script>
 </body>
 </html>
-
