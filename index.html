@@ -2,49 +2,69 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Spirit Infinity - Test Clé Manuelle</title>
+    <title>Spirit Infinity | Validation Ledger</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #000; color: #ff6600; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .terminal { border: 2px solid #ff6600; padding: 30px; background: #050505; width: 450px; text-align: center; }
-        button { background: #ff6600; color: #000; border: none; padding: 18px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        #log { margin-top: 20px; font-family: monospace; font-size: 0.8rem; color: #555; text-align: left; background: #000; padding: 12px; border: 1px solid #111; min-height: 50px; }
+        :root {
+            --neon-orange: #ff6600;
+            --spirit-green: #00ffaa;
+            --bg: #050505;
+        }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .panel { border: 2px solid var(--neon-orange); background: #0a0a0a; padding: 40px; width: 450px; text-align: center; box-shadow: 0 0 30px rgba(255, 102, 0, 0.15); }
+        h1 { letter-spacing: 3px; font-weight: 900; margin: 0 0 10px 0; }
+        .status-box { background: #000; border: 1px solid #222; padding: 15px; margin: 20px 0; font-family: monospace; font-size: 0.85rem; text-align: left; min-height: 60px; }
+        button { background: var(--neon-orange); color: black; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        button:hover { background: white; transform: scale(1.02); }
+        .success { color: var(--spirit-green); }
+        .error { color: #ff3333; }
     </style>
 </head>
 <body>
 
-<div class="terminal">
-    <h2>SPIRIT INFINITY</h2>
-    <p style="font-size: 0.7rem; color: #444;">TEST CLÉ : ...RWB</p>
+<div class="panel">
+    <h1>SPIRIT INFINITY</h1>
+    <p style="color: #666; font-size: 0.75rem;">SÉCURISATION DU DOSSIER PARTENAIRE</p>
     
-    <button onclick="spiritConnect()">FORCER L'ENVOI</button>
+    <div class="status-box" id="terminal">> Prêt pour injection...</div>
     
-    <div id="log">> Prêt...</div>
+    <button onclick="runSync()">FORCER LA SYNCHRONISATION</button>
 </div>
 
 <script>
-    // --- CONFIGURATION DEMANDÉE ---
+    // (c) 2026 Spirit Infinity - Tous droits réservés
+
+    // CONFIGURATION FINALE VALIDÉE
     const PROJECT_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co'; 
-    const PUBLIC_KEY = 'Sb_publishable_odOpcSeKYD3XB6wfFbaDPw_3cxYwRWB'; // Ta clé courte
+    const PROJECT_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
 
-    async function spiritConnect() {
-        const logger = document.getElementById('log');
-        logger.innerText = "> Test avec clé manuelle...";
-        
+    async function runSync() {
+        const term = document.getElementById('terminal');
+        term.innerHTML = "> Initialisation du client Supabase...<br>> Tentative d'écriture...";
+        term.style.color = "white";
+
         try {
-            const client = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+            const _spirit = supabase.createClient(PROJECT_URL, PROJECT_KEY);
 
-            const { error } = await client
+            const { data, error } = await _spirit
                 .from('transactions')
-                .insert([{ price_sold: 100, status: 'TEST_CLE' }]);
+                .insert([{ 
+                    price_sold: 100, 
+                    spirit_royalty: 3.00, 
+                    commission_partner_2_5_percent: 2.50, 
+                    commission_spirit_2_5_percent: 2.50,
+                    status: 'COMPLETED'
+                }])
+                .select();
 
             if (error) {
-                logger.innerHTML = "<span style='color:red'>> RÉSULTAT : " + error.message + "</span>";
+                term.innerHTML = "<span class='error'>> ÉCHEC : " + error.message + "</span><br>> Vérifiez le RLS sur Supabase.";
             } else {
-                logger.innerHTML = "<span style='color:#00ffaa'>> SUCCÈS INATTENDU !</span>";
+                term.innerHTML = "<span class='success'>> SUCCÈS : Transaction 100€ injectée.<br>> Ledger mis à jour en temps réel.</span>";
+                alert("SPIRIT INFINITY : Liaison établie et sécurisée.");
             }
-        } catch (e) {
-            logger.innerHTML = "<span style='color:red'>> ERREUR : " + e.message + "</span>";
+        } catch (err) {
+            term.innerHTML = "<span class='error'>> ERREUR RÉSEAU : " + err.message + "</span>";
         }
     }
 </script>
