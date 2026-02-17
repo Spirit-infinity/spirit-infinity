@@ -1,66 +1,62 @@
 // ==========================================
-// CONFIGURATION SPIRIT INFINITY - GREFEE FINALE
+// GREFFE SPIRIT INFINITY - CONFIGURATION FINALE
 // ==========================================
 
-// 1. Initialisation avec les nouveaux identifiants (Cibles le projet eagmx...)
+// Tes nouveaux identifiants Supabase (Projet eagmx...)
 const SUPABASE_URL = 'https://eagmxrbtcaqqlhivvpww.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
 
-// On utilise '_spirit' comme tu l'as défini dans ton code de base
+// Initialisation du client Supabase
 const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// 2. Fonction de Synchronisation du Ledger (Optimisée et sans erreurs de syntaxe)
+// FONCTION : Synchronisation du Ledger
 async function syncLedger() {
     try {
-        console.log("Tentative de synchronisation Spirit Infinity...");
+        // On récupère les données de la table 'transactions' que tu as créée (Photo n°8)
         const { data, error } = await _spirit.from('transactions').select('*');
         
         if (error) throw error;
 
         if (data) {
-            // Calculs basés sur ton Business Model (3€ royalties / 2.5% split)
-            let totalRoyalty = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
-            let totalPartner = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
-            let totalSpirit = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0);
+            // Calcul des montants (Royalties 3€ et Split 2.5%)
+            let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
+            let p = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
+            let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0);
             
-            // Mise à jour des éléments HTML que je vois sur tes photos (l-roy, l-part, l-spi)
-            if(document.getElementById('l-roy')) document.getElementById('l-roy').innerText = totalRoyalty.toFixed(2) + " €";
-            if(document.getElementById('l-part')) document.getElementById('l-part').innerText = totalPartner.toFixed(2) + " €";
-            if(document.getElementById('l-spi')) document.getElementById('l-spi').innerText = totalSpirit.toFixed(2) + " €";
+            // Affichage dans ton interface (ID l-roy, l-part, l-spi de ta photo n°3)
+            if(document.getElementById('l-roy')) document.getElementById('l-roy').innerText = r.toFixed(2) + " €";
+            if(document.getElementById('l-part')) document.getElementById('l-part').innerText = p.toFixed(2) + " €";
+            if(document.getElementById('l-spi')) document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
             
-            console.log("Ledger synchronisé avec succès.");
+            console.log("Ledger Spirit Infinity synchronisé.");
         }
     } catch (e) {
-        console.error("Erreur critique de synchronisation :", e.message);
-        if(document.getElementById('l-roy')) document.getElementById('l-roy').innerText = "ERREUR";
+        console.error("Erreur de connexion :", e.message);
     }
 }
 
-// 3. Fonction d'achat (Simulateur Marketplace)
+// FONCTION : Simuler un achat (Action du bouton)
 async function simulatePayment(price) {
-    if(!confirm("Valider l'achat sur la Marketplace Spirit Infinity ?")) return;
+    if(!confirm("Confirmer la transaction sur Spirit Infinity ?")) return;
     
-    const commission = price * 0.025; // Ton split de 2.5%
+    const comm = price * 0.025; // Commission de 2.5%
 
     const { error } = await _spirit.from('transactions').insert([{ 
         price_sold: price, 
-        spirit_royalty: 3.00, // Tes 3€ de royalties par unité
-        commission_partner_2_5_percent: commission, 
-        commission_spirit_2_5_percent: commission,
+        spirit_royalty: 3.00, 
+        commission_partner_2_5_percent: comm, 
+        commission_spirit_2_5_percent: comm,
         status: 'COMPLETED'
     }]);
 
     if (error) {
-        alert("Erreur lors de la transaction : " + error.message);
+        alert("Erreur Supabase : " + error.message);
     } else {
         alert("Paiement Spirit Validé !");
-        syncLedger(); // Mise à jour immédiate du Ledger
+        syncLedger(); // Mise à jour immédiate
     }
 }
 
-// 4. Lancement automatique
-// Synchronise dès l'ouverture
+// Lancement automatique
 syncLedger(); 
-
-// Rafraîchissement automatique toutes le 10 secondes pour le "Real-Time"
-setInterval(syncLedger, 10000);
+setInterval(syncLedger, 10000); // Rafraîchissement toutes les 10 secondes
