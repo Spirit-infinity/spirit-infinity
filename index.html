@@ -1,96 +1,19 @@
-!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>SPIRIT INFINITY | Official Marketplace & Ledger</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --orange: #ff4500; --bg: #0a0a0a; --card: #141414; }
-        body { background: var(--bg); color: #e0e0e0; font-family: 'Orbitron', sans-serif; margin: 0; padding: 0; }
-        
-        /* HEADER INDUSTRIAL DARK */
-        .header { border-bottom: 2px solid var(--orange); padding: 20px; background: #000; text-align: center; box-shadow: 0 5px 15px rgba(255,69,0,0.1); }
-        h1 { color: #fff; margin: 0; letter-spacing: 4px; font-size: 1.5rem; }
+<div style="background:#1a1a1a; color:#ff4500; padding:15px; display:flex; justify-content:space-around; border-bottom:2px solid #ff4500; font-family:sans-serif; font-weight:bold;">
+    <div>ROYALTIES: <span id="r-val">...</span></div>
+    <div>PARTNER 2.5%: <span id="p-val">...</span></div>
+    <div>SPIRIT 2.5%: <span id="s-val">...</span></div>
+</div>
 
-        /* LEDGER LIVE STATS */
-        .ledger-bar { display: grid; grid-template-columns: repeat(3, 1fr); background: #1a1a1a; padding: 15px; border-bottom: 1px solid #333; }
-        .stat-item { text-align: center; border-right: 1px solid #333; }
-        .stat-item:last-child { border-right: none; }
-        .stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; }
-        .stat-value { color: var(--orange); font-size: 1.2rem; font-weight: bold; }
-
-        /* MARKETPLACE CONTENT */
-        .container { padding: 40px 20px; max-width: 1200px; margin: auto; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
-        .card { background: var(--card); border: 1px solid #222; border-radius: 10px; overflow: hidden; transition: 0.3s; position: relative; }
-        .card:hover { border-color: var(--orange); transform: translateY(-5px); }
-        .card-img { width: 100%; height: 350px; background: #222; display: flex; align-items: center; justify-content: center; color: #444; }
-        .card-info { padding: 20px; }
-        .price { font-size: 1.5rem; color: #fff; margin: 10px 0; }
-        
-        /* BOUTON DOSSIER (LE PREMIER POINT D'ENTRÉE) */
-        .btn-dossier { display: block; width: 100%; background: #fff; color: #000; text-align: center; padding: 15px; font-weight: bold; text-decoration: none; margin-bottom: 30px; border-radius: 5px; text-transform: uppercase; }
-
-        .tag-zero { background: var(--orange); color: #000; font-size: 0.7rem; padding: 3px 8px; font-weight: bold; position: absolute; top: 10px; right: 10px; border-radius: 3px; }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <h1>SPIRIT INFINITY</h1>
-        <p style="color:var(--orange); font-size: 0.7rem; margin-top:5px;">SECURED BY SPIRIT LEDGER TECHNOLOGY</p>
-    </div>
-
-    <div class="ledger-bar">
-        <div class="stat-item">
-            <div class="stat-label">Royalties (Native)</div>
-            <div id="r-val" class="stat-value">0.00€</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-label">Partner Share (2.5%)</div>
-            <div id="p-val" class="stat-value">0.00€</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-label">Marketplace Fee (2.5%)</div>
-            <div id="s-val" class="stat-value">0.00€</div>
-        </div>
-    </div>
-
-    <div class="container">
-        <a href="#" class="btn-dossier">00. PARTNERSHIP DOSSIER</a>
-
-        <div class="product-grid">
-            <div class="card">
-                <span class="tag-zero">ZERO-TRACE</span>
-                <div class="card-img">HOT TOYS | IRON MAN (EXAMPLE)</div>
-                <div class="card-info">
-                    <h3 style="margin:0">Premium Figure</h3>
-                    <p style="color:#666; font-size: 0.8rem;">Secondary Market ID: 24:0A:C4:9B:54:28</p>
-                    <div class="price">650.00€</div>
-                    <button style="width:100%; padding:10px; background:none; border:1px solid var(--orange); color:var(--orange); cursor:pointer;">ACHETER SUR MARKETPLACE</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const SUPABASE_URL = 'https://mkgskobkcpslnyyidmvo.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZ3Nrb2JrY3BzbG55eWlkbXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg0MjM0NTYsImV4cCI6MjA1NDAwOTQ1Nn0.V7_t5mF8Y3m0M6o5S9k0Q_XvV9T8n5vY_7T8W9U5m4';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        async function sync() {
-            let { data } = await _supabase.from('transactions').select('*');
-            if (data) {
-                let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
-                let p = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
-                let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0);
-                
-                document.getElementById('r-val').innerText = r.toFixed(2) + '€';
-                document.getElementById('p-val').innerText = p.toFixed(2) + '€';
-                document.getElementById('s-val').innerText = sp.toFixed(2) + '€';
-            }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const _supabase = supabase.createClient('https://mkgskobkcpslnyyidmvo.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZ3Nrb2JrY3BzbG55eWlkbXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg0MjM0NTYsImV4cCI6MjA1NDAwOTQ1Nn0.V7_t5mF8Y3m0M6o5S9k0Q_XvV9T8n5vY_7T8W9U5m4');
+    async function sync() {
+        let { data } = await _supabase.from('transactions').select('*');
+        if (data) {
+            document.getElementById('r-val').innerText = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0).toFixed(2) + '€';
+            document.getElementById('p-val').innerText = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0).toFixed(2) + '€';
+            document.getElementById('s-val').innerText = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0).toFixed(2) + '€';
         }
-        setInterval(sync, 2000); sync();
-    </script>
-</body>
-</html>
+    }
+    setInterval(sync, 2000); sync();
+</script>
