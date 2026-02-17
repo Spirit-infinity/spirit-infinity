@@ -2,66 +2,51 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Spirit Infinity - Connexion Rétablie</title>
+    <title>Spirit Infinity - Test Clé Manuelle</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background: #000; color: #ff6600; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .terminal { border: 2px solid #ff6600; padding: 30px; background: #050505; width: 420px; text-align: center; box-shadow: 0 0 20px rgba(255, 102, 0, 0.1); }
-        button { background: #ff6600; color: #000; border: none; padding: 18px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; }
-        #log { margin-top: 20px; font-family: monospace; font-size: 0.75rem; color: #555; text-align: left; background: #000; padding: 12px; border: 1px solid #111; min-height: 45px; }
+        .terminal { border: 2px solid #ff6600; padding: 30px; background: #050505; width: 450px; text-align: center; }
+        button { background: #ff6600; color: #000; border: none; padding: 18px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        #log { margin-top: 20px; font-family: monospace; font-size: 0.8rem; color: #555; text-align: left; background: #000; padding: 12px; border: 1px solid #111; min-height: 50px; }
     </style>
 </head>
 <body>
 
 <div class="terminal">
-    <h2 style="margin:0 0 10px 0;">SPIRIT INFINITY</h2>
-    <p style="font-size: 0.7rem; color: #444; margin-bottom: 20px;">ID RÉSEAU : eagmxrbtca**jqlh**ivvpww</p>
+    <h2>SPIRIT INFINITY</h2>
+    <p style="font-size: 0.7rem; color: #444;">TEST CLÉ : ...RWB</p>
     
-    <button onclick="spiritConnect()">FORCER L'ENVOI (100€)</button>
+    <button onclick="spiritConnect()">FORCER L'ENVOI</button>
     
-    <div id="log">> Système prêt...</div>
+    <div id="log">> Prêt...</div>
 </div>
 
 <script>
-    // --- CONFIGURATION SÉCURISÉE ---
-    // On utilise l'ID que tu as trouvé sur la photo 804ebc9d
+    // --- CONFIGURATION DEMANDÉE ---
     const PROJECT_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co'; 
-    
-    // ATTENTION : Recopie bien la clé de la photo 92c307ff sans aucun espace
-    const PUBLIC_KEY = 'sb_publishable_od0pcSeKYD3XB6wfFbaDPw_3cxYwQ6N7R9X1m5z8k2';
+    const PUBLIC_KEY = 'Sb_publishable_odOpcSeKYD3XB6wfFbaDPw_3cxYwRWB'; // Ta clé courte
 
     async function spiritConnect() {
         const logger = document.getElementById('log');
-        logger.innerText = "> Initialisation du tunnel...";
-        logger.style.color = "#ff6600";
+        logger.innerText = "> Test avec clé manuelle...";
         
         try {
-            // Initialisation locale
             const client = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-            const { data, error } = await client
+            const { error } = await client
                 .from('transactions')
-                .insert([{ 
-                    price_sold: 100, 
-                    spirit_royalty: 3.00, 
-                    commission_partner_2_5_percent: 2.50, 
-                    commission_spirit_2_5_percent: 2.50,
-                    status: 'COMPLETED'
-                }])
-                .select();
+                .insert([{ price_sold: 100, status: 'TEST_CLE' }]);
 
             if (error) {
-                // Si tu vois "Invalid API key", vérifie chaque lettre de PUBLIC_KEY
-                logger.innerHTML = "<span style='color:red'>> ERREUR : " + error.message + "</span>";
+                logger.innerHTML = "<span style='color:red'>> RÉSULTAT : " + error.message + "</span>";
             } else {
-                logger.innerHTML = "<span style='color:#00ffaa'>> SUCCÈS : Données synchronisées !</span>";
-                alert("SPIRIT INFINITY : Liaison validée.");
+                logger.innerHTML = "<span style='color:#00ffaa'>> SUCCÈS INATTENDU !</span>";
             }
         } catch (e) {
-            logger.innerHTML = "<span style='color:red'>> BLOCAGE : " + e.message + "</span>";
+            logger.innerHTML = "<span style='color:red'>> ERREUR : " + e.message + "</span>";
         }
     }
 </script>
 </body>
 </html>
-
