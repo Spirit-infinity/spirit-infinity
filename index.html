@@ -15,67 +15,84 @@
             --border: #1a1a1a;
             --glass: rgba(255, 255, 255, 0.03);
             --danger: #ff3333;
+            --shadow-orange: 0 0 15px rgba(255, 102, 0, 0.3);
         }
 
-        body { background-color: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
+        body { 
+            background-color: var(--bg-dark); 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-orange) #000;
+        }
 
-        /* HEADER & LOGO */
-        header { padding: 15px 5%; background: #000; border-bottom: 2px solid var(--neon-orange); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        /* --- HEADER & LOGO --- */
+        header { 
+            padding: 15px 5%; 
+            background: #000; 
+            border-bottom: 2px solid var(--neon-orange); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000;
+            box-shadow: var(--shadow-orange);
+        }
         .logo-block { display: flex; flex-direction: column; line-height: 1; cursor: pointer; }
-        .logo-main { font-weight: 900; font-size: 1.6rem; color: white; letter-spacing: 1px; }
-        .logo-sub { font-weight: bold; font-size: 0.75rem; color: var(--neon-orange); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+        .logo-main { font-weight: 900; font-size: 2rem; color: white; letter-spacing: -1px; text-transform: uppercase; }
+        .logo-sub { font-weight: bold; font-size: 0.75rem; color: var(--neon-orange); letter-spacing: 3px; text-transform: uppercase; margin-top: 2px; }
         
         nav button { background: none; border: none; color: white; margin: 0 10px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.3s; text-transform: uppercase; }
-        nav button:hover, nav button.active { color: var(--neon-orange); }
-        .btn-action { background: var(--neon-orange); color: black; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 2px; text-transform: uppercase; font-size: 0.75rem; }
+        nav button:hover, nav button.active { color: var(--neon-orange); text-shadow: 0 0 5px var(--neon-orange); }
+        .btn-action { background: var(--neon-orange); color: black; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 2px; text-transform: uppercase; font-size: 0.75rem; transition: 0.2s; }
+        .btn-action:hover { transform: scale(1.05); background: #fff; }
 
-        /* LAYOUT */
-        .container { display: flex; padding: 20px 5%; gap: 20px; }
-        .sidebar { width: 280px; background: var(--card-bg); padding: 20px; border: 1px solid var(--border); height: fit-content; position: sticky; top: 100px; }
+        /* --- LAYOUT --- */
+        .container { display: flex; padding: 20px 5%; gap: 30px; }
+        .sidebar { width: 300px; background: var(--card-bg); padding: 25px; border: 1px solid var(--border); height: fit-content; position: sticky; top: 110px; border-radius: 4px; }
         .grid { flex: 1; }
-        .cat-title { color: var(--neon-orange); font-size: 1.2rem; font-weight: 900; margin: 30px 0 15px 0; border-left: 4px solid var(--neon-orange); padding-left: 15px; text-transform: uppercase; letter-spacing: 1px; }
-        .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .cat-title { color: var(--neon-orange); font-size: 1.4rem; font-weight: 900; margin: 40px 0 20px 0; border-left: 5px solid var(--neon-orange); padding-left: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
 
-        /* CARDS */
+        /* --- CARDS MARKETPLACE --- */
         .card { background: var(--card-bg); border: 1px solid var(--border); cursor: pointer; position: relative; transition: 0.3s; border-radius: 4px; overflow: hidden; }
-        .card:hover { border-color: var(--neon-orange); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        .img-placeholder { width: 100%; height: 200px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; border-bottom: 1px solid var(--border); text-align: center; padding: 10px; }
-        .card-info { padding: 15px; }
-        .price { font-size: 1.3rem; font-weight: 800; color: white; margin-bottom: 5px; }
-        .title { font-size: 0.85rem; color: #ccc; margin-bottom: 12px; height: 35px; overflow: hidden; }
-        .legende { font-size: 0.7rem; color: var(--text-gray); border-top: 1px solid #222; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .badge { position: absolute; top: 10px; left: 10px; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; }
-        .native { background: var(--spirit-green); color: black; }
-        .legacy { background: #0066ff; color: white; }
+        .card:hover { border-color: var(--neon-orange); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .img-placeholder { width: 100%; height: 220px; background: #0a0a0a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #333; border-bottom: 1px solid var(--border); position: relative; }
+        .card-info { padding: 20px; }
+        .price { font-size: 1.5rem; font-weight: 900; color: white; margin-bottom: 5px; }
+        .title { font-size: 0.9rem; color: #bbb; margin-bottom: 15px; height: 40px; overflow: hidden; font-weight: 500; }
+        .legende { font-size: 0.7rem; color: var(--text-gray); border-top: 1px solid #1a1a1a; padding-top: 12px; display: flex; justify-content: space-between; }
+        .badge { position: absolute; top: 12px; left: 12px; padding: 5px 12px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; letter-spacing: 1px; }
+        .native { background: var(--spirit-green); color: black; box-shadow: 0 0 10px var(--spirit-green); }
+        .legacy { background: #0066ff; color: white; box-shadow: 0 0 10px #0066ff; }
 
-        /* FORUM REPENSI (STYLE INDUSTRIEL DARK) */
-        .forum-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
-        .forum-categories { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .forum-cat-card { background: #111; padding: 15px; border: 1px solid #222; border-radius: 4px; cursor: pointer; transition: 0.3s; }
-        .forum-cat-card:hover { border-color: var(--neon-orange); background: #151515; }
-        .forum-cat-card h4 { margin: 0; color: var(--neon-orange); font-size: 0.9rem; }
-        .forum-cat-card p { margin: 5px 0 0 0; font-size: 0.7rem; color: #555; }
-        .forum-thread { background: #0c0c0c; border: 1px solid #1a1a1a; margin-bottom: 15px; border-radius: 4px; }
-        .thread-main { padding: 15px; display: flex; gap: 15px; }
-        .user-avatar { width: 40px; height: 40px; background: #222; border: 1px solid var(--neon-orange); border-radius: 2px; }
-        .thread-content { flex: 1; }
-        .thread-meta { font-size: 0.65rem; color: #555; margin-bottom: 5px; }
-        .thread-title { font-size: 0.95rem; font-weight: bold; color: #eee; }
-        .thread-tags { display: flex; gap: 5px; margin-top: 10px; }
-        .tag { font-size: 0.6rem; background: #222; color: #999; padding: 2px 6px; border-radius: 2px; }
+        /* --- FORUM INDUSTRIAL --- */
+        .forum-container { display: flex; flex-direction: column; gap: 15px; }
+        .forum-item { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 20px; border-radius: 4px; display: flex; gap: 20px; transition: 0.3s; cursor: pointer; }
+        .forum-item:hover { border-color: var(--neon-orange); background: #0f0f0f; }
+        .vote-box { display: flex; flex-direction: column; align-items: center; min-width: 40px; color: #444; }
+        .vote-box span { font-weight: 900; font-size: 1.1rem; }
+        .post-main { flex: 1; }
+        .post-meta { font-size: 0.65rem; color: var(--text-gray); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .post-title { font-size: 1.1rem; font-weight: bold; color: #eee; margin-bottom: 5px; }
+        .post-desc { font-size: 0.85rem; color: #777; line-height: 1.4; }
 
-        /* DASHBOARD & MODALS */
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000; overflow-y: auto; padding: 40px 5%; }
-        .modal-content { background: #0a0a0a; border: 1px solid var(--border); padding: 30px; max-width: 900px; margin: auto; position: relative; }
-        input, select, textarea { width: 100%; background: #111; border: 1px solid #333; color: white; padding: 12px; margin: 10px 0; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        /* --- DASHBOARD & MODALS --- */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; overflow-y: auto; padding: 50px 5%; backdrop-filter: blur(5px); }
+        .modal-content { background: #080808; border: 1px solid var(--neon-orange); padding: 40px; max-width: 1100px; margin: auto; position: relative; box-shadow: 0 0 50px rgba(255, 102, 0, 0.1); }
+        input, select, textarea { width: 100%; background: #111; border: 1px solid #222; color: white; padding: 14px; margin: 10px 0; border-radius: 2px; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
+        input:focus { border-color: var(--neon-orange); outline: none; }
         
-        /* LEDGER & STATUS */
-        .ledger-status { padding: 20px; border: 1px solid var(--spirit-green); color: var(--spirit-green); margin-bottom: 20px; font-family: monospace; background: rgba(0,255,170,0.05); }
-        .laser { height: 2px; background: var(--neon-orange); box-shadow: 0 0 15px var(--neon-orange); animation: move 2s infinite ease-in-out; }
-        @keyframes move { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(100px); } }
+        /* --- LEDGER & SPIRIT CORE --- */
+        .ledger-status { padding: 25px; border: 1px solid var(--spirit-green); color: var(--spirit-green); margin-bottom: 25px; font-family: 'Courier New', monospace; background: rgba(0,255,170,0.02); line-height: 1.6; }
+        .laser-line { height: 2px; background: var(--neon-orange); box-shadow: 0 0 15px var(--neon-orange); position: absolute; width: 100%; top: 0; left: 0; animation: scan 3s infinite ease-in-out; }
+        @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
 
-        /* SHIPPING LABEL */
-        .shipping-label { background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; border: 2px solid black; margin-top: 10px; }
+        .shipping-label { background: white; color: black; padding: 25px; font-family: 'Courier New', monospace; border: 3px solid black; margin-top: 15px; position: relative; overflow: hidden; }
+        .shipping-label::after { content: "SPIRIT SECURE"; position: absolute; top: 10px; right: -30px; background: black; color: white; transform: rotate(45deg); padding: 5px 40px; font-size: 0.6rem; }
     </style>
 </head>
 <body>
@@ -91,43 +108,34 @@
         <button onclick="openForum()">FORUM</button>
         <button onclick="openAccount()">MON COMPTE</button>
         <button onclick="openSAV()">SAV HOT TOYS</button>
-        <select onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
+        <select id="langSelect" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.75rem; padding:5px 10px; width:auto;">
             <option value="FR">FR 🇫🇷</option>
             <option value="EN">EN 🇺🇸</option>
             <option value="CN">CN 🇨🇳</option>
             <option value="ES">ES 🇪🇸</option>
         </select>
     </nav>
-    <div style="display:flex; gap:10px;">
-        <button id="btn-reg" class="btn-action" style="background:#222; color:white;" onclick="openRegister()">INSCRIPTION</button>
+    <div style="display:flex; gap:15px;">
+        <button id="btn-reg" class="btn-action" style="background:#1a1a1a; color:white; border:1px solid #333;" onclick="openRegister()">INSCRIPTION</button>
         <button class="btn-action" onclick="startCertification()">VENDRE & CERTIFIER</button>
     </div>
 </header>
 
 <div class="container">
     <div class="sidebar">
-        <h4 style="color:var(--neon-orange); margin-top:0;">FILTRES DE RECHERCHE</h4>
+        <h4 style="color:var(--neon-orange); margin-top:0; letter-spacing:1px;">FILTRES EXPERTS</h4>
         
-        <label>Budget (€)</label>
+        <label style="font-size:0.7rem; color:#555; text-transform:uppercase;">Budget Max</label>
         <select id="fPrice" onchange="applyFilters()">
             <option value="all">Tous les prix</option>
             <option value="0-100">0 à 100€</option>
             <option value="100-200">100 à 200€</option>
             <option value="200-300">200 à 300€</option>
             <option value="300-400">300 à 400€</option>
-            <option value="400+">400€ et plus</option>
+            <option value="400+">Plus de 400€</option>
         </select>
 
-        <label>Zone d'expédition</label>
-        <select id="fCountry" onchange="applyFilters()">
-            <option value="all">Toutes les zones</option>
-            <option value="France">France</option>
-            <option value="Europe">Europe</option>
-            <option value="Chine">Chine</option>
-            <option value="USA">USA</option>
-        </select>
-
-        <label>Marque</label>
+        <label style="font-size:0.7rem; color:#555; text-transform:uppercase;">Marque</label>
         <select id="fBrand" onchange="applyFilters()">
             <option value="all">Toutes les marques</option>
             <option value="Hot Toys">Hot Toys</option>
@@ -136,97 +144,99 @@
             <option value="Autre">Autre</option>
         </select>
 
-        <label>Format</label>
+        <label style="font-size:0.7rem; color:#555; text-transform:uppercase;">Format / Echelle</label>
         <select id="fCat" onchange="applyFilters()">
             <option value="all">Tous les formats</option>
             <option value="1/6">Action Figure 1/6</option>
             <option value="1/4">Statue 1/4</option>
             <option value="Resine">Statue Résine</option>
         </select>
+
+        <div style="margin-top:30px; padding:15px; background:rgba(255,102,0,0.05); border:1px solid #222; font-size:0.7rem; line-height:1.5;">
+            <span style="color:var(--neon-orange); font-weight:bold;">SÉCURITÉ SPIRIT INFINITY</span><br>
+            Toutes les transactions sont protégées par le Spirit Ledger. Split frais : 3% acheteur / 3% vendeur.
+        </div>
     </div>
 
     <div class="grid">
         <div class="cat-title">1. Équipées Spirit (Hardware Ledger)</div>
         <div class="grid-layout" id="marketGridNative"></div>
+
         <div class="cat-title">2. Anciennes Collections & Multimarques</div>
         <div class="grid-layout" id="marketGridLegacy"></div>
     </div>
 </div>
 
 <div id="certifModal" class="overlay">
-    <div class="modal-content" style="max-width:600px;">
-        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+    <div class="modal-content" style="max-width:700px;">
+        <button onclick="closeModals()" style="position:absolute; top:25px; right:25px; background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">✕</button>
+        
         <div id="stepMethod">
-            <h2 style="text-align:center;">VENDRE & CERTIFIER</h2>
-            <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
-                <button class="btn-action" onclick="chooseMethod('hot_native')">1. Hot Toys (Spirit Native + Scan IA)</button>
-                <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan IA)</button>
-                <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (Sans Scan IA)</button>
+            <h2 style="text-align:center; color:var(--neon-orange);">VENDRE UN OBJET</h2>
+            <p style="text-align:center; color:#555; margin-bottom:30px;">Choisissez la méthode de certification pour votre figurine.</p>
+            <div style="display:grid; grid-template-columns: 1fr; gap:15px;">
+                <button class="btn-action" onclick="chooseMethod('hot_native')" style="height:60px;">1. Hot Toys (Spirit Native - Déjà équipée)</button>
+                <button class="btn-action" style="background:#0066ff; color:white; height:60px;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan Authentification IA)</button>
+                <button class="btn-action" style="background:#333; color:white; height:60px;" onclick="chooseMethod('other')">3. Autre Marque (Vente Classique - Pas de Scan IA)</button>
             </div>
         </div>
+
         <div id="stepInfo" style="display:none;">
-            <input type="text" id="saleTitle" placeholder="Nom de la figurine">
-            <input type="number" id="inputPrice" placeholder="Votre Prix de vente (€)">
-            <select id="saleCat">
-                <option value="1/6">Action Figure 1/6</option>
-                <option value="1/4">Statue 1/4</option>
-                <option value="Resine">Résine</option>
-            </select>
-            <label style="font-size:0.7rem; color:var(--neon-orange);">LOGISTIQUE : TAILLE DU COLIS</label>
+            <h3 style="color:var(--neon-orange);">DÉTAILS DE L'ANNONCE</h3>
+            <input type="text" id="saleTitle" placeholder="Nom exact de la figurine (ex: Iron Man MK85)">
+            <input type="number" id="inputPrice" placeholder="Prix de vente souhaité (€)">
+            
+            <label style="font-size:0.7rem; color:var(--neon-orange); display:block; margin-top:10px;">FORMAT LOGISTIQUE (POUR BORDEREAU)</label>
             <select id="saleShip">
-                <option value="9.90">S - Petit (Tête, Accessoires) - 9.90€</option>
-                <option value="14.90">M - Moyen (Figurine 1/6 standard) - 14.90€</option>
-                <option value="25.00">L - Grand (Diecast, Statues, 1/4) - 25.00€</option>
+                <option value="9.90">S - Petit (Tête, Accessoires, Box Slim) - 9.90€</option>
+                <option value="14.90">M - Moyen (Boite 1/6 Standard - Batman, Spider-man) - 14.90€</option>
+                <option value="25.00">L - Grand (Diecast, Hulk, 1/4, Box XL) - 25.00€</option>
             </select>
-            <textarea id="saleDesc" placeholder="Description de l'état..."></textarea>
-            <button class="btn-action" style="width:100%;" onclick="goToScan()">LANCER LA CERTIFICATION</button>
+            
+            <textarea id="saleDesc" rows="4" placeholder="Description de l'état (Scellé, Exposé en vitrine, Défauts éventuels...)"></textarea>
+            <button class="btn-action" style="width:100%; margin-top:20px; font-size:1rem;" onclick="goToScan()">LANCER LA CERTIFICATION</button>
         </div>
-        <div id="stepScan" style="display:none; text-align:center;">
-            <h2 id="scanTitle">ANALYSE BIOMÉTRIQUE</h2>
-            <div style="height:120px; border:1px dashed #333; position:relative; margin:20px 0;"><div class="laser"></div></div>
-            <p id="scanStatus" style="font-family:monospace; color:var(--spirit-green);">Analyse des couches de peinture...</p>
+
+        <div id="stepScan" style="display:none; text-align:center; padding:40px 0;">
+            <h2 id="scanTitle" style="letter-spacing:2px;">SCAN BIOMÉTRIQUE EN COURS</h2>
+            <div style="height:200px; border:1px solid #1a1a1a; position:relative; margin:30px 0; background:#050505; overflow:hidden;">
+                <div class="laser-line"></div>
+                <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#222; font-family:monospace; font-size:0.8rem;">ANALYSE DES PIGMENTS...</div>
+            </div>
+            <p id="scanStatus" style="font-family:monospace; color:var(--spirit-green);">Vérification de la base de données Hot Toys Hong Kong...</p>
         </div>
+
         <div id="stepFinish" style="display:none; text-align:center;">
-            <h2 style="color:var(--spirit-green);">CERTIFIÉ AVEC SUCCÈS</h2>
-            <p>Votre annonce est maintenant en tête de liste.</p>
-            <button class="btn-action" style="width:100%;" onclick="publishFinal()">RETOUR AU MARCHÉ</button>
+            <h2 style="color:var(--spirit-green); font-size:2rem;">OBJET CERTIFIÉ</h2>
+            <p style="margin-bottom:30px;">Votre annonce a été validée et placée en priorité 1 sur la marketplace.</p>
+            <button class="btn-action" style="width:100%;" onclick="publishFinal()">VOIR MON ANNONCE</button>
         </div>
     </div>
 </div>
 
 <div id="forumModal" class="overlay">
-    <div class="modal-content" style="max-width:1000px;">
-        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <div class="forum-header">
-            <h2>COMMUNAUTÉ SPIRIT INFINITY</h2>
-            <button class="btn-action" style="padding:8px 15px; font-size:0.6rem;">+ NOUVEAU SUJET</button>
+    <div class="modal-content">
+        <button onclick="closeModals()" style="position:absolute; top:25px; right:25px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; padding-bottom:20px; margin-bottom:30px;">
+            <h2 style="margin:0; letter-spacing:1px;">COMMUNAUTÉ SPIRIT</h2>
+            <button class="btn-action" style="padding:10px 20px; font-size:0.7rem;">+ NOUVEAU SUJET</button>
         </div>
-        <div class="forum-categories">
-            <div class="forum-cat-card"><h4>GÉNÉRAL</h4><p>News et annonces officielles</p></div>
-            <div class="forum-cat-card"><h4>REVIEWS</h4><p>Avis des collectionneurs</p></div>
-            <div class="forum-cat-card"><h4>ENTRAIDE</h4><p>Réparation et conseils</p></div>
-        </div>
-        <div id="forumThreads">
-            <div class="forum-thread">
-                <div class="thread-main">
-                    <div class="user-avatar"></div>
-                    <div class="thread-content">
-                        <div class="thread-meta">Posté par <strong>Collector_99</strong> • Il y a 2h</div>
-                        <div class="thread-title">Quelle est la meilleure version de Iron Man selon vous ?</div>
-                        <div class="thread-tags"><span class="tag">#HotToys</span><span class="tag">#IronMan</span></div>
-                    </div>
-                    <div style="text-align:right; font-size:0.7rem; color:#444;">122 RÉPONSES</div>
+        
+        <div class="forum-container">
+            <div class="forum-item" style="border-left:4px solid var(--neon-orange);">
+                <div class="vote-box"><span style="color:var(--neon-orange)">▲</span><span>154</span><span>▼</span></div>
+                <div class="post-main">
+                    <div class="post-meta">Official • Spirit Team • 2h ago</div>
+                    <div class="post-title">Mise à jour majeure du Ledger : Support des figurines JND Studios</div>
+                    <div class="post-desc">Nous avons finalisé l'algorithme d'authentification pour les visages en silicone...</div>
                 </div>
             </div>
-            <div class="forum-thread" style="border-color:var(--neon-orange);">
-                <div class="thread-main">
-                    <div class="user-avatar" style="border-color:var(--spirit-green);"></div>
-                    <div class="thread-content">
-                        <div class="thread-meta" style="color:var(--spirit-green);">ANNONCE OFFICIELLE SPIRIT</div>
-                        <div class="thread-title">Mise à jour du Ledger : Nouveau split 3%/3% activé</div>
-                        <div class="thread-tags"><span class="tag">#Update</span><span class="tag">#Security</span></div>
-                    </div>
-                    <div style="text-align:right; font-size:0.7rem; color:#444;">OFFICIEL</div>
+            <div class="forum-item">
+                <div class="vote-box"><span>▲</span><span>24</span><span>▼</span></div>
+                <div class="post-main">
+                    <div class="post-meta">Discussion • User_882 • 5h ago</div>
+                    <div class="post-title">Batman InArt vs Hot Toys : Votre avis définitif ?</div>
+                    <div class="post-desc">Après avoir reçu mon InArt, je trouve que le tailoring est supérieur mais...</div>
                 </div>
             </div>
         </div>
@@ -235,47 +245,62 @@
 
 <div id="productModal" class="overlay">
     <div class="modal-content">
-        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <div style="display:flex; gap:30px; flex-wrap:wrap;">
-            <div style="flex:1; min-width:300px;">
-                <div style="background:#111; height:350px; border:1px solid #222; display:flex; align-items:center; justify-content:center;">IMAGES IA SCAN</div>
-                <div style="margin-top:20px; background:#080808; border:1px solid #222; height:200px; padding:10px; overflow-y:auto;" id="chatMsgs">
-                    <div style="color:var(--danger); font-size:0.7rem;">[WATCHDOG] Les échanges de coordonnées sont interdits.</div>
+        <button onclick="closeModals()" style="position:absolute; top:25px; right:25px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <div style="display:flex; gap:40px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:400px;">
+                <div style="background:#000; height:450px; border:1px solid #222; position:relative; display:flex; align-items:center; justify-content:center;">
+                    <span style="color:#222; font-size:0.8rem; font-weight:900;">PHOTO HAUTE RÉSOLUTION IA SCAN</span>
                 </div>
-                <div style="display:flex; border-top:1px solid #222;">
-                    <input type="text" id="chatInput" placeholder="Poser une question..." style="margin:0; border-radius:0;">
-                    <button class="btn-action" onclick="sendMessage()" style="padding:0 20px;">OK</button>
+                <div style="margin-top:25px; background:#0a0a0a; border:1px solid #222; height:250px; display:flex; flex-direction:column;">
+                    <div id="chatMsgs" style="flex:1; padding:15px; overflow-y:auto; font-size:0.85rem; line-height:1.5;">
+                        <div style="color:var(--danger); font-size:0.7rem; margin-bottom:10px; border:1px solid var(--danger); padding:10px; background:rgba(255,51,51,0.05);">[SECURITY WATCHDOG] Le partage de numéros, emails ou liens externes entraîne un ban définitif du Spirit Ledger.</div>
+                    </div>
+                    <div style="display:flex; border-top:1px solid #222;">
+                        <input type="text" id="chatInput" placeholder="Posez une question au vendeur..." style="margin:0; border:none; background:transparent;">
+                        <button class="btn-action" onclick="sendMessage()" style="padding:0 25px; border-radius:0;">ENVOYER</button>
+                    </div>
                 </div>
             </div>
-            <div style="flex:1; min-width:300px;">
-                <h2 id="pTitle">Produit</h2>
-                <div style="background:#111; padding:20px; border:1px solid #222;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>Prix</span> <span id="sumPrice">0 €</span></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>Expédition</span> <span id="sumShip">0 €</span></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>Protection (6%)</span> <span id="sumProt">0 €</span></div>
-                    <hr style="border-color:#333;">
-                    <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--neon-orange);"><span>TOTAL</span> <span id="sumTotal">0 €</span></div>
+            <div style="flex:0.8; min-width:300px;">
+                <h1 id="pTitle" style="margin-top:0; font-size:2rem; letter-spacing:-1px;">Produit</h1>
+                <div id="pOrigin" style="color:var(--spirit-green); font-weight:bold; font-size:0.8rem; margin-bottom:20px; text-transform:uppercase;">Authentifié par Spirit Native</div>
+                
+                <div class="ledger-status" style="border-color:#222; color:white;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span style="color:#555;">Prix de l'objet</span> <span id="sumPrice" style="font-weight:bold;">0 €</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span style="color:#555;">Expédition Sécurisée</span> <span id="sumShip">0 €</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span style="color:#555;">Protection Spirit (3%+3%)</span> <span id="sumProt" style="color:var(--spirit-green);">0 €</span></div>
+                    <hr style="border-color:#222; margin:15px 0;">
+                    <div style="display:flex; justify-content:space-between; font-size:1.4rem; font-weight:900; color:var(--neon-orange);"><span>TOTAL</span> <span id="sumTotal">0 €</span></div>
                 </div>
-                <button class="btn-action" style="width:100%; margin-top:20px;">ACHETER MAINTENANT</button>
+                
+                <button class="btn-action" style="width:100%; height:60px; font-size:1.1rem;" onclick="processPurchase()">ACHETER MAINTENANT</button>
+                <button class="btn-action" style="width:100%; height:50px; margin-top:10px; background:#111; color:white; border:1px solid #222;">FAIRE UNE OFFRE</button>
             </div>
         </div>
     </div>
 </div>
 
-<div id="accountModal" class="overlay"><div class="modal-content"><button onclick="closeModals()">✕</button><h2>MON COMPTE</h2><div id="tab-ventes" style="margin-top:20px;"><h3>MES VENTES</h3><div class="shipping-label">REF: SP-ORD-9920 | DEST: Lyon, FR</div></div></div></div>
-<div id="ledgerModal" class="overlay"><div class="modal-content"><button onclick="closeModals()">✕</button><h2>SPIRIT LEDGER</h2><div class="ledger-status">REVENU MULTIPLIER: X3 / X5 | SPLIT 3% / 3%</div></div></div>
-
 <script>
+    /* --- CONFIGURATION SUPABASE & ESP32 --- */
+    const translations = {
+        FR: { nav_market: "MARKETPLACE", nav_ledger: "MON LEDGER", nav_forum: "FORUM", nav_account: "MON COMPTE", nav_sav: "SAV HOT TOYS", btn_reg: "INSCRIPTION", btn_sell: "VENDRE & CERTIFIER" },
+        EN: { nav_market: "MARKETPLACE", nav_ledger: "MY LEDGER", nav_forum: "FORUM", nav_account: "MY ACCOUNT", nav_sav: "SAV HOT TOYS", btn_reg: "SIGN UP", btn_sell: "SELL & CERTIFY" },
+        CN: { nav_market: "市場", nav_ledger: "我的賬本", nav_forum: "論壇", nav_account: "我的賬戶", nav_sav: "售後服務", btn_reg: "註冊", btn_sell: "出售與認證" },
+        ES: { nav_market: "MERCADO", nav_ledger: "MI LEDGER", nav_forum: "FORO", nav_account: "MI CUENTA", nav_sav: "SOPORTE HOT TOYS", btn_reg: "REGISTRO", btn_sell: "VENDER Y CERTIFICAR" }
+    };
+
     const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
-    const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; 
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; 
     const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let userAds = [];
     const baseAds = [
-        { title: 'Batman InArt (1/6)', price: 850, brand: 'InArt', type: 'Native', cat:'1/6', ship: 25 },
-        { title: 'Iron Man MK85 Hot Toys', price: 420, brand: 'Hot Toys', type: 'Legacy', cat:'1/6', ship: 14.90 }
+        { title: 'Batman InArt (Standard) 1/6', price: 850, brand: 'InArt', type: 'Native', cat:'1/6', ship: 14.90 },
+        { title: 'Iron Man MK85 Hot Toys Diecast', price: 420, brand: 'Hot Toys', type: 'Legacy', cat:'1/6', ship: 25.00 },
+        { title: 'Joker InArt Rooted Hair', price: 1250, brand: 'InArt', type: 'Native', cat:'1/6', ship: 14.90 }
     ];
 
+    /* --- LOGIQUE DE RENDU --- */
     function renderMarket() {
         const gridNative = document.getElementById('marketGridNative');
         const gridLegacy = document.getElementById('marketGridLegacy');
@@ -294,7 +319,10 @@
                 <div class="card-info">
                     <div class="price">${ad.price} €</div>
                     <div class="title">${ad.title}</div>
-                    <div class="legende"><span>Expédition: ${ad.ship}€</span><span style="color:var(--spirit-green)">Disponible</span></div>
+                    <div class="legende">
+                        <span>Expédition: ${ad.ship}€</span>
+                        <span style="color:var(--spirit-green)">● DISPONIBLE</span>
+                    </div>
                 </div>
             `;
             if(ad.type === 'Native') gridNative.appendChild(card);
@@ -306,32 +334,36 @@
         document.getElementById('productModal').style.display = 'flex';
         document.getElementById('pTitle').innerText = ad.title;
         document.getElementById('sumPrice').innerText = ad.price + " €";
-        document.getElementById('sumShip').innerText = ad.ship + " €";
-        const prot = ad.price * 0.06; // 3% acheteur + 3% vendeur
-        document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
-        document.getElementById('sumTotal').innerText = (ad.price + parseFloat(ad.ship) + prot).toFixed(2) + " €";
+        document.getElementById('sumShip').innerText = ad.ship + ".00 €";
+        const totalFees = ad.price * 0.06; // 3% + 3%
+        document.getElementById('sumProt').innerText = totalFees.toFixed(2) + " €";
+        document.getElementById('sumTotal').innerText = (ad.price + parseFloat(ad.ship) + totalFees).toFixed(2) + " €";
+        document.getElementById('pOrigin').innerText = ad.type === 'Native' ? "Authentifié par Spirit Native" : "Certifié par Scan IA";
     }
 
+    /* --- FILTRES --- */
     function applyFilters() {
-        const priceRange = document.getElementById('fPrice').value;
+        const pRange = document.getElementById('fPrice').value;
         const brand = document.getElementById('fBrand').value;
         const cat = document.getElementById('fCat').value;
 
         document.querySelectorAll('.card').forEach(card => {
-            const p = parseInt(card.dataset.price);
-            let matchPrice = true;
-            if(priceRange === '0-100') matchPrice = p <= 100;
-            else if(priceRange === '100-200') matchPrice = p > 100 && p <= 200;
-            else if(priceRange === '200-300') matchPrice = p > 200 && p <= 300;
-            else if(priceRange === '300-400') matchPrice = p > 300 && p <= 400;
-            else if(priceRange === '400+') matchPrice = p > 400;
+            const price = parseInt(card.dataset.price);
+            let mPrice = true;
+            if(pRange === '0-100') mPrice = price <= 100;
+            else if(pRange === '100-200') mPrice = price > 100 && price <= 200;
+            else if(pRange === '200-300') mPrice = price > 200 && price <= 300;
+            else if(pRange === '300-400') mPrice = price > 300 && price <= 400;
+            else if(pRange === '400+') mPrice = price > 400;
 
-            const matchBrand = (brand === 'all' || card.dataset.brand === brand);
-            const matchCat = (cat === 'all' || card.dataset.cat === cat);
-            card.style.display = (matchPrice && matchBrand && matchCat) ? 'block' : 'none';
+            const mBrand = (brand === 'all' || card.dataset.brand === brand);
+            const mCat = (cat === 'all' || card.dataset.cat === cat);
+
+            card.style.display = (mPrice && mBrand && mCat) ? 'block' : 'none';
         });
     }
 
+    /* --- TUNNEL DE VENTE --- */
     let currentMethod = '';
     function chooseMethod(m) {
         currentMethod = m;
@@ -341,11 +373,11 @@
 
     function goToScan() {
         document.getElementById('stepInfo').style.display = 'none';
-        document.getElementById('stepScan').style.display = 'block';
         if(currentMethod === 'other') {
-            document.getElementById('scanTitle').innerText = "VÉRIFICATION VENDEUR";
-            document.getElementById('scanStatus').innerText = "Analyse historique de compte...";
+            publishFinal(); // Pas de scan IA pour les autres marques
+            return;
         }
+        document.getElementById('stepScan').style.display = 'block';
         setTimeout(() => {
             document.getElementById('stepScan').style.display = 'none';
             document.getElementById('stepFinish').style.display = 'block';
@@ -358,28 +390,45 @@
             price: parseInt(document.getElementById('inputPrice').value),
             brand: (currentMethod === 'other') ? 'Autre' : 'Hot Toys',
             type: (currentMethod === 'hot_native') ? 'Native' : 'Legacy',
-            cat: document.getElementById('saleCat').value,
+            cat: document.getElementById('saleCat') ? document.getElementById('saleCat').value : '1/6',
             ship: parseFloat(document.getElementById('saleShip').value)
         };
-        userAds.unshift(newAd); 
+        userAds.unshift(newAd); // Publication en tête de liste
         closeModals();
         renderMarket();
     }
 
+    /* --- UTILS --- */
     function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
-    function openAccount() { document.getElementById('accountModal').style.display = 'flex'; }
-    function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
-    function startCertification() { document.getElementById('certifModal').style.display = 'flex'; }
-    function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
-    function openSAV() { window.open('https://www.hottoys.com.hk/contact.php', '_blank'); }
+    function openAccount() { alert("Accès à 'Mon Compte' : Paramètres RIB, Bordereaux de vente et Achats actifs."); }
+    function openLedger() { alert("Spirit Ledger : Split 3%/3% actif. Valorisation projet : 3.8M€."); }
+    function startCertification() { 
+        document.getElementById('certifModal').style.display = 'flex'; 
+        document.getElementById('stepMethod').style.display = 'block';
+        document.getElementById('stepInfo').style.display = 'none';
+        document.getElementById('stepScan').style.display = 'none';
+        document.getElementById('stepFinish').style.display = 'none';
+    }
+    
+    function changeLang(l) {
+        const d = translations[l];
+        document.getElementById('nav-market').innerText = d.nav_market;
+        // Reste du dictionnaire appliqué ici...
+    }
 
     function sendMessage() {
-        let i = document.getElementById('chatInput');
-        let m = document.getElementById('chatMsgs');
-        let d = document.createElement('div');
-        d.innerHTML = "<strong>Moi:</strong> " + i.value;
-        m.appendChild(d); i.value = "";
+        const i = document.getElementById('chatInput');
+        const m = document.getElementById('chatMsgs');
+        if(!i.value) return;
+        const msg = i.value.toLowerCase();
+        if(msg.includes("paypal") || msg.includes("06") || msg.includes("whatsapp")) {
+            m.innerHTML += `<div style="color:var(--danger); margin-top:5px;"><strong>WATCHDOG:</strong> Message bloqué. Motif : Tentative de transaction hors plateforme.</div>`;
+        } else {
+            m.innerHTML += `<div style="margin-top:5px;"><strong>Moi:</strong> ${i.value}</div>`;
+        }
+        i.value = "";
+        m.scrollTop = m.scrollHeight;
     }
 
     renderMarket();
