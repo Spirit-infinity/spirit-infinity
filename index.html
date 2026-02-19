@@ -19,12 +19,12 @@
 
         body { background-color: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
 
-        /* HEADER MODIFIÉ POUR HOT TOYS / SPIRIT */
-        header { padding: 10px 5%; background: #000; border-bottom: 2px solid var(--neon-orange); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .logo-container { display: flex; flex-direction: column; line-height: 1; }
+        /* HEADER MODIFIÉ : HOT TOYS EN GROS / SPIRIT EN PETIT */
+        header { padding: 15px 5%; background: #000; border-bottom: 2px solid var(--neon-orange); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo-block { display: flex; flex-direction: column; line-height: 1; }
         .logo-ht { font-weight: 900; font-size: 1.8rem; letter-spacing: 1px; color: white; }
         .logo-spirit-sub { font-weight: 400; font-size: 0.7rem; letter-spacing: 3px; color: var(--neon-orange); text-transform: uppercase; margin-top: 2px; }
-
+        
         nav button { background: none; border: none; color: white; margin: 0 10px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.3s; }
         nav button:hover, nav button.active { color: var(--neon-orange); }
         .btn-action { background: var(--neon-orange); color: black; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 2px; text-transform: uppercase; font-size: 0.75rem; }
@@ -75,21 +75,21 @@
             padding: 20px; border: 1px solid var(--spirit-green); color: var(--spirit-green); margin-bottom: 20px; font-family: monospace; background: rgba(0,255,170,0.05); animation: pulse-border 2s infinite alternate;
         }
 
+        /* SHIPPING LABEL */
+        .shipping-label { background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; border: 2px solid black; margin-top: 20px; }
+
         /* STEPS CERTIFICATION */
         .steps { display: flex; justify-content: space-between; margin-bottom: 30px; }
         .step { font-size: 0.7rem; color: #444; font-weight: bold; border-bottom: 2px solid #222; padding-bottom: 5px; flex: 1; text-align: center; }
         .step.active { color: var(--neon-orange); border-color: var(--neon-orange); }
         .summary-box { background: #111; padding: 20px; border: 1px solid #222; margin-bottom: 20px; }
         .summary-line { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 10px; }
-
-        /* SHIPPING LABEL */
-        .shipping-label { background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; border: 2px solid black; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo-container">
+    <div class="logo-block">
         <div class="logo-ht">HOT TOYS</div>
         <div class="logo-spirit-sub">Spirit Infinity</div>
     </div>
@@ -176,7 +176,12 @@
     <div class="grid">
         <div class="cat-title" data-key="cat_native_title">Annonces Live</div>
         <div class="grid-layout" id="mainMarketGrid">
+            <div class="card" data-price="650" data-brand="Hot Toys" data-country="France" data-cat="1/6" data-cond="Neuf" onclick="openProduct('Iron Man MK85', 650, '24:0A:C4:9B:54:28', 'Native', 'France', 'Neuf', 'Hot Toys')">
+                <div class="badge native">SPIRIT NATIVE</div>
+                <div class="img-placeholder">PHOTO MK85 - MMS528D30<br>HOT TOYS 1/6</div>
+                <div class="card-info"><div class="price">650 €</div><div class="title">Iron Man Mark LXXXV</div><div class="legende"><span>France</span><span>1/6</span></div></div>
             </div>
+        </div>
     </div>
 </div>
 
@@ -194,52 +199,42 @@
             <div class="dash-content">
                 <div id="d-resume" class="dash-section active">
                     <h2>Résumé d'activité</h2>
-                    <div class="ledger-status" style="border-color:var(--neon-orange); color:white;">
-                        INDICE DE CONFIANCE : 99% - EXCELLENT
-                    </div>
+                    <div class="ledger-status">INDICE DE CONFIANCE : 99% - EXCELLENT</div>
                 </div>
                 <div id="d-achats" class="dash-section">
                     <h3>HISTORIQUE D'ACHATS</h3>
                     <div class="summary-box">
-                        <div class="summary-line"><span>19/02/2026 - Batman InArt 1/6</span><strong>640.00 €</strong></div>
-                        <div class="summary-line"><span>12/01/2026 - Robocop Hot Toys</span><strong>320.00 €</strong></div>
+                        <div class="summary-line"><span>19/02/26 - Batman InArt</span><strong>640.00 €</strong></div>
+                        <div class="summary-line"><span>12/01/26 - Robocop HT</span><strong>320.00 €</strong></div>
                     </div>
                     <h3>ACHATS EN COURS</h3>
                     <div class="summary-box" style="border-color:var(--spirit-green);">
-                        <div class="summary-line"><span>19/02/2026 - Iron Man MK85 (En attente)</span><strong>650.00 €</strong></div>
+                        <div class="summary-line"><span>En attente : Iron Man MK85</span><strong>650.00 €</strong></div>
                     </div>
                 </div>
                 <div id="d-ventes" class="dash-section">
-                    <h3>MES VENTES RÉALISÉES</h3>
+                    <h3>MES VENTES (BORDEREAUX)</h3>
                     <div class="summary-box">
-                        <p>Vente : Spider-Man QS014 - 590 € (Bordereau prêt)</p>
-                        <div class="shipping-label">
-                            <strong>BORDEREAU D'EXPÉDITION SPIRIT-44921</strong><hr>
-                            EXP: User_Spirit_FR<br>DEST: Collector_HK_99<br>REF: HT-QM-QS014
-                        </div>
+                        <p>Spider-Man QS014 - 590 €</p>
+                        <div class="shipping-label"><strong>BORDEREAU SPIRIT-44921</strong><br>EXP: User_Spirit<br>DEST: Collector_HK</div>
                     </div>
                     <div class="summary-box">
-                        <p>Vente : Hulk Gladiator - 580 € (Bordereau prêt)</p>
-                        <div class="shipping-label">
-                            <strong>BORDEREAU D'EXPÉDITION SPIRIT-44922</strong><hr>
-                            EXP: User_Spirit_FR<br>DEST: Batman_Fan_USA<br>REF: HT-HULK-RAG
-                        </div>
+                        <p>Hulk Gladiator - 580 €</p>
+                        <div class="shipping-label"><strong>BORDEREAU SPIRIT-44922</strong><br>EXP: User_Spirit<br>DEST: Batman_Fan</div>
                     </div>
                 </div>
                 <div id="d-actions" class="dash-section">
                     <h3>MES ACTIONS</h3>
                     <p>Ventes en cours : 0</p>
-                    <p>Favoris : ❤ Joker Rooted InArt, ❤ Darth Vader Sideshow</p>
+                    <p>Favoris : ❤ Joker Rooted InArt</p>
                 </div>
                 <div id="d-params" class="dash-section">
-                    <h3>PARAMÈTRES DU COMPTE</h3>
-                    <input type="text" placeholder="Adresse" value="12 Rue de la Paix, 75002 Paris">
-                    <input type="text" placeholder="Téléphone" value="06 12 34 56 78">
-                    <input type="email" placeholder="Email" value="spirit.infinity@contact.com">
-                    <h3>RIB POUR TRANSACTIONS</h3>
-                    <div style="font-family:monospace; background:#000; padding:15px; border:1px dashed var(--neon-orange); color:var(--neon-orange);">
-                        FR76 3000 6000 0123 4567 8901 234
-                    </div>
+                    <h3>PARAMÈTRES</h3>
+                    <input type="text" placeholder="Adresse" value="12 Rue de la Paix, Paris">
+                    <input type="text" placeholder="Tel" value="06 12 34 56 78">
+                    <input type="email" placeholder="Mail" value="user@spirit.com">
+                    <h3>RIB DÉPOSÉ</h3>
+                    <div style="font-family:monospace; background:#000; padding:10px; border:1px dashed var(--neon-orange); color:var(--neon-orange);">FR76 3000 6000 0123 4567 8901 234</div>
                 </div>
             </div>
         </div>
@@ -249,35 +244,52 @@
 <div id="certifModal" class="overlay">
     <div class="modal-content" style="max-width:600px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">DÉTAILS</span><span class="step" id="s3">SCAN</span><span class="step" id="s4">FIN</span></div>
-        
-        <div id="sellStep1">
+        <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">INFOS</span><span class="step" id="s3">SCAN</span><span class="step" id="s4">PUBLICATION</span></div>
+        <div id="sell1">
             <h2 style="text-align:center;">VENDRE & CERTIFIER</h2>
             <button class="btn-action" style="width:100%; margin-bottom:10px;" onclick="setMethod('hot_native')">1. HOT TOYS (SPIRIT + SCAN IA)</button>
-            <button class="btn-action" style="width:100%; margin-bottom:10px; background:#0066ff; color:white;" onclick="setMethod('hot_legacy')">2. ANCIENNE HOT TOYS (SCAN IA)</button>
+            <button class="btn-action" style="width:100%; margin-bottom:10px; background:#0066ff; color:white;" onclick="setMethod('hot_legacy')">2. ANCIENNE HT (SCAN IA)</button>
             <button class="btn-action" style="width:100%; background:#444; color:white;" onclick="setMethod('other')">3. AUTRE MARQUE (SANS SCAN IA)</button>
         </div>
-
-        <div id="sellStep2" style="display:none;">
-            <input type="text" id="newTitle" placeholder="Titre de l'annonce">
-            <select id="newCat">
-                <option value="1/6">Taille : 1/6</option>
-                <option value="1/4">Taille : 1/4</option>
-                <option value="1/12">Taille : 1/12</option>
+        <div id="sell2" style="display:none;">
+            <input type="text" id="inTitle" placeholder="Nom de la figurine">
+            <select id="inCat"><option value="1/6">1/6</option><option value="1/4">1/4</option><option value="1/12">1/12</option></select>
+            <input type="number" id="inPrice" placeholder="Prix (€)">
+            <label>Taille du colis :</label>
+            <select id="inShip">
+                <option value="9">Petit (9€)</option>
+                <option value="15">Moyen (15€)</option>
+                <option value="25">Grand (25€)</option>
             </select>
-            <input type="number" id="newPrice" placeholder="Prix de vente (€)">
-            <label>Taille du colis & Livraison</label>
-            <select id="newShip">
-                <option value="9">Petit (MMS standard) - 9.00 €</option>
-                <option value="15">Moyen (Diecast / Double Box) - 15.00 €</option>
-                <option value="25">Grand (Quarter Scale / Hulk) - 25.00 €</option>
-            </select>
-            <button class="btn-action" style="width:100%;" onclick="startScanProcess()">VALIDER & CONTINUER</button>
+            <button class="btn-action" style="width:100%;" onclick="startScan()">LANCER LA CERTIFICATION</button>
         </div>
-
-        <div id="sellStepScan" style="display:none; text-align:center;">
+        <div id="sellScan" style="display:none; text-align:center;">
             <div class="laser"></div>
-            <p id="scanStatus">Analyse thermique des pixels en cours...</p>
+            <p id="statusTxt">Analyse IA...</p>
+        </div>
+    </div>
+</div>
+
+<div id="ledgerModal" class="overlay">
+    <div class="modal-content">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <h2>MON LEDGER SÉCURISÉ</h2>
+        <div id="realTimeData" class="ledger-status">
+            ROYALTIES (3€/u) : <span id="l-roy">0.00 €</span><br>
+            PARTENAIRE (2.5%) : <span id="l-part">0.00 €</span><br>
+            SPIRIT (2.5%) : <span id="l-spi">0.00 €</span>
+        </div>
+        <button class="btn-action" onclick="connectESP()">ACTIVER WebSerial</button>
+    </div>
+</div>
+
+<div id="forumModal" class="overlay">
+    <div class="modal-content">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <h2>FORUM SPIRIT INFINITY</h2>
+        <div class="chat-container">
+            <div class="chat-messages" id="forumChat"></div>
+            <div class="chat-input-area"><input type="text" id="forumInput"><button class="btn-action" onclick="sendForumMsg()">OK</button></div>
         </div>
     </div>
 </div>
@@ -285,49 +297,67 @@
 <div id="productModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <div style="display:flex; gap:30px; flex-wrap:wrap;">
-            <div style="flex:1; min-width:300px;">
-                <div style="background:#111; height:350px; border:1px solid #222; margin-bottom:15px; display:flex; align-items:center; justify-content:center;">GALERIE IA</div>
-                <div class="chat-container">
-                    <div class="msg-safety-alert">SÉCURITÉ : Vente hors-circuit interdite.</div>
-                    <div class="chat-messages" id="chatMsgs"></div>
-                    <div class="chat-input-area">
-                        <input type="text" id="chatInput" placeholder="Message..." style="margin:0;">
-                        <button class="btn-action" onclick="sendMessage()">OK</button>
-                    </div>
-                </div>
-            </div>
-            <div style="flex:1; min-width:300px;">
-                <h2 id="pTitle">Titre</h2>
-                <div id="pOrigin" style="color:var(--neon-orange); font-size:0.8rem;"></div>
-                <div class="summary-box">
-                    <div class="summary-line"><span>Prix</span> <span id="sumPrice">0 €</span></div>
-                    <div class="summary-line"><span>Livraison</span> <span id="sumShip">25.00 €</span></div>
-                    <hr>
-                    <div class="summary-line" style="font-weight:bold; color:var(--neon-orange);"><span>TOTAL</span> <span id="sumTotal">0 €</span></div>
-                </div>
-                <button class="btn-action" style="width:100%;" onclick="alert('Achat simulé !')">ACHAT DIRECT</button>
-            </div>
+        <h2 id="pTitle"></h2>
+        <p id="pOrigin"></p>
+        <div class="summary-box">
+            <div class="summary-line"><span>Prix</span> <span id="sumPrice"></span></div>
+            <div class="summary-line"><span>Total</span> <span id="sumTotal"></span></div>
         </div>
+        <button class="btn-action" onclick="alert('Achat confirmé !')">ACHETÉ</button>
     </div>
 </div>
 
 <script>
-    let currentMethod = "";
-    let ads = [
-        { title: "Iron Man MK85", price: 650, brand: "Hot Toys", country: "France", cat: "1/6", type: "Native" },
-        { title: "Joker InArt", price: 1100, brand: "InArt", country: "USA", cat: "1/6", type: "Native" },
-        { title: "Darth Vader PF", price: 450, brand: "Sideshow", country: "USA", cat: "1/4", type: "Legacy" }
-    ];
+    const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
+    const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentAds = [];
+    let sellMethod = "";
+
+    // INSCRIPTION (FIX)
+    function openRegister() {
+        const p = prompt("Pseudo :");
+        if(p) { document.getElementById('btn-reg-ui').innerText = p.toUpperCase(); }
+    }
+
+    // VENTE & CERTIFICATION (SIMULATION RÉELLE)
+    function setMethod(m) {
+        sellMethod = m;
+        document.getElementById('sell1').style.display = 'none';
+        document.getElementById('sell2').style.display = 'block';
+    }
+
+    function startScan() {
+        document.getElementById('sell2').style.display = 'none';
+        document.getElementById('sellScan').style.display = 'block';
+        if(sellMethod === 'other') document.getElementById('statusTxt').innerText = "AUTRE MARQUE : VALIDATION SANS SCAN IA...";
+        
+        setTimeout(() => {
+            const newAd = {
+                title: document.getElementById('inTitle').value,
+                price: document.getElementById('inPrice').value,
+                cat: document.getElementById('inCat').value,
+                brand: sellMethod === 'other' ? 'Autre' : 'Hot Toys',
+                country: 'France',
+                type: sellMethod === 'hot_native' ? 'Native' : 'Legacy'
+            };
+            currentAds.unshift(newAd);
+            renderMarket();
+            closeModals();
+            alert("Publié avec succès !");
+        }, 3000);
+    }
 
     function renderMarket() {
         const grid = document.getElementById('mainMarketGrid');
-        grid.innerHTML = "";
-        ads.forEach(ad => {
+        // On ne vide pas tout pour garder l'annonce de base si besoin, ou on vide pour la simu
+        grid.innerHTML = ""; 
+        currentAds.forEach(ad => {
             grid.innerHTML += `
-                <div class="card" data-price="${ad.price}" data-brand="${ad.brand}" data-country="${ad.country}" data-cat="${ad.cat}">
-                    <div class="badge ${ad.type === 'Native' ? 'native' : 'legacy'}">${ad.type.toUpperCase()}</div>
-                    <div class="img-placeholder">PHOTO ${ad.title.toUpperCase()}</div>
+                <div class="card" data-price="${ad.price}" data-cat="${ad.cat}" data-brand="${ad.brand}">
+                    <div class="badge ${ad.type === 'Native' ? 'native' : 'legacy'}">${ad.type}</div>
+                    <div class="img-placeholder">PHOTO ${ad.title}</div>
                     <div class="card-info">
                         <div class="price">${ad.price} €</div>
                         <div class="title">${ad.title}</div>
@@ -337,36 +367,24 @@
         });
     }
 
+    // FILTRES DE PRIX
     function applyFilters() {
         const pr = document.getElementById('fPrice').value;
         const ct = document.getElementById('fCat').value;
-        const br = document.getElementById('fBrand').value;
-
         document.querySelectorAll('.card').forEach(card => {
-            const price = parseFloat(card.dataset.price);
-            let matchP = (pr === 'all');
-            if(pr === '0-100') matchP = (price <= 100);
-            if(pr === '100-200') matchP = (price > 100 && price <= 200);
-            if(pr === '200-300') matchP = (price > 200 && price <= 300);
-            if(pr === '300-400') matchP = (price > 300 && price <= 400);
-            if(pr === '400+') matchP = (price > 400);
-
-            const matchC = (ct === 'all' || card.dataset.cat === ct);
-            const matchB = (br === 'all' || card.dataset.brand === br);
-            card.style.display = (matchP && matchC && matchB) ? 'block' : 'none';
+            const p = parseFloat(card.dataset.price);
+            let mP = (pr === 'all');
+            if(pr === '0-100') mP = (p <= 100);
+            if(pr === '100-200') mP = (p > 100 && p <= 200);
+            if(pr === '200-300') mP = (p > 200 && p <= 300);
+            if(pr === '300-400') mP = (p > 300 && p <= 400);
+            if(pr === '400+') mP = (p > 400);
+            const mC = (ct === 'all' || card.dataset.cat === ct);
+            card.style.display = (mP && mC) ? 'block' : 'none';
         });
     }
 
-    // INSCRIPTION (FIX)
-    function openRegister() {
-        const pseudo = prompt("Choisissez votre pseudo Spirit Infinity :");
-        if(pseudo) {
-            document.getElementById('btn-reg-ui').innerText = pseudo.toUpperCase();
-            alert("Bienvenue, " + pseudo + " ! Votre compte est actif.");
-        }
-    }
-
-    // DASHBOARD SWITCH
+    // DASHBOARD
     function switchDash(id) {
         document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.d-tab').forEach(t => t.classList.remove('active'));
@@ -374,45 +392,20 @@
         event.currentTarget.classList.add('active');
     }
 
-    // VENDRE & CERTIFIER
-    function setMethod(m) {
-        currentMethod = m;
-        document.getElementById('sellStep1').style.display = 'none';
-        document.getElementById('sellStep2').style.display = 'block';
-        document.getElementById('s2').classList.add('active');
+    // AUTRES FONCTIONS (LEDGER, FORUM, ETC)
+    async function syncLedger() {
+        let { data } = await _spirit.from('transactions').select('*');
+        if(data) { /* calculs royalties ici */ }
     }
-
-    function startScanProcess() {
-        document.getElementById('sellStep2').style.display = 'none';
-        document.getElementById('sellStepScan').style.display = 'block';
-        document.getElementById('s3').classList.add('active');
-
-        if(currentMethod === 'other') {
-            document.getElementById('scanStatus').innerText = "MARQUE TIERS : SCAN IA NON REQUIS. VALIDATION MANUELLE...";
-        }
-
-        setTimeout(() => {
-            const newAd = {
-                title: document.getElementById('newTitle').value,
-                price: parseFloat(document.getElementById('newPrice').value),
-                brand: currentMethod === 'other' ? "Autre" : "Hot Toys",
-                country: "France",
-                cat: document.getElementById('newCat').value,
-                type: currentMethod === 'hot_native' ? "Native" : "Legacy"
-            };
-            ads.unshift(newAd); // Ajout en tête de liste
-            renderMarket();
-            closeModals();
-            alert("Annonce certifiée et publiée en tête de liste !");
-        }, 3000);
-    }
-
-    // MODALS
-    function openAccount() { document.getElementById('accountModal').style.display = 'flex'; }
-    function startCertification() { document.getElementById('certifModal').style.display = 'flex'; }
-    function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
-
-    // Initialisation
+    function openLedger() { document.getElementById('ledgerModal').style.display='flex'; syncLedger(); }
+    function openForum() { document.getElementById('forumModal').style.display='flex'; }
+    function openAccount() { document.getElementById('accountModal').style.display='flex'; }
+    function openSAV() { window.open('https://www.hottoys.com.hk/contact.php'); }
+    function startCertification() { document.getElementById('certifModal').style.display='flex'; }
+    function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display='none'); }
+    
+    // Init avec une annonce par défaut
+    currentAds.push({title: "Iron Man MK85", price: 650, cat: "1/6", brand: "Hot Toys", country: "France", type: "Native"});
     renderMarket();
 </script>
 </body>
