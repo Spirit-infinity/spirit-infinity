@@ -21,12 +21,11 @@
 
         /* HEADER */
         header { padding: 15px 5%; background: #000; border-bottom: 2px solid var(--neon-orange); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        /* MODIF LOGO */
+        .logo { font-weight: 900; font-size: 1.4rem; letter-spacing: 2px; text-align: center; line-height: 1; }
+        .logo div { font-size: 1.6rem; color: white; }
+        .logo span { color: var(--neon-orange); font-size: 0.8rem; letter-spacing: 3px; }
         
-        /* GREFFE LOGO DOUBLE TITRE */
-        .logo-block { display: flex; flex-direction: column; line-height: 1.1; }
-        .logo-main { font-weight: 900; font-size: 1.6rem; letter-spacing: 2px; color: white; margin: 0; }
-        .logo-sub { font-weight: 400; font-size: 0.75rem; letter-spacing: 3px; color: var(--neon-orange); text-transform: uppercase; }
-
         nav button { background: none; border: none; color: white; margin: 0 10px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.3s; }
         nav button:hover, nav button.active { color: var(--neon-orange); }
         .btn-action { background: var(--neon-orange); color: black; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 2px; text-transform: uppercase; font-size: 0.75rem; }
@@ -60,8 +59,10 @@
         .dash-nav { border-right: 1px solid #222; padding-right: 20px; }
         .dash-nav button { width: 100%; text-align: left; padding: 15px; background: none; border: 1px solid transparent; color: #777; cursor: pointer; margin-bottom: 10px; transition: 0.3s; font-weight: bold; }
         .dash-nav button.active { border-color: var(--neon-orange); color: white; background: rgba(255,102,0,0.05); }
-        .dash-section { display: none; }
-        .dash-section.active { display: block; }
+        .showroom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .showroom-item { background: #111; border: 1px solid #222; padding: 10px; border-radius: 4px; text-align: center; }
+        .stat-banner { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
+        .stat-box { background: #0f0f0f; border: 1px solid #222; padding: 20px; border-left: 4px solid var(--neon-orange); }
 
         /* MESSAGERIE & FORUM */
         .chat-container { height: 400px; display: flex; flex-direction: column; background: #080808; border: 1px solid #222; margin-top: 20px; }
@@ -82,6 +83,10 @@
             background: rgba(0,255,170,0.05);
             animation: pulse-border 2s infinite alternate;
         }
+        @keyframes pulse-border {
+            from { box-shadow: 0 0 5px rgba(0, 255, 170, 0.1); }
+            to { box-shadow: 0 0 15px rgba(0, 255, 170, 0.4); }
+        }
 
         /* STEPS CERTIFICATION */
         .steps { display: flex; justify-content: space-between; margin-bottom: 30px; }
@@ -91,7 +96,7 @@
         .summary-line { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 10px; }
 
         /* SHIPPING LABEL */
-        .shipping-label { background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; border: 2px solid black; margin-top: 20px; margin-bottom: 20px; }
+        .shipping-label { background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; border: 2px solid black; margin-top: 20px; display: none; }
 
         /* FORUM */
         .forum-post { background: #111; border: 1px solid #222; padding: 15px; margin-bottom: 10px; border-radius: 4px; }
@@ -101,10 +106,7 @@
 <body>
 
 <header>
-    <div class="logo-block">
-        <div class="logo-main">HOT TOYS</div>
-        <div class="logo-sub">SPIRIT INFINITY</div>
-    </div>
+    <div class="logo"><div>HOT TOYS</div><span>SPIRIT INFINITY</span></div>
     <nav>
         <button id="nav-market" class="active" onclick="location.reload()" data-key="nav_market">MARKETPLACE</button>
         <button id="nav-ledger" onclick="openLedger()" data-key="nav_ledger">MON LEDGER</button>
@@ -114,10 +116,12 @@
         <select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
             <option value="FR">FR 🇫🇷</option>
             <option value="EN">EN 🇺🇸</option>
+            <option value="CN">CN 🇨🇳</option>
+            <option value="ES">ES 🇪🇸</option>
         </select>
     </nav>
     <div style="display:flex; gap:10px;">
-        <button id="btn-reg-header" class="btn-action" style="background:#222; color:white;" onclick="runRegistration()">INSCRIPTION</button>
+        <button id="btn-reg" class="btn-action" style="background:#222; color:white;" onclick="handleRegistration()" data-key="btn_reg">INSCRIPTION</button>
         <button id="btn-sell" class="btn-action" onclick="startCertification()" data-key="btn_sell">VENDRE & CERTIFIER</button>
     </div>
 </header>
@@ -126,7 +130,7 @@
     <div class="sidebar">
         <h4 id="filter-title" style="color:var(--neon-orange); margin-top:0;" data-key="filter_title">FILTRES DE RECHERCHE</h4>
         
-        <label>Tranche de prix (€)</label>
+        <label>Prix</label>
         <select id="fPrice" onchange="applyFilters()">
             <option value="all">Tous les prix</option>
             <option value="0-100">0 à 100 €</option>
@@ -193,7 +197,7 @@
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer; font-size:1.2rem;">✕</button>
         <div style="display:flex; gap:30px; flex-wrap:wrap;">
             <div style="flex:1; min-width:300px;">
-                <div id="pImgBox" style="background:#111; height:350px; border:1px solid #222; margin-bottom:15px; display:flex; align-items:center; justify-content:center; overflow:hidden;">GALERIE</div>
+                <div id="pImg" style="background:#111; height:350px; border:1px solid #222; margin-bottom:15px; display:flex; align-items:center; justify-content:center;" data-key="img_gallery">GALERIE (IA AUTHENTICATED)</div>
                 <div class="chat-container">
                     <div id="msg-alert" class="msg-safety-alert" data-key="safety_msg">SÉCURITÉ : Vente hors-circuit interdite.</div>
                     <div class="chat-messages" id="chatMsgs"></div>
@@ -206,7 +210,6 @@
             <div style="flex:1; min-width:300px;">
                 <h2 id="pTitle">Titre</h2>
                 <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
-                <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
                 <div class="summary-box">
                     <div class="summary-line"><span>Prix</span> <span id="sumPrice">0 €</span></div>
                     <div class="summary-line"><span>Livraison Premium</span> <span>25.00 €</span></div>
@@ -214,7 +217,7 @@
                     <hr style="border-color:#333;">
                     <div class="summary-line" style="font-weight:bold; font-size:1.1rem; color:var(--neon-orange);"><span>TOTAL À PAYER</span> <span id="sumTotal">0 €</span></div>
                 </div>
-                <button id="btn-buy" class="btn-action" style="width:100%;" onclick="simulatePayment()">ACHAT DIRECT</button>
+                <button class="btn-action" style="width:100%;" onclick="alert('Paiement sécurisé lancé...')">ACHAT DIRECT</button>
             </div>
         </div>
     </div>
@@ -222,47 +225,42 @@
 
 <div id="certifModal" class="overlay">
     <div class="modal-content" style="max-width:600px;">
-        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">INFOS</span><span class="step" id="s3">SCAN</span><span class="step" id="s4">FIN</span></div>
+        <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">INFOS</span><span class="step" id="s3">SCAN IA</span><span class="step" id="s4">FIN</span></div>
         
         <div id="stepMethod">
             <h2 style="text-align:center;">VENDRE & CERTIFIER</h2>
             <div style="display:grid; grid-template-columns: 1fr; gap:10px; margin-top:20px;">
-                <button class="btn-action" onclick="chooseMethod('hot_native')">1. Hot Toys (Equipée Spirit Infinity + Scan IA)</button>
-                <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan IA uniquement)</button>
-                <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (InArt, JND, etc.)</button>
+                <button class="btn-action" onclick="setSellMode('hot_native')">1. Hot Toys (Equipée Spirit + Scan IA)</button>
+                <button class="btn-action" style="background:#0066ff; color:white;" onclick="setSellMode('hot_legacy')">2. Ancienne Hot Toys (Scan IA uniquement)</button>
+                <button class="btn-action" style="background:#444; color:white;" onclick="setSellMode('other')">3. Autre Marque (Vente manuelle)</button>
             </div>
         </div>
 
         <div id="stepInfo" style="display:none;">
-            <h2 style="text-align:center;">DÉTAILS DE L'ANNONCE</h2>
-            <input type="text" id="inputTitle" placeholder="Nom de la figurine">
-            <select id="saleCat">
-                <option value="1/6">Action Figure 1/6</option>
-                <option value="1/12">Action Figure 1/12</option>
-                <option value="1/4">Statue / Figure 1/4</option>
+            <h2 style="text-align:center;">DÉPOSER UNE ANNONCE</h2>
+            <input type="text" id="vTitle" placeholder="Titre de l'annonce">
+            <select id="vCat"><option value="1/6">1/6</option><option value="1/4">1/4</option><option value="1/12">1/12</option></select>
+            
+            <input type="number" id="vPrice" placeholder="Votre prix (€)">
+            <label>Taille du colis (Service de livraison) :</label>
+            <select id="vShip">
+                <option value="9">Petit (9 €) - Accessoires / 1/12</option>
+                <option value="15">Moyen (15 €) - Boîte 1/6</option>
+                <option value="25">Grand (25 €) - Diecast / Statues</option>
             </select>
-            <input type="number" id="inputPrice" placeholder="Votre prix de vente (€)">
-            <label>Service de livraison (Taille du colis) :</label>
-            <select id="saleShip">
-                <option value="9">Petit (9.00 €) - Accessoires / 1/12</option>
-                <option value="15">Moyen (15.00 €) - Boîte 1/6 Standard</option>
-                <option value="25">Grand (25.00 €) - Diecast / 1/4 / Statues</option>
-            </select>
-            <textarea id="inputDesc" placeholder="Description..."></textarea>
-            <button class="btn-action" style="width:100%;" onclick="runSaleSimulation()">LANCER LA PUBLICATION</button>
+
+            <textarea id="vDesc" placeholder="Description..."></textarea>
+            <button class="btn-action" style="width:100%;" onclick="publishAd()">PUBLIER L'ANNONCE</button>
         </div>
 
-        <div id="stepScan" style="display:none;">
-            <h2 style="text-align:center;">AUTHENTIFICATION SPIRIT</h2>
+        <div id="stepScan" style="display:none; text-align:center;">
+            <h2>SCAN IA EN COURS...</h2>
             <div style="height:100px; border:1px dashed #333; position:relative; margin:20px 0;"><div class="laser"></div></div>
-            <p id="scanStatus" style="text-align:center; font-family:monospace;">Analyse en cours...</p>
         </div>
 
         <div id="stepFinish" style="display:none; text-align:center;">
-            <h1 style="color:var(--spirit-green);">ANNONCE CERTIFIÉE</h1>
-            <p>Votre produit est maintenant en tête de liste sur la Marketplace.</p>
-            <button class="btn-action" style="margin-top:20px; width:100%;" onclick="location.reload()">RETOUR AU MARCHÉ</button>
+            <h1 style="color:var(--spirit-green);">ANNONCE EN LIGNE</h1>
+            <button class="btn-action" style="width:100%;" onclick="location.reload()">RETOUR MARCHÉ</button>
         </div>
     </div>
 </div>
@@ -272,174 +270,143 @@
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div class="dash-container">
             <div class="dash-nav">
-                <button class="d-btn active" onclick="showDash('ds-main')">DASHBOARD</button>
-                <button class="d-btn" onclick="showDash('ds-achats')">MES ACHATS</button>
-                <button class="d-btn" onclick="showDash('ds-ventes')">MES VENTES</button>
-                <button class="d-btn" onclick="showDash('ds-actions')">MES ACTIONS</button>
-                <button class="d-btn" onclick="showDash('ds-params')">PARAMÈTRES</button>
+                <button class="d-tab active" onclick="openTab('d-home')">DASHBOARD</button>
+                <button class="d-tab" onclick="openTab('d-achats')">MES ACHATS</button>
+                <button class="d-tab" onclick="openTab('d-ventes')">MES VENTES</button>
+                <button class="d-tab" onclick="openTab('d-actions')">MES ACTIONS</button>
+                <button class="d-tab" onclick="openTab('d-params')">PARAMÈTRES</button>
             </div>
-            <div class="dash-body">
-                <div id="ds-main" class="dash-section active">
-                    <h2>Bienvenue, Collector</h2>
-                    <div class="ledger-status">INDICE DE CONFIANCE : 99% - EXCELLENT</div>
+            <div class="dash-content">
+                <div id="d-home" class="dash-tab-content" style="display:block;">
+                    <div class="stat-box">CONFIACOIN : 99% - EXCELLENT</div>
                 </div>
-                <div id="ds-achats" class="dash-section">
-                    <h3>HISTORIQUE D'ACHATS</h3>
-                    <div class="summary-box">
-                        <div class="summary-line"><span>15/02/2026 - Batman DX19</span><strong>350.00 €</strong></div>
-                        <div class="summary-line"><span>02/01/2026 - Joker InArt</span><strong>1100.00 €</strong></div>
-                    </div>
+                <div id="d-achats" class="dash-tab-content" style="display:none;">
+                    <h3>RESUMÉ DES ACHATS</h3>
+                    <div class="summary-box">15/02/2026 - Batman DX19 - 350 €</div>
                     <h3>ACHATS EN COURS</h3>
-                    <div class="summary-box" style="border-left:4px solid var(--spirit-green);">
-                        <div class="summary-line"><span>19/02/2026 - Iron Man MK85</span><strong>650.00 €</strong></div>
-                    </div>
+                    <div class="summary-box">19/02/2026 - Iron Man MK85 - 650 €</div>
                 </div>
-                <div id="ds-ventes" class="dash-section">
-                    <h3>MES VENTES RÉALISÉES</h3>
+                <div id="d-ventes" class="dash-tab-content" style="display:none;">
+                    <h3>BORDEREAUX D'ENVOI</h3>
                     <div class="summary-box">
-                        <p>Spider-Man QS014 - Vendu le 10/02/2026</p>
-                        <div class="shipping-label">BORDEREAU SPIRIT-LOG-1192<br>DEST: USER_USA<br>REF: PREPAYÉ PREMIUM</div>
-                    </div>
-                    <div class="summary-box">
-                        <p>Thor Infinity War - Vendu le 05/02/2026</p>
-                        <div class="shipping-label">BORDEREAU SPIRIT-LOG-1185<br>DEST: USER_FR<br>REF: PREPAYÉ STANDARD</div>
+                        <strong>Vente #881 - Spider-Man</strong><br>
+                        <div style="background:white; color:black; padding:10px; font-family:monospace; margin-top:10px;">BORDEREAU SPIRIT-112<br>DEST: LYON, FR</div>
                     </div>
                 </div>
-                <div id="ds-actions" class="dash-section">
-                    <h3>ACTIONS & FAVORIS</h3>
-                    <p>❤ Favoris : DeLorean 1/6, Robocop Hot Toys</p>
-                    <p>⚡ Ventes en cours : 0</p>
+                <div id="d-actions" class="dash-tab-content" style="display:none;">
+                    <h3>VENTES EN COURS</h3>
+                    <p>Aucune vente active.</p>
+                    <h3>FAVORIS</h3>
+                    <p>❤ Iron Man MK50, ❤ Joker InArt</p>
                 </div>
-                <div id="ds-params" class="dash-section">
-                    <h3>PARAMÈTRES DU COMPTE</h3>
-                    <input type="text" value="12 Rue du Port, Paris" placeholder="Adresse">
-                    <input type="text" value="06 12 34 56 78" placeholder="Téléphone">
-                    <input type="text" value="collector@spirit.com" placeholder="Email">
+                <div id="d-params" class="dash-tab-content" style="display:none;">
+                    <h3>COORDONNÉES</h3>
+                    <input type="text" value="12 Rue de la Paix, Paris">
+                    <input type="text" value="06 12 34 56 78">
+                    <input type="text" value="collector@spirit.com">
                     <hr>
-                    <label>RIB POUR TRANSACTIONS (SIMULATION)</label>
-                    <div style="background:#000; padding:15px; border:1px dashed var(--neon-orange); color:var(--neon-orange); font-family:monospace;">
-                        IBAN : FR76 3000 6000 0123 4567 8901 234
-                    </div>
+                    <label>RIB DE TRANSACTIONS</label>
+                    <div style="background:#000; color:var(--neon-orange); padding:10px; border:1px dashed #444;">FR76 3000 6000 0123 4567 8901 234</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div id="ledgerModal" class="overlay"><div class="modal-content"><h2 data-key="nav_ledger">MON LEDGER</h2><div id="realTimeData" class="ledger-status">Synchronisation...</div><button onclick="closeModals()">Fermer</button></div></div>
-<div id="forumModal" class="overlay"><div class="modal-content"><h2 data-key="nav_forum">FORUM</h2><div id="forumChat" class="chat-messages"></div><button onclick="closeModals()">Fermer</button></div></div>
+<div id="forumModal" class="overlay"><div class="modal-content"><h2>FORUM</h2><button onclick="closeModals()">Fermer</button></div></div>
+<div id="ledgerModal" class="overlay"><div class="modal-content"><h2>LEDGER</h2><button onclick="closeModals()">Fermer</button></div></div>
 
 <script>
     const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
     const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let items = [
-        {title: "Iron Man MK85", price: 650, cat: "1/6", type: "Native", country: "France", brand: "Hot Toys", cond: "Neuf"},
-        {title: "Joker InArt", price: 1100, cat: "1/6", type: "Native", country: "USA", brand: "InArt", cond: "Neuf"}
+    let ads = [
+        {title: "Iron Man MK85", price: 650, cat: "1/6", type: "Native", country: "France"},
+        {title: "Spider-Man 1/4", price: 590, cat: "1/4", type: "Native", country: "France"}
     ];
-    let sellMode = "";
+    let mode = "";
 
-    // --- INSCRIPTION FONCTIONNELLE ---
-    function runRegistration() {
-        const name = prompt("Choisissez votre pseudo collector :");
-        if(name) {
-            document.getElementById('btn-reg-header').innerText = name.toUpperCase();
-            alert("Bienvenue chez Spirit Infinity, " + name);
-        }
+    // INSCRIPTION
+    function handleRegistration() {
+        const p = prompt("Pseudo :");
+        if(p) document.getElementById('btn-reg').innerText = p.toUpperCase();
     }
 
-    // --- FILTRES ---
-    function applyFilters() {
-        const pr = document.getElementById('fPrice').value;
-        const ct = document.getElementById('fCat').value;
-        document.querySelectorAll('.card').forEach(card => {
-            const price = parseFloat(card.dataset.price);
-            let matchP = (pr === 'all');
-            if(pr === '0-100') matchP = (price <= 100);
-            if(pr === '100-200') matchP = (price > 100 && price <= 200);
-            if(pr === '200-300') matchP = (price > 200 && price <= 300);
-            if(pr === '300-400') matchP = (price > 300 && price <= 400);
-            if(pr === '400+') matchP = (price > 400);
-            
-            const matchC = (ct === 'all' || card.dataset.cat === ct);
-            card.style.display = (matchP && matchC) ? 'block' : 'none';
-        });
-    }
-
-    // --- DASHBOARD ---
-    function showDash(id) {
-        document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.d-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+    // TABS COMPTE
+    function openTab(id) {
+        document.querySelectorAll('.dash-tab-content').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.d-tab').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).style.display = 'block';
         event.currentTarget.classList.add('active');
     }
 
-    // --- VENTE SIMULATION ---
-    function chooseMethod(m) {
-        sellMode = m;
+    // FILTRES
+    function applyFilters() {
+        const prRange = document.getElementById('fPrice').value;
+        const catVal = document.getElementById('fCat').value;
+        document.querySelectorAll('.card').forEach(card => {
+            const p = parseFloat(card.dataset.price);
+            let mP = (prRange === 'all');
+            if(prRange === '0-100') mP = (p <= 100);
+            if(prRange === '100-200') mP = (p > 100 && p <= 200);
+            if(prRange === '200-300') mP = (p > 200 && p <= 300);
+            if(prRange === '300-400') mP = (p > 300 && p <= 400);
+            if(prRange === '400+') mP = (p > 400);
+            const mC = (catVal === 'all' || card.dataset.cat === catVal);
+            card.style.display = (mP && mC) ? 'block' : 'none';
+        });
+    }
+
+    // VENTE
+    function setSellMode(m) {
+        mode = m;
         document.getElementById('stepMethod').style.display = 'none';
         document.getElementById('stepInfo').style.display = 'block';
     }
 
-    function runSaleSimulation() {
-        const title = document.getElementById('inputTitle').value;
-        const price = document.getElementById('inputPrice').value;
-        if(!title || !price) { alert("Remplissez les champs !"); return; }
-        
+    function publishAd() {
         document.getElementById('stepInfo').style.display = 'none';
-        
-        // SCAN IA uniquement si Hot Toys
-        if(sellMode !== 'other') {
+        if(mode !== 'other') {
             document.getElementById('stepScan').style.display = 'block';
-            setTimeout(finishSale, 3000);
-        } else {
-            finishSale();
-        }
+            setTimeout(finalize, 2000);
+        } else { finalize(); }
     }
 
-    function finishSale() {
-        const newItem = {
-            title: document.getElementById('inputTitle').value,
-            price: parseFloat(document.getElementById('inputPrice').value),
-            cat: document.getElementById('saleCat').value,
-            type: (sellMode === 'hot_native' ? 'Native' : 'Legacy'),
-            country: "France", brand: (sellMode === 'other' ? "Autre" : "Hot Toys"), cond: "Neuf"
+    function finalize() {
+        const newAd = {
+            title: document.getElementById('vTitle').value,
+            price: document.getElementById('vPrice').value,
+            cat: document.getElementById('vCat').value,
+            type: (mode === 'hot_native' ? 'Native' : 'Legacy'),
+            country: "France"
         };
-        items.unshift(newItem); // TETE DE LISTE
-        renderMarket();
+        ads.unshift(newAd); // TETE DE LISTE
+        render();
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'block';
     }
 
-    function renderMarket() {
-        const gridNative = document.getElementById('marketGridNative');
-        const gridLegacy = document.getElementById('marketGridLegacy');
-        gridNative.innerHTML = ""; gridLegacy.innerHTML = "";
-        
-        items.forEach(item => {
-            const html = `
-                <div class="card" data-price="${item.price}" data-cat="${item.cat}" onclick="openProduct('${item.title}', ${item.price}, 'Native', 'France', 'Hot Toys')">
-                    <div class="badge ${item.type === 'Native' ? 'native' : 'legacy'}">${item.type.toUpperCase()}</div>
-                    <div class="img-placeholder">PHOTO ${item.title}</div>
-                    <div class="card-info">
-                        <div class="price">${item.price} €</div>
-                        <div class="title">${item.title}</div>
-                        <div class="legende"><span>${item.country}</span><span>${item.cat}</span></div>
-                    </div>
-                </div>`;
-            if(item.type === 'Native') gridNative.innerHTML += html;
-            else gridLegacy.innerHTML += html;
+    function render() {
+        const gN = document.getElementById('marketGridNative');
+        const gL = document.getElementById('marketGridLegacy');
+        gN.innerHTML = ""; gL.innerHTML = "";
+        ads.forEach(a => {
+            const h = `<div class="card" data-price="${a.price}" data-cat="${a.cat}" onclick="openProduct('${a.title}', ${a.price})">
+                <div class="badge ${a.type === 'Native' ? 'native' : 'legacy'}">${a.type.toUpperCase()}</div>
+                <div class="img-placeholder">PHOTO ${a.title}</div>
+                <div class="card-info"><div class="price">${a.price} €</div><div class="title">${a.title}</div></div>
+            </div>`;
+            if(a.type === 'Native') gN.innerHTML += h; else gL.innerHTML += h;
         });
     }
 
-    function openProduct(title, price, type, country, brand) {
+    function openProduct(t, p) {
         document.getElementById('productModal').style.display = 'flex';
-        document.getElementById('pTitle').innerText = title;
-        document.getElementById('sumPrice').innerText = price + " €";
-        const prot = price * 0.06; // 3% + 3%
-        document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
-        document.getElementById('sumTotal').innerText = (price + 25 + prot).toFixed(2) + " €";
+        document.getElementById('pTitle').innerText = t;
+        document.getElementById('sumPrice').innerText = p + " €";
+        document.getElementById('sumProt').innerText = (p * 0.06).toFixed(2) + " €";
+        document.getElementById('sumTotal').innerText = (p + 25 + (p * 0.06)).toFixed(2) + " €";
     }
 
     function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
@@ -448,8 +415,7 @@
     function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
 
-    renderMarket();
+    render();
 </script>
 </body>
 </html>
-
