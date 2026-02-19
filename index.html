@@ -91,6 +91,11 @@
         .step.active { color: var(--neon-orange); border-color: var(--neon-orange); }
         .summary-box { background: #111; padding: 20px; border: 1px solid #222; margin-bottom: 20px; }
         .summary-line { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 10px; }
+
+        /* NEW: INTERNATIONAL & BORDEREAU */
+        .lang-selector { font-size: 0.7rem; background: #000; color: var(--neon-orange); border: 1px solid var(--neon-orange); padding: 5px; }
+        .shipping-label { background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; border: 2px solid black; margin-top: 20px; display: none; }
+        .cat-strict-label { font-size: 0.6rem; color: var(--danger); text-transform: uppercase; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -98,86 +103,75 @@
 <header>
     <div class="logo">SPIRIT <span>INFINITY</span></div>
     <nav>
-        <button class="active" onclick="location.reload()">MARKETPLACE</button>
-        <button onclick="openLedger()">MON LEDGER</button>
-        <button onclick="openAccount()">MON COMPTE</button>
-        <button onclick="openSAV()">SAV HOT TOYS</button>
+        <button id="nav-market" class="active" onclick="location.reload()">MARKETPLACE</button>
+        <button id="nav-ledger" onclick="openLedger()">MON LEDGER</button>
+        <button id="nav-account" onclick="openAccount()">MON COMPTE</button>
+        <button id="nav-sav" onclick="openSAV()">SAV HOT TOYS</button>
+        <select class="lang-selector" onchange="changeLang(this.value)">
+            <option value="FR">FR 🇫🇷</option>
+            <option value="EN">EN 🇺🇸</option>
+            <option value="CN">CN 🇨🇳</option>
+            <option value="ES">ES 🇪🇸</option>
+        </select>
     </nav>
     <div style="display:flex; gap:10px;">
-        <button class="btn-action" style="background:#222; color:white;" onclick="openRegister()">INSCRIPTION</button>
-        <button class="btn-action" onclick="startCertification()">VENDRE & CERTIFIER</button>
+        <button id="btn-reg" class="btn-action" style="background:#222; color:white;" onclick="openRegister()">INSCRIPTION</button>
+        <button id="btn-sell" class="btn-action" onclick="startCertification()">VENDRE & CERTIFIER</button>
     </div>
 </header>
 
 <div class="container">
     <div class="sidebar">
-        <h4 style="color:var(--neon-orange); margin-top:0;">FILTRES DE RECHERCHE</h4>
+        <h4 id="filter-title" style="color:var(--neon-orange); margin-top:0;">FILTRES DE RECHERCHE</h4>
         
-        <label>Pays / Origine</label>
+        <label id="lbl-zone">Zone d'expédition (Douanes)</label>
         <select id="fCountry" onchange="applyFilters()">
-            <option value="all">Tous les pays</option>
-            <option value="France">France</option>
-            <option value="Hong Kong">Hong Kong</option>
-            <option value="USA">USA</option>
+            <option value="all">Toutes les zones</option>
+            <option value="Europe">Europe (UE - 0€ Douane)</option>
+            <option value="Chine">Chine (+20% Douane)</option>
+            <option value="USA">USA (+20% Douane)</option>
         </select>
 
-        <label>État de l'objet</label>
+        <label id="lbl-cat">Catégorie Figurine</label>
+        <select id="fCat" onchange="applyFilters()">
+            <option value="all">Toutes</option>
+            <option value="1/6">1/6 Action Figure</option>
+            <option value="1/4">1/4 Statue</option>
+            <option value="1/12">1/12 (Mezco/MAFEX)</option>
+            <option value="Resin">Statue Résine</option>
+        </select>
+
+        <label id="lbl-cond">État de l'objet</label>
         <select id="fCond" onchange="applyFilters()">
             <option value="all">Tous les états</option>
             <option value="Neuf">Neuf (Scellé)</option>
             <option value="Très bon état">Très bon état</option>
             <option value="Bon état">Bon état</option>
             <option value="Moyen">Moyen</option>
-            <option value="Satisfaisant">Satisfaisant</option>
         </select>
         
-        <label>Transporteur</label>
-        <select><option>Tous</option><option>FedEx</option><option>UPS</option></select>
+        <label id="lbl-transp">Transporteur & Bordereau</label>
+        <select id="fShip"><option>FedEx Express</option><option>UPS Saver</option><option>Mondial Relay</option></select>
         <hr style="border:0.5px solid #222; margin:20px 0;">
-        <p style="font-size: 0.65rem; color: var(--text-gray);">Protection Spirit 100% active sur toutes les transactions.</p>
+        <p id="lbl-prot-text" style="font-size: 0.65rem; color: var(--text-gray);">Protection Spirit 100% active sur toutes les transactions.</p>
     </div>
 
     <div class="grid">
-        <div class="cat-title">1. Équipées Spirit (Hardware Ledger)</div>
+        <div id="cat-native-title" class="cat-title">1. Équipées Spirit (Hardware Ledger)</div>
         <div class="grid-layout" id="marketGridNative">
-            <div class="card" data-country="France" data-cond="Neuf" onclick="openProduct('Iron Man MK85', 650, '24:0A:C4:9B:54:28', 'Native', 'France', 'Neuf')">
+            <div class="card" data-country="Europe" data-cat="1/6" data-cond="Neuf" onclick="openProduct('Iron Man MK85', 650, '24:0A:C4:9B:54:28', 'Native', 'Europe', 'Neuf')">
                 <div class="badge native">SPIRIT NATIVE</div>
                 <div class="img-placeholder">PHOTO MK85 - MMS528D30</div>
-                <div class="card-info"><div class="price">650 €</div><div class="title">Iron Man Mark LXXXV</div><div class="legende"><span>France</span><span style="color:var(--spirit-green)">Santé: 100%</span></div></div>
+                <div class="card-info"><div class="price">650 €</div><div class="title">Iron Man Mark LXXXV</div><div class="legende"><span>Europe</span><span style="color:var(--spirit-green)">Santé: 100%</span></div></div>
             </div>
-            <div class="card" data-country="Hong Kong" data-cond="Très bon état" onclick="openProduct('Hulk Gladiateur', 580, '24:0A:C4:AA:12:11', 'Native', 'Hong Kong', 'Très bon état')">
-                <div class="badge native">SPIRIT NATIVE</div>
-                <div class="img-placeholder">PHOTO HULK - MMS445</div>
-                <div class="card-info"><div class="price">580 €</div><div class="title">Hulk (Gladiateur)</div><div class="legende"><span>Hong Kong</span><span style="color:var(--spirit-green)">Santé: 98%</span></div></div>
             </div>
-            <div class="card" data-country="France" data-cond="Neuf" onclick="openProduct('Spider-Man NWH', 320, '24:0A:C4:BB:33:44', 'Native', 'France', 'Neuf')">
-                <div class="badge native">SPIRIT NATIVE</div>
-                <div class="img-placeholder">PHOTO SPIDEY - MMS623</div>
-                <div class="card-info"><div class="price">320 €</div><div class="title">Spider-Man Integrated Suit</div><div class="legende"><span>France</span><span style="color:var(--spirit-green)">Santé: 100%</span></div></div>
-            </div>
-            <div class="card" data-country="France" data-cond="Très bon état" onclick="openProduct('Captain America', 380, '24:0A:C4:CC:55:66', 'Native', 'France', 'Très bon état')">
-                <div class="badge native">SPIRIT NATIVE</div>
-                <div class="img-placeholder">PHOTO CAP - MMS536</div>
-                <div class="card-info"><div class="price">380 €</div><div class="title">Captain America - Endgame</div><div class="legende"><span>France</span><span style="color:var(--spirit-green)">Santé: 95%</span></div></div>
-            </div>
-            <div class="card" data-country="USA" data-cond="Neuf" onclick="openProduct('The Mandalorian', 495, '24:0A:C4:DD:77:88', 'Native', 'USA', 'Neuf')">
-                <div class="badge native">SPIRIT NATIVE</div>
-                <div class="img-placeholder">PHOTO MANDO - TMS052</div>
-                <div class="card-info"><div class="price">495 €</div><div class="title">The Mandalorian & Grogu</div><div class="legende"><span>USA</span><span style="color:var(--spirit-green)">Santé: 100%</span></div></div>
-            </div>
-        </div>
 
-        <div class="cat-title">2. Anciennes Collections (IA Scan)</div>
+        <div id="cat-legacy-title" class="cat-title">2. Anciennes Collections & Multimarques (IA Scan)</div>
         <div class="grid-layout" id="marketGridLegacy">
-            <div class="card" data-country="USA" data-cond="Neuf" onclick="openProduct('Darth Vader', 450, 'IA-VISUAL', 'Legacy', 'USA', 'Neuf')">
+            <div class="card" data-country="USA" data-cat="1/6" data-cond="Neuf" onclick="openProduct('Darth Vader', 450, 'IA-VISUAL', 'Legacy', 'USA', 'Neuf')">
                 <div class="badge legacy">IA CERTIFIED</div>
                 <div class="img-placeholder">PHOTO VADER - MMS572</div>
                 <div class="card-info"><div class="price">450 €</div><div class="title">Darth Vader - 40th</div><div class="legende"><span>USA</span><span>IA: Validé</span></div></div>
-            </div>
-            <div class="card" data-country="France" data-cond="Très bon état" onclick="openProduct('Black Widow', 240, 'IA-VISUAL', 'Legacy', 'France', 'Très bon état')">
-                <div class="badge legacy">IA CERTIFIED</div>
-                <div class="img-placeholder">PHOTO WIDOW - MMS603</div>
-                <div class="card-info"><div class="price">240 €</div><div class="title">Black Widow (Snow Suit)</div><div class="legende"><span>France</span><span>IA: Validé</span></div></div>
             </div>
         </div>
     </div>
@@ -188,14 +182,14 @@
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer; font-size:1.2rem;">✕</button>
         <div style="display:flex; gap:30px; flex-wrap:wrap;">
             <div style="flex:1; min-width:300px;">
-                <div style="background:#111; height:350px; border:1px solid #222; margin-bottom:15px; display:flex; align-items:center; justify-content:center;">GALERIE (AVANT/APRÈS)</div>
+                <div style="background:#111; height:350px; border:1px solid #222; margin-bottom:15px; display:flex; align-items:center; justify-content:center;">GALERIE (IA AUTHENTICATED)</div>
                 <div class="chat-container">
-                    <div class="msg-safety-alert">SÉCURITÉ : Les échanges de coordonnées entraînent le bannissement et la perte de certification.</div>
+                    <div id="msg-alert" class="msg-safety-alert">SÉCURITÉ : Vente hors-circuit interdite. Perte de badge immédiate.</div>
                     <div class="chat-messages" id="chatMsgs">
-                        <div style="color:var(--neon-orange); margin-bottom:10px;">[Système] Chat sécurisé ouvert avec le vendeur.</div>
+                        <div style="color:var(--neon-orange); margin-bottom:10px;">[Système] Chat Multilingue Actif (Traduction auto FR/EN/CN/ES).</div>
                     </div>
                     <div class="chat-input-area">
-                        <input type="text" id="chatInput" placeholder="Posez une question sur la figurine..." style="margin:0; border-radius:2px 0 0 2px;">
+                        <input type="text" id="chatInput" placeholder="Votre message..." style="margin:0; border-radius:2px 0 0 2px;">
                         <button class="btn-action" onclick="sendMessage()" style="padding:0 15px;">OK</button>
                     </div>
                 </div>
@@ -206,17 +200,25 @@
                 <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
                 <div class="summary-box">
                     <div class="summary-line"><span>Prix</span> <span id="sumPrice">0 €</span></div>
-                    <div class="summary-line"><span>Livraison</span> <span>25.00 €</span></div>
-                    <div class="summary-line"><span>Protection (5%)</span> <span id="sumProt">0 €</span></div>
-                    <div id="dutyLine" class="summary-line" style="color:orange; display:none;"><span>Douane Est. (20%)</span> <span id="sumDuty">0 €</span></div>
+                    <div class="summary-line"><span>Livraison Premium</span> <span>25.00 €</span></div>
+                    <div class="summary-line"><span>Protection Spirit (2.5% + 2.5%)</span> <span id="sumProt">0 €</span></div>
+                    <div id="dutyLine" class="summary-line" style="color:orange; display:none;"><span>Frais de Douane Est. (20%)</span> <span id="sumDuty">0 €</span></div>
                     <hr style="border-color:#333;">
-                    <div class="summary-line" style="font-weight:bold; font-size:1.1rem; color:var(--neon-orange);"><span>TOTAL</span> <span id="sumTotal">0 €</span></div>
+                    <div class="summary-line" style="font-weight:bold; font-size:1.1rem; color:var(--neon-orange);"><span>TOTAL À PAYER</span> <span id="sumTotal">0 €</span></div>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <button class="btn-action" onclick="simulatePayment()">ACHAT DIRECT</button>
-                    <button class="btn-action" style="background:#333; color:white;" onclick="alert('Offre envoyée !')">FAIRE OFFRE</button>
+                    <button id="btn-buy" class="btn-action" onclick="simulatePayment()">ACHAT DIRECT</button>
+                    <button id="btn-offer" class="btn-action" style="background:#333; color:white;" onclick="alert('Offre transmise !')">FAIRE OFFRE</button>
                 </div>
-                <p id="pFigDesc" style="font-size:0.75rem; color:#aaa; margin-top:20px; border-top:1px solid #222; padding-top:15px;"></p>
+                
+                <div id="shippingLabelContainer" class="shipping-label">
+                    <strong>BORDEREAU D'EXPÉDITION PRÊT À COLLER</strong><br>
+                    <small>Transporteur: <span id="labelCarrier">FedEx</span></small><hr>
+                    EXP: Spirit Infinity Warehouse<br>
+                    DEST: [ADRESSE SÉCURISÉE ACHETEUR]<br>
+                    REF: SPIRIT-INF-992837<br>
+                    <div style="background:black; color:white; padding:5px; text-align:center; margin-top:10px;">|||||||| BARCODE ||||||||</div>
+                </div>
             </div>
         </div>
     </div>
@@ -226,36 +228,41 @@
     <div class="modal-content" style="max-width:600px;">
         <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">ANALYSE</span><span class="step" id="s3">DETAILS</span></div>
         <div id="stepMethod">
-            <h2 style="text-align:center;">VENDRE UNE PIÈCE</h2>
+            <h2 id="sell-title" style="text-align:center;">VENDRE & CERTIFIER</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:30px;">
                 <button class="btn-action" onclick="chooseMethod('native')">Équipée Spirit<br><span style="font-size:0.6rem;">(Ledger Ready)</span></button>
-                <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('legacy')">Ancienne Collection<br><span style="font-size:0.6rem;">(Scan IA)</span></button>
+                <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('legacy')">Autre Marque / Legacy<br><span style="font-size:0.6rem;">(Scan IA)</span></button>
             </div>
         </div>
         <div id="step1" style="display:none;">
-            <h2 id="scanTitle" style="text-align:center;">SCAN</h2>
+            <h2 id="scanTitle" style="text-align:center;">SCAN IA & ANTI-COUNTERFEIT</h2>
             <div style="height:100px; border:1px dashed #333; position:relative; margin:20px 0;"><div class="laser"></div></div>
-            <p id="scanStatus" style="text-align:center; font-family:monospace;">Analyse hardware...</p>
+            <p id="scanStatus" style="text-align:center; font-family:monospace;">Recherche signatures...</p>
         </div>
         <div id="step2" style="display:none;">
-            <h2>DETAILS DE L'ANNONCE</h2>
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:10px;">
-                <div style="background:#111; height:60px; border:1px solid #333; display:flex; align-items:center; justify-content:center;">+</div>
-                <div style="background:#111; height:60px; border:1px solid #333; display:flex; align-items:center; justify-content:center;">+</div>
-                <div style="background:#111; height:60px; border:1px solid #333; display:flex; align-items:center; justify-content:center;">+</div>
-                <div style="background:#111; height:60px; border:1px solid #333; display:flex; align-items:center; justify-content:center;">+</div>
-            </div>
-            <select><option>Provenance: Première Main</option><option>Provenance: Seconde Main</option></select>
+            <h2>DETAILS DE L'ANNONCE (STRICT)</h2>
+            <select id="saleCat">
+                <option value="">-- CHOISIR CATÉGORIE STRICTE --</option>
+                <option>Action Figure 1/6</option>
+                <option>Action Figure 1/12</option>
+                <option>Statue 1/4</option>
+                <option>Statue Résine</option>
+                <option>Statue PVC</option>
+            </select>
+            <div class="cat-strict-label">Tout objet hors catégorie sera rejeté automatiquement.</div>
+            <select id="saleZone">
+                <option>Zone: Europe</option><option>Zone: Chine</option><option>Zone: USA</option>
+            </select>
             <select id="saleCond">
                 <option>État: Neuf</option><option>État: Très bon état</option><option>État: Bon état</option>
             </select>
-            <input type="number" id="inputPrice" placeholder="Prix (€)">
-            <textarea placeholder="Description..."></textarea>
-            <button class="btn-action" style="width:100%;" onclick="finishCertif()">GÉNÉRER LE CERTIFICAT</button>
+            <input type="number" id="inputPrice" placeholder="Prix de vente (€)">
+            <textarea placeholder="Description multilingue automatique..."></textarea>
+            <button class="btn-action" style="width:100%;" onclick="finishCertif()">GÉNÉRER LE CERTIFICAT & BORDEREAU</button>
         </div>
         <div id="step3" style="display:none; text-align:center;">
-            <div style="border:1px solid var(--spirit-green); padding:30px;"><h1>OFFICIELLEMENT CERTIFIÉ</h1></div>
-            <button class="btn-action" style="margin-top:20px; width:100%;" onclick="location.reload()">PUBLIER L'ANNONCE</button>
+            <div style="border:1px solid var(--spirit-green); padding:30px;"><h1>OFFICIELLEMENT CERTIFIÉ</h1><p>Bordereau prêt dans votre compte.</p></div>
+            <button class="btn-action" style="margin-top:20px; width:100%;" onclick="location.reload()">PUBLIER L'ANNONCE MONDIALE</button>
         </div>
     </div>
 </div>
@@ -279,20 +286,19 @@
                     <p style="font-size:0.8rem; margin-top:10px;">Spirit_Collector_75</p>
                 </div>
                 <button class="active">DASHBOARD</button>
-                <button onclick="alert('Accès Mes Achats')">MES ACHATS</button>
-                <button onclick="alert('Accès Mes Ventes')">MES VENTES</button>
-                <button onclick="alert('Accès Favoris')">MES FAVORIS</button>
-                <button onclick="alert('Accès Paramètres')">ACHAT / PARAMÈTRES</button>
+                <button onclick="alert('Mes Achats')">MES ACHATS</button>
+                <button onclick="alert('Mes Ventes')">MES VENTES</button>
+                <button onclick="alert('Mes Favoris')">MES FAVORIS</button>
+                <button onclick="alert('Paramètres')">ACHAT / PARAMÈTRES</button>
             </div>
             <div class="dash-content">
                 <div class="stat-banner">
                     <div class="stat-box" style="border-left: 4px solid var(--spirit-green); text-align: center;">
                         <p style="font-size:0.65rem; color:#777; margin:0; text-transform:uppercase;">Indice de confiance du vendeur</p>
-                        <div style="font-size:2rem; font-weight:900; color:var(--spirit-green); margin-top:10px;">99% - EXCELLENT</div>
+                        <div id="trust-index" style="font-size:2rem; font-weight:900; color:var(--spirit-green); margin-top:10px;">99% - EXCELLENT</div>
                     </div>
                 </div>
                 <h3>MA VITRINE PUBLIQUE (SHOWROOM)</h3>
-                <p style="font-size:0.7rem; color:#777; margin-bottom:20px;">Cette galerie rassure vos acheteurs sur le soin apporté à votre collection.</p>
                 <div class="showroom-grid">
                     <div class="showroom-item"><div style="height:120px; background:#222; margin-bottom:10px;"></div><span style="font-size:0.7rem;">MK85 (Spirit Native)</span></div>
                     <div class="showroom-item"><div style="height:120px; background:#222; margin-bottom:10px;"></div><span style="font-size:0.7rem;">Vader (IA Certified)</span></div>
@@ -309,7 +315,7 @@
         <h2>MON LEDGER SÉCURISÉ</h2>
         <div id="realTimeData" class="ledger-status">
             [ STATUT : CONNECTÉ ]<br><br>
-            ROYALTIES TOTALES : <span id="l-roy" style="color:white">0.00 €</span><br>
+            ROYALTIES TOTALES (3€/u) : <span id="l-roy" style="color:white">0.00 €</span><br>
             PARTENAIRE (2.5%) : <span id="l-part" style="color:white">0.00 €</span><br>
             SPIRIT (2.5%) : <span id="l-spi" style="color:white">0.00 €</span>
         </div>
@@ -318,49 +324,53 @@
 </div>
 
 <script>
-    // --- CONFIGURATION SUPABASE (MISE À JOUR AVEC TES CLÉS RÉELLES) ---
     const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
     const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // --- MOTEUR FINANCIER LEDGER ---
+    // --- INTERNATIONALISATION (GREFFE) ---
+    const translations = {
+        FR: { market: "MARKETPLACE", sell: "VENDRE & CERTIFIER", total: "TOTAL À PAYER", safety: "SÉCURITÉ : Vente hors-circuit interdite." },
+        EN: { market: "MARKET", sell: "SELL & CERTIFY", total: "TOTAL TO PAY", safety: "SAFETY: Off-market sales forbidden." },
+        CN: { market: "市场", sell: "出售和认证", total: "总付款额", safety: "安全：禁止场外交易。" },
+        ES: { market: "MERCADO", sell: "VENDER Y CERTIFICAR", total: "TOTAL A PAGAR", safety: "SEGURIDAD: Venta fuera de circuito prohibida." }
+    };
+
+    function changeLang(lang) {
+        document.getElementById('nav-market').innerText = translations[lang].market;
+        document.getElementById('btn-sell').innerText = translations[lang].sell;
+        document.getElementById('msg-alert').innerText = translations[lang].safety;
+        // La logique s'étendrait à tous les labels
+    }
+
+    // --- MOTEUR FINANCIER (CONSERVÉ + OPTIMISÉ) ---
     async function syncLedger() {
         let { data, error } = await _spirit.from('transactions').select('*');
         if (data) {
             let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
             let p = data.reduce((s, t) => s + (Number(t.commission_partner_2_5_percent) || 0), 0);
             let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_2_5_percent) || 0), 0);
-            
             if(document.getElementById('l-roy')) document.getElementById('l-roy').innerText = r.toFixed(2) + " €";
             if(document.getElementById('l-part')) document.getElementById('l-part').innerText = p.toFixed(2) + " €";
             if(document.getElementById('l-spi')) document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
         }
     }
 
-    async function processSpiritTransaction(price) {
-        const ROYALTY_FIXE = 3.00; // Ton business model [cite: 2026-02-09]
-        const TOTAL_COMMISSION_RATE = 0.05; // 5% total
-        
-        const commissionTotale = price * TOTAL_COMMISSION_RATE;
-        const partPartenaire = commissionTotale / 2; // 2.5% [cite: 2026-02-09]
-        const partSpirit = commissionTotale / 2; // 2.5% [cite: 2026-02-09]
-        
-        const { data, error } = await _spirit
-            .from('transactions')
-            .insert([{ 
-                price_sold: price, 
-                spirit_royalty: ROYALTY_FIXE, 
-                commission_partner_2_5_percent: partPartenaire, 
-                commission_spirit_2_5_percent: partSpirit,
-                status: 'COMPLETED'
-            }]);
-
+    async function processSpiritTransaction(price, country) {
+        const ROYALTY_FIXE = 3.00;
+        const commPartenaire = price * 0.025;
+        const commSpirit = price * 0.025;
+        const { error } = await _spirit.from('transactions').insert([{ 
+            price_sold: price, 
+            spirit_royalty: ROYALTY_FIXE, 
+            commission_partner_2_5_percent: commPartenaire, 
+            commission_spirit_2_5_percent: commSpirit,
+            status: 'COMPLETED'
+        }]);
         if (!error) {
-            alert(`Paiement Spirit Validé !\nRoyalties: ${ROYALTY_FIXE}€\nSplit: ${partPartenaire}€ Partenaire / ${partSpirit}€ Spirit`);
+            alert("Transaction Sécurisée Validée.");
+            document.getElementById('shippingLabelContainer').style.display = 'block'; // Bordereau prêt
             syncLedger();
-            closeModals();
-        } else {
-            alert("Erreur Ledger: " + error.message);
         }
     }
 
@@ -370,10 +380,12 @@
     function applyFilters() {
         const country = document.getElementById('fCountry').value;
         const cond = document.getElementById('fCond').value;
+        const cat = document.getElementById('fCat').value;
         document.querySelectorAll('.card').forEach(card => {
             const mC = (country === 'all' || card.dataset.country === country);
             const mS = (cond === 'all' || card.dataset.cond === cond);
-            card.style.display = (mC && mS) ? 'block' : 'none';
+            const mCat = (cat === 'all' || card.dataset.cat === cat);
+            card.style.display = (mC && mS && mCat) ? 'block' : 'none';
         });
     }
 
@@ -381,54 +393,50 @@
         document.getElementById('productModal').style.display = 'flex';
         document.getElementById('pTitle').innerText = title;
         document.getElementById('pOrigin').innerText = country + " | " + hand;
-        document.getElementById('pFigDesc').innerText = "Authentification via " + type + ". Figurine scannée par Spirit IA.";
+        document.getElementById('shippingLabelContainer').style.display = 'none';
         
         const prot = price * 0.05;
-        const duty = (country !== 'France') ? price * 0.20 : 0;
+        const duty = (country !== 'Europe') ? price * 0.20 : 0;
         document.getElementById('sumPrice').innerText = price + " €";
         document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
         document.getElementById('dutyLine').style.display = (duty > 0) ? 'flex' : 'none';
         document.getElementById('sumDuty').innerText = duty.toFixed(2) + " €";
         document.getElementById('sumTotal').innerText = (price + 25 + prot + duty).toFixed(2) + " €";
-        
+
         const b = document.getElementById('pBadge');
         b.innerText = (type === 'Native') ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
         b.className = (type === 'Native') ? 'badge native' : 'badge legacy';
     }
 
     function simulatePayment() {
-        const priceStr = document.getElementById('sumPrice').innerText;
-        const price = parseFloat(priceStr.replace(' €', ''));
-        if(confirm("Confirmer l'achat sécurisé Spirit Infinity ?")) {
-            processSpiritTransaction(price);
-        }
+        const pStr = document.getElementById('sumPrice').innerText;
+        const p = parseFloat(pStr);
+        processSpiritTransaction(p);
     }
 
     function sendMessage() {
         const input = document.getElementById('chatInput');
         const list = document.getElementById('chatMsgs');
-        const forbidden = ["paypal", "06", "phone", "whatsapp", "virement", "@", ".com", "contact"];
+        const forbidden = ["paypal", "06", "whatsapp", "virement", "@"];
         if(input.value.trim() === "") return;
         let safe = true;
         forbidden.forEach(word => { if(input.value.toLowerCase().includes(word)) safe = false; });
         const div = document.createElement('div');
         div.style.marginBottom = "8px";
         if(!safe) {
-            div.innerHTML = "<span style='color:var(--danger)'>[ALERTE SÉCURITÉ] Message bloqué : Tentative de vente hors-circuit détectée.</span>";
+            div.innerHTML = "<span style='color:var(--danger)'>[WATCHDOG] Action suspecte détectée. Avertissement avant bannissement.</span>";
+            document.getElementById('trust-index').innerText = "80% - SURVEILLANCE";
         } else {
-            div.innerHTML = "<strong>Vous :</strong> " + input.value;
+            div.innerHTML = "<strong>Moi :</strong> " + input.value;
         }
         list.appendChild(div);
         input.value = "";
-        list.scrollTop = list.scrollHeight;
     }
 
-    let currentMethod = '';
+    // Fonctions de vente conservées
     function chooseMethod(m) {
-        currentMethod = m;
         document.getElementById('stepMethod').style.display = 'none';
         document.getElementById('step1').style.display = 'block';
-        document.getElementById('scanStatus').innerText = (m === 'native') ? "Recherche Ledger..." : "Analyse IA...";
         setTimeout(() => {
             document.getElementById('step1').style.display = 'none';
             document.getElementById('step2').style.display = 'block';
@@ -436,6 +444,7 @@
     }
 
     function finishCertif() {
+        if(document.getElementById('saleCat').value === "") { alert("Catégorie obligatoire !"); return; }
         document.getElementById('step2').style.display = 'none';
         document.getElementById('step3').style.display = 'block';
     }
@@ -450,13 +459,13 @@
         try {
             const port = await navigator.serial.requestPort();
             await port.open({ baudRate: 115200 });
-            document.getElementById('realTimeData').innerHTML = "STATUS : CONNECTÉ [24:0A:C4:9B:54:28]";
-        } catch (e) { alert("Erreur WebSerial : " + e); }
+            document.getElementById('realTimeData').innerHTML = "STATUS : CONNECTÉ [SPIRIT-HW-01]";
+        } catch (e) { alert("WebSerial: " + e); }
     }
 
-    // Init
     setInterval(syncLedger, 10000);
     syncLedger();
 </script>
+
 </body>
 </html>
