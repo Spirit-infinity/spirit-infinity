@@ -127,6 +127,10 @@
         .support-card { background: #111; border: 1px solid #222; padding: 20px; border-radius: 4px; }
         .support-card h4 { color: var(--neon-orange); margin-top: 0; text-transform: uppercase; font-size: 0.9rem; }
         .support-card p { font-size: 0.8rem; color: #aaa; line-height: 1.4; }
+        /* CHAT STYLE UPDATES */
+        .msg-line { margin-bottom: 8px; font-size: 0.8rem; }
+        .msg-user { color: var(--neon-orange); font-weight: bold; }
+        .msg-text { color: white; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -225,17 +229,16 @@
         <button class="btn-action" style="width:100%; margin-top:10px;" onclick="handleRegister()" data-key="btn_reg_confirm">S'INSCRIRE</button>
     </div>
 </div>
+
 <div id="productModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer; font-size:1.2rem;">✕</button>
         <div style="display:flex; gap:30px; flex-wrap:wrap;">
             <div style="flex:1; min-width:300px;">
-                <div id="pGallery" style="background:#111; min-height:350px; border:1px solid #222; margin-bottom:15px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; overflow:hidden;">GALERIE (IA AUTHENTICATED)</div>
+                <div id="pGallery" style="background:#111; min-height:350px; border:1px solid #333; margin-bottom:15px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; overflow:hidden;"></div>
                 <div class="chat-container">
                     <div id="msg-alert" class="msg-safety-alert" data-key="safety_msg_escrow">SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).</div>
-                    <div class="chat-messages" id="chatMsgs">
-                        <div style="color:var(--neon-orange); margin-bottom:10px;">[Système] Chat Multilingue Sécurisé. Rappel : Transaction PayPal "entre amis" interdite.</div>
-                    </div>
+                    <div class="chat-messages" id="chatMsgs"></div>
                     <div class="chat-input-area">
                         <input type="text" id="chatInput" placeholder="Votre message..." style="margin:0; border-radius:2px 0 0 2px;">
                         <button class="btn-action" onclick="sendMessage()" style="padding:0 15px;">OK</button>
@@ -259,7 +262,7 @@
                 </div>
 
                 <div class="summary-box">
-                <div class="summary-line"><span data-key="lbl_price">Prix</span> <span id="sumPrice">0 €</span></div>
+                    <div class="summary-line"><span data-key="lbl_price">Prix</span> <span id="sumPrice">0 €</span></div>
                     <div class="summary-line"><span>Livraison (<span id="sumCarrierName">Sélectionner</span>)</span> <span id="sumShip">0.00 €</span></div>
                     <div class="summary-line"><span>Protection Acheteur Spirit (Garantie Fonds)</span> <span id="sumProt">0 €</span></div>
                     <div id="dutyLine" class="summary-line" style="color:orange; display:none;"><span data-key="lbl_duty">Frais de Douane Est.</span> <span id="sumDuty">0 €</span></div>
@@ -274,6 +277,7 @@
         </div>
     </div>
 </div>
+
 <div id="certifModal" class="overlay">
     <div class="modal-content" style="max-width:600px;">
         <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">PHOTOS & INFOS</span><span class="step" id="s3">ANALYSE IA</span><span class="step" id="s4">PUBLICATION</span></div>
@@ -332,6 +336,7 @@
         </div>
     </div>
 </div>
+
 <div id="forumModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -365,7 +370,7 @@
             <div class="chat-container" style="height:250px;">
                 <div class="msg-safety-alert">SÉCURITÉ : Vente sous le manteau interdite (PayPal Amis = Ban immédiat).</div>
                 <div class="chat-messages" id="forumChat">
-                    <div style="color:#555;">[Général] Bienvenue sur le chat communautaire sécurisé.</div>
+                    <div class="msg-line"><span class="msg-user">[Système]</span><span class="msg-text">Bienvenue sur le chat communautaire sécurisé.</span></div>
                 </div>
                 <div class="chat-input-area">
                     <input type="text" id="forumInput" placeholder="Discuter avec la communauté...">
@@ -375,6 +380,7 @@
         </div>
     </div>
 </div>
+
 <div id="accountModal" class="overlay">
     <div class="modal-content" style="max-width:1100px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -433,6 +439,7 @@
         </div>
     </div>
 </div>
+
 <div id="ledgerModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -465,6 +472,7 @@
         <button class="btn-action" style="width:100%; margin-top:20px;" onclick="transferToSale()">TRANSFERER POUR VENTE & CERTIFICATION</button>
     </div>
 </div>
+
 <div id="supportModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -487,6 +495,7 @@
         </div>
     </div>
 </div>
+
 <div id="securityModal" class="overlay">
     <div class="modal-content" style="max-width:800px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -515,20 +524,23 @@
         </div>
     </div>
 </div>
+
 <div id="lightbox" onclick="this.style.display='none'">
     <img id="lightbox-img" src="">
 </div>
+
 <script>
     const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
     const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
     const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
     const translations = {
         'FR': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANNEAU DE CONTROLE', 'nav_forum': 'FORUM', 'nav_account': 'MON COMPTE',
             'nav_support': 'SUPPORT SPIRIT', 'nav_security': 'SÉCURITÉ', 'btn_reg': 'INSCRIPTION', 'btn_sell': 'VENDRE & CERTIFIER',
             'filter_title': 'FILTRES DE RECHERCHE', 'lbl_price_range': 'Tranche de Prix (€)', 'opt_all_prices': 'Tous les prix',
             'lbl_zone': "Zone d'expédition", 'opt_all_zones': 'Toutes les zones', 'lbl_brand': 'Marque', 'opt_all_brands': 'Toutes les marques',
-            'lbl_cat': 'Échelle / Format', 'opt_all_formats': 'Tous les formats', 'lbl_cond': "État de l'objet", 'opt_all_formats': 'Tous les formats', 'lbl_cond': "État de l'objet", 'opt_all_conds': 'Tous les états',
+            'lbl_cat': 'Échelle / Format', 'opt_all_formats': 'Tous les formats', 'lbl_cond': "État de l'objet", 'opt_all_conds': 'Tous les états',
             'cond_new': 'Neuf (Scellé)', 'cond_vgood': 'Très bon état', 'cond_good': 'Bon état', 'cond_mid': 'Moyen', 'cond_ok': 'Satisfaisant',
             'lbl_prot_text': 'Protection Spirit 100% active sur toutes les transactions.', 'cat_native_title': '1. Équipées Spirit (Hardware Ledger)',
             'cat_legacy_title': '2. Anciennes Collections & Multimarques (IA Scan)', 'modal_reg_title': 'CREER UN COMPTE', 'btn_reg_confirm': "S'INSCRIRE",
@@ -546,67 +558,27 @@
             'cat_legacy_title': '2. Legacy Collections (AI Scan)', 'modal_reg_title': 'CREATE ACCOUNT', 'btn_reg_confirm': "SIGN UP",
             'safety_msg_escrow': 'SECURITY: Secured funds. Release: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Price', 'lbl_duty': 'Est. Customs',
             'lbl_total_pay': 'TOTAL TO PAY', 'btn_buy': 'DIRECT BUY', 'btn_offer': 'MAKE OFFER'
-        },
-        'CN': {
-            'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
-            'nav_support': 'Spirit 支持', 'nav_security': '安全协议', 'btn_reg': '注册', 'btn_sell': '出售与认证',
-            'filter_title': '搜索筛选', 'lbl_price_range': '价格范围 (€)', 'opt_all_prices': '所有价格',
-            'lbl_zone': "邮寄区域", 'opt_all_zones': '所有区域', 'lbl_brand': '品牌', 'opt_all_brands': '所有品牌',
-            'lbl_cat': '比例/格式', 'opt_all_formats': '所有格式', 'lbl_cond': "物品状态", 'opt_all_conds': '所有状态',
-            'cond_new': '全新（封存）', 'cond_vgood': '极好状态', 'cond_good': '良好状态', 'cond_mid': '一般', 'cond_ok': '合格',
-            'lbl_prot_text': 'Spirit 安全保护在所有交易中均有效', 'cat_native_title': '1. Spirit 原生配备',
-            'cat_legacy_title': '2. 经典系列 (人工智能扫描)', 'modal_reg_title': '创建账户', 'btn_reg_confirm': "立即注册",
-            'safety_msg_escrow': '安全提示：资金已锁定。释放时间：4天（Legacy）/ 3天（Native）', 'lbl_price': '价格', 'lbl_duty': '预估关税',
-            'lbl_total_pay': '支付总额', 'btn_buy': '直接购买', 'btn_offer': '出价'
-        },
-        'ES': {
-            'nav_market': 'MERCADO', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
-            'nav_support': 'SOPORTE SPIRIT', 'nav_security': 'SEGURIDAD', 'btn_reg': 'REGISTRO', 'btn_sell': 'VENDER Y CERTIFICAR',
-            'filter_title': 'FILTROS DE BÚSQUEDA', 'lbl_price_range': 'Rango de Precios (€)', 'opt_all_prices': 'Todos los precios',
-            'lbl_zone': "Zona de envío", 'opt_all_zones': 'Todas las zonas', 'lbl_brand': 'Marca', 'opt_all_brands': 'Todas las marcas',
-            'lbl_cat': 'Escala / Formato', 'opt_all_formats': 'Todos los formatos', 'lbl_cond': "Estado del objeto", 'opt_all_conds': 'Todos los estados',
-            'cond_new': 'Nuevo (Sellado)', 'cond_vgood': 'Muy buen estado', 'cond_good': 'Buen estado', 'cond_mid': 'Medio', 'cond_ok': 'Satisfactorio',
-            'lbl_prot_text': 'Protección Spirit 100% active en todas las transacciones.', 'cat_native_title': '1. Equipado con Spirit (Hardware)',
-            'cat_legacy_title': '2. Colecciones Antiguas (Escaneo IA)', 'modal_reg_title': 'CREAR CUENTA', 'btn_reg_confirm': "REGISTRARSE",
-            'safety_msg_escrow': 'SEGURIDAD: Fondos seguros. Liberación: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Precio', 'lbl_duty': 'Aduanas Est.',
-            'lbl_total_pay': 'TOTAL A PAYAR', 'btn_buy': 'COMPRA DIRECTA', 'btn_offer': 'HACER OFERTA'
         }
     };
+
     const shippingRates = {
         "Petit": { "mr": 4.90, "cl": 6.50, "dh": 12.00 },
         "Moyen": { "mr": 6.90, "cl": 14.90, "dh": 25.00 },
         "Grand": { "mr": 12.90, "cl": 25.00, "dh": 45.00 }
     };
-    function changeLang(lang) {
-        const dict = translations[lang] || translations['FR'];
-        document.querySelectorAll('[data-key]').forEach(el => {
-            const key = el.getAttribute('data-key');
-            if (dict[key]) {
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                    el.placeholder = dict[key];
-                } else {
-                    el.innerText = dict[key];
-                }
-            }
-        });     
-        document.querySelectorAll('option[data-key]').forEach(opt => {
-            const key = opt.getAttribute('data-key');
-            if (dict[key]) opt.innerText = dict[key];
-        });
-    }
+
     let marketData = [
-        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Figurine comme neuve, jamais exposée. Puce Spirit OK.", status: 'available' },
-        { id: 2, title: "Hulk Gladiateur", price: 580, mac: '24:0A:C4:AA:12:11', type: 'native', country: 'Hong Kong', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Grand", img: null, photos: [], desc: "Boite complète, version MMS.", status: 'sold' },
-        { id: 3, title: "Batman The Dark Knight", price: 890, mac: 'IA-SCAN-992', type: 'legacy', country: 'USA', cond: 'Neuf', brand: 'InArt', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Version InArt scellée.", status: 'available' },
-        { id: 4, title: "Spider-Man No Way Home", price: 320, mac: '24:0A:C4:BB:33:44', type: 'native', country: 'Europe', cond: 'Bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Complet avec socle Spirit.", status: 'available' },
-        { id: 5, title: "Joker 1/4 Statue", price: 1250, mac: 'IA-SCAN-881', type: 'legacy', country: 'Chine', cond: 'Neuf', brand: 'JND Studios', cat: '1/4', shipSize: "Grand", img: null, photos: [], desc: "Rare, édition limitée.", status: 'available' },
-        { id: 6, title: "Wolverine 1973", price: 290, mac: 'IA-SCAN-772', type: 'legacy', country: 'France', cond: 'Satisfaisant', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Quelques marques d'usure.", status: 'sold' }
+        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Figurine comme neuve, jamais exposée. Puce Spirit OK.", status: 'available', chat: [] },
+        { id: 3, title: "Batman The Dark Knight", price: 890, mac: 'IA-SCAN-992', type: 'legacy', country: 'USA', cond: 'Neuf', brand: 'InArt', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Version InArt scellée.", status: 'available', chat: [] }
     ];
+
     let currentMethod = '';
     let previewPhotos = [null, null, null, null, null];
     let selectedProduct = null;
-    let currentUser = null;
+    let currentUser = "INVITÉ";
     let diagActive = false;
+    let editingId = null;
+
     function renderMarket(filteredData = null) {
         const gn = document.getElementById('marketGridNative');
         const gl = document.getElementById('marketGridLegacy');
@@ -627,13 +599,227 @@
                 <div class="card-info">
                     <div class="price">${item.price} €</div>
                     <div class="title">${item.title}</div>
-                    <div class="legende"><span>${item.country}</span><span style="color:${item.type==='native'?'var(--spirit-green)':'#ccc'}">${item.type==='native'?'Auto-Diag: OK':'IA: Validé'}</span></div>
+                    <div class="legende"><span>${item.country}</span><span>${item.type==='native'?'Auto-Diag: OK':'IA: Validé'}</span></div>
                 </div>
             `;
             if(item.type === 'native') gn.appendChild(card);
             else gl.appendChild(card);
         });
     }
+
+    function resetSellForm() {
+        editingId = null;
+        diagActive = false;
+        previewPhotos = [null, null, null, null, null];
+        document.getElementById('inputTitle').value = '';
+        document.getElementById('inputPrice').value = '';
+        document.getElementById('inputDesc').value = '';
+        document.getElementById('saleCat').value = '';
+        document.getElementById('saleShip').value = 'Moyen';
+        for(let i=1; i<=5; i++) {
+            document.getElementById('pBox' + i).innerHTML = 'PHOTO ' + i;
+        }
+        document.getElementById('diag-link').style.display = 'none';
+        document.getElementById('stepMethod').style.display = 'block';
+        document.getElementById('stepInfo').style.display = 'none';
+        document.getElementById('stepScan').style.display = 'none';
+        document.getElementById('stepFinish').style.display = 'none';
+        document.querySelectorAll('.step').forEach((s, i) => s.className = i===0 ? 'step active' : 'step');
+    }
+
+    function startCertification() {
+        resetSellForm();
+        document.getElementById('certifModal').style.display = 'flex';
+    }
+
+    function chooseMethod(m) {
+        currentMethod = m;
+        document.getElementById('stepMethod').style.display = 'none';
+        document.getElementById('stepInfo').style.display = 'block';
+        document.getElementById('s2').className = 'step active';
+    }
+
+    function goToScan() {
+        if(!document.getElementById('inputTitle').value || !document.getElementById('inputPrice').value) { alert("Titre et Prix requis"); return; }
+        document.getElementById('stepInfo').style.display = 'none';
+        document.getElementById('stepScan').style.display = 'block';
+        document.getElementById('s3').className = 'step active';
+        setTimeout(() => {
+            document.getElementById('stepScan').style.display = 'none';
+            document.getElementById('stepFinish').style.display = 'block';
+            document.getElementById('s4').className = 'step active';
+        }, 1500);
+    }
+
+    function publishFinal() {
+        const title = document.getElementById('inputTitle').value;
+        const price = parseInt(document.getElementById('inputPrice').value);
+        const desc = document.getElementById('inputDesc').value;
+        const cat = document.getElementById('saleCat').value;
+        const ship = document.getElementById('saleShip').value;
+
+        if(editingId) {
+            const idx = marketData.findIndex(m => m.id === editingId);
+            if(idx !== -1) {
+                marketData[idx].title = title;
+                marketData[idx].price = price;
+                marketData[idx].desc = desc;
+                marketData[idx].cat = cat;
+                marketData[idx].shipSize = ship;
+                if(previewPhotos[0]) marketData[idx].img = previewPhotos[0];
+                marketData[idx].photos = previewPhotos.filter(p => p !== null);
+            }
+        } else {
+            const newItem = {
+                id: Date.now(),
+                title: title,
+                price: price,
+                type: (currentMethod === 'hot_native' ? 'native' : 'legacy'),
+                country: 'France',
+                cond: 'Certifié Spirit Eyes',
+                brand: (currentMethod === 'other' ? 'Autre' : 'Hot Toys'),
+                cat: cat,
+                shipSize: ship,
+                img: previewPhotos[0],
+                photos: previewPhotos.filter(p => p !== null),
+                desc: desc + (diagActive ? " [PUCE SPIRIT VERIFIÉE]" : ""),
+                status: 'available',
+                chat: [],
+                owner: currentUser
+            };
+            marketData.unshift(newItem);
+        }
+        renderMarket();
+        updateUserAnnonces();
+        closeModals();
+        alert("Action réussie !");
+    }
+
+    function updateUserAnnonces() {
+        const container = document.getElementById('user-annonces-list');
+        container.innerHTML = '';
+        const myAnnonces = marketData.filter(m => m.owner === currentUser || !m.owner); 
+        myAnnonces.forEach(a => {
+            const div = document.createElement('div');
+            div.style = "background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px;";
+            div.innerHTML = `
+                <div style="font-weight:bold; color:var(--neon-orange);">${a.title}</div>
+                <div style="font-size:0.8rem;">${a.price} € - ${a.status}</div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-action" style="font-size:0.6rem; padding:5px; flex:1;" onclick="editAnnonce(${a.id})">MODIFIER</button>
+                    <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem; padding:5px; flex:1;" onclick="deleteAnnonce(${a.id})">SUPPRIMER</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function editAnnonce(id) {
+        const item = marketData.find(m => m.id === id);
+        if(!item) return;
+        closeModals();
+        startCertification();
+        editingId = id;
+        document.getElementById('inputTitle').value = item.title;
+        document.getElementById('inputPrice').value = item.price;
+        document.getElementById('inputDesc').value = item.desc;
+        document.getElementById('saleCat').value = item.cat;
+        document.getElementById('saleShip').value = item.shipSize;
+        chooseMethod(item.type === 'native' ? 'hot_native' : 'hot_legacy');
+    }
+
+    function deleteAnnonce(id) {
+        if(confirm("Supprimer définitivement cette annonce ?")) {
+            marketData = marketData.filter(m => m.id !== id);
+            renderMarket();
+            updateUserAnnonces();
+        }
+    }
+
+    // --- LOGIQUE CHAT ---
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if(!text || !selectedProduct) return;
+        if(!selectedProduct.chat) selectedProduct.chat = [];
+        selectedProduct.chat.push({ user: currentUser, text: text });
+        input.value = '';
+        renderChatMessages();
+    }
+
+    function renderChatMessages() {
+        const box = document.getElementById('chatMsgs');
+        box.innerHTML = '';
+        if(selectedProduct && selectedProduct.chat) {
+            selectedProduct.chat.forEach(m => {
+                box.innerHTML += `<div class="msg-line"><span class="msg-user">${m.user}:</span><span class="msg-text">${m.text}</span></div>`;
+            });
+        }
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function sendForumMsg() {
+        const input = document.getElementById('forumInput');
+        const text = input.value.trim();
+        if(!text) return;
+        const box = document.getElementById('forumChat');
+        box.innerHTML += `<div class="msg-line"><span class="msg-user">${currentUser}:</span><span class="msg-text">${text}</span></div>`;
+        input.value = '';
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function openProduct(item) {
+        selectedProduct = item;
+        document.getElementById('productModal').style.display = 'flex';
+        document.getElementById('pTitle').innerText = item.title;
+        document.getElementById('pOrigin').innerText = item.country + " | " + item.cond;
+        document.getElementById('pDescBox').innerText = item.desc;
+        document.getElementById('pSizeLabel').innerText = item.shipSize;
+        document.getElementById('pCarrierSelect').value = "0";
+        
+        let galleryHtml = '';
+        if(item.photos && item.photos.length > 0) {
+            item.photos.forEach(p => {
+                galleryHtml += `<img src="${p}" onclick="zoomImg('${p}')" style="width:45%; margin:5px; border:1px solid #333; cursor:zoom-in;">`;
+            });
+        }
+        document.getElementById('pGallery').innerHTML = galleryHtml || "IMAGE NON DISPONIBLE";
+        renderChatMessages();
+        updateTotalWithCarrier();
+    }
+
+    // --- AUTRES FONCTIONS ---
+    function transferToSale() {
+        diagActive = true;
+        closeModals();
+        startCertification();
+        chooseMethod('hot_native');
+        document.getElementById('diag-link').style.display = 'block';
+    }
+
+    function handleRegister() {
+        const u = document.getElementById('regUser').value;
+        if(!u) return;
+        currentUser = u;
+        document.getElementById('btn-reg').innerText = u.toUpperCase();
+        document.getElementById('user-display').innerText = u.toUpperCase();
+        alert("Bienvenue " + u);
+        closeModals();
+        updateUserAnnonces();
+    }
+
+    function triggerFile(id) { document.getElementById(id).click(); }
+    function previewSale(input, boxId, index) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById(boxId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+                previewPhotos[index] = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     function applyFilters() {
         const pRange = document.getElementById('fPrice').value;
         const country = document.getElementById('fCountry').value;
@@ -647,44 +833,13 @@
                 if(pRange === '400+') matchPrice = item.price >= 400;
                 else matchPrice = (item.price >= min && item.price <= max);
             }
-            let matchCountry = (country === 'all' || item.country === country);
-            let matchBrand = (brand === 'all' || item.brand === brand);
-            let matchCat = (cat === 'all' || item.cat === cat);
-            let matchCond = (cond === 'all' || item.cond === cond);
-            return matchPrice && matchCountry && matchBrand && matchCat && matchCond;
+            return matchPrice && (country === 'all' || item.country === country) && 
+                   (brand === 'all' || item.brand === brand) && (cat === 'all' || item.cat === cat) && 
+                   (cond === 'all' || item.cond === cond);
         });
         renderMarket(filtered);
     }
-    function openProduct(item) {
-        selectedProduct = item;
-        document.getElementById('productModal').style.display = 'flex';
-        document.getElementById('pTitle').innerText = item.title;
-        document.getElementById('pOrigin').innerText = item.country + " | " + item.cond;
-        document.getElementById('pDescBox').innerText = item.desc || "Aucune description.";
-        document.getElementById('pSizeLabel').innerText = item.shipSize || "Moyen";
-        document.getElementById('pCarrierSelect').value = "0";
-        let galleryHtml = '';
-        if(item.photos && item.photos.length > 0) {
-            item.photos.forEach(p => {
-                if(p) galleryHtml += `<img src="${p}" onclick="zoomImg('${p}')" style="width:45%; height:auto; margin:5px; border:1px solid #333; cursor:zoom-in;">`;
-            });
-        }
-        document.getElementById('pGallery').innerHTML = galleryHtml || "IMAGE NON DISPONIBLE";
-        updateTotalWithCarrier();
-        const b = document.getElementById('pBadge');
-        b.className = 'badge ' + (item.type === 'native' ? 'native' : 'legacy');
-        b.innerText = item.type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
-        const btnBuy = document.getElementById('btn-buy');
-        if(item.status === 'sold') {
-            btnBuy.innerText = "DÉJÀ VENDU";
-            btnBuy.disabled = true;
-            btnBuy.style.background = "#444";
-        } else {
-            btnBuy.innerText = "ACHAT DIRECT";
-            btnBuy.disabled = false;
-            btnBuy.style.background = "var(--neon-orange)";
-        }
-    }
+
     function updateTotalWithCarrier() {
         if(!selectedProduct) return;
         const carrierKey = document.getElementById('pCarrierSelect').value;
@@ -702,170 +857,36 @@
         document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
         document.getElementById('sumTotal').innerText = (selectedProduct.price + shipCost + prot).toFixed(2) + " €";
     }
-    async function simulatePayment() {
-        if(!selectedProduct) return;
-        if(document.getElementById('pCarrierSelect').value === "0") { alert("Veuillez choisir un transporteur !"); return; }
-        const total = document.getElementById('sumTotal').innerText;
-        const escrowTime = selectedProduct.type === 'native' ? '3 jours' : '4 jours';
-        const carrier = document.getElementById('sumCarrierName').innerText;
-        alert(`Paiement de ${total} validé ! Fonds bloqués au séquestre pour ${escrowTime}. Transporteur : ${carrier}.`);
-        selectedProduct.status = 'sold';
-        const labelRef = "SPIRIT-SHIP-" + Math.floor(Math.random()*9000);
-        const buyerName = currentUser || "Acheteur";
-        const labelData = `DESTINATAIRE: ${buyerName}<br>COLIS: ${selectedProduct.shipSize}<br>POIDS EST.: 4.5kg<br>TRANSPORT: ${carrier}`;
-        const achatRow = `<tr><td>20/02/2026</td><td>${selectedProduct.title}</td><td>${total}</td><td style="color:orange;">Séquestre</td></tr>`;
-        document.getElementById('list-achats').innerHTML += achatRow;
-        const venteRow = `<div class="sale-item" style="background:#111; border:1px solid #222; padding:15px; margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span><strong>Vente : ${selectedProduct.title}</strong></span>
-                <button class="btn-action" style="font-size:0.6rem; padding:5px 10px;" onclick="printLabel('${labelRef}', '${labelData}')">IMPRIMER BORDEREAU ${carrier}</button>
-            </div>
-        </div>`;
-        document.getElementById('shipping-list').innerHTML += venteRow;
-        renderMarket();
-        closeModals();
-    }
-    function handleRegister() {
-        const u = document.getElementById('regUser').value;
-        if(!u) { alert("Nom requis"); return; }
-        currentUser = u;
-        document.getElementById('btn-reg').innerText = u.toUpperCase();
-        document.getElementById('user-display').innerText = u.toUpperCase();
-        document.getElementById('sales-summary').innerHTML = `<p style="font-size:0.8rem;">Bienvenue, ${u}. Prêt pour l'analyse Spirit.</p>`;
-        alert("Inscription réussie !");
-        closeModals();
-    }
-    function changeRIB() {
-        const newRib = prompt("Entrez votre nouvel IBAN :");
-        if(newRib) document.getElementById('rib-display').innerText = "IBAN : " + newRib;
-    }
-    function transferToSale() {
-        diagActive = true;
-        closeModals();
-        startCertification();
-        chooseMethod('hot_native');
-        document.getElementById('diag-link').style.display = 'block';
-    }
-    function triggerFile(id) { document.getElementById(id).click(); }
-    function previewSale(input, boxId, index) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById(boxId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
-                previewPhotos[index] = e.target.result;
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-    function chooseMethod(m) {
-        currentMethod = m;
-        document.getElementById('stepMethod').style.display = 'none';
-        document.getElementById('stepInfo').style.display = 'block';
-        document.getElementById('s2').className = 'step active';
-    }
-    function goToScan() {
-        if(!document.getElementById('inputTitle').value || !document.getElementById('inputPrice').value) { alert("Titre et Prix requis"); return; }
-        document.getElementById('stepInfo').style.display = 'none';
-        document.getElementById('stepScan').style.display = 'block';
-        document.getElementById('s3').className = 'step active';
-        setTimeout(() => {
-            document.getElementById('stepScan').style.display = 'none';
-            document.getElementById('stepFinish').style.display = 'block';
-            document.getElementById('s4').className = 'step active';
-        }, 2000);
-    }
-    function publishFinal() {
-        const newItem = {
-            id: Date.now(),
-            title: document.getElementById('inputTitle').value,
-            price: parseInt(document.getElementById('inputPrice').value),
-            type: (currentMethod === 'hot_native' ? 'native' : 'legacy'),
-            country: 'France',
-            cond: 'Certifié Spirit Eyes',
-            brand: (currentMethod === 'other' ? 'Autre' : 'Hot Toys'),
-            cat: document.getElementById('saleCat').value,
-            shipSize: document.getElementById('saleShip').value,
-            img: previewPhotos[0],
-            photos: previewPhotos.filter(p => p !== null),
-            desc: document.getElementById('inputDesc').value + (diagActive ? " [PUCE SPIRIT VERIFIÉE]" : ""),
-            status: 'available'
-        };
-        marketData.unshift(newItem);
-        updateUserAnnonces();
-        closeModals();
-        renderMarket();
-        diagActive = false; 
-        document.getElementById('diag-link').style.display = 'none'; 
-        alert("Annonce publiée ! Séquestre activé pour la sécurité.");
-    }
-    function updateUserAnnonces() {
-        const container = document.getElementById('user-annonces-list');
-        container.innerHTML = '';
-        marketData.slice(0, 3).forEach(a => {
-            container.innerHTML += `<div style="background:#000; padding:10px; border:1px solid #333;">${a.title} - ${a.price}€ (${a.shipSize})</div>`;
-        });
-    }
-    function printLabel(ref, data) {
-        document.getElementById('labelPreview').style.display = 'block';
-        document.getElementById('labelContent').innerHTML = `<div style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:10px;"><strong>BORDEREAU D'EXPÉDITION SPIRIT</strong></div><strong>RÉFÉRENCE : ${ref}</strong><hr>${data}`;
-    }
-    function zoomImg(src) {
-        document.getElementById('lightbox-img').src = src;
-        document.getElementById('lightbox').style.display = 'flex';
-    }
-    function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
-    function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
+
     function closeModals() { 
         document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); 
-        document.getElementById('diag-link').style.display = 'none';
-        document.getElementById('stepMethod').style.display = 'block';
-        document.getElementById('stepInfo').style.display = 'none';
-        document.getElementById('stepScan').style.display = 'none';
-        document.getElementById('stepFinish').style.display = 'none';
-        document.querySelectorAll('.step').forEach((s, i) => s.className = i===0 ? 'step active' : 'step');     
         hideTopicEditor();
     }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
     function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
-    function openAccount() { document.getElementById('accountModal').style.display = 'flex'; }
+    function openAccount() { updateUserAnnonces(); document.getElementById('accountModal').style.display = 'flex'; }
     function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
-    function startCertification() { document.getElementById('certifModal').style.display = 'flex'; }
+    function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
+    function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
     function showAccountTab(tab) {
         document.querySelectorAll('.account-page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.dash-nav button').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-' + tab).classList.add('active');
         document.getElementById('btn-' + tab).classList.add('active');
     }
+    function zoomImg(src) {
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox').style.display = 'flex';
+    }
     function showTopicEditor() {
         document.getElementById('forumList').style.display = 'none';
         document.getElementById('topicEditor').style.display = 'block';
-        document.getElementById('btn-new-topic').style.display = 'none';
-        document.getElementById('forum-main-title').innerText = "CRÉATION DE SUJET";
     }
     function hideTopicEditor() {
         document.getElementById('forumList').style.display = 'block';
         document.getElementById('topicEditor').style.display = 'none';
-        document.getElementById('btn-new-topic').style.display = 'block';
-        document.getElementById('forum-main-title').innerText = "FORUM SPIRIT INFINITY";
     }
-    function publishTopic() {
-        const title = document.getElementById('topicTitle').value;
-        const tag = document.getElementById('topicTag').value;
-        const body = document.getElementById('topicBody').value;
-        if(!title || !body) { alert("Veuillez remplir le titre et le message."); return; }
-        const user = currentUser || "Anonyme";
-        const post = document.createElement('div');
-        post.className = 'forum-post';
-        post.innerHTML = `
-            <span class="forum-tag">${tag}</span>
-            <strong>${title}</strong>
-            <p style="font-size:0.75rem; color:#777; margin-top:5px;">Par: ${user} | 0 réponse</p> `;
-        document.getElementById('forumList').prepend(post);
-        alert("Sujet publié avec succès !");      
-        document.getElementById('topicTitle').value = '';
-        document.getElementById('topicBody').value = '';
-        hideTopicEditor();
-    }
+
     renderMarket();
 </script>
 </body>
