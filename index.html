@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -22,9 +21,9 @@
 
         /* HEADER */
         header { padding: 15px 5%; background: #000; border-bottom: 2px solid var(--neon-orange); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .logo-box { display: flex; flex-direction: column; line-height: 1; cursor: pointer; }
-        .logo-top { font-weight: 900; font-size: 1.8rem; letter-spacing: 1px; color: white; }
-        .logo-sub { font-weight: 700; font-size: 0.8rem; color: var(--neon-orange); letter-spacing: 4px; text-transform: uppercase; }
+        .logo-box { display: flex; align-items: center; cursor: pointer; gap: 10px; }
+        .logo-top { font-weight: 900; font-size: 1.8rem; letter-spacing: 1px; color: white; white-space: nowrap; }
+        .logo-sub { font-weight: 700; font-size: 0.8rem; color: var(--neon-orange); letter-spacing: 4px; text-transform: uppercase; border-left: 2px solid var(--neon-orange); padding-left: 10px; }
         
         nav button { background: none; border: none; color: white; margin: 0 10px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.3s; }
         nav button:hover, nav button.active { color: var(--neon-orange); }
@@ -59,8 +58,6 @@
         .dash-nav { border-right: 1px solid #222; padding-right: 20px; }
         .dash-nav button { width: 100%; text-align: left; padding: 15px; background: none; border: 1px solid transparent; color: #777; cursor: pointer; margin-bottom: 10px; transition: 0.3s; font-weight: bold; }
         .dash-nav button.active { border-color: var(--neon-orange); color: white; background: rgba(255,102,0,0.05); }
-        .showroom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .showroom-item { background: #111; border: 1px solid #222; padding: 10px; border-radius: 4px; text-align: center; }
         .stat-banner { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
         .stat-box { background: #0f0f0f; border: 1px solid #222; padding: 20px; border-left: 4px solid var(--neon-orange); }
 
@@ -111,7 +108,6 @@
         .table-spirit td { padding: 12px; border-bottom: 1px solid #222; }
 
         .rib-box { background: #111; border: 1px dashed var(--spirit-green); padding: 20px; color: var(--spirit-green); font-family: monospace; }
-        .fav-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
         /* LIGHTBOX IMAGE (ZOOM) */
         #lightbox {
@@ -149,7 +145,7 @@
         <button id="nav-ledger" onclick="openLedger()" data-key="nav_ledger">PANNEAU DE CONTROLE</button>
         <button id="nav-forum" onclick="openForum()" data-key="nav_forum">FORUM</button>
         <button id="nav-account" onclick="openAccount()" data-key="nav_account">MON COMPTE</button>
-        <button id="nav-func" onclick="openFunctions()">FONCTIONNALITÉS</button>
+        <button id="nav-func" onclick="openFunctions()" data-key="nav_func">FONCTIONNALITÉS</button>
         <button id="nav-sav" onclick="openSAV()" data-key="nav_sav">SAV HOT TOYS</button>
         <select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
             <option value="FR">FR 🇫🇷</option>
@@ -272,7 +268,7 @@
                 <div class="summary-box">
                     <div class="summary-line"><span data-key="lbl_price">Prix</span> <span id="sumPrice">0 €</span></div>
                     <div class="summary-line"><span>Livraison</span> <span id="sumShip">0.00 €</span></div>
-                    <div class="summary-line"><span>Protection Acheteur Spirit</span> <span id="sumProt">0 €</span></div>
+                    <div class="summary-line"><span>Protection Acheteur Spirit (6%)</span> <span id="sumProt">0 €</span></div>
                     <div id="dutyLine" class="summary-line" style="color:orange; display:none;"><span data-key="lbl_duty">Frais de Douane Est.</span> <span id="sumDuty">0 €</span></div>
                     <hr style="border-color:#333;">
                     <div class="summary-line" style="font-weight:bold; font-size:1.1rem; color:var(--neon-orange);"><span data-key="lbl_total_pay">TOTAL À PAYER</span> <span id="sumTotal">0 €</span></div>
@@ -288,6 +284,7 @@
 
 <div id="certifModal" class="overlay">
     <div class="modal-content" style="max-width:600px;">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">PHOTOS & INFOS</span><span class="step" id="s3">ANALYSE IA</span><span class="step" id="s4">PUBLICATION</span></div>
         
         <div id="stepMethod">
@@ -315,7 +312,7 @@
             <input type="file" id="file5" style="display:none" onchange="previewSale(this, 'pBox5', 4)">
             
             <div id="diag-link" style="background:rgba(0,255,170,0.1); padding:10px; border:1px solid var(--spirit-green); margin-bottom:10px; display:none;">
-                <span style="color:var(--spirit-green); font-size:0.8rem;">✓ Technologie Spirit liée à cette annonce</span>
+                <span style="color:var(--spirit-green); font-size:0.8rem;">✓ Auto-diagnostic ESP32 lié à cette annonce</span>
             </div>
 
             <input type="text" id="inputTitle" placeholder="Nom précis de la figurine">
@@ -329,20 +326,12 @@
             </select>
             <input type="number" id="inputPrice" placeholder="Prix de vente (€)">
             
-            <label style="font-size:0.7rem; color:var(--neon-orange);">TAILLE DU COLIS & TRANSPORTEUR</label>
-            <div style="display:flex; gap:10px;">
-                <select id="saleSize" style="flex:1;">
-                    <option value="9.90">Petit (Accessoires) - 9.90€</option>
-                    <option value="14.90">Moyen (Boite Standard) - 14.90€</option>
-                    <option value="25.00">Grand (Diecast / Statue) - 25.00€</option>
-                </select>
-                <select id="saleCarrier" style="flex:1;">
-                    <option value="MR">Mondial Relay</option>
-                    <option value="COL">Colissimo</option>
-                    <option value="UPS">UPS Express</option>
-                    <option value="CHRONO">Chronopost</option>
-                </select>
-            </div>
+            <label style="font-size:0.7rem; color:var(--neon-orange);">TAILLE DU COLIS & LIVRAISON</label>
+            <select id="saleShip">
+                <option value="9.90">Petit (Accessoires / Têtes) - 9.90€</option>
+                <option value="14.90">Moyen (Boite 1/6 Standard) - 14.90€</option>
+                <option value="25.00">Grand (Diecast / Statue / XL) - 25.00€</option>
+            </select>
 
             <textarea id="inputDesc" placeholder="Description de l'état..."></textarea>
             <button class="btn-action" style="width:100%;" onclick="goToScan()">VALIDER L'ANNONCE</button>
@@ -366,7 +355,12 @@
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h2 data-key="nav_forum" style="margin:0;">FORUM SPIRIT INFINITY</h2>
-            <button class="btn-action" onclick="alert('Ouverture de l\'éditeur de sujet...')" style="font-size:0.6rem;">+ NOUVEAU SUJET</button>
+            <button class="btn-action" onclick="openNewTopic()" style="font-size:0.6rem;">+ NOUVEAU SUJET</button>
+        </div>
+        <div id="newTopicForm" style="display:none; background:#111; padding:15px; border:1px solid var(--neon-orange); margin-bottom:20px;">
+            <input type="text" id="topicTitle" placeholder="Titre de votre sujet">
+            <textarea id="topicBody" placeholder="Votre message..."></textarea>
+            <button class="btn-action" onclick="postNewTopic()">PUBLIER LE SUJET</button>
         </div>
         <div id="forumContent">
             <div class="forum-post">
@@ -446,7 +440,8 @@
                 <div id="tab-annonces" class="account-page">
                     <h3>MES ANNONCES ACTIVES</h3>
                     <div id="user-annonces-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                        </div>
+                        <p style="font-size:0.8rem; color:#777;">Aucune annonce active.</p>
+                    </div>
                 </div>
 
                 <div id="tab-params" class="account-page">
@@ -466,7 +461,7 @@
 <div id="ledgerModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <h2 style="color:var(--neon-orange)">PANNEAU DE CONTROLE TECHNOLOGIQUE</h2>
+        <h2 style="color:var(--neon-orange)">PANNEAU DE CONTROLE ESP32</h2>
         <div id="realTimeData" class="ledger-status">
             [ STATUT : CONNECTÉ AU RÉSEAU SPIRIT ]
         </div>
@@ -488,10 +483,6 @@
                 <p>Néon Haut (Halo)</p>
                 <div class="control-val" id="ctrl-neon-high">88 Heures d'utilisation</div>
             </div>
-            <div class="control-item">
-                <p>Figurine LED</p>
-                <div class="control-val" id="ctrl-fig">210 Heures d'utilisation</div>
-            </div>
         </div>
         
         <button class="btn-action" style="width:100%; margin-top:20px;" onclick="transferToSale()">TRANSFERER POUR VENTE & CERTIFICATION</button>
@@ -499,16 +490,52 @@
 </div>
 
 <div id="funcModal" class="overlay">
-    <div class="modal-content" style="max-width:700px;">
+    <div class="modal-content" style="max-width:850px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <h2 style="color:var(--neon-orange)">L'INGÉNIERIE INFINITE</h2>
-        <div style="font-size:0.9rem; line-height:1.6; color:#ccc;">
-            <p><strong>1. Détection de Présence Biométrique :</strong> Nos socles intègrent une technologie radar capable de détecter la respiration humaine. Votre collection s'anime dès que vous entrez dans la pièce.</p>
-            <p><strong>2. Certification IA Scan :</strong> Notre intelligence artificielle analyse chaque pixel de vos photos pour garantir l'authenticité de la figurine, détectant les moindres anomalies de peinture ou de sculpte.</p>
-            <p><strong>3. Spirit Ledger (Technologie) :</strong> Les figurines équipées transmettent en temps réel leur historique d'utilisation et leur état de santé électronique via notre protocole sécurisé.</p>
-            <p><strong>4. Pulse-ID & Protection :</strong> Chaque pièce possède une signature unique. Le système utilise des alertes lumineuses néon pour confirmer l'authenticité lors d'une transaction mondiale.</p>
-            <p><strong>5. Gestion Énergétique Smart :</strong> Surveillance constante de la tension batterie avec alertes intelligentes via écosystème connecté (Alexa/App).</p>
+        <h2 style="color:var(--neon-orange)">ÉCOSYSTÈME SPIRIT INFINITY : FONCTIONS AVANCÉES</h2>
+        <div style="font-size:0.9rem; line-height:1.6; color:#ccc; display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <div style="background:#111; padding:15px; border-radius:4px;">
+                <h4 style="color:var(--neon-orange); margin-top:0;">🛡️ PROTECTION & MARKETPLACE</h4>
+                <p><strong>Garantie Spirit :</strong> 6% de frais (3% vendeur / 3% acheteur) couvrant 100% de la transaction.</p>
+                <p><strong>Séquestre Numérique :</strong> L'argent n'est débloqué au vendeur que lorsque l'acheteur valide la réception.</p>
+                <p><strong>Frais de Douane :</strong> Calcul automatique basé sur la zone d'expédition (France, Chine, USA).</p>
+            </div>
+            <div style="background:#111; padding:15px; border-radius:4px;">
+                <h4 style="color:var(--neon-orange); margin-top:0;">🤖 IA SCAN & AUTHENTIFICATION</h4>
+                <p><strong>Scan de Pixels :</strong> Analyse de la peinture et des textures pour détecter les "Recasts".</p>
+                <p><strong>Verification Thermique :</strong> Pour les composants électroniques internes des figurines Diecast.</p>
+                <p><strong>Badge IA :</strong> Attribué aux figurines "Legacy" après validation par nos serveurs.</p>
+            </div>
+            <div style="background:#111; padding:15px; border-radius:4px;">
+                <h4 style="color:var(--neon-orange); margin-top:0;">🔗 HARDWARE LEDGER (ESP32)</h4>
+                <p><strong>Auto-Diagnostic :</strong> Vérification en temps réel des LED, du radar LD2410 et de la batterie.</p>
+                <p><strong>Compteur d'Heures :</strong> Historique réel d'allumage pour justifier l'état de la figurine.</p>
+                <p><strong>Transfert de Propriété :</strong> Changement de MAC Adresse lors de la vente pour l'inscrire dans le Spirit Ledger.</p>
+            </div>
+            <div style="background:#111; padding:15px; border-radius:4px;">
+                <h4 style="color:var(--neon-orange); margin-top:0;">🚚 LIVRAISON & LOGISTIQUE</h4>
+                <p><strong>Bordereaux Auto :</strong> Impression directe depuis votre compte.</p>
+                <p><strong>Suivi Temps Réel :</strong> Intégration des API transporteurs mondiaux.</p>
+                <p><strong>Assurance Objet :</strong> Valeur déclarée couverte par Spirit Infinity.</p>
+            </div>
         </div>
+    </div>
+</div>
+
+<div id="savModal" class="overlay">
+    <div class="modal-content" style="max-width:500px;">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <h2 style="color:var(--neon-orange)">SERVICE APRÈS-VENTE HOT TOYS</h2>
+        <p style="font-size:0.8rem; color:#888;">Réservé aux figurines achetées sur la Marketplace ou via partenaires officiels.</p>
+        <input type="text" placeholder="Numéro de commande ou ID Ledger">
+        <select>
+            <option>Problème de peinture</option>
+            <option>Articulations lâches</option>
+            <option>Panne électronique (ESP32/LED)</option>
+            <option>Pièce cassée à la réception</option>
+        </select>
+        <textarea placeholder="Décrivez votre problème précisément..."></textarea>
+        <button class="btn-action" style="width:100%;">OUVRIR UN TICKET SAV</button>
     </div>
 </div>
 
@@ -518,13 +545,13 @@
 
 <script>
     const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
+    const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
     const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const translations = {
         'FR': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANNEAU DE CONTROLE', 'nav_forum': 'FORUM', 'nav_account': 'MON COMPTE',
-            'nav_sav': 'SAV HOT TOYS', 'btn_reg': 'INSCRIPTION', 'btn_sell': 'VENDRE & CERTIFIER',
+            'nav_sav': 'SAV HOT TOYS', 'nav_func': 'FONCTIONNALITÉS', 'btn_reg': 'INSCRIPTION', 'btn_sell': 'VENDRE & CERTIFIER',
             'filter_title': 'FILTRES DE RECHERCHE', 'lbl_price_range': 'Tranche de Prix (€)', 'opt_all_prices': 'Tous les prix',
             'lbl_zone': "Zone d'expédition", 'opt_all_zones': 'Toutes les zones', 'lbl_brand': 'Marque', 'opt_all_brands': 'Toutes les marques',
             'lbl_cat': 'Échelle / Format', 'opt_all_formats': 'Tous les formats', 'lbl_cond': "État de l'objet", 'opt_all_conds': 'Tous les états',
@@ -533,6 +560,18 @@
             'cat_legacy_title': '2. Anciennes Collections & Multimarques (IA Scan)', 'modal_reg_title': 'CREER UN COMPTE', 'btn_reg_confirm': "S'INSCRIRE",
             'safety_msg': 'SÉCURITÉ : Vente hors-circuit interdite. Perte de badge immédiate.', 'lbl_price': 'Prix', 'lbl_duty': 'Frais de Douane Est.',
             'lbl_total_pay': 'TOTAL À PAYER', 'btn_buy': 'ACHAT DIRECT', 'btn_offer': 'FAIRE OFFRE'
+        },
+        'EN': {
+            'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
+            'nav_sav': 'HOT TOYS SUPPORT', 'nav_func': 'FEATURES', 'btn_reg': 'REGISTER', 'btn_sell': 'SELL & CERTIFY',
+            'filter_title': 'SEARCH FILTERS', 'lbl_price_range': 'Price Range (€)', 'opt_all_prices': 'All prices',
+            'lbl_zone': "Shipping Zone", 'opt_all_zones': 'All zones', 'lbl_brand': 'Brand', 'opt_all_brands': 'All brands',
+            'lbl_cat': 'Scale / Format', 'opt_all_formats': 'All formats', 'lbl_cond': "Condition", 'opt_all_conds': 'All conditions',
+            'cond_new': 'New (Sealed)', 'cond_vgood': 'Very Good', 'cond_good': 'Good', 'cond_mid': 'Medium', 'cond_ok': 'Fair',
+            'lbl_prot_text': 'Spirit Protection 100% active on all transactions.', 'cat_native_title': '1. Spirit Equipped (Hardware Ledger)',
+            'cat_legacy_title': '2. Legacy Collections & Multibrands (IA Scan)', 'modal_reg_title': 'CREATE ACCOUNT', 'btn_reg_confirm': 'SIGN UP',
+            'safety_msg': 'SAFETY: Off-market sales forbidden. Immediate badge loss.', 'lbl_price': 'Price', 'lbl_duty': 'Est. Customs Duty',
+            'lbl_total_pay': 'TOTAL TO PAY', 'btn_buy': 'DIRECT BUY', 'btn_offer': 'MAKE OFFER'
         }
     };
 
@@ -548,9 +587,9 @@
     }
 
     let marketData = [
-        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', ship: 14.90, img: null, photos: [], desc: "Figurine comme neuve, jamais exposée." },
-        { id: 2, title: "Hulk Gladiateur", price: 580, mac: '24:0A:C4:AA:12:11', type: 'native', country: 'Hong Kong', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', ship: 25.00, img: null, photos: [], desc: "Boite complète, version MMS." },
-        { id: 3, title: "Batman Christian Bale", price: 420, type: 'legacy', country: 'Europe', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', ship: 14.90, img: null, photos: [], desc: "Full set, pas de dégradation de la tenue." }
+        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', ship: 14.90, photos: [], desc: "Figurine comme neuve, jamais exposée." },
+        { id: 2, title: "Hulk Gladiateur", price: 580, mac: '24:0A:C4:AA:12:11', type: 'native', country: 'Hong Kong', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', ship: 25.00, photos: [], desc: "Boite complète, version MMS." },
+        { id: 3, title: "Batman The Dark Knight", price: 420, type: 'legacy', country: 'France', cond: 'Bon état', brand: 'Hot Toys', cat: '1/6', ship: 14.90, photos: [], desc: "Légère usure sur le cuir." }
     ];
 
     let currentMethod = '';
@@ -558,33 +597,6 @@
     let selectedProduct = null;
     let currentUser = null;
     let diagActive = false;
-
-    // FILTRES CORRIGÉS
-    function applyFilters() {
-        const priceRange = document.getElementById('fPrice').value;
-        const country = document.getElementById('fCountry').value;
-        const brand = document.getElementById('fBrand').value;
-        const cat = document.getElementById('fCat').value;
-        const cond = document.getElementById('fCond').value;
-
-        const filtered = marketData.filter(item => {
-            let matchPrice = true;
-            if (priceRange === '0-100') matchPrice = item.price <= 100;
-            else if (priceRange === '100-200') matchPrice = item.price > 100 && item.price <= 200;
-            else if (priceRange === '200-300') matchPrice = item.price > 200 && item.price <= 300;
-            else if (priceRange === '300-400') matchPrice = item.price > 300 && item.price <= 400;
-            else if (priceRange === '400+') matchPrice = item.price > 400;
-
-            const matchCountry = country === 'all' || item.country === country;
-            const matchBrand = brand === 'all' || item.brand === brand;
-            const matchCat = cat === 'all' || item.cat === cat;
-            const matchCond = cond === 'all' || item.cond === cond;
-
-            return matchPrice && matchCountry && matchBrand && matchCat && matchCond;
-        });
-
-        renderMarket(filtered);
-    }
 
     function renderMarket(filteredData = null) {
         const gn = document.getElementById('marketGridNative');
@@ -598,7 +610,7 @@
             card.onclick = () => openProduct(item);
             const badgeClass = item.type === 'native' ? 'native' : 'legacy';
             const badgeText = item.type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
-            const imgContent = item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;">` : `IMAGE ${item.title}`;
+            const imgContent = item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}`;
 
             card.innerHTML = `
                 <div class="badge ${badgeClass}">${badgeText}</div>
@@ -621,8 +633,7 @@
         document.getElementById('btn-reg').innerText = u.toUpperCase();
         document.getElementById('user-display').innerText = u.toUpperCase();
         document.getElementById('sales-summary').innerHTML = `<p style="font-size:0.8rem;">Bienvenue, ${u}. Prêt pour l'analyse Spirit.</p>`;
-        alert("Inscription réussie !");
-        updateUserAnnonces();
+        alert("Inscription réussie ! Votre compte est actif.");
         closeModals();
     }
 
@@ -637,6 +648,7 @@
         startCertification();
         chooseMethod('hot_native');
         document.getElementById('diag-link').style.display = 'block';
+        alert("Auto-diagnostic ESP32 couplé à la future annonce !");
     }
 
     function triggerFile(id) { document.getElementById(id).click(); }
@@ -681,41 +693,25 @@
             cond: 'Certifié Spirit',
             brand: (currentMethod === 'other' ? 'Autre' : 'Hot Toys'),
             cat: document.getElementById('saleCat').value,
-            ship: parseFloat(document.getElementById('saleSize').value),
+            ship: parseFloat(document.getElementById('saleShip').value),
             img: previewPhotos[0],
             photos: previewPhotos.filter(p => p !== null),
-            desc: document.getElementById('inputDesc').value + (diagActive ? " [SYSTÈME SPIRIT VÉRIFIÉ]" : "")
+            desc: document.getElementById('inputDesc').value + (diagActive ? " [DIAGNOSTIC ESP32 VERIFIÉ]" : "")
         };
         marketData.unshift(newItem);
         updateUserAnnonces();
         closeModals();
         renderMarket();
         diagActive = false;
-        alert("Annonce publiée !");
+        alert("Annonce publiée sur le marché mondial !");
     }
 
-    // MODIFICATION ET GESTION ANNONCES
     function updateUserAnnonces() {
         const container = document.getElementById('user-annonces-list');
         container.innerHTML = '';
-        // Simulation : On affiche les 2 premières annonces comme étant les nôtres
-        marketData.slice(0, 2).forEach(a => {
-            container.innerHTML += `
-            <div style="background:#000; padding:15px; border:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <strong>${a.title}</strong><br><span style="color:var(--neon-orange)">${a.price}€</span>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <button onclick="editAd(${a.id})" style="background:blue; border:none; color:white; padding:5px 10px; cursor:pointer; font-size:0.7rem;">MODIFIER</button>
-                    <button onclick="this.parentElement.parentElement.remove()" style="background:red; border:none; color:white; padding:5px 10px; cursor:pointer; font-size:0.7rem;">SUPPRIMER</button>
-                </div>
-            </div>`;
+        marketData.slice(0, 3).forEach(a => {
+            container.innerHTML += `<div style="background:#000; padding:10px; border:1px solid #333;">${a.title} - ${a.price}€ <br><button onclick="this.parentElement.remove()" style="background:none; border:none; color:red; cursor:pointer; font-size:0.7rem;">SUPPRIMER</button></div>`;
         });
-    }
-
-    function editAd(id) {
-        alert("Ouverture de l'éditeur pour l'annonce #" + id);
-        // Ici on pourrait re-remplir le formulaire certifModal
     }
 
     function openProduct(item) {
@@ -730,6 +726,8 @@
             item.photos.forEach(p => {
                 if(p) galleryHtml += `<img src="${p}" onclick="zoomImg('${p}')" style="width:45%; height:auto; margin:5px; border:1px solid #333; cursor:zoom-in;">`;
             });
+        } else if(item.img) {
+            galleryHtml = `<img src="${item.img}" onclick="zoomImg('${item.img}')" style="width:90%; height:auto; margin:5px; border:1px solid #333; cursor:zoom-in;">`;
         }
         document.getElementById('pGallery').innerHTML = galleryHtml || "IMAGE NON DISPONIBLE";
         
@@ -744,14 +742,15 @@
         b.innerText = item.type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
     }
 
+    function zoomImg(src) {
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox').style.display = 'flex';
+    }
+
     async function simulatePayment() {
         if(!selectedProduct) return;
         const total = document.getElementById('sumTotal').innerText;
-        alert(`Paiement de ${total} validé via Spirit Secure !`);
-        const { error } = await _spirit.from('transactions').insert([
-            { chip_id: selectedProduct.mac || 'IA-CERT', price_sold: selectedProduct.price, transaction_type: 'MARKET', status_escrow: 'pending' }
-        ]);
-        if(!error) alert("Spirit Ledger : Transaction synchronisée.");
+        alert(`Paiement de ${total} validé via Spirit Secure ! Split 3%/3% appliqué.`);
     }
 
     function printLabel(ref, data) {
@@ -759,22 +758,31 @@
         document.getElementById('labelContent').innerHTML = `<strong>RÉFÉRENCE : ${ref}</strong><hr>${data}<br>Transporteur : Spirit Logistics System`;
     }
 
+    function openNewTopic() { document.getElementById('newTopicForm').style.display = 'block'; }
+    function postNewTopic() {
+        const t = document.getElementById('topicTitle').value;
+        if(!t) return;
+        const post = document.createElement('div');
+        post.className = 'forum-post';
+        post.innerHTML = `<span class="forum-tag">COMMUNAUTÉ</span> <strong>${t}</strong> <p style="font-size:0.75rem; color:#777; margin-top:5px;">Par: ${currentUser || 'Invité'} | 0 réponse</p>`;
+        document.getElementById('forumContent').prepend(post);
+        document.getElementById('newTopicForm').style.display = 'none';
+        alert("Sujet publié !");
+    }
+
     function openFunctions() { document.getElementById('funcModal').style.display = 'flex'; }
+    function openSAV() { document.getElementById('savModal').style.display = 'flex'; }
     function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
     function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
     function openAccount() { document.getElementById('accountModal').style.display = 'flex'; }
     function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
     function startCertification() { 
-        document.getElementById('s1').className = 'step active';
-        document.getElementById('s2').className = 'step';
-        document.getElementById('s3').className = 'step';
-        document.getElementById('s4').className = 'step';
+        document.getElementById('certifModal').style.display = 'flex'; 
         document.getElementById('stepMethod').style.display = 'block';
         document.getElementById('stepInfo').style.display = 'none';
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'none';
-        document.getElementById('certifModal').style.display = 'flex'; 
     }
     
     function showAccountTab(tab) {
@@ -786,5 +794,5 @@
 
     renderMarket();
 </script>
-
 </body>
+</html>
