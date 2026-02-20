@@ -312,9 +312,11 @@
             <input type="file" id="file3" style="display:none" onchange="previewSale(this, 'pBox3', 2)">
             <input type="file" id="file4" style="display:none" onchange="previewSale(this, 'pBox4', 3)">
             <input type="file" id="file5" style="display:none" onchange="previewSale(this, 'pBox5', 4)">
+            
             <div id="diag-link" style="background:rgba(0,255,170,0.1); padding:10px; border:1px solid var(--spirit-green); margin-bottom:10px; display:none;">
                 <span style="color:var(--spirit-green); font-size:0.8rem;">✓ Auto-diagnostic ESP32 lié à cette annonce</span>
             </div>
+
             <input type="text" id="inputTitle" placeholder="Nom précis de la figurine">
             <select id="saleCat">
                 <option value="">-- FORMAT DU PRODUIT --</option>
@@ -522,6 +524,18 @@
             'safety_msg': 'SÉCURITÉ : Vente hors-circuit interdite. Perte de badge immédiate.', 'lbl_price': 'Prix', 'lbl_duty': 'Frais de Douane Est.',
             'lbl_total_pay': 'TOTAL À PAYER', 'btn_buy': 'ACHAT DIRECT', 'btn_offer': 'FAIRE OFFRE'
         },
+        'EN': {
+            'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'COMMUNITY', 'nav_account': 'MY ACCOUNT',
+            'nav_sav': 'SUPPORT', 'nav_func': 'FEATURES', 'btn_reg': 'SIGN UP', 'btn_sell': 'SELL & CERTIFY',
+            'filter_title': 'SEARCH FILTERS', 'lbl_price_range': 'Price Range (€)', 'opt_all_prices': 'All Prices',
+            'lbl_zone': "Shipping Area", 'opt_all_zones': 'All Zones', 'lbl_brand': 'Brand', 'opt_all_brands': 'All Brands',
+            'lbl_cat': 'Scale / Format', 'opt_all_formats': 'All Formats', 'lbl_cond': "Condition", 'opt_all_conds': 'All Conditions',
+            'cond_new': 'New (Sealed)', 'cond_vgood': 'Very good', 'cond_good': 'Good condition', 'cond_mid': 'Mid', 'cond_ok': 'Fair',
+            'lbl_prot_text': 'Spirit Protection 100% active on all transactions.', 'cat_native_title': '1. Spirit Native (Hardware Ledger)',
+            'cat_legacy_title': '2. Legacy Collections (AI Scan)', 'modal_reg_title': 'CREATE ACCOUNT', 'btn_reg_confirm': "REGISTER",
+            'safety_msg': 'SAFETY: Off-platform sales prohibited. Immediate badge loss.', 'lbl_price': 'Price', 'lbl_duty': 'Est. Customs',
+            'lbl_total_pay': 'TOTAL TO PAY', 'btn_buy': 'BUY NOW', 'btn_offer': 'MAKE OFFER'
+        },
         'ES': {
             'nav_market': 'MERCADO', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
             'nav_sav': 'SOPORTE TÉCNICO', 'nav_func': 'FUNCIONES', 'btn_reg': 'REGISTRO', 'btn_sell': 'VENDER Y CERTIFICAR',
@@ -651,6 +665,7 @@
         closeModals();
         startCertification();
         chooseMethod('hot_native');
+        // On s'assure que le lien diagnostic est visible après le transfert
         document.getElementById('diag-link').style.display = 'block';
     }
 
@@ -706,7 +721,8 @@
         updateUserAnnonces();
         closeModals();
         renderMarket();
-        diagActive = false;
+        diagActive = false; // Reset après publication
+        document.getElementById('diag-link').style.display = 'none'; 
         alert("Annonce publiée !");
     }
 
@@ -771,9 +787,23 @@
         document.getElementById('labelContent').innerHTML = `<strong>RÉFÉRENCE : ${ref}</strong><hr>${data}`;
     }
 
+    function zoomImg(src) {
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox').style.display = 'flex';
+    }
+
     function openSAV() { document.getElementById('savModal').style.display = 'flex'; }
     function openFunctions() { document.getElementById('funcModal').style.display = 'flex'; }
-    function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
+    function closeModals() { 
+        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); 
+        // Réinitialisation des étapes de certif au cas où
+        document.getElementById('diag-link').style.display = 'none';
+        document.getElementById('stepMethod').style.display = 'block';
+        document.getElementById('stepInfo').style.display = 'none';
+        document.getElementById('stepScan').style.display = 'none';
+        document.getElementById('stepFinish').style.display = 'none';
+        document.querySelectorAll('.step').forEach((s, i) => s.className = i===0 ? 'step active' : 'step');
+    }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
     function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
     function openAccount() { document.getElementById('accountModal').style.display = 'flex'; }
@@ -788,5 +818,6 @@
 
     renderMarket();
 </script>
+
 </body>
 </html>
