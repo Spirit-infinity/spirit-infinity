@@ -229,12 +229,6 @@
     </div>
 
     <div class="grid">
-        <div id="func-block" style="background:#0f0f0f; border:1px solid #222; padding:20px; margin-bottom:20px;">
-             <h2 style="color:var(--neon-orange); margin-top:0;" data-key="nav_func">FONCTIONNALITÉS</h2>
-             <p style="font-size:0.8rem; color:#888;">Radar LD2410 - Pulse-ID - Spirit Ledger - Zero Trace - IA Scan Authentification</p>
-             <button class="btn-action" style="font-size:0.6rem; padding:8px 15px;" onclick="openSAV()" data-key="nav_sav">SUPPORT TECHNIQUE / SAV</button>
-        </div>
-
         <div class="cat-title" data-key="cat_native_title">1. Équipées Spirit (Hardware Ledger)</div>
         <div class="grid-layout" id="marketGridNative"></div>
 
@@ -565,7 +559,6 @@
         });
     }
 
-    // BASE DE DONNÉES ÉTENDUE À 6 ANNONCES
     let marketData = [
         { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', ship: 14.90, img: null, photos: [], desc: "Figurine comme neuve, jamais exposée.", status: 'available' },
         { id: 2, title: "Hulk Gladiateur", price: 580, mac: '24:0A:C4:AA:12:11', type: 'native', country: 'Hong Kong', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', ship: 25.00, img: null, photos: [], desc: "Boite complète, version MMS.", status: 'sold' },
@@ -612,7 +605,6 @@
         });
     }
 
-    // CORRECTION FONCTION FILTRE SIDEBAR
     function applyFilters() {
         const pRange = document.getElementById('fPrice').value;
         const country = document.getElementById('fCountry').value;
@@ -751,7 +743,6 @@
         b.className = 'badge ' + (item.type === 'native' ? 'native' : 'legacy');
         b.innerText = item.type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
 
-        // Gestion bouton achat si vendu
         const btnBuy = document.getElementById('btn-buy');
         if(item.status === 'sold') {
             btnBuy.innerText = "DÉJÀ VENDU";
@@ -797,6 +788,5 @@
 
     renderMarket();
 </script>
-
 </body>
 </html>
