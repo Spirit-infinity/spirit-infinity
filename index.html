@@ -16,7 +16,6 @@
             --glass: rgba(255, 255, 255, 0.03);
             --danger: #ff3333;
         }
-
         body { background-color: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
         /* HEADER */
         header { padding: 15px 5%; background: #000; border-bottom: 2px solid var(--neon-orange); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
@@ -32,9 +31,7 @@
         .grid { flex: 1; }
         .cat-title { color: var(--neon-orange); font-size: 1.2rem; font-weight: 900; margin: 30px 0 15px 0; border-left: 4px solid var(--neon-orange); padding-left: 15px; text-transform: uppercase; letter-spacing: 1px; }
         .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-
         /* CARDS */
-
         .card { background: var(--card-bg); border: 1px solid var(--border); cursor: pointer; position: relative; transition: 0.3s; border-radius: 4px; overflow: hidden; }
         .card:hover { border-color: var(--neon-orange); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .img-placeholder { width: 100%; height: 200px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; border-bottom: 1px solid var(--border); text-align: center; padding: 10px; }
@@ -93,7 +90,6 @@
         /* FORUM */
         .forum-post { background: #111; border: 1px solid #222; padding: 15px; margin-bottom: 10px; border-radius: 4px; border-left: 2px solid var(--neon-orange); }
         .forum-tag { font-size: 0.6rem; background: var(--neon-orange); color: black; padding: 2px 6px; border-radius: 2px; font-weight: bold; }
-
         /* SECTION ACCOUNT PAGES */
         .account-page { display: none; }
         .account-page.active { display: block; }
@@ -102,7 +98,6 @@
         .table-spirit td { padding: 12px; border-bottom: 1px solid #222; }
         .rib-box { background: #111; border: 1px dashed var(--spirit-green); padding: 20px; color: var(--spirit-green); font-family: monospace; }
         .fav-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-
         /* LIGHTBOX IMAGE (ZOOM) */
         #lightbox {
             display: none;
@@ -124,12 +119,11 @@
         .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
         .control-item { background: #111; border: 1px solid #333; padding: 15px; border-radius: 4px; }
         .control-val { color: var(--neon-orange); font-weight: bold; font-size: 1.1rem; }
+        .pillier-box { border: 1px solid #222; padding: 15px; margin-bottom: 10px; background: rgba(255,102,0,0.02); }
+        .pillier-title { color: var(--neon-orange); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 5px; display: block; }
     </style>
-
 </head>
-
 <body>
-
 <header>
     <div class="logo-box" onclick="location.reload()">
         <span class="logo-top">HOT TOYS</span>
@@ -156,7 +150,7 @@
 </header>
 <div class="container">
     <div class="sidebar">
-        <h4 id="filter-title" style="color:var(--neon-orange); margin-top:0;" data-key="filter_title">FILTRES DE RECHERCHE</h4>       
+        <h4 id="filter-title" style="color:var(--neon-orange); margin-top:0;" data-key="filter_title">FILTRES DE RECHERCHE</h4>      
         <label data-key="lbl_price_range">Tranche de Prix (€)</label>
         <select id="fPrice" onchange="applyFilters()">
             <option value="all" data-key="opt_all_prices">Tous les prix</option>
@@ -272,11 +266,8 @@
                 <button class="btn-action" onclick="chooseMethod('hot_native')">1. Hot Toys (Equipée Spirit Infinity + Scan IA)</button>
                 <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan IA uniquement)</button>
                 <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (Vente Directe)</button>
-
             </div>
-
         </div>
-
         <div id="stepInfo" style="display:none;">
             <h2 style="text-align:center;">PHOTOS & DÉTAILS</h2>
             <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-bottom:20px;">
@@ -292,7 +283,7 @@
             <input type="file" id="file4" style="display:none" onchange="previewSale(this, 'pBox4', 3)">
             <input type="file" id="file5" style="display:none" onchange="previewSale(this, 'pBox5', 4)">    
             <div id="diag-link" style="background:rgba(0,255,170,0.1); padding:10px; border:1px solid var(--spirit-green); margin-bottom:10px; display:none;">
-                <span style="color:var(--spirit-green); font-size:0.8rem;">✓ Auto-diagnostic ESP32 lié à cette annonce</span>
+                <span style="color:var(--spirit-green); font-size:0.8rem;">✓ Auto-diagnostic Puce Spirit lié à cette annonce</span>
             </div>
             <input type="text" id="inputTitle" placeholder="Nom précis de la figurine">
             <select id="saleCat">
@@ -440,7 +431,7 @@
 <div id="ledgerModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <h2 style="color:var(--neon-orange)">PANNEAU DE CONTROLE ESP32</h2>
+        <h2 style="color:var(--neon-orange)">PANNEAU DE CONTROLE HARDWARE</h2>
         <div id="realTimeData" class="ledger-status">
             [ STATUT : CONNECTÉ AU RÉSEAU SPIRIT ]
         </div>
@@ -450,7 +441,7 @@
                 <div class="control-val" id="ctrl-batt">92% (4.1V)</div>
             </div>
             <div class="control-item">
-                <p>Auto-Diagnostic Système</p>
+                <p>Santé Puce Spirit</p>
                 <div class="control-val" id="ctrl-diag" style="color:var(--spirit-green)">OK - 100% FONCTIONNEL</div>
             </div>
             <div class="control-item">
@@ -473,7 +464,7 @@
     <div class="modal-content" style="max-width:500px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <h2 style="color:var(--danger)">SUPPORT SAV HOT TOYS</h2>
-        <p>Diagnostic en direct de votre puce ESP32. Remplacement batterie sous garantie.</p>
+        <p>Diagnostic en direct de votre puce Spirit Infinity. Remplacement batterie sous garantie.</p>
         <textarea placeholder="Décrivez votre problème technique..."></textarea>
         <button class="btn-action" style="background:var(--danger); color:white; width:100%;" onclick="alert('Ticket envoyé au SAV Spirit !')">ENVOYER LE TICKET</button>
     </div>
@@ -481,12 +472,32 @@
 <div id="funcModal" class="overlay">
     <div class="modal-content" style="max-width:700px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <h2 style="color:var(--neon-orange)">FONCTIONNALITÉS MARKETPLACE</h2>
-        <div style="font-size:0.9rem; line-height:1.6; color:#ccc;">
-            <p><strong>1. Protection Acheteur Spirit :</strong> Chaque transaction est couverte par une garantie de 6%.</p>
-            <p><strong>2. Certification IA Scan :</strong> Analyse de pixel pour garantir l'authenticité.</p>
-            <p><strong>3. Spirit Ledger (Hardware) :</strong> Historique ESP32 en temps réel.</p>
-            <p><strong>4. Messagerie Sécurisée :</strong> Échanges cryptés.</p>
+        <h2 style="color:var(--neon-orange)">LES 6 PILIERS SPIRIT INFINITY</h2>
+        <div style="font-size:0.85rem; line-height:1.4; color:#ccc;">
+            <div class="pillier-box">
+                <span class="pillier-title">1. Immersion (Page Miroir)</span>
+                Extension numérique de votre figurine : chaque pièce possède sa propre interface de contrôle et son historique.
+            </div>
+            <div class="pillier-box">
+                <span class="pillier-title">2. Sécurité (Spirit Ledger)</span>
+                Le Hardware Ledger enregistre chaque seconde d'utilisation. Impossible de falsifier l'usure ou l'authenticité.
+            </div>
+            <div class="pillier-box">
+                <span class="pillier-title">3. Audit (Suivi Production)</span>
+                Traçabilité totale depuis l'usine jusqu'à votre étagère. Certification d'origine garantie.
+            </div>
+            <div class="pillier-box">
+                <span class="pillier-title">4. Confiance (Spirit Eyes)</span>
+                Protocole de certification visuelle par IA scan : élimination définitive de la contrefaçon sur le marché secondaire.
+            </div>
+            <div class="pillier-box">
+                <span class="pillier-title">5. Publicité (Effet K2000)</span>
+                Alerte visuelle Pulse-ID pour les précommandes et nouveautés. Votre collection interagit avec le marché mondial.
+            </div>
+            <div class="pillier-box">
+                <span class="pillier-title">6. Rente (Marketplace Intégrée)</span>
+                Capture de la valeur du marché de l'occasion. Revendez en un clic avec transfert automatique de propriété numérique.
+            </div>
         </div>
     </div>
 </div>
@@ -529,7 +540,7 @@
             'lbl_zone': "Zona de envío", 'opt_all_zones': 'Todas las zonas', 'lbl_brand': 'Marca', 'opt_all_brands': 'Todas las marcas',
             'lbl_cat': 'Escala / Formato', 'opt_all_formats': 'Todos los formatos', 'lbl_cond': "Estado del objet", 'opt_all_conds': 'Todos los estados',
             'cond_new': 'Nuevo (Sellado)', 'cond_vgood': 'Muy buen estado', 'cond_good': 'Buen estado', 'cond_mid': 'Medio', 'cond_ok': 'Satisfactorio',
-            'lbl_prot_text': 'Protección Spirit 100% activa en todas las transacciones.', 'cat_native_title': '1. Equipadas Spirit (Hardware Ledger)',
+            'lbl_prot_text': 'Protección Spirit 100% activa en toutes les transacciones.', 'cat_native_title': '1. Equipadas Spirit (Hardware Ledger)',
             'cat_legacy_title': '2. Colecciones Antiguas (Escaneo IA)', 'modal_reg_title': 'CREAR CUENTA', 'btn_reg_confirm': "REGISTRARSE",
             'safety_msg': 'SEGURIDAD: Venta fuera de circuito prohibida.', 'lbl_price': 'Precio', 'lbl_duty': 'Aduanas Est.',
             'lbl_total_pay': 'TOTAL A PAGAR', 'btn_buy': 'COMPRA DIRECTA', 'btn_offer': 'HACER OFERTA'
@@ -539,7 +550,7 @@
             'nav_sav': '售后服务', 'nav_func': '核心功能', 'btn_reg': '注册账号', 'btn_sell': '出售与认证',
             'filter_title': '搜索过滤器', 'lbl_price_range': '价格范围 (€)', 'opt_all_prices': '所有价格',
             'lbl_zone': "发货区域", 'opt_all_zones': '所有区域', 'lbl_brand': '品牌', 'opt_all_brands': '所有品牌',
-            'lbl_cat': '比例/格式', 'opt_all_formats': '所有格式', 'lbl_cond': "物品状态", 'opt_all_conds': '所有状态',
+            'lbl_cat': '比例/格式', 'opt_all_formats': '所有格式', 'lbl_cond': "物品状态", 'opt_all_states': '所有状态',
             'cond_new': '全新（未拆封）', 'cond_vgood': '极好状态', 'cond_good': '良好状态', 'cond_mid': '中等', 'cond_ok': '合格',
             'lbl_prot_text': 'Spirit 100% 保护在所有交易中激活。', 'cat_native_title': '1. Spirit 原生设备 (硬件账本)',
             'cat_legacy_title': '2. 老旧收藏 (AI 扫描认证)', 'modal_reg_title': '创建账户', 'btn_reg_confirm': "确认注册",
@@ -637,7 +648,6 @@
         closeModals();
         startCertification();
         chooseMethod('hot_native');
-        // On s'assure que le lien diagnostic est visible après le transfert
         document.getElementById('diag-link').style.display = 'block';
     }
     function triggerFile(id) { document.getElementById(id).click(); }
@@ -681,14 +691,14 @@
             ship: parseFloat(document.getElementById('saleShip').value),
             img: previewPhotos[0],
             photos: previewPhotos.filter(p => p !== null),
-            desc: document.getElementById('inputDesc').value + (diagActive ? " [DIAGNOSTIC ESP32 VERIFIÉ]" : ""),
+            desc: document.getElementById('inputDesc').value + (diagActive ? " [PUCE SPIRIT VERIFIÉE]" : ""),
             status: 'available'
         };
         marketData.unshift(newItem);
         updateUserAnnonces();
         closeModals();
         renderMarket();
-        diagActive = false; // Reset après publication
+        diagActive = false; 
         document.getElementById('diag-link').style.display = 'none'; 
         alert("Annonce publiée !");
     }
@@ -752,14 +762,12 @@
     function openFunctions() { document.getElementById('funcModal').style.display = 'flex'; }
     function closeModals() { 
         document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); 
-        // Réinitialisation des étapes de certif au cas où
         document.getElementById('diag-link').style.display = 'none';
         document.getElementById('stepMethod').style.display = 'block';
         document.getElementById('stepInfo').style.display = 'none';
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'none';
         document.querySelectorAll('.step').forEach((s, i) => s.className = i===0 ? 'step active' : 'step');     
-        // Reset forum
         hideTopicEditor();
     }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
@@ -773,7 +781,6 @@
         document.getElementById('tab-' + tab).classList.add('active');
         document.getElementById('btn-' + tab).classList.add('active');
     }
-    /* LOGIQUE NOUVEAU SUJET FORUM */
     function showTopicEditor() {
         document.getElementById('forumList').style.display = 'none';
         document.getElementById('topicEditor').style.display = 'block';
@@ -797,10 +804,9 @@
         post.innerHTML = `
             <span class="forum-tag">${tag}</span>
             <strong>${title}</strong>
-            <p style="font-size:0.75rem; color:#777; margin-top:5px;">Par: ${user} | 0 réponse</p>    `;
+            <p style="font-size:0.75rem; color:#777; margin-top:5px;">Par: ${user} | 0 réponse</p> `;
         document.getElementById('forumList').prepend(post);
-        alert("Sujet publié avec succès !");       
-        // Reset et retour
+        alert("Sujet publié avec succès !");      
         document.getElementById('topicTitle').value = '';
         document.getElementById('topicBody').value = '';
         hideTopicEditor();
@@ -809,5 +815,3 @@
 </script>
 </body>
 </html>
-
-
