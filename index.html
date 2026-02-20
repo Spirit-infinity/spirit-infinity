@@ -573,7 +573,7 @@
             'lbl_price_range': 'Rango de Precios (€)',
             'opt_all_prices': 'Todos los precios',
             'lbl_zone': 'Zona de Envío',
-            'opt_all_zones': 'Todas las zonas',
+            'opt_all_zones': 'Todas las zones',
             'lbl_brand': 'Marca',
             'opt_all_brands': 'Todas las marcas',
             'lbl_cat': 'Escala / Formato',
@@ -623,6 +623,7 @@
 
     let currentMethod = '';
     let previewPhotos = [null, null];
+    let selectedProduct = null;
 
     function renderMarket(filteredData = null) {
         const gn = document.getElementById('marketGridNative');
@@ -733,7 +734,8 @@
             ship: parseFloat(document.getElementById('saleShip').value),
             img: previewPhotos[0],
             photos: [previewPhotos[0], previewPhotos[1]],
-            desc: document.getElementById('inputDesc').value
+            desc: document.getElementById('inputDesc').value,
+            mac: (currentMethod === 'hot_native' ? 'HW-' + Date.now() : 'IA-VISUAL')
         };
         marketData.unshift(newItem);
         closeModals();
@@ -742,12 +744,12 @@
     }
 
     function openProduct(item) {
+        selectedProduct = item;
         document.getElementById('productModal').style.display = 'flex';
         document.getElementById('pTitle').innerText = item.title + " (" + item.brand + ")";
         document.getElementById('pOrigin').innerText = item.country + " | " + item.cond;
         document.getElementById('pDescBox').innerText = item.desc || "Aucune description fournie.";
         
-        // Affichage des photos avec ZOOM possible
         let galleryHtml = '';
         if(item.photos && item.photos.length > 0) {
             item.photos.forEach(p => {
@@ -777,20 +779,28 @@
     }
 
     async function simulatePayment() {
+        if(!selectedProduct) return;
+        
         const total = document.getElementById('sumTotal').innerText;
-        const comm = (parseFloat(total) * 0.03).toFixed(2);
         alert(`Paiement de ${total} validé !`);
+        
+        // Greffe Chirurgicale : Utilisation de la nouvelle structure Supabase
         const { error } = await _spirit.from('transactions').insert([
             { 
-                product_name: document.getElementById('pTitle').innerText, 
-                commission_partner_3_percent: comm,
-                commission_spirit_3_percent: comm,
-                status: 'Completed'
+                chip_id: selectedProduct.mac || 'N/A',
+                price_sold: selectedProduct.price,
+                transaction_type: 'MARKET',
+                status_escrow: 'pending',
+                spirit_royalty: 0
             }
         ]);
+
         if(!error) {
-            alert("Commission synchronisée sur votre Ledger.");
+            alert("Spirit Ledger : Transaction enregistrée avec succès.");
             syncLedger();
+        } else {
+            console.error("Erreur Ledger :", error);
+            alert("Erreur de synchronisation Ledger.");
         }
     }
 
@@ -829,8 +839,8 @@
     async function syncLedger() {
         let { data } = await _spirit.from('transactions').select('*');
         if (data) {
-            let p = data.reduce((s, t) => s + (Number(t.commission_partner_3_percent) || 0), 0);
-            let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_3_percent) || 0), 0);
+            let p = data.reduce((s, t) => s + (Number(t.commission_firm_3pct) || 0), 0);
+            let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_3pct) || 0), 0);
             document.getElementById('l-part').innerText = p.toFixed(2) + " €";
             document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
         }
