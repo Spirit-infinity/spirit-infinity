@@ -3,285 +3,497 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spirit Infinity | Partnership Dossier</title>
+    <title>Spirit Infinity | Écosystème Global</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-dark: #050505;
-            --card-bg: #0a0a0a;
+            --card-bg: #0f0f0f;
             --neon-orange: #ff6600;
+            --text-gray: #777;
             --spirit-green: #00ffaa;
-            --text-main: #ffffff;
-            --text-dim: #777777;
-            --border-color: #1a1a1a;
-            --neon-shadow: 0 0 15px rgba(255, 102, 0, 0.4);
+            --border: #1a1a1a;
+            --glass: rgba(255, 255, 255, 0.03);
             --danger: #ff3333;
         }
 
-        body { 
-            background-color: var(--bg-dark); 
-            color: var(--text-main); 
-            font-family: 'Inter', sans-serif; 
-            margin: 0; 
-            overflow-x: hidden;
-        }
+        body { background-color: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
 
-        /* --- HEADER ORIGINEL --- */
-        header { 
-            padding: 20px 5%; 
-            background: #000; 
-            border-bottom: 3px solid var(--neon-orange); 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            position: sticky; 
-            top: 0; 
-            z-index: 1000;
-            box-shadow: var(--neon-shadow);
-        }
-
-        .logo-container { cursor: pointer; display: flex; flex-direction: column; }
-        .logo-main { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 2.2rem; color: white; line-height: 0.9; }
+        /* HEADER */
+        header { padding: 15px 5%; background: #000; border-bottom: 2px solid var(--neon-orange); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo-box { display: flex; flex-direction: column; line-height: 1; cursor: pointer; }
+        .logo-top { font-weight: 900; font-size: 1.8rem; letter-spacing: 1px; color: white; }
         .logo-sub { font-weight: 700; font-size: 0.8rem; color: var(--neon-orange); letter-spacing: 4px; text-transform: uppercase; }
-
-        nav { display: flex; gap: 20px; align-items: center; }
-        nav button { 
-            background: none; border: none; color: white; font-weight: bold; 
-            text-transform: uppercase; font-size: 0.8rem; cursor: pointer; 
-            transition: 0.3s; padding: 10px;
-        }
-        nav button:hover, nav button.active { color: var(--neon-orange); text-shadow: 0 0 8px var(--neon-orange); }
-
-        /* BOUTON VENTE REDIMENSIONNÉ */
-        .btn-sell { 
-            background: var(--neon-orange); color: black; border: none; 
-            padding: 10px 20px; font-weight: 900; cursor: pointer; 
-            text-transform: uppercase; font-size: 0.75rem; transition: 0.2s;
-        }
-        .btn-sell:hover { background: white; transform: scale(1.05); }
-
-        /* --- LAYOUT --- */
-        .main-wrapper { display: flex; padding: 30px 5%; gap: 40px; }
-        .sidebar { 
-            width: 320px; background: var(--card-bg); padding: 25px; 
-            border: 1px solid var(--border-color); height: fit-content; 
-            position: sticky; top: 120px; border-left: 3px solid var(--neon-orange);
-            box-shadow: 10px 10px 20px rgba(0,0,0,0.5);
-        }
         
-        .content-area { flex: 1; }
-        .section-header { 
-            color: var(--neon-orange); font-family: 'Orbitron'; font-size: 1.5rem; 
-            margin: 40px 0 20px; padding-bottom: 10px; border-bottom: 1px solid #222;
+        nav button { background: none; border: none; color: white; margin: 0 10px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.3s; }
+        nav button:hover, nav button.active { color: var(--neon-orange); }
+        .btn-action { background: var(--neon-orange); color: black; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 2px; text-transform: uppercase; font-size: 0.75rem; }
+
+        /* LAYOUT */
+        .container { display: flex; padding: 20px 5%; gap: 20px; }
+        .sidebar { width: 280px; background: var(--card-bg); padding: 20px; border: 1px solid var(--border); height: fit-content; }
+        .grid { flex: 1; }
+        .cat-title { color: var(--neon-orange); font-size: 1.2rem; font-weight: 900; margin: 30px 0 15px 0; border-left: 4px solid var(--neon-orange); padding-left: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+        /* CARDS */
+        .card { background: var(--card-bg); border: 1px solid var(--border); cursor: pointer; position: relative; transition: 0.3s; border-radius: 4px; overflow: hidden; }
+        .card:hover { border-color: var(--neon-orange); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .img-placeholder { width: 100%; height: 200px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; border-bottom: 1px solid var(--border); text-align: center; padding: 10px; }
+        .card-info { padding: 15px; }
+        .price { font-size: 1.3rem; font-weight: 800; color: white; margin-bottom: 5px; }
+        .title { font-size: 0.85rem; color: #ccc; margin-bottom: 12px; height: 35px; overflow: hidden; }
+        .legende { font-size: 0.7rem; color: var(--text-gray); border-top: 1px solid #222; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .badge { position: absolute; top: 10px; left: 10px; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; }
+        .native { background: var(--spirit-green); color: black; }
+        .legacy { background: #0066ff; color: white; }
+
+        /* MODALS & OVERLAYS */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000; overflow-y: auto; padding: 40px 5%; }
+        .modal-content { background: #0a0a0a; border: 1px solid var(--border); padding: 30px; max-width: 900px; margin: auto; position: relative; }
+        input, select, textarea { width: 100%; background: #111; border: 1px solid #333; color: white; padding: 12px; margin: 10px 0; border-radius: 4px; box-sizing: border-box; }
+        
+        /* DASHBOARD XL STYLE */
+        .dash-container { display: grid; grid-template-columns: 250px 1fr; gap: 30px; min-height: 70vh; }
+        .dash-nav { border-right: 1px solid #222; padding-right: 20px; }
+        .dash-nav button { width: 100%; text-align: left; padding: 15px; background: none; border: 1px solid transparent; color: #777; cursor: pointer; margin-bottom: 10px; transition: 0.3s; font-weight: bold; }
+        .dash-nav button.active { border-color: var(--neon-orange); color: white; background: rgba(255,102,0,0.05); }
+        .showroom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .showroom-item { background: #111; border: 1px solid #222; padding: 10px; border-radius: 4px; text-align: center; }
+        .stat-banner { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
+        .stat-box { background: #0f0f0f; border: 1px solid #222; padding: 20px; border-left: 4px solid var(--neon-orange); }
+
+        /* MESSAGERIE & FORUM */
+        .chat-container { height: 400px; display: flex; flex-direction: column; background: #080808; border: 1px solid #222; margin-top: 20px; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 0.85rem; }
+        .msg-safety-alert { background: rgba(255,51,51,0.1); color: var(--danger); padding: 10px; font-size: 0.7rem; border: 1px solid var(--danger); margin-bottom: 10px; text-align: center; }
+        .chat-input-area { display: flex; padding: 10px; border-top: 1px solid #222; }
+
+        /* ANIMATIONS & LEDGER STATUS */
+        .laser { height: 2px; background: var(--neon-orange); box-shadow: 0 0 15px var(--neon-orange); animation: move 2s infinite ease-in-out; }
+        @keyframes move { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(100px); } }
+        
+        .ledger-status { 
+            padding: 20px; 
+            border: 1px solid var(--spirit-green); 
+            color: var(--spirit-green); 
+            margin-bottom: 20px; 
+            font-family: monospace; 
+            background: rgba(0,255,170,0.05);
+            animation: pulse-border 2s infinite alternate;
+        }
+        @keyframes pulse-border {
+            from { box-shadow: 0 0 5px rgba(0, 255, 170, 0.1); }
+            to { box-shadow: 0 0 15px rgba(0, 255, 170, 0.4); }
         }
 
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
+        /* STEPS CERTIFICATION */
+        .steps { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .step { font-size: 0.7rem; color: #444; font-weight: bold; border-bottom: 2px solid #222; padding-bottom: 5px; flex: 1; text-align: center; }
+        .step.active { color: var(--neon-orange); border-color: var(--neon-orange); }
+        .summary-box { background: #111; padding: 20px; border: 1px solid #222; margin-bottom: 20px; }
+        .summary-line { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 10px; }
 
-        /* --- CARDS --- */
-        .spirit-card { 
-            background: var(--card-bg); border: 1px solid var(--border-color); 
-            transition: 0.4s; cursor: pointer; position: relative; overflow: hidden;
-        }
-        .spirit-card:hover { border-color: var(--neon-orange); transform: translateY(-8px); }
-        .card-img-placeholder { width: 100%; height: 250px; background: #000; display: flex; align-items: center; justify-content: center; }
-        .card-body { padding: 20px; }
-        .card-price { font-size: 1.8rem; font-weight: 900; font-family: 'Orbitron'; margin-bottom: 5px; }
+        /* SHIPPING LABEL */
+        .shipping-label { background: white; color: black; padding: 20px; font-family: 'Courier New', Courier, monospace; border: 2px solid black; margin-top: 20px; box-shadow: 5px 5px 0px #777; }
 
-        /* --- MODALS --- */
-        .modal-overlay { 
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); 
-            z-index: 9999; overflow-y: auto; padding: 50px 5%; 
-        }
-        .modal-container { 
-            background: #050505; border: 2px solid var(--neon-orange); 
-            max-width: 1100px; margin: auto; position: relative; padding: 40px;
-        }
-        .modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }
+        /* FORUM */
+        .forum-post { background: #111; border: 1px solid #222; padding: 15px; margin-bottom: 10px; border-radius: 4px; border-left: 2px solid var(--neon-orange); }
+        .forum-tag { font-size: 0.6rem; background: var(--neon-orange); color: black; padding: 2px 6px; border-radius: 2px; font-weight: bold; }
 
-        input, select, textarea { 
-            width: 100%; background: #111; border: 1px solid #222; 
-            color: white; padding: 12px; margin-bottom: 20px; font-family: inherit;
-        }
+        /* SECTION ACCOUNT PAGES */
+        .account-page { display: none; }
+        .account-page.active { display: block; }
+        
+        .table-spirit { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem; }
+        .table-spirit th { background: #1a1a1a; padding: 12px; text-align: left; color: var(--neon-orange); border-bottom: 1px solid #333; }
+        .table-spirit td { padding: 12px; border-bottom: 1px solid #222; }
 
-        /* LEDGER TABLE */
-        .ledger-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .ledger-table th { background: var(--neon-orange); color: black; padding: 12px; text-align: left; font-family: 'Orbitron'; font-size: 0.8rem; }
-        .ledger-table td { border: 1px solid #222; padding: 12px; font-size: 0.9rem; }
-
-        .scan-line { position: absolute; width: 100%; height: 3px; background: var(--neon-orange); top: 0; animation: scan 2s infinite linear; }
-        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        .rib-box { background: #111; border: 1px dashed var(--spirit-green); padding: 20px; color: var(--spirit-green); font-family: monospace; }
+        .fav-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo-container" onclick="location.reload()">
-        <span class="logo-main">HOT TOYS</span>
-        <span class="logo-sub">Spirit Infinity</span>
+    <div class="logo-box" onclick="location.reload()">
+        <span class="logo-top">HOT TOYS</span>
+        <span class="logo-sub">SPIRIT INFINITY</span>
     </div>
     <nav>
-        <button id="nav-mkt" class="active" onclick="showSection('market')">Marketplace</button>
-        <button id="nav-ldg" onclick="openLedger()">Spirit Ledger</button>
-        <button id="nav-frm" onclick="openForum()">Communauté</button>
-        <button id="nav-acc" onclick="openAccount()">Mon Compte</button>
-        <select id="langSwitch" onchange="updateLang(this.value)" style="width: auto; margin-bottom: 0; padding: 5px; font-size: 0.7rem; border-color: var(--neon-orange);">
+        <button id="nav-market" class="active" onclick="location.reload()" data-key="nav_market">MARKETPLACE</button>
+        <button id="nav-ledger" onclick="openLedger()" data-key="nav_ledger">MON LEDGER</button>
+        <button id="nav-forum" onclick="openForum()" data-key="nav_forum">FORUM</button>
+        <button id="nav-account" onclick="openAccount()" data-key="nav_account">MON COMPTE</button>
+        <button id="nav-sav" onclick="openSAV()" data-key="nav_sav">SAV HOT TOYS</button>
+        <select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
             <option value="FR">FR 🇫🇷</option>
             <option value="EN">EN 🇺🇸</option>
-            <option value="ES">ES 🇪🇸</option>
             <option value="CN">CN 🇨🇳</option>
+            <option value="ES">ES 🇪🇸</option>
         </select>
     </nav>
-    <button class="btn-sell" onclick="openSellModal()">Vendre</button>
+    <div style="display:flex; gap:10px;">
+        <button id="btn-reg" class="btn-action" style="background:#222; color:white;" onclick="openRegister()" data-key="btn_reg">INSCRIPTION</button>
+        <button id="btn-sell" class="btn-action" onclick="startCertification()" data-key="btn_sell">VENDRE & CERTIFIER</button>
+    </div>
 </header>
 
-<div class="main-wrapper">
-    <aside class="sidebar">
-        <h3 id="txt-filter" style="color: var(--neon-orange); font-family: 'Orbitron'; font-size: 1rem;">CONFIGURATEUR</h3>
-        <label style="font-size: 0.7rem; color: var(--text-dim);">TRANCE DE PRIX</label>
-        <select id="fPrice" onchange="renderMarket()">
-            <option value="all">Tous</option>
-            <option value="0-100">0€ - 100€</option>
-            <option value="100-200">100€ - 200€</option>
-            <option value="200-300">200€ - 300€</option>
-            <option value="300-400">300€ - 400€</option>
-            <option value="400+">400€ +</option>
+<div class="container">
+    <div class="sidebar">
+        <h4 id="filter-title" style="color:var(--neon-orange); margin-top:0;" data-key="filter_title">FILTRES DE RECHERCHE</h4>
+        
+        <label>Tranche de Prix (€)</label>
+        <select id="fPrice" onchange="applyFilters()">
+            <option value="all">Tous les prix</option>
+            <option value="0-100">0 à 100 €</option>
+            <option value="100-200">100 à 200 €</option>
+            <option value="200-300">200 à 300 €</option>
+            <option value="300-400">300 à 400 €</option>
+            <option value="400+">400 € et plus</option>
+        </select>
+
+        <label data-key="lbl_zone">Zone d'expédition</label>
+        <select id="fCountry" onchange="applyFilters()">
+            <option value="all">Toutes les zones</option>
+            <option value="France">France</option>
+            <option value="Europe">Europe</option>
+            <option value="Chine">Chine</option>
+            <option value="USA">USA</option>
+            <option value="Hong Kong">Hong Kong</option>
+        </select>
+
+        <label data-key="lbl_brand">Marque</label>
+        <select id="fBrand" onchange="applyFilters()">
+            <option value="all">Toutes les marques</option>
+            <option value="Hot Toys">Hot Toys</option>
+            <option value="InArt">InArt</option>
+            <option value="JND">JND Studios</option>
+            <option value="Sideshow">Sideshow</option>
+            <option value="Soosootoys">Soosootoys</option>
+            <option value="Present Toys">Present Toys</option>
+            <option value="Asmus Toys">Asmus Toys</option>
+            <option value="Autre">Autre</option>
+        </select>
+
+        <label data-key="lbl_cat">Échelle / Format</label>
+        <select id="fCat" onchange="applyFilters()">
+            <option value="all">Tous les formats</option>
+            <option value="1/6">1/6 Action Figure</option>
+            <option value="1/4">1/4 Statue / Figure</option>
+            <option value="1/12">1/12</option>
+            <option value="Resine">Statue Résine</option>
+            <option value="PVC">Statue PVC</option>
+        </select>
+
+        <label data-key="lbl_cond">État de l'objet</label>
+        <select id="fCond" onchange="applyFilters()">
+            <option value="all">Tous les états</option>
+            <option value="Neuf">Neuf (Scellé)</option>
+            <option value="Très bon état">Très bon état</option>
+            <option value="Bon état">Bon état</option>
+            <option value="Moyen">Moyen</option>
+            <option value="Satisfaisant">Satisfaisant</option>
         </select>
         
-        <div style="border: 1px solid var(--spirit-green); padding: 15px; margin-top: 30px; font-family: monospace; color: var(--spirit-green); font-size: 0.75rem;">
-            > LEDGER NODE: ACTIVE<br>
-            > VALUATION: 3.8M €<br>
-            > SPLIT: 2.5% / 2.5%
-        </div>
-    </aside>
+        <hr style="border:0.5px solid #222; margin:20px 0;">
+        <p style="font-size: 0.65rem; color: var(--text-gray);" data-key="lbl_prot_text">Protection Spirit 100% active sur toutes les transactions.</p>
+    </div>
 
-    <main class="content-area">
-        <div class="section-header" id="txt-native">SPIRIT NATIVE (LEDGER)</div>
-        <div class="grid-container" id="gridNative"></div>
-        <div class="section-header" id="txt-legacy">CERTIFICATIONS IA</div>
-        <div class="grid-container" id="gridLegacy"></div>
-    </main>
+    <div class="grid">
+        <div class="cat-title" data-key="cat_native_title">1. Équipées Spirit (Hardware Ledger)</div>
+        <div class="grid-layout" id="marketGridNative">
+            </div>
+
+        <div class="cat-title" data-key="cat_legacy_title">2. Anciennes Collections & Multimarques (IA Scan)</div>
+        <div class="grid-layout" id="marketGridLegacy">
+            </div>
+    </div>
 </div>
 
-<div id="modalSell" class="modal-overlay">
-    <div class="modal-container">
-        <button class="modal-close" onclick="closeModals()">✕</button>
-        <h2 id="txt-sell-title" style="font-family: 'Orbitron'; color: var(--neon-orange);">PUBLIER UNE ANNONCE</h2>
-        
-        <div id="sellStep1">
-            <p>Choisissez le type de certification :</p>
-            <button class="btn-sell" style="width: 100%; margin-bottom: 10px;" onclick="startSell('native')">Hot Toys Spirit Native</button>
-            <button class="btn-sell" style="width: 100%; margin-bottom: 10px; background: #0066ff; color: white;" onclick="startSell('legacy')">Hot Toys Legacy (Scan IA)</button>
-            <button class="btn-sell" style="width: 100%; background: #222; color: white;" onclick="startSell('other')">Autre Marque (Vente Directe)</button>
-        </div>
+<div id="registerModal" class="overlay">
+    <div class="modal-content" style="max-width:400px;">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <h2 style="text-align:center; color:var(--neon-orange);">CREER UN COMPTE</h2>
+        <input type="text" id="regUser" placeholder="Nom d'utilisateur">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPass" placeholder="Mot de passe">
+        <button class="btn-action" style="width:100%; margin-top:10px;" onclick="handleRegister()">S'INSCRIRE</button>
+    </div>
+</div>
 
-        <div id="sellStep2" style="display: none;">
-            <input type="text" id="inTitle" placeholder="Nom de la figurine">
-            <input type="number" id="inPrice" placeholder="Prix de vente (€)">
-            
-            <label style="color: var(--neon-orange); font-size: 0.8rem; display: block; margin-bottom: 10px;">PHOTO DU PRODUIT</label>
-            <input type="file" id="inPhoto" accept="image/*" onchange="handlePreview(event)">
-            <div id="previewBox" style="width: 100%; height: 150px; border: 1px dashed #333; margin-bottom: 20px; display: flex; align-items: center; justify-content: center;">
-                Aperçu de l'image
+<div id="productModal" class="overlay">
+    <div class="modal-content">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer; font-size:1.2rem;">✕</button>
+        <div style="display:flex; gap:30px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:300px;">
+                <div id="pGallery" style="background:#111; height:350px; border:1px solid #222; margin-bottom:15px; display:flex; align-items:center; justify-content:center; overflow:hidden;">GALERIE (IA AUTHENTICATED)</div>
+                <div class="chat-container">
+                    <div id="msg-alert" class="msg-safety-alert" data-key="safety_msg">SÉCURITÉ : Vente hors-circuit interdite. Perte de badge immédiate.</div>
+                    <div class="chat-messages" id="chatMsgs">
+                        <div style="color:var(--neon-orange); margin-bottom:10px;">[Système] Chat Multilingue Actif.</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Votre message..." style="margin:0; border-radius:2px 0 0 2px;">
+                        <button class="btn-action" onclick="sendMessage()" style="padding:0 15px;">OK</button>
+                    </div>
+                </div>
             </div>
-
-            <label style="color: var(--neon-orange); font-size: 0.8rem; display: block; margin-bottom: 10px;">FORMAT DU COLIS (LIVRAISON SPIRIT)</label>
-            <select id="inShip">
-                <option value="9.90">S - Accessoires / Têtes (9.90€)</option>
-                <option value="14.90">M - Figurine 1/6 Standard (14.90€)</option>
-                <option value="25.00">L - Diecast / 1/4 / XL (25.00€)</option>
-            </select>
-
-            <button class="btn-sell" style="width: 100%;" onclick="executeSell()">Finaliser l'annonce</button>
-        </div>
-
-        <div id="sellScan" style="display: none; text-align: center;">
-            <div style="height: 300px; background: #000; position: relative; overflow: hidden; border: 1px solid #222;">
-                <div class="scan-line"></div>
-                <div style="margin-top: 130px; font-family: 'Orbitron'; color: #222;">SCAN IA EN COURS</div>
+            <div style="flex:1; min-width:300px;">
+                <h2 id="pTitle">Titre</h2>
+                <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
+                <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
+                <div class="summary-box">
+                    <div class="summary-line"><span data-key="lbl_price">Prix</span> <span id="sumPrice">0 €</span></div>
+                    <div class="summary-line"><span>Livraison</span> <span id="sumShip">0.00 €</span></div>
+                    <div class="summary-line"><span>Protection Spirit (3% + 3%)</span> <span id="sumProt">0 €</span></div>
+                    <div id="dutyLine" class="summary-line" style="color:orange; display:none;"><span data-key="lbl_duty">Frais de Douane Est.</span> <span id="sumDuty">0 €</span></div>
+                    <hr style="border-color:#333;">
+                    <div class="summary-line" style="font-weight:bold; font-size:1.1rem; color:var(--neon-orange);"><span data-key="lbl_total_pay">TOTAL À PAYER</span> <span id="sumTotal">0 €</span></div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <button id="btn-buy" class="btn-action" onclick="simulatePayment()" data-key="btn_buy">ACHAT DIRECT</button>
+                    <button id="btn-offer" class="btn-action" style="background:#333; color:white;" onclick="alert('Offre transmise !')" data-key="btn_offer">FAIRE OFFRE</button>
+                </div>
             </div>
-            <p style="color: var(--spirit-green); margin-top: 20px;">Analyse des points d'articulation et de la peinture...</p>
         </div>
     </div>
 </div>
 
-<div id="modalLedger" class="modal-overlay">
-    <div class="modal-container">
-        <button class="modal-close" onclick="closeModals()">✕</button>
-        <h2 style="font-family: 'Orbitron'; color: var(--spirit-green);">SPIRIT LEDGER GLOBAL</h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-            <div style="background: #111; padding: 20px; border: 1px solid var(--spirit-green);">
-                <span style="font-size: 0.7rem; color: var(--text-dim);">VALORISATION PROJET</span>
-                <div style="font-size: 1.8rem; font-weight: 900;">3.800.000 €</div>
-            </div>
-            <div style="background: #111; padding: 20px; border: 1px solid var(--spirit-green);">
-                <span style="font-size: 0.7rem; color: var(--text-dim);">REVENUS CIBLES</span>
-                <div style="font-size: 1.8rem; font-weight: 900;">2.000.000 €</div>
+<div id="certifModal" class="overlay">
+    <div class="modal-content" style="max-width:600px;">
+        <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">PHOTOS & INFOS</span><span class="step" id="s3">ANALYSE IA</span><span class="step" id="s4">PUBLICATION</span></div>
+        
+        <div id="stepMethod">
+            <h2 id="sell-title" style="text-align:center;" data-key="btn_sell">VENDRE & CERTIFIER</h2>
+            <div style="display:grid; grid-template-columns: 1fr; gap:10px; margin-top:20px;">
+                <button class="btn-action" onclick="chooseMethod('hot_native')">1. Hot Toys (Equipée Spirit Infinity + Scan IA)</button>
+                <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan IA uniquement)</button>
+                <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (Vente Directe)</button>
             </div>
         </div>
-        <table class="ledger-table">
-            <thead><tr><th>Asset</th><th>Royalties</th><th>Volume</th><th>Total Brut</th></tr></thead>
-            <tbody>
-                <tr><td>Socle Spirit Infinity</td><td>3.00 €</td><td>4500</td><td>13.500 €</td></tr>
-                <tr><td>Abonnement Pulse-ID</td><td>2.5%</td><td>890</td><td>22.250 €</td></tr>
-            </tbody>
-        </table>
+
+        <div id="stepInfo" style="display:none;">
+            <h2 style="text-align:center;">PHOTOS & DÉTAILS</h2>
+            <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-bottom:20px;">
+                <div id="pBox1" onclick="triggerFile('file1')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 1</div>
+                <div id="pBox2" onclick="triggerFile('file2')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 2</div>
+                <div style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:#444;">PHOTO 3</div>
+                <div style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:#444;">PHOTO 4</div>
+                <div style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:#444;">PHOTO 5</div>
+            </div>
+            <input type="file" id="file1" style="display:none" onchange="previewSale(this, 'pBox1')">
+            <input type="file" id="file2" style="display:none" onchange="previewSale(this, 'pBox2')">
+            
+            <input type="text" id="inputTitle" placeholder="Nom précis de la figurine">
+            <select id="saleCat">
+                <option value="">-- FORMAT DU PRODUIT --</option>
+                <option value="1/6">Action Figure 1/6</option>
+                <option value="1/12">Action Figure 1/12</option>
+                <option value="1/4">Statue / Figure 1/4</option>
+                <option value="Resine">Statue Résine</option>
+                <option value="PVC">Statue PVC</option>
+            </select>
+            <input type="number" id="inputPrice" placeholder="Prix de vente (€)">
+            
+            <label style="font-size:0.7rem; color:var(--neon-orange);">TAILLE DU COLIS & LIVRAISON</label>
+            <select id="saleShip">
+                <option value="9.90">Petit (Accessoires / Têtes) - 9.90€</option>
+                <option value="14.90">Moyen (Boite 1/6 Standard) - 14.90€</option>
+                <option value="25.00">Grand (Diecast / Statue / XL) - 25.00€</option>
+            </select>
+
+            <textarea id="inputDesc" placeholder="Description de l'état..."></textarea>
+            <button class="btn-action" style="width:100%;" onclick="goToScan()">VALIDER L'ANNONCE</button>
+        </div>
+
+        <div id="stepScan" style="display:none;">
+            <h2 id="scanTitle" style="text-align:center;">ANALYSE IA : DÉTECTION CONTREFAÇON</h2>
+            <div style="height:100px; border:1px dashed #333; position:relative; margin:20px 0;"><div class="laser"></div></div>
+            <p id="scanStatus" style="text-align:center; font-family:monospace;">Analyse des pixels et signatures thermiques...</p>
+        </div>
+
+        <div id="stepFinish" style="display:none; text-align:center;">
+            <div style="border:1px solid var(--spirit-green); padding:30px;"><h1>ANNONCE PRÊTE</h1><p id="finishMsg">Authentifié par Spirit IA.</p></div>
+            <button class="btn-action" style="margin-top:20px; width:100%;" onclick="publishFinal()">PUBLIER SUR LE MARCHÉ MONDIAL</button>
+        </div>
+    </div>
+</div>
+
+<div id="forumModal" class="overlay">
+    <div class="modal-content">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <h2 data-key="nav_forum">FORUM SPIRIT INFINITY</h2>
+        <div id="forumContent">
+            <div class="forum-post">
+                <span class="forum-tag">CONSEILS</span>
+                <strong>Comment entretenir son Iron Man Diecast ?</strong>
+                <p style="font-size:0.75rem; color:#777; margin-top:5px;">Par: Tony_S | 12 réponses</p>
+            </div>
+            <div class="forum-post">
+                <span class="forum-tag">INFO</span>
+                <strong>Mise à jour Logicielle ESP32 - Pulse-ID</strong>
+                <p style="font-size:0.75rem; color:#777; margin-top:5px;">Par: Spirit_Staff | 45 réponses</p>
+            </div>
+            <div class="chat-container" style="height:250px;">
+                <div class="msg-safety-alert">SÉCURITÉ : Vente sous le manteau interdite (Pas de numéros, pas de mails).</div>
+                <div class="chat-messages" id="forumChat">
+                    <div style="color:#555;">[Général] Bienvenue sur le chat communautaire sécurisé.</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="forumInput" placeholder="Discuter avec la communauté...">
+                    <button class="btn-action" onclick="sendForumMsg()">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="accountModal" class="overlay">
+    <div class="modal-content" style="max-width:1100px;">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <div class="dash-container">
+            <div class="dash-nav">
+                <button id="btn-dash" class="active" onclick="showAccountTab('dashboard')">DASHBOARD</button>
+                <button id="btn-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
+                <button id="btn-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
+                <button id="btn-actions" onclick="showAccountTab('actions')">MES ACTIONS</button>
+                <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
+            </div>
+            
+            <div class="dash-content">
+                <div id="tab-dashboard" class="account-page active">
+                    <div class="stat-banner">
+                        <div class="stat-box" style="border-left: 4px solid var(--spirit-green); text-align: center;">
+                            <p style="font-size:0.65rem; color:#777; margin:0; text-transform:uppercase;">Indice de Confiance Spirit</p>
+                            <div id="trust-index" style="font-size:2rem; font-weight:900; color:var(--spirit-green);">99% - EXCELLENT</div>
+                        </div>
+                    </div>
+                    <h3>RÉSUMÉ DES VENTES EN COURS</h3>
+                    <div id="sales-summary" style="background:#111; padding:15px; border:1px solid #222;">
+                        <p style="font-size:0.8rem;">Aucune vente en cours de traitement.</p>
+                    </div>
+                </div>
+
+                <div id="tab-achats" class="account-page">
+                    <h3>MES ACHATS</h3>
+                    <h4 style="color:var(--neon-orange); font-size:0.8rem;">ACHATS EN COURS</h4>
+                    <table class="table-spirit">
+                        <thead><tr><th>Date</th><th>Produit</th><th>Montant</th><th>Statut</th></tr></thead>
+                        <tbody>
+                            <tr><td>20/02/2026</td><td>Batman InArt</td><td>890.00 €</td><td style="color:orange;">En transit</td></tr>
+                        </tbody>
+                    </table>
+                    <h4 style="color:var(--text-gray); font-size:0.8rem; margin-top:20px;">HISTORIQUE TERMINÉ</h4>
+                    <table class="table-spirit">
+                        <thead><tr><th>Date</th><th>Produit</th><th>Montant</th></tr></thead>
+                        <tbody>
+                            <tr><td>10/01/2026</td><td>Joker Rooted</td><td>1200.00 €</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="tab-ventes" class="account-page">
+                    <h3>MES VENTES RÉALISÉES</h3>
+                    <div id="shipping-list">
+                        <div style="background:#111; border:1px solid #222; padding:15px; margin-bottom:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span><strong>Vente #8821 : Iron Man MK85</strong></span>
+                                <button class="btn-action" style="font-size:0.6rem; padding:5px 10px;" onclick="printLabel('SPIRIT-SHIP-8821')">IMPRIMER BORDEREAU</button>
+                            </div>
+                        </div>
+                        <div style="background:#111; border:1px solid #222; padding:15px; margin-bottom:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span><strong>Vente #8750 : Spider-Man 1/4</strong></span>
+                                <button class="btn-action" style="font-size:0.6rem; padding:5px 10px;" onclick="printLabel('SPIRIT-SHIP-8750')">IMPRIMER BORDEREAU</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="labelPreview" style="display:none;">
+                        <div class="shipping-label" id="labelContent"></div>
+                        <button class="btn-action" style="margin-top:10px; width:100%; background:#222; color:white;" onclick="document.getElementById('labelPreview').style.display='none'">FERMER L'APERCU</button>
+                    </div>
+                </div>
+
+                <div id="tab-actions" class="account-page">
+                    <h3>MES FAVORIS</h3>
+                    <div class="fav-grid">
+                        <div style="background:#111; padding:10px; border:1px solid #222;">Darth Vader PF (Sideshow)</div>
+                        <div style="background:#111; padding:10px; border:1px solid #222;">Goku Statue 1/4</div>
+                    </div>
+                </div>
+
+                <div id="tab-params" class="account-page">
+                    <h3>PARAMÈTRES DU COMPTE</h3>
+                    <label>Modifier Email</label>
+                    <input type="email" value="user@spirit-infinity.com">
+                    <label>Modifier Adresse de Livraison</label>
+                    <textarea>123 Rue de la Figurine, 75000 Paris</textarea>
+                    
+                    <h4 style="color:var(--spirit-green);">COORDONNÉES BANCAIRES (RIB)</h4>
+                    <div class="rib-box">
+                        BANQUE : SPIRIT DIGITAL BANK<br>
+                        IBAN : FR76 3000 1000 2000 3000 4000 123<br>
+                        BIC : SPIRITFRXX
+                    </div>
+                    <button class="btn-action" style="width:100%; margin-top:10px;">METTRE À JOUR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ledgerModal" class="overlay">
+    <div class="modal-content">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <h2 data-key="nav_ledger">MON LEDGER SÉCURISÉ</h2>
+        <div id="realTimeData" class="ledger-status">
+            [ STATUT : CONNECTÉ ]<br><br>
+            ROYALTIES TOTALES (3€/u) : <span id="l-roy" style="color:white">0.00 €</span><br>
+            PARTENAIRE (3%) : <span id="l-part" style="color:white">0.00 €</span><br>
+            SPIRIT (3%) : <span id="l-spi" style="color:white">0.00 €</span>
+        </div>
+        <button class="btn-action" onclick="connectESP()">ACTIVER LA LECTURE DIRECTE (WebSerial)</button>
     </div>
 </div>
 
 <script>
-    /* --- DICTIONNAIRE MULTILINGUE --- */
-    const translations = {
-        FR: { mkt: "Marketplace", ldg: "Spirit Ledger", frm: "Communauté", acc: "Mon Compte", filter: "CONFIGURATEUR", native: "SPIRIT NATIVE (LEDGER)", legacy: "CERTIFICATIONS IA", sell: "PUBLIER UNE ANNONCE" },
-        EN: { mkt: "Marketplace", ldg: "Spirit Ledger", frm: "Community", acc: "My Account", filter: "CONFIGURATOR", native: "SPIRIT NATIVE (LEDGER)", legacy: "AI CERTIFIED", sell: "POST AN AD" },
-        ES: { mkt: "Mercado", ldg: "Libro Spirit", frm: "Comunidad", acc: "Mi Cuenta", filter: "CONFIGURADOR", native: "SPIRIT NATIVO", legacy: "CERTIFICADO IA", sell: "PUBLICAR ANUNCIO" },
-        CN: { mkt: "市场", ldg: "Spirit 账本", frm: "社区", acc: "我的账户", filter: "配置器", native: "Spirit 原生", legacy: "AI 认证", sell: "发布广告" }
-    };
+    const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
+    const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let items = [
-        { id: 1, title: "Iron Man MK85 HT", price: 420, type: "native", ship: 14.90, img: null },
-        { id: 2, title: "Batman InArt 1/6", price: 890, type: "legacy", ship: 25.00, img: null }
+    let marketData = [
+        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', ship: 14.90, img: null },
+        { id: 2, title: "Hulk Gladiateur", price: 580, mac: '24:0A:C4:AA:12:11', type: 'native', country: 'Hong Kong', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', ship: 25.00, img: null },
+        { id: 3, title: "Joker InArt", price: 1100, mac: '24:0A:C4:BB:22:33', type: 'native', country: 'USA', cond: 'Neuf', brand: 'InArt', cat: '1/6', ship: 25.00, img: null },
+        { id: 4, title: "Darth Vader PF", price: 450, mac: 'IA-VISUAL', type: 'legacy', country: 'USA', cond: 'Bon état', brand: 'Sideshow', cat: '1/4', ship: 25.00, img: null },
+        { id: 5, title: "Batman JND", price: 320, mac: 'IA-VISUAL', type: 'legacy', country: 'France', cond: 'Neuf', brand: 'JND', cat: '1/12', ship: 14.90, img: null }
     ];
 
-    let currentSellType = '';
-
-    function updateLang(lang) {
-        const t = translations[lang];
-        document.getElementById('nav-mkt').innerText = t.mkt;
-        document.getElementById('nav-ldg').innerText = t.ldg;
-        document.getElementById('nav-frm').innerText = t.frm;
-        document.getElementById('nav-acc').innerText = t.acc;
-        document.getElementById('txt-filter').innerText = t.filter;
-        document.getElementById('txt-native').innerText = t.native;
-        document.getElementById('txt-legacy').innerText = t.legacy;
-        document.getElementById('txt-sell-title').innerText = t.sell;
-    }
+    let currentMethod = '';
+    let previewDataUrl = null;
 
     function renderMarket() {
-        const gn = document.getElementById('gridNative');
-        const gl = document.getElementById('gridLegacy');
-        const priceFilter = document.getElementById('fPrice').value;
-        
+        const gn = document.getElementById('marketGridNative');
+        const gl = document.getElementById('marketGridLegacy');
         gn.innerHTML = ''; gl.innerHTML = '';
 
-        items.forEach(item => {
-            // Logique de filtre prix
-            if(priceFilter !== 'all') {
-                const p = item.price;
-                if(priceFilter === '0-100' && p > 100) return;
-                if(priceFilter === '100-200' && (p <= 100 || p > 200)) return;
-                if(priceFilter === '200-300' && (p <= 200 || p > 300)) return;
-                if(priceFilter === '400+' && p <= 400) return;
-            }
-
+        marketData.forEach(item => {
             const card = document.createElement('div');
-            card.className = 'spirit-card';
+            card.className = 'card';
+            card.onclick = () => openProduct(item.title, item.price, item.mac, item.type, item.country, item.cond, item.brand, item.ship, item.img);
+            
+            const badgeClass = item.type === 'native' ? 'native' : 'legacy';
+            const badgeText = item.type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
+            const imgContent = item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}<br>${item.brand} ${item.cat}`;
+
             card.innerHTML = `
-                <div class="card-img-placeholder">${item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;">` : 'IMAGE FIGURINE'}</div>
-                <div class="card-body">
-                    <div class="card-price">${item.price} €</div>
-                    <div style="font-weight:bold; font-size:0.9rem;">${item.title}</div>
-                    <div style="color: var(--text-dim); font-size:0.7rem; margin-top:10px;">EXP: ${item.ship}€ | PROTECTION ACTIVE</div>
+                <div class="badge ${badgeClass}">${badgeText}</div>
+                <div class="img-placeholder">${imgContent}</div>
+                <div class="card-info">
+                    <div class="price">${item.price} €</div>
+                    <div class="title">${item.title}</div>
+                    <div class="legende"><span>${item.country}</span><span style="color:${item.type==='native'?'var(--spirit-green)':'#ccc'}">${item.type==='native'?'Santé: 100%':'IA: Validé'}</span></div>
                 </div>
             `;
             if(item.type === 'native') gn.appendChild(card);
@@ -289,61 +501,197 @@
         });
     }
 
-    /* --- LOGIQUE DE VENTE --- */
-    function openSellModal() { 
-        document.getElementById('modalSell').style.display = 'block'; 
-        document.getElementById('sellStep1').style.display = 'block';
-        document.getElementById('sellStep2').style.display = 'none';
-        document.getElementById('sellScan').style.display = 'none';
+    function applyFilters() {
+        const country = document.getElementById('fCountry').value;
+        const brand = document.getElementById('fBrand').value;
+        const cat = document.getElementById('fCat').value;
+        const cond = document.getElementById('fCond').value;
+        const price = document.getElementById('fPrice').value;
+
+        document.querySelectorAll('.card').forEach((cardEl, index) => {
+            const item = marketData[index];
+            if(!item) return;
+
+            let matchPrice = true;
+            if(price === '0-100') matchPrice = item.price <= 100;
+            else if(price === '100-200') matchPrice = item.price > 100 && item.price <= 200;
+            else if(price === '200-300') matchPrice = item.price > 200 && item.price <= 300;
+            else if(price === '300-400') matchPrice = item.price > 300 && item.price <= 400;
+            else if(price === '400+') matchPrice = item.price > 400;
+
+            const mC = (country === 'all' || item.country === country);
+            const mB = (brand === 'all' || item.brand === brand);
+            const mCat = (cat === 'all' || item.cat === cat);
+            const mS = (cond === 'all' || item.cond === cond);
+
+            cardEl.style.display = (mC && mB && mCat && mS && matchPrice) ? 'block' : 'none';
+        });
     }
 
-    function startSell(type) {
-        currentSellType = type;
-        document.getElementById('sellStep1').style.display = 'none';
-        document.getElementById('sellStep2').style.display = 'block';
+    // --- INSCRIPTION ---
+    function handleRegister() {
+        const u = document.getElementById('regUser').value;
+        if(!u) { alert("Nom requis"); return; }
+        alert("Inscription réussie pour " + u + " ! Bienvenue dans l'écosystème Spirit.");
+        closeModals();
+        document.getElementById('btn-reg').innerText = u.toUpperCase();
     }
 
-    function handlePreview(e) {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            document.getElementById('previewBox').innerHTML = `<img src="${event.target.result}" style="width:100%; height:100%; object-fit:contain;">`;
+    // --- VENTE ---
+    function triggerFile(id) { document.getElementById(id).click(); }
+    
+    function previewSale(input, boxId) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(boxId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+                previewDataUrl = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
         }
-        reader.readAsDataURL(file);
     }
 
-    function executeSell() {
-        const title = document.getElementById('inTitle').value;
-        const price = document.getElementById('inPrice').value;
-        const ship = document.getElementById('inShip').value;
-        const img = document.querySelector('#previewBox img')?.src || null;
+    function chooseMethod(m) {
+        currentMethod = m;
+        document.getElementById('stepMethod').style.display = 'none';
+        document.getElementById('stepInfo').style.display = 'block';
+        document.getElementById('s2').className = 'step active';
+    }
 
-        if(!title || !price) return alert("Veuillez remplir les champs.");
-
-        document.getElementById('sellStep2').style.display = 'none';
+    function goToScan() {
+        const t = document.getElementById('inputTitle').value;
+        const p = document.getElementById('inputPrice').value;
+        if(!t || !p) { alert("Titre et Prix requis"); return; }
         
-        // SI "AUTRE" -> PAS DE SCAN IA
-        if(currentSellType === 'other') {
-            finalize(title, price, ship, img);
+        document.getElementById('stepInfo').style.display = 'none';
+        
+        if(currentMethod === 'other') {
+            document.getElementById('finishMsg').innerText = "Vente multimarque enregistrée.";
+            document.getElementById('stepFinish').style.display = 'block';
         } else {
-            document.getElementById('sellScan').style.display = 'block';
+            document.getElementById('stepScan').style.display = 'block';
+            document.getElementById('s3').className = 'step active';
             setTimeout(() => {
-                finalize(title, price, ship, img);
-            }, 3000);
+                document.getElementById('stepScan').style.display = 'none';
+                document.getElementById('stepFinish').style.display = 'block';
+                document.getElementById('s4').className = 'step active';
+            }, 2500);
         }
     }
 
-    function finalize(t, p, s, i) {
-        items.unshift({ id: Date.now(), title: t, price: parseInt(p), type: currentSellType === 'native' ? 'native' : 'legacy', ship: parseFloat(s), img: i });
+    function publishFinal() {
+        const newItem = {
+            id: Date.now(),
+            title: document.getElementById('inputTitle').value,
+            price: parseInt(document.getElementById('inputPrice').value),
+            type: (currentMethod === 'hot_native' ? 'native' : 'legacy'),
+            country: 'France',
+            cond: 'Très bon état',
+            brand: (currentMethod === 'other' ? 'Autre' : 'Hot Toys'),
+            cat: document.getElementById('saleCat').value,
+            ship: parseFloat(document.getElementById('saleShip').value),
+            img: previewDataUrl
+        };
+        marketData.unshift(newItem); // En tête de liste
         closeModals();
         renderMarket();
+        alert("Annonce publiée avec succès !");
     }
 
-    /* --- HELPERS MODALS --- */
-    function openLedger() { document.getElementById('modalLedger').style.display = 'block'; }
-    function openForum() { alert("Accès Forum Genesis : Réservé aux membres Spirit."); }
-    function openAccount() { alert("Dashboard : 0 ventes en attente."); }
-    function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
+    // --- MON COMPTE ---
+    function showAccountTab(tab) {
+        document.querySelectorAll('.account-page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.dash-nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.getElementById('btn-' + tab).classList.add('active');
+    }
+
+    function printLabel(ref) {
+        const label = document.getElementById('labelPreview');
+        const content = document.getElementById('labelContent');
+        label.style.display = 'block';
+        content.innerHTML = `
+            <div style="text-align:center; border-bottom:1px solid black; padding-bottom:10px; margin-bottom:10px;">
+                <h2 style="margin:0;">SPIRIT LOGISTICS</h2>
+                <strong>BORDEREAU DE TRANSPORT SÉCURISÉ</strong>
+            </div>
+            <strong>RÉFÉRENCE : ${ref}</strong><br>
+            <strong>DATE :</strong> 20/02/2026<br><br>
+            <strong>EXPÉDITEUR :</strong><br>
+            User Spirit Infinity<br>
+            (Adresse certifiée par le Ledger)<br><br>
+            <strong>DESTINATAIRE :</strong><br>
+            Hub Spirit France (Check-Point)<br>
+            REF-ORDER: ${Math.floor(Math.random()*99999)}<br><br>
+            <div style="background:black; color:white; padding:10px; text-align:center; font-weight:bold;">
+                NE PAS OUVRIR - SCELLES IA ACTIFS
+            </div>
+        `;
+    }
+
+    // --- PRODUIT MODAL ---
+    function openProduct(title, price, mac, type, country, hand, brand, ship, img) {
+        document.getElementById('productModal').style.display = 'flex';
+        document.getElementById('pTitle').innerText = title + " (" + brand + ")";
+        document.getElementById('pOrigin').innerText = country + " | " + hand;
+        document.getElementById('pGallery').innerHTML = img ? `<img src="${img}" style="width:100%;height:100%;object-fit:contain;">` : "GALERIE IA";
+        
+        const prot = price * 0.06; // Split 3% + 3% = 6% total
+        const duty = (country !== 'France' && country !== 'Europe') ? price * 0.20 : 0;
+        
+        document.getElementById('sumPrice').innerText = price + " €";
+        document.getElementById('sumShip').innerText = (ship || 14.90).toFixed(2) + " €";
+        document.getElementById('sumProt').innerText = prot.toFixed(2) + " € (Split 3%/3%)";
+        document.getElementById('dutyLine').style.display = (duty > 0) ? 'flex' : 'none';
+        document.getElementById('sumDuty').innerText = duty.toFixed(2) + " €";
+        document.getElementById('sumTotal').innerText = (price + (ship || 14.90) + prot + duty).toFixed(2) + " €";
+        
+        const b = document.getElementById('pBadge');
+        b.className = 'badge ' + (type === 'native' ? 'native' : 'legacy');
+        b.innerText = type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
+    }
+
+    // --- SECURITÉ FORUM ---
+    const forbidden = ["paypal", "whatsapp", "virement", "06", "@", ".com", "phone", "appel"];
+    function sendForumMsg() {
+        const input = document.getElementById('forumInput');
+        const list = document.getElementById('forumChat');
+        if(!input.value) return;
+        
+        let isSafe = true;
+        forbidden.forEach(word => { if(input.value.toLowerCase().includes(word)) isSafe = false; });
+        
+        const div = document.createElement('div');
+        if(!isSafe) {
+            div.innerHTML = "<span style='color:var(--danger)'>[WATCHDOG] Tentative de vente hors-circuit. Message bloqué.</span>";
+            document.getElementById('trust-index').innerText = "75% - SURVEILLANCE";
+        } else {
+            div.innerHTML = "<strong>Moi :</strong> " + input.value;
+        }
+        list.appendChild(div);
+        input.value = "";
+    }
+
+    // --- CORE HELPERS ---
+    function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
+    function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
+    function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
+    function openAccount() { document.getElementById('accountModal').style.display = 'flex'; }
+    function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; syncLedger(); }
+    function startCertification() { document.getElementById('certifModal').style.display = 'flex'; }
+    function openSAV() { window.open('https://www.hottoys.com.hk/contact.php', '_blank'); }
+
+    async function syncLedger() {
+        let { data } = await _spirit.from('transactions').select('*');
+        if (data) {
+            let r = data.reduce((s, t) => s + (Number(t.spirit_royalty) || 0), 0);
+            let p = data.reduce((s, t) => s + (Number(t.commission_partner_3_percent) || 0), 0);
+            let sp = data.reduce((s, t) => s + (Number(t.commission_spirit_3_percent) || 0), 0);
+            document.getElementById('l-roy').innerText = r.toFixed(2) + " €";
+            document.getElementById('l-part').innerText = p.toFixed(2) + " €";
+            document.getElementById('l-spi').innerText = sp.toFixed(2) + " €";
+        }
+    }
 
     renderMarket();
 </script>
