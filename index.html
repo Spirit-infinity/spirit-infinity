@@ -130,7 +130,6 @@
     </style>
 </head>
 <body>
-
 <header>
     <div class="logo-box" onclick="location.reload()">
         <span class="logo-top">HOT TOYS</span>
@@ -155,7 +154,6 @@
         <button id="btn-sell" class="btn-action" onclick="startCertification()" data-key="btn_sell">VENDRE & CERTIFIER</button>
     </div>
 </header>
-
 <div class="container">
     <div class="sidebar">
         <h4 id="filter-title" style="color:var(--neon-orange); margin-top:0;" data-key="filter_title">FILTRES DE RECHERCHE</h4>      
@@ -210,7 +208,6 @@
         <hr style="border:0.5px solid #222; margin:20px 0;">
         <p style="font-size: 0.65rem; color: var(--text-gray);" data-key="lbl_prot_text">Protection Spirit 100% active sur toutes les transactions.</p>
     </div>
-
     <div class="grid">
         <div class="cat-title" data-key="cat_native_title">1. Équipées Spirit (Hardware Ledger)</div>
         <div class="grid-layout" id="marketGridNative"></div>
@@ -218,7 +215,6 @@
         <div class="grid-layout" id="marketGridLegacy"></div>
     </div>
 </div>
-
 <div id="registerModal" class="overlay">
     <div class="modal-content" style="max-width:400px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -229,7 +225,6 @@
         <button class="btn-action" style="width:100%; margin-top:10px;" onclick="handleRegister()" data-key="btn_reg_confirm">S'INSCRIRE</button>
     </div>
 </div>
-
 <div id="productModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer; font-size:1.2rem;">✕</button>
@@ -268,7 +263,6 @@
         </div>
     </div>
 </div>
-
 <div id="certifModal" class="overlay">
     <div class="modal-content" style="max-width:600px;">
         <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">PHOTOS & INFOS</span><span class="step" id="s3">ANALYSE IA</span><span class="step" id="s4">PUBLICATION</span></div>
@@ -327,7 +321,6 @@
         </div>
     </div>
 </div>
-
 <div id="forumModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -371,7 +364,6 @@
         </div>
     </div>
 </div>
-
 <div id="accountModal" class="overlay">
     <div class="modal-content" style="max-width:1100px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -442,7 +434,6 @@
         </div>
     </div>
 </div>
-
 <div id="ledgerModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -475,7 +466,6 @@
         <button class="btn-action" style="width:100%; margin-top:20px;" onclick="transferToSale()">TRANSFERER POUR VENTE & CERTIFICATION</button>
     </div>
 </div>
-
 <div id="supportModal" class="overlay">
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -487,23 +477,17 @@
                 <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem;" onclick="alert('Ouverture du gestionnaire de litiges...')">OUVRIR UN LITIGE</button>
             </div>
             <div class="support-card">
-                <h4>Garantie Spirit Native</h4>
-                <p>Les figurines avec puce Spirit bénéficient d'une garantie hardware de 2 ans. Si l'auto-diagnostic détecte une défaillance batterie/LED, le remplacement est pris en charge.</p>
-                <button class="btn-action" style="background:var(--spirit-green); color:black; font-size:0.6rem;" onclick="alert('Scan diagnostic en cours...')">LANCER UN DIAGNOSTIC</button>
-            </div>
-            <div class="support-card">
                 <h4>Sécurité des Fonds (Escrow)</h4>
                 <p>L'argent n'est versé au vendeur qu'après validation. <b>Délai automatique : 4 jours (IA Certified) / 3 jours (Spirit Native)</b> si aucune action n'est entreprise.</p>
             </div>
             <div class="support-card">
                 <h4>Aide Technique</h4>
-                <textarea placeholder="Décrivez votre problème (connexion ESP32, application, marketplace)..."></textarea>
+                <textarea placeholder="Décrivez votre problème (connexion Spirit, application, marketplace)..."></textarea>
                 <button class="btn-action" style="width:100%; margin-top:10px;" onclick="alert('Ticket envoyé !')">ENVOYER TICKET SUPPORT</button>
             </div>
         </div>
     </div>
 </div>
-
 <div id="securityModal" class="overlay">
     <div class="modal-content" style="max-width:800px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -515,7 +499,7 @@
             </div>
             <div class="pillier-box">
                 <span class="pillier-title">2. Auto-Diagnostic Hardware</span>
-                Pour les modèles Spirit Native, le système interroge directement la puce ESP32. Nous vérifions le temps d'allumage des LED et l'état réel de la batterie. Zéro mensonge sur l'usure.
+                Pour les modèles Spirit Native, le système interroge directement la puce Spirit Infinity. Nous vérifions le temps d'allumage des LED et l'état réel de la batterie. Zéro mensonge sur l'usure.
             </div>
             <div class="pillier-box">
                 <span class="pillier-title">3. Chat & Forum Anti-Scam</span>
@@ -532,11 +516,9 @@
         </div>
     </div>
 </div>
-
 <div id="lightbox" onclick="this.style.display='none'">
     <img id="lightbox-img" src="">
 </div>
-
 <script>
     const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
     const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
@@ -554,8 +536,43 @@
             'cat_legacy_title': '2. Anciennes Collections & Multimarques (IA Scan)', 'modal_reg_title': 'CREER UN COMPTE', 'btn_reg_confirm': "S'INSCRIRE",
             'safety_msg_escrow': 'SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).', 'lbl_price': 'Prix', 'lbl_duty': 'Frais de Douane Est.',
             'lbl_total_pay': 'TOTAL À PAYER', 'btn_buy': 'ACHAT DIRECT', 'btn_offer': 'FAIRE OFFRE'
+        },
+        'EN': {
+            'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
+            'nav_support': 'SPIRIT SUPPORT', 'nav_security': 'SECURITY', 'btn_reg': 'REGISTER', 'btn_sell': 'SELL & CERTIFY',
+            'filter_title': 'SEARCH FILTERS', 'lbl_price_range': 'Price Range (€)', 'opt_all_prices': 'All prices',
+            'lbl_zone': "Shipping Zone", 'opt_all_zones': 'All zones', 'lbl_brand': 'Brand', 'opt_all_brands': 'All brands',
+            'lbl_cat': 'Scale / Format', 'opt_all_formats': 'All formats', 'lbl_cond': "Item Condition", 'opt_all_conds': 'All conditions',
+            'cond_new': 'New (Sealed)', 'cond_vgood': 'Very good condition', 'cond_good': 'Good condition', 'cond_mid': 'Fair', 'cond_ok': 'Satisfactory',
+            'lbl_prot_text': 'Spirit Protection 100% active on all transactions.', 'cat_native_title': '1. Spirit Equipped (Hardware Ledger)',
+            'cat_legacy_title': '2. Legacy Collections (AI Scan)', 'modal_reg_title': 'CREATE ACCOUNT', 'btn_reg_confirm': "SIGN UP",
+            'safety_msg_escrow': 'SECURITY: Secured funds. Release: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Price', 'lbl_duty': 'Est. Customs',
+            'lbl_total_pay': 'TOTAL TO PAY', 'btn_buy': 'DIRECT BUY', 'btn_offer': 'MAKE OFFER'
+        },
+        'CN': {
+            'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
+            'nav_support': 'Spirit 支持', 'nav_security': '安全协议', 'btn_reg': '注册', 'btn_sell': '出售与认证',
+            'filter_title': '搜索筛选', 'lbl_price_range': '价格范围 (€)', 'opt_all_prices': '所有价格',
+            'lbl_zone': "邮寄区域", 'opt_all_zones': '所有区域', 'lbl_brand': '品牌', 'opt_all_brands': '所有品牌',
+            'lbl_cat': '比例/格式', 'opt_all_formats': '所有格式', 'lbl_cond': "物品状态", 'opt_all_conds': '所有状态',
+            'cond_new': '全新（封存）', 'cond_vgood': '极好状态', 'cond_good': '良好状态', 'cond_mid': '一般', 'cond_ok': '合格',
+            'lbl_prot_text': 'Spirit 安全保护在所有交易中均有效', 'cat_native_title': '1. Spirit 原生配备',
+            'cat_legacy_title': '2. 经典系列 (人工智能扫描)', 'modal_reg_title': '创建账户', 'btn_reg_confirm': "立即注册",
+            'safety_msg_escrow': '安全提示：资金已锁定。释放时间：4天（Legacy）/ 3天（Native）', 'lbl_price': '价格', 'lbl_duty': '预估关税',
+            'lbl_total_pay': '支付总额', 'btn_buy': '直接购买', 'btn_offer': '出价'
+        },
+        'ES': {
+            'nav_market': 'MERCADO', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
+            'nav_support': 'SOPORTE SPIRIT', 'nav_security': 'SEGURIDAD', 'btn_reg': 'REGISTRO', 'btn_sell': 'VENDER Y CERTIFICAR',
+            'filter_title': 'FILTROS DE BÚSQUEDA', 'lbl_price_range': 'Rango de Precios (€)', 'opt_all_prices': 'Todos los precios',
+            'lbl_zone': "Zona de envío", 'opt_all_zones': 'Todas las zonas', 'lbl_brand': 'Marca', 'opt_all_brands': 'Todas las marcas',
+            'lbl_cat': 'Escala / Formato', 'opt_all_formats': 'Todos los formatos', 'lbl_cond': "Estado del objeto", 'opt_all_conds': 'Todos los estados',
+            'cond_new': 'Nuevo (Sellado)', 'cond_vgood': 'Muy buen estado', 'cond_good': 'Buen estado', 'cond_mid': 'Medio', 'cond_ok': 'Satisfactorio',
+            'lbl_prot_text': 'Protección Spirit 100% activa en todas las transacciones.', 'cat_native_title': '1. Equipado con Spirit (Hardware)',
+            'cat_legacy_title': '2. Colecciones Antiguas (Escaneo IA)', 'modal_reg_title': 'CREAR CUENTA', 'btn_reg_confirm': "REGISTRARSE",
+            'safety_msg_escrow': 'SEGURIDAD: Fondos seguros. Liberación: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Precio', 'lbl_duty': 'Aduanas Est.',
+            'lbl_total_pay': 'TOTAL A PAGAR', 'btn_buy': 'COMPRA DIRECTA', 'btn_offer': 'HACER OFERTA'
         }
-        // Les autres langues sont maintenues mais la structure FR est la base de travail
     };
 
     function changeLang(lang) {
@@ -563,9 +580,18 @@
         document.querySelectorAll('[data-key]').forEach(el => {
             const key = el.getAttribute('data-key');
             if (dict[key]) {
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = dict[key];
-                else el.innerText = dict[key];
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = dict[key];
+                } else {
+                    el.innerText = dict[key];
+                }
             }
+        });
+        
+        // Mise à jour spécifique pour les options des select qui ont des data-key
+        document.querySelectorAll('option[data-key]').forEach(opt => {
+            const key = opt.getAttribute('data-key');
+            if (dict[key]) opt.innerText = dict[key];
         });
     }
 
