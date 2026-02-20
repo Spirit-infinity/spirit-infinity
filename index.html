@@ -219,6 +219,7 @@
         <div class="grid-layout" id="marketGridLegacy"></div>
     </div>
 </div>
+
 <div id="registerModal" class="overlay">
     <div class="modal-content" style="max-width:400px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -270,11 +271,33 @@
                     <div class="summary-line" style="font-weight:bold; font-size:1.1rem; color:var(--neon-orange);"><span data-key="lbl_total_pay">TOTAL À PAYER</span> <span id="sumTotal">0 €</span></div>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <button id="btn-buy" class="btn-action" onclick="simulatePayment()" data-key="btn_buy">ACHAT DIRECT</button>
+                    <button id="btn-buy" class="btn-action" onclick="openPaymentModal()" data-key="btn_buy">ACHAT DIRECT</button>
                     <button id="btn-offer" class="btn-action" style="background:#333; color:white;" onclick="alert('Offre transmise !')" data-key="btn_offer">FAIRE OFFRE</button>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="paymentModal" class="overlay">
+    <div class="modal-content" style="max-width:500px;">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <h2 style="text-align:center; color:var(--neon-orange);">FINALISER LE PAIEMENT</h2>
+        <div class="summary-box" style="margin-bottom:20px;">
+            <div class="summary-line"><span>Montant Total :</span> <span id="payTotalAmount" style="font-weight:bold; color:var(--spirit-green);">0 €</span></div>
+        </div>
+        <p style="font-size:0.8rem; text-align:center;">Choisissez votre mode de paiement sécurisé Spirit Infinity :</p>
+        <div style="display:grid; grid-template-columns: 1fr; gap:15px; margin-top:20px;">
+            <button class="btn-action" onclick="confirmPayment('CB')" style="background:#fff; color:#000; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; gap:10px;">
+                💳 CARTE BANCAIRE (STRIPE)
+            </button>
+            <button class="btn-action" onclick="confirmPayment('Paypal')" style="background:#ffc439; color:#000; display:flex; align-items:center; justify-content:center; gap:10px;">
+                🅿️ PAYPAL SÉCURISÉ
+            </button>
+        </div>
+        <p style="font-size:0.6rem; color:#777; margin-top:15px; text-align:center;">
+            En cliquant sur un mode de paiement, vos fonds seront placés sous séquestre Spirit jusqu'à réception de la figurine.
+        </p>
     </div>
 </div>
 
@@ -558,6 +581,30 @@
             'cat_legacy_title': '2. Legacy Collections (AI Scan)', 'modal_reg_title': 'CREATE ACCOUNT', 'btn_reg_confirm': "SIGN UP",
             'safety_msg_escrow': 'SECURITY: Secured funds. Release: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Price', 'lbl_duty': 'Est. Customs',
             'lbl_total_pay': 'TOTAL TO PAY', 'btn_buy': 'DIRECT BUY', 'btn_offer': 'MAKE OFFER'
+        },
+        'CN': {
+            'nav_market': '市场中心', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
+            'nav_support': 'Spirit 支持', 'nav_security': '安全协议', 'btn_reg': '注册', 'btn_sell': '出售与认证',
+            'filter_title': '搜索筛选', 'lbl_price_range': '价格范围 (€)', 'opt_all_prices': '所有价格',
+            'lbl_zone': "发货区域", 'opt_all_zones': '所有区域', 'lbl_brand': '品牌', 'opt_all_brands': '所有品牌',
+            'lbl_cat': '比例/格式', 'opt_all_formats': '所有格式', 'lbl_cond': "物品状况", 'opt_all_conds': '所有状况',
+            'cond_new': '全新 (封条)', 'cond_vgood': '极好状况', 'cond_good': '良好状况', 'cond_mid': '一般', 'cond_ok': '合格',
+            'lbl_prot_text': '所有交易均享受 Spirit 100% 安全保护', 'cat_native_title': '1. Spirit 原生装备 (硬件账本)',
+            'cat_legacy_title': '2. 经典收藏 (人工智能扫描)', 'modal_reg_title': '创建账户', 'btn_reg_confirm': "注册",
+            'safety_msg_escrow': '安全：资金已锁定。释放：4天 (经典) / 3天 (原生)', 'lbl_price': '价格', 'lbl_duty': '预计关税',
+            'lbl_total_pay': '应付总额', 'btn_buy': '直接购买', 'btn_offer': '报价'
+        },
+        'ES': {
+            'nav_market': 'MERCADO', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
+            'nav_support': 'SOPORTE SPIRIT', 'nav_security': 'SEGURIDAD', 'btn_reg': 'REGISTRO', 'btn_sell': 'VENDER Y CERTIFICAR',
+            'filter_title': 'FILTROS DE BÚSQUEDA', 'lbl_price_range': 'Rango de Precios (€)', 'opt_all_prices': 'Todos los precios',
+            'lbl_zone': "Zona de envío", 'opt_all_zones': 'Todas las zonas', 'lbl_brand': 'Marca', 'opt_all_brands': 'Todas las marcas',
+            'lbl_cat': 'Escala / Formato', 'opt_all_formats': 'Todos los formatos', 'lbl_cond': "Estado del objeto", 'opt_all_conds': 'Todos los estados',
+            'cond_new': 'Nuevo (Sellado)', 'cond_vgood': 'Muy buen estado', 'cond_good': 'Buen estado', 'cond_mid': 'Medio', 'cond_ok': 'Satisfactorio',
+            'lbl_prot_text': 'Protección Spirit 100% activa en todas las transacciones.', 'cat_native_title': '1. Equipadas con Spirit (Hardware Ledger)',
+            'cat_legacy_title': '2. Colecciones Antiguas (Escaneo IA)', 'modal_reg_title': 'CREAR CUENTA', 'btn_reg_confirm': "REGISTRARSE",
+            'safety_msg_escrow': 'SEGURIDAD: Fondos asegurados. Liberación: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Precio', 'lbl_duty': 'Aduanas Est.',
+            'lbl_total_pay': 'TOTAL A PAGAR', 'btn_buy': 'COMPRA DIRECTA', 'btn_offer': 'HACER OFERTA'
         }
     };
 
@@ -569,7 +616,11 @@
 
     let marketData = [
         { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Figurine comme neuve, jamais exposée. Puce Spirit OK.", status: 'available', chat: [] },
-        { id: 3, title: "Batman The Dark Knight", price: 890, mac: 'IA-SCAN-992', type: 'legacy', country: 'USA', cond: 'Neuf', brand: 'InArt', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Version InArt scellée.", status: 'available', chat: [] }
+        { id: 2, title: "Spider-Man No Way Home", price: 320, type: 'native', country: 'France', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Complet en boite.", status: 'available', chat: [] },
+        { id: 3, title: "Batman The Dark Knight", price: 890, mac: 'IA-SCAN-992', type: 'legacy', country: 'USA', cond: 'Neuf', brand: 'InArt', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Version InArt scellée.", status: 'available', chat: [] },
+        { id: 4, title: "The Joker Rooted Hair", price: 1200, type: 'legacy', country: 'Hong Kong', cond: 'Neuf', brand: 'InArt', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "InArt Joker Rooted.", status: 'available', chat: [] },
+        { id: 5, title: "Captain America Endgame", price: 280, type: 'native', country: 'France', cond: 'Bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Très bon état.", status: 'available', chat: [] },
+        { id: 6, title: "Darth Vader OBW", price: 450, type: 'native', country: 'Europe', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Scellé.", status: 'available', chat: [] }
     ];
 
     let currentMethod = '';
@@ -578,6 +629,30 @@
     let currentUser = "INVITÉ";
     let diagActive = false;
     let editingId = null;
+
+    // --- SYSTEME DE SECURITE CHAT & FORUM ---
+    const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
+    
+    function filterMessage(text) {
+        let cleanText = text.toLowerCase();
+        let suspicious = false;
+        BANNED_WORDS.forEach(word => {
+            if (cleanText.includes(word)) suspicious = true;
+        });
+        if(suspicious) {
+            alert("ALERTE SÉCURITÉ : Les transactions hors marketplace sont interdites pour protéger vos fonds. Votre message contient des termes proscrits.");
+            return null;
+        }
+        return text;
+    }
+
+    function changeLang(lang) {
+        const set = translations[lang] || translations['FR'];
+        document.querySelectorAll('[data-key]').forEach(el => {
+            const key = el.getAttribute('data-key');
+            if(set[key]) el.innerText = set[key];
+        });
+    }
 
     function renderMarket(filteredData = null) {
         const gn = document.getElementById('marketGridNative');
@@ -736,10 +811,28 @@
         }
     }
 
+    // --- LOGIQUE PAIEMENT ---
+    function openPaymentModal() {
+        const total = document.getElementById('sumTotal').innerText;
+        if(total === "0.00 €" || total === "0 €") {
+            alert("Veuillez d'abord sélectionner un transporteur.");
+            return;
+        }
+        document.getElementById('payTotalAmount').innerText = total;
+        document.getElementById('paymentModal').style.display = 'flex';
+    }
+
+    function confirmPayment(method) {
+        alert("Connexion sécurisée à " + method + "...\nFonds prélevés et sécurisés par Spirit Infinity.\nStatut de la figurine : VENDU");
+        selectedProduct.status = 'sold';
+        renderMarket();
+        closeModals();
+    }
+
     // --- LOGIQUE CHAT ---
     function sendMessage() {
         const input = document.getElementById('chatInput');
-        const text = input.value.trim();
+        const text = filterMessage(input.value.trim());
         if(!text || !selectedProduct) return;
         if(!selectedProduct.chat) selectedProduct.chat = [];
         selectedProduct.chat.push({ user: currentUser, text: text });
@@ -760,7 +853,7 @@
 
     function sendForumMsg() {
         const input = document.getElementById('forumInput');
-        const text = input.value.trim();
+        const text = filterMessage(input.value.trim());
         if(!text) return;
         const box = document.getElementById('forumChat');
         box.innerHTML += `<div class="msg-line"><span class="msg-user">${currentUser}:</span><span class="msg-text">${text}</span></div>`;
