@@ -111,6 +111,24 @@
 
         .rib-box { background: #111; border: 1px dashed var(--spirit-green); padding: 20px; color: var(--spirit-green); font-family: monospace; }
         .fav-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+        /* LIGHTBOX IMAGE (ZOOM) */
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 5000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+        #lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border: 2px solid var(--neon-orange);
+            box-shadow: 0 0 30px rgba(255, 102, 0, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -225,7 +243,7 @@
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer; font-size:1.2rem;">✕</button>
         <div style="display:flex; gap:30px; flex-wrap:wrap;">
             <div style="flex:1; min-width:300px;">
-                <div id="pGallery" style="background:#111; height:350px; border:1px solid #222; margin-bottom:15px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;">GALERIE (IA AUTHENTICATED)</div>
+                <div id="pGallery" style="background:#111; min-height:350px; border:1px solid #222; margin-bottom:15px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; overflow:hidden;">GALERIE (IA AUTHENTICATED)</div>
                 <div class="chat-container">
                     <div id="msg-alert" class="msg-safety-alert" data-key="safety_msg">SÉCURITÉ : Vente hors-circuit interdite. Perte de badge immédiate.</div>
                     <div class="chat-messages" id="chatMsgs">
@@ -376,7 +394,6 @@
 
                 <div id="tab-achats" class="account-page">
                     <h3>MES ACHATS</h3>
-                    <h4 style="color:var(--neon-orange); font-size:0.8rem;">ACHATS EN COURS</h4>
                     <table class="table-spirit">
                         <thead><tr><th>Date</th><th>Produit</th><th>Montant</th><th>Statut</th></tr></thead>
                         <tbody>
@@ -401,27 +418,13 @@
                     </div>
                 </div>
 
-                <div id="tab-actions" class="account-page">
-                    <h3>MES FAVORIS</h3>
-                    <div class="fav-grid">
-                        <div style="background:#111; padding:10px; border:1px solid #222;">Darth Vader PF (Sideshow)</div>
-                    </div>
-                </div>
-
                 <div id="tab-params" class="account-page">
                     <h3>PARAMÈTRES DU COMPTE</h3>
-                    <label>Modifier Email</label>
-                    <input type="email" value="user@spirit-infinity.com">
-                    <label>Modifier Adresse de Livraison</label>
-                    <textarea>123 Rue de la Figurine, 75000 Paris</textarea>
-                    
-                    <h4 style="color:var(--spirit-green);">COORDONNÉES BANCAIRES (RIB)</h4>
                     <div class="rib-box">
                         BANQUE : SPIRIT DIGITAL BANK<br>
                         IBAN : FR76 3000 1000 2000 3000 4000 123<br>
                         BIC : SPIRITFRXX
                     </div>
-                    <button class="btn-action" style="width:100%; margin-top:10px;">METTRE À JOUR</button>
                 </div>
             </div>
         </div>
@@ -437,8 +440,11 @@
             PARTENAIRE (3%) : <span id="l-part" style="color:white">0.00 €</span><br>
             SPIRIT (3%) : <span id="l-spi" style="color:white">0.00 €</span>
         </div>
-        <button class="btn-action" onclick="connectESP()">ACTIVER LA LECTURE DIRECTE (WebSerial)</button>
     </div>
+</div>
+
+<div id="lightbox" onclick="this.style.display='none'">
+    <img id="lightbox-img" src="">
 </div>
 
 <script>
@@ -518,8 +524,79 @@
             'lbl_total_pay': 'TOTAL TO PAY',
             'btn_buy': 'BUY NOW',
             'btn_offer': 'MAKE OFFER'
+        },
+        'CN': {
+            'nav_market': '市场',
+            'nav_ledger': '我的账本',
+            'nav_forum': '论坛',
+            'nav_account': '我的账户',
+            'nav_sav': '售后服务',
+            'btn_reg': '注册',
+            'btn_sell': '出售与认证',
+            'filter_title': '搜索筛选',
+            'lbl_price_range': '价格范围 (€)',
+            'opt_all_prices': '所有价格',
+            'lbl_zone': '邮寄区域',
+            'opt_all_zones': '所有区域',
+            'lbl_brand': '品牌',
+            'opt_all_brands': '所有品牌',
+            'lbl_cat': '比例/格式',
+            'opt_all_formats': '所有格式',
+            'lbl_cond': '物品状况',
+            'opt_all_conds': '所有状况',
+            'cond_new': '全新',
+            'cond_vgood': '非常好',
+            'cond_good': '好',
+            'cond_mid': '中等',
+            'cond_ok': '尚可',
+            'lbl_prot_text': 'Spirit Protection 100% 交易保护已激活',
+            'cat_native_title': '1. Spirit 原生设备 (硬件账本)',
+            'cat_legacy_title': '2. 经典收藏与多品牌 (AI 扫描)',
+            'modal_reg_title': '创建账户',
+            'btn_reg_confirm': '立即注册',
+            'safety_msg': '安全提示：禁止场外交易。违规将立即取消认证徽章',
+            'lbl_price': '价格',
+            'lbl_duty': '预计关税',
+            'lbl_total_pay': '支付总额',
+            'btn_buy': '直接购买',
+            'btn_offer': '出价'
+        },
+        'ES': {
+            'nav_market': 'MERCADO',
+            'nav_ledger': 'MI LIBRO MAYOR',
+            'nav_forum': 'FORO',
+            'nav_account': 'MI CUENTA',
+            'nav_sav': 'SERVICIO TÉCNICO',
+            'btn_reg': 'REGISTRO',
+            'btn_sell': 'VENDER Y CERTIFICAR',
+            'filter_title': 'FILTROS DE BÚSQUEDA',
+            'lbl_price_range': 'Rango de Precios (€)',
+            'opt_all_prices': 'Todos los precios',
+            'lbl_zone': 'Zona de Envío',
+            'opt_all_zones': 'Todas las zonas',
+            'lbl_brand': 'Marca',
+            'opt_all_brands': 'Todas las marcas',
+            'lbl_cat': 'Escala / Formato',
+            'opt_all_formats': 'Todos los formatos',
+            'lbl_cond': 'Estado del Objeto',
+            'opt_all_conds': 'Todos los estados',
+            'cond_new': 'Nuevo (Sellado)',
+            'cond_vgood': 'Muy buen estado',
+            'cond_good': 'Buen estado',
+            'cond_mid': 'Medio',
+            'cond_ok': 'Satisfactorio',
+            'lbl_prot_text': 'Protección Spirit 100% activa en todas las transacciones.',
+            'cat_native_title': '1. Equipado con Spirit (Ledger de Hardware)',
+            'cat_legacy_title': '2. Colecciones Antiguas (Escaneo IA)',
+            'modal_reg_title': 'CREAR CUENTA',
+            'btn_reg_confirm': 'REGISTRARSE',
+            'safety_msg': 'SEGURIDAD: Prohibida la venta fuera de circuito. Pérdida inmediata de insignia.',
+            'lbl_price': 'Precio',
+            'lbl_duty': 'Tasas de Aduana Est.',
+            'lbl_total_pay': 'TOTAL A PAGAR',
+            'btn_buy': 'COMPRA DIRECTA',
+            'btn_offer': 'HACER OFERTA'
         }
-        // CN et ES suivraient la même structure
     };
 
     function changeLang(lang) {
@@ -537,7 +614,7 @@
     }
 
     let marketData = [
-        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', ship: 14.90, img: null, photos: [], desc: "Figurine comme neuve, jamais exposée." },
+        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', ship: 14.90, img: "https://spirit-infinity.com/images/mk85.jpg", photos: [], desc: "Figurine comme neuve, jamais exposée." },
         { id: 2, title: "Hulk Gladiateur", price: 580, mac: '24:0A:C4:AA:12:11', type: 'native', country: 'Hong Kong', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', ship: 25.00, img: null, photos: [], desc: "Boite complète, version MMS." },
         { id: 3, title: "Joker InArt", price: 1100, mac: '24:0A:C4:BB:22:33', type: 'native', country: 'USA', cond: 'Neuf', brand: 'InArt', cat: '1/6', ship: 25.00, img: null, photos: [], desc: "Edition sculptée, scellée." },
         { id: 4, title: "Darth Vader PF", price: 450, mac: 'IA-VISUAL', type: 'legacy', country: 'USA', cond: 'Bon état', brand: 'Sideshow', cat: '1/4', ship: 25.00, img: null, photos: [], desc: "Statue imposante, pas de casse." },
@@ -551,17 +628,15 @@
         const gn = document.getElementById('marketGridNative');
         const gl = document.getElementById('marketGridLegacy');
         gn.innerHTML = ''; gl.innerHTML = '';
-        
         const dataToRender = filteredData || marketData;
 
         dataToRender.forEach(item => {
             const card = document.createElement('div');
             card.className = 'card';
             card.onclick = () => openProduct(item);
-            
             const badgeClass = item.type === 'native' ? 'native' : 'legacy';
             const badgeText = item.type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
-            const imgContent = item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}<br>${item.brand} ${item.cat}`;
+            const imgContent = item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}<br>${item.brand}`;
 
             card.innerHTML = `
                 <div class="badge ${badgeClass}">${badgeText}</div>
@@ -596,7 +671,6 @@
             const mB = (brand === 'all' || item.brand === brand);
             const mCat = (cat === 'all' || item.cat === cat);
             const mS = (cond === 'all' || item.cond === cond);
-
             return mC && mB && mCat && mS && matchPrice;
         });
         renderMarket(filtered);
@@ -673,14 +747,14 @@
         document.getElementById('pOrigin').innerText = item.country + " | " + item.cond;
         document.getElementById('pDescBox').innerText = item.desc || "Aucune description fournie.";
         
-        // Affichage des photos
+        // Affichage des photos avec ZOOM possible
         let galleryHtml = '';
         if(item.photos && item.photos.length > 0) {
             item.photos.forEach(p => {
-                if(p) galleryHtml += `<img src="${p}" style="width:45%; height:auto; margin:5px; border:1px solid #333;">`;
+                if(p) galleryHtml += `<img src="${p}" onclick="zoomImg('${p}')" style="width:45%; height:auto; margin:5px; border:1px solid #333; cursor:zoom-in;">`;
             });
         }
-        document.getElementById('pGallery').innerHTML = galleryHtml || (item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:contain;">` : "GALERIE IA");
+        document.getElementById('pGallery').innerHTML = galleryHtml || (item.img ? `<img src="${item.img}" onclick="zoomImg('${item.img}')" style="width:100%;height:100%;object-fit:contain;cursor:zoom-in;">` : "GALERIE IA");
         
         const prot = item.price * 0.06;
         const duty = (item.country !== 'France' && item.country !== 'Europe') ? item.price * 0.20 : 0;
@@ -697,13 +771,15 @@
         b.innerText = item.type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
     }
 
+    function zoomImg(src) {
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox').style.display = 'flex';
+    }
+
     async function simulatePayment() {
         const total = document.getElementById('sumTotal').innerText;
         const comm = (parseFloat(total) * 0.03).toFixed(2);
-        
         alert(`Paiement de ${total} validé !`);
-        
-        // Insertion automatique dans le ledger (Supabase)
         const { error } = await _spirit.from('transactions').insert([
             { 
                 product_name: document.getElementById('pTitle').innerText, 
@@ -712,7 +788,6 @@
                 status: 'Completed'
             }
         ]);
-        
         if(!error) {
             alert("Commission synchronisée sur votre Ledger.");
             syncLedger();
@@ -740,7 +815,7 @@
         const label = document.getElementById('labelPreview');
         const content = document.getElementById('labelContent');
         label.style.display = 'block';
-        content.innerHTML = `<strong>RÉFÉRENCE : ${ref}</strong><br>Bordereau Spirit Logistics généré.`;
+        content.innerHTML = `<strong>RÉFÉRENCE : ${ref}</strong><br>Bordereau Spirit Logistics généré.<br>Destinataire: USER-LEDGER-SECURE`;
     }
 
     function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
