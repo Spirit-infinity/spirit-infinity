@@ -247,9 +247,20 @@
                 <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
                 <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
                 <div id="pDescBox" style="font-size:0.85rem; color:#aaa; margin-bottom:15px; background:#111; padding:10px; border-left:2px solid var(--neon-orange);"></div>
+                
+                <div style="background:rgba(255,102,0,0.05); padding:15px; border:1px solid #333; margin-bottom:15px;">
+                    <label style="font-size:0.7rem; color:var(--neon-orange); font-weight:bold; display:block; margin-bottom:5px;">LIVRAISON (Taille: <span id="pSizeLabel">---</span>)</label>
+                    <select id="pCarrierSelect" onchange="updateTotalWithCarrier()" style="margin:0;">
+                        <option value="0">-- CHOISIR UN TRANSPORTEUR --</option>
+                        <option value="mr">Mondial Relay</option>
+                        <option value="cl">Colissimo</option>
+                        <option value="dh">DHL Express</option>
+                    </select>
+                </div>
+
                 <div class="summary-box">
                 <div class="summary-line"><span data-key="lbl_price">Prix</span> <span id="sumPrice">0 €</span></div>
-                    <div class="summary-line"><span>Livraison</span> <span id="sumShip">0.00 €</span></div>
+                    <div class="summary-line"><span>Livraison (<span id="sumCarrierName">Sélectionner</span>)</span> <span id="sumShip">0.00 €</span></div>
                     <div class="summary-line"><span>Protection Acheteur Spirit (Garantie Fonds)</span> <span id="sumProt">0 €</span></div>
                     <div id="dutyLine" class="summary-line" style="color:orange; display:none;"><span data-key="lbl_duty">Frais de Douane Est.</span> <span id="sumDuty">0 €</span></div>
                     <hr style="border-color:#333;">
@@ -301,11 +312,11 @@
                 <option value="PVC">Statue PVC</option>
             </select>
             <input type="number" id="inputPrice" placeholder="Prix de vente (€)">
-            <label style="font-size:0.7rem; color:var(--neon-orange);">TAILLE DU COLIS & LIVRAISON</label>
+            <label style="font-size:0.7rem; color:var(--neon-orange);">TAILLE DU COLIS (DÉTERMINE LES TARIFS TRANSPORTEURS)</label>
             <select id="saleShip">
-                <option value="9.90">Petit (Accessoires / Têtes) - 9.90€</option>
-                <option value="14.90">Moyen (Boite 1/6 Standard) - 14.90€</option>
-                <option value="25.00">Grand (Diecast / Statue / XL) - 25.00€</option>
+                <option value="Petit">Petit (Accessoires / Têtes)</option>
+                <option value="Moyen" selected>Moyen (Boite 1/6 Standard)</option>
+                <option value="Grand">Grand (Diecast / Statue / XL)</option>
             </select>
             <textarea id="inputDesc" placeholder="Description de l'état..."></textarea>
             <button class="btn-action" style="width:100%;" onclick="goToScan()">VALIDER L'ANNONCE</button>
@@ -392,24 +403,12 @@
                     <h3>MES ACHATS</h3>
                     <table class="table-spirit">
                         <thead><tr><th>Date</th><th>Produit</th><th>Montant</th><th>Statut</th></tr></thead>
-                        <tbody id="list-achats">
-                            <tr><td>20/02/2026</td><td>Batman InArt</td><td>890.00 €</td><td style="color:orange;">Séquestre (J-2)</td></tr>
-                        </tbody>
+                        <tbody id="list-achats"></tbody>
                     </table>
                 </div>
                 <div id="tab-ventes" class="account-page">
                     <h3>MES VENTES RÉALISÉES</h3>
-                    <div id="shipping-list">
-                        <div id="sale-8821" style="background:#111; border:1px solid #222; padding:15px; margin-bottom:10px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span><strong>Vente #8821 : Iron Man MK85</strong></span>
-                                <div>
-                                    <button class="btn-action" style="font-size:0.6rem; padding:5px 10px;" onclick="printLabel('SPIRIT-SHIP-8821', 'Expéditeur: Moi, Dest: Acheteur')">IMPRIMER BORDEREAU</button>
-                                    <button class="btn-action" style="font-size:0.6rem; padding:5px 10px; background:#444;" onclick="this.parentElement.parentElement.parentElement.remove()">SUPPRIMER</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="shipping-list"></div>
                     <div id="labelPreview" style="display:none;">
                         <div class="shipping-label" id="labelContent"></div>
                         <button class="btn-action" style="margin-top:10px; width:100%; background:#222; color:white;" onclick="document.getElementById('labelPreview').style.display='none'">FERMER L'APERCU</button>
@@ -523,14 +522,13 @@
     const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
     const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
     const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
     const translations = {
         'FR': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANNEAU DE CONTROLE', 'nav_forum': 'FORUM', 'nav_account': 'MON COMPTE',
             'nav_support': 'SUPPORT SPIRIT', 'nav_security': 'SÉCURITÉ', 'btn_reg': 'INSCRIPTION', 'btn_sell': 'VENDRE & CERTIFIER',
             'filter_title': 'FILTRES DE RECHERCHE', 'lbl_price_range': 'Tranche de Prix (€)', 'opt_all_prices': 'Tous les prix',
             'lbl_zone': "Zone d'expédition", 'opt_all_zones': 'Toutes les zones', 'lbl_brand': 'Marque', 'opt_all_brands': 'Toutes les marques',
-            'lbl_cat': 'Échelle / Format', 'opt_all_formats': 'Tous les formats', 'lbl_cond': "État de l'objet", 'opt_all_conds': 'Tous les états',
+            'lbl_cat': 'Échelle / Format', 'opt_all_formats': 'Tous les formats', 'lbl_cond': "État de l'objet", 'opt_all_formats': 'Tous les formats', 'lbl_cond': "État de l'objet", 'opt_all_conds': 'Tous les états',
             'cond_new': 'Neuf (Scellé)', 'cond_vgood': 'Très bon état', 'cond_good': 'Bon état', 'cond_mid': 'Moyen', 'cond_ok': 'Satisfaisant',
             'lbl_prot_text': 'Protection Spirit 100% active sur toutes les transactions.', 'cat_native_title': '1. Équipées Spirit (Hardware Ledger)',
             'cat_legacy_title': '2. Anciennes Collections & Multimarques (IA Scan)', 'modal_reg_title': 'CREER UN COMPTE', 'btn_reg_confirm': "S'INSCRIRE",
@@ -568,13 +566,17 @@
             'lbl_zone': "Zona de envío", 'opt_all_zones': 'Todas las zonas', 'lbl_brand': 'Marca', 'opt_all_brands': 'Todas las marcas',
             'lbl_cat': 'Escala / Formato', 'opt_all_formats': 'Todos los formatos', 'lbl_cond': "Estado del objeto", 'opt_all_conds': 'Todos los estados',
             'cond_new': 'Nuevo (Sellado)', 'cond_vgood': 'Muy buen estado', 'cond_good': 'Buen estado', 'cond_mid': 'Medio', 'cond_ok': 'Satisfactorio',
-            'lbl_prot_text': 'Protección Spirit 100% activa en todas las transacciones.', 'cat_native_title': '1. Equipado con Spirit (Hardware)',
+            'lbl_prot_text': 'Protección Spirit 100% active en todas las transacciones.', 'cat_native_title': '1. Equipado con Spirit (Hardware)',
             'cat_legacy_title': '2. Colecciones Antiguas (Escaneo IA)', 'modal_reg_title': 'CREAR CUENTA', 'btn_reg_confirm': "REGISTRARSE",
             'safety_msg_escrow': 'SEGURIDAD: Fondos seguros. Liberación: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Precio', 'lbl_duty': 'Aduanas Est.',
-            'lbl_total_pay': 'TOTAL A PAGAR', 'btn_buy': 'COMPRA DIRECTA', 'btn_offer': 'HACER OFERTA'
+            'lbl_total_pay': 'TOTAL A PAYAR', 'btn_buy': 'COMPRA DIRECTA', 'btn_offer': 'HACER OFERTA'
         }
     };
-
+    const shippingRates = {
+        "Petit": { "mr": 4.90, "cl": 6.50, "dh": 12.00 },
+        "Moyen": { "mr": 6.90, "cl": 14.90, "dh": 25.00 },
+        "Grand": { "mr": 12.90, "cl": 25.00, "dh": 45.00 }
+    };
     function changeLang(lang) {
         const dict = translations[lang] || translations['FR'];
         document.querySelectorAll('[data-key]').forEach(el => {
@@ -586,30 +588,25 @@
                     el.innerText = dict[key];
                 }
             }
-        });
-        
-        // Mise à jour spécifique pour les options des select qui ont des data-key
+        });     
         document.querySelectorAll('option[data-key]').forEach(opt => {
             const key = opt.getAttribute('data-key');
             if (dict[key]) opt.innerText = dict[key];
         });
     }
-
     let marketData = [
-        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', ship: 14.90, img: null, photos: [], desc: "Figurine comme neuve, jamais exposée. Puce Spirit OK.", status: 'available' },
-        { id: 2, title: "Hulk Gladiateur", price: 580, mac: '24:0A:C4:AA:12:11', type: 'native', country: 'Hong Kong', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', ship: 25.00, img: null, photos: [], desc: "Boite complète, version MMS.", status: 'sold' },
-        { id: 3, title: "Batman The Dark Knight", price: 890, mac: 'IA-SCAN-992', type: 'legacy', country: 'USA', cond: 'Neuf', brand: 'InArt', cat: '1/6', ship: 35.00, img: null, photos: [], desc: "Version InArt scellée.", status: 'available' },
-        { id: 4, title: "Spider-Man No Way Home", price: 320, mac: '24:0A:C4:BB:33:44', type: 'native', country: 'Europe', cond: 'Bon état', brand: 'Hot Toys', cat: '1/6', ship: 14.90, img: null, photos: [], desc: "Complet avec socle Spirit.", status: 'available' },
-        { id: 5, title: "Joker 1/4 Statue", price: 1250, mac: 'IA-SCAN-881', type: 'legacy', country: 'Chine', cond: 'Neuf', brand: 'JND Studios', cat: '1/4', ship: 60.00, img: null, photos: [], desc: "Rare, édition limitée.", status: 'available' },
-        { id: 6, title: "Wolverine 1973", price: 290, mac: 'IA-SCAN-772', type: 'legacy', country: 'France', cond: 'Satisfaisant', brand: 'Hot Toys', cat: '1/6', ship: 14.90, img: null, photos: [], desc: "Quelques marques d'usure.", status: 'sold' }
+        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Figurine comme neuve, jamais exposée. Puce Spirit OK.", status: 'available' },
+        { id: 2, title: "Hulk Gladiateur", price: 580, mac: '24:0A:C4:AA:12:11', type: 'native', country: 'Hong Kong', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Grand", img: null, photos: [], desc: "Boite complète, version MMS.", status: 'sold' },
+        { id: 3, title: "Batman The Dark Knight", price: 890, mac: 'IA-SCAN-992', type: 'legacy', country: 'USA', cond: 'Neuf', brand: 'InArt', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Version InArt scellée.", status: 'available' },
+        { id: 4, title: "Spider-Man No Way Home", price: 320, mac: '24:0A:C4:BB:33:44', type: 'native', country: 'Europe', cond: 'Bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Complet avec socle Spirit.", status: 'available' },
+        { id: 5, title: "Joker 1/4 Statue", price: 1250, mac: 'IA-SCAN-881', type: 'legacy', country: 'Chine', cond: 'Neuf', brand: 'JND Studios', cat: '1/4', shipSize: "Grand", img: null, photos: [], desc: "Rare, édition limitée.", status: 'available' },
+        { id: 6, title: "Wolverine 1973", price: 290, mac: 'IA-SCAN-772', type: 'legacy', country: 'France', cond: 'Satisfaisant', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Quelques marques d'usure.", status: 'sold' }
     ];
-
     let currentMethod = '';
     let previewPhotos = [null, null, null, null, null];
     let selectedProduct = null;
     let currentUser = null;
     let diagActive = false;
-
     function renderMarket(filteredData = null) {
         const gn = document.getElementById('marketGridNative');
         const gl = document.getElementById('marketGridLegacy');
@@ -637,7 +634,6 @@
             else gl.appendChild(card);
         });
     }
-
     function applyFilters() {
         const pRange = document.getElementById('fPrice').value;
         const country = document.getElementById('fCountry').value;
@@ -659,102 +655,14 @@
         });
         renderMarket(filtered);
     }
-
-    function handleRegister() {
-        const u = document.getElementById('regUser').value;
-        if(!u) { alert("Nom requis"); return; }
-        currentUser = u;
-        document.getElementById('btn-reg').innerText = u.toUpperCase();
-        document.getElementById('user-display').innerText = u.toUpperCase();
-        document.getElementById('sales-summary').innerHTML = `<p style="font-size:0.8rem;">Bienvenue, ${u}. Prêt pour l'analyse Spirit.</p>`;
-        alert("Inscription réussie !");
-        closeModals();
-    }
-
-    function changeRIB() {
-        const newRib = prompt("Entrez votre nouvel IBAN :");
-        if(newRib) document.getElementById('rib-display').innerText = "IBAN : " + newRib;
-    }
-
-    function transferToSale() {
-        diagActive = true;
-        closeModals();
-        startCertification();
-        chooseMethod('hot_native');
-        document.getElementById('diag-link').style.display = 'block';
-    }
-
-    function triggerFile(id) { document.getElementById(id).click(); }
-
-    function previewSale(input, boxId, index) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById(boxId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
-                previewPhotos[index] = e.target.result;
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function chooseMethod(m) {
-        currentMethod = m;
-        document.getElementById('stepMethod').style.display = 'none';
-        document.getElementById('stepInfo').style.display = 'block';
-        document.getElementById('s2').className = 'step active';
-    }
-
-    function goToScan() {
-        if(!document.getElementById('inputTitle').value || !document.getElementById('inputPrice').value) { alert("Titre et Prix requis"); return; }
-        document.getElementById('stepInfo').style.display = 'none';
-        document.getElementById('stepScan').style.display = 'block';
-        document.getElementById('s3').className = 'step active';
-        setTimeout(() => {
-            document.getElementById('stepScan').style.display = 'none';
-            document.getElementById('stepFinish').style.display = 'block';
-            document.getElementById('s4').className = 'step active';
-        }, 2000);
-    }
-
-    function publishFinal() {
-        const newItem = {
-            id: Date.now(),
-            title: document.getElementById('inputTitle').value,
-            price: parseInt(document.getElementById('inputPrice').value),
-            type: (currentMethod === 'hot_native' ? 'native' : 'legacy'),
-            country: 'France',
-            cond: 'Certifié Spirit Eyes',
-            brand: (currentMethod === 'other' ? 'Autre' : 'Hot Toys'),
-            cat: document.getElementById('saleCat').value,
-            ship: parseFloat(document.getElementById('saleShip').value),
-            img: previewPhotos[0],
-            photos: previewPhotos.filter(p => p !== null),
-            desc: document.getElementById('inputDesc').value + (diagActive ? " [PUCE SPIRIT VERIFIÉE]" : ""),
-            status: 'available'
-        };
-        marketData.unshift(newItem);
-        updateUserAnnonces();
-        closeModals();
-        renderMarket();
-        diagActive = false; 
-        document.getElementById('diag-link').style.display = 'none'; 
-        alert("Annonce publiée ! Séquestre activé pour la sécurité.");
-    }
-
-    function updateUserAnnonces() {
-        const container = document.getElementById('user-annonces-list');
-        container.innerHTML = '';
-        marketData.slice(0, 3).forEach(a => {
-            container.innerHTML += `<div style="background:#000; padding:10px; border:1px solid #333;">${a.title} - ${a.price}€</div>`;
-        });
-    }
-
     function openProduct(item) {
         selectedProduct = item;
         document.getElementById('productModal').style.display = 'flex';
         document.getElementById('pTitle').innerText = item.title;
         document.getElementById('pOrigin').innerText = item.country + " | " + item.cond;
         document.getElementById('pDescBox').innerText = item.desc || "Aucune description.";
+        document.getElementById('pSizeLabel').innerText = item.shipSize || "Moyen";
+        document.getElementById('pCarrierSelect').value = "0";
         let galleryHtml = '';
         if(item.photos && item.photos.length > 0) {
             item.photos.forEach(p => {
@@ -762,11 +670,7 @@
             });
         }
         document.getElementById('pGallery').innerHTML = galleryHtml || "IMAGE NON DISPONIBLE";
-        const prot = item.price * 0.06;
-        document.getElementById('sumPrice').innerText = item.price + " €";
-        document.getElementById('sumShip').innerText = (item.ship || 14.90).toFixed(2) + " €";
-        document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
-        document.getElementById('sumTotal').innerText = (item.price + (item.ship || 14.90) + prot).toFixed(2) + " €";    
+        updateTotalWithCarrier();
         const b = document.getElementById('pBadge');
         b.className = 'badge ' + (item.type === 'native' ? 'native' : 'legacy');
         b.innerText = item.type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
@@ -781,28 +685,134 @@
             btnBuy.style.background = "var(--neon-orange)";
         }
     }
-
+    function updateTotalWithCarrier() {
+        if(!selectedProduct) return;
+        const carrierKey = document.getElementById('pCarrierSelect').value;
+        const size = selectedProduct.shipSize || "Moyen";
+        let shipCost = 0;
+        let carrierName = "---";
+        if(carrierKey !== "0") {
+            shipCost = shippingRates[size][carrierKey];
+            carrierName = document.getElementById('pCarrierSelect').options[document.getElementById('pCarrierSelect').selectedIndex].text;
+        }
+        const prot = selectedProduct.price * 0.06;
+        document.getElementById('sumPrice').innerText = selectedProduct.price + " €";
+        document.getElementById('sumShip').innerText = shipCost.toFixed(2) + " €";
+        document.getElementById('sumCarrierName').innerText = carrierName;
+        document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
+        document.getElementById('sumTotal').innerText = (selectedProduct.price + shipCost + prot).toFixed(2) + " €";
+    }
     async function simulatePayment() {
         if(!selectedProduct) return;
+        if(document.getElementById('pCarrierSelect').value === "0") { alert("Veuillez choisir un transporteur !"); return; }
         const total = document.getElementById('sumTotal').innerText;
         const escrowTime = selectedProduct.type === 'native' ? '3 jours' : '4 jours';
-        alert(`Paiement de ${total} validé ! Fonds bloqués au séquestre pour ${escrowTime}.`);
-        const { error } = await _spirit.from('transactions').insert([
-            { chip_id: selectedProduct.mac || 'IA-CERT', price_sold: selectedProduct.price, transaction_type: 'MARKET', status_escrow: 'pending' }
-        ]);
-        if(!error) alert("Spirit Ledger : Synchronisé.");
+        const carrier = document.getElementById('sumCarrierName').innerText;
+        alert(`Paiement de ${total} validé ! Fonds bloqués au séquestre pour ${escrowTime}. Transporteur : ${carrier}.`);
+        selectedProduct.status = 'sold';
+        const labelRef = "SPIRIT-SHIP-" + Math.floor(Math.random()*9000);
+        const buyerName = currentUser || "Acheteur";
+        const labelData = `DESTINATAIRE: ${buyerName}<br>COLIS: ${selectedProduct.shipSize}<br>POIDS EST.: 4.5kg<br>TRANSPORT: ${carrier}`;
+        const achatRow = `<tr><td>20/02/2026</td><td>${selectedProduct.title}</td><td>${total}</td><td style="color:orange;">Séquestre</td></tr>`;
+        document.getElementById('list-achats').innerHTML += achatRow;
+        const venteRow = `<div class="sale-item" style="background:#111; border:1px solid #222; padding:15px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span><strong>Vente : ${selectedProduct.title}</strong></span>
+                <button class="btn-action" style="font-size:0.6rem; padding:5px 10px;" onclick="printLabel('${labelRef}', '${labelData}')">IMPRIMER BORDEREAU ${carrier}</button>
+            </div>
+        </div>`;
+        document.getElementById('shipping-list').innerHTML += venteRow;
+        renderMarket();
+        closeModals();
     }
-
+    function handleRegister() {
+        const u = document.getElementById('regUser').value;
+        if(!u) { alert("Nom requis"); return; }
+        currentUser = u;
+        document.getElementById('btn-reg').innerText = u.toUpperCase();
+        document.getElementById('user-display').innerText = u.toUpperCase();
+        document.getElementById('sales-summary').innerHTML = `<p style="font-size:0.8rem;">Bienvenue, ${u}. Prêt pour l'analyse Spirit.</p>`;
+        alert("Inscription réussie !");
+        closeModals();
+    }
+    function changeRIB() {
+        const newRib = prompt("Entrez votre nouvel IBAN :");
+        if(newRib) document.getElementById('rib-display').innerText = "IBAN : " + newRib;
+    }
+    function transferToSale() {
+        diagActive = true;
+        closeModals();
+        startCertification();
+        chooseMethod('hot_native');
+        document.getElementById('diag-link').style.display = 'block';
+    }
+    function triggerFile(id) { document.getElementById(id).click(); }
+    function previewSale(input, boxId, index) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(boxId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+                previewPhotos[index] = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    function chooseMethod(m) {
+        currentMethod = m;
+        document.getElementById('stepMethod').style.display = 'none';
+        document.getElementById('stepInfo').style.display = 'block';
+        document.getElementById('s2').className = 'step active';
+    }
+    function goToScan() {
+        if(!document.getElementById('inputTitle').value || !document.getElementById('inputPrice').value) { alert("Titre et Prix requis"); return; }
+        document.getElementById('stepInfo').style.display = 'none';
+        document.getElementById('stepScan').style.display = 'block';
+        document.getElementById('s3').className = 'step active';
+        setTimeout(() => {
+            document.getElementById('stepScan').style.display = 'none';
+            document.getElementById('stepFinish').style.display = 'block';
+            document.getElementById('s4').className = 'step active';
+        }, 2000);
+    }
+    function publishFinal() {
+        const newItem = {
+            id: Date.now(),
+            title: document.getElementById('inputTitle').value,
+            price: parseInt(document.getElementById('inputPrice').value),
+            type: (currentMethod === 'hot_native' ? 'native' : 'legacy'),
+            country: 'France',
+            cond: 'Certifié Spirit Eyes',
+            brand: (currentMethod === 'other' ? 'Autre' : 'Hot Toys'),
+            cat: document.getElementById('saleCat').value,
+            shipSize: document.getElementById('saleShip').value,
+            img: previewPhotos[0],
+            photos: previewPhotos.filter(p => p !== null),
+            desc: document.getElementById('inputDesc').value + (diagActive ? " [PUCE SPIRIT VERIFIÉE]" : ""),
+            status: 'available'
+        };
+        marketData.unshift(newItem);
+        updateUserAnnonces();
+        closeModals();
+        renderMarket();
+        diagActive = false; 
+        document.getElementById('diag-link').style.display = 'none'; 
+        alert("Annonce publiée ! Séquestre activé pour la sécurité.");
+    }
+    function updateUserAnnonces() {
+        const container = document.getElementById('user-annonces-list');
+        container.innerHTML = '';
+        marketData.slice(0, 3).forEach(a => {
+            container.innerHTML += `<div style="background:#000; padding:10px; border:1px solid #333;">${a.title} - ${a.price}€ (${a.shipSize})</div>`;
+        });
+    }
     function printLabel(ref, data) {
         document.getElementById('labelPreview').style.display = 'block';
-        document.getElementById('labelContent').innerHTML = `<strong>RÉFÉRENCE : ${ref}</strong><hr>${data}`;
+        document.getElementById('labelContent').innerHTML = `<div style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:10px;"><strong>BORDEREAU D'EXPÉDITION SPIRIT</strong></div><strong>RÉFÉRENCE : ${ref}</strong><hr>${data}`;
     }
-
     function zoomImg(src) {
         document.getElementById('lightbox-img').src = src;
         document.getElementById('lightbox').style.display = 'flex';
     }
-
     function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
     function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
     function closeModals() { 
