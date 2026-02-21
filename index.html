@@ -822,57 +822,11 @@
         document.getElementById('paymentModal').style.display = 'flex';
     }
 
-    // --- SYSTÈME DE BORDEREAU SPIRIT INFINITY ---
-function viewLabel(encodedHtml) {
-    const labelContent = document.getElementById('labelContent');
-    const labelPreview = document.getElementById('labelPreview');
-    labelContent.innerHTML = atob(encodedHtml);
-    labelPreview.style.display = 'block';
-    labelPreview.scrollIntoView({ behavior: 'smooth' });
-}
-
-function addToMySales(product, carrierName) {
-    const shippingList = document.getElementById('shipping-list');
-    const trackingNum = "SP-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-    
-    const labelHtml = `
-        <div style="padding:15px; border:2px dashed #555; background:#fff; color:#000; font-family:monospace; width:100%;">
-            <b style="font-size:1.2rem;">SPIRIT LOGISTICS</b><br>
-            <small>OBJET : ${product.title}</small><br><br>
-            <b>DESTINATAIRE : ${currentUser}</b><br>
-            <span>VIA : ${carrierName}</span><br><br>
-            <div style="text-align:center; border:1px solid #000; padding:5px;">
-                <b>TRACKING : ${trackingNum}</b>
-            </div>
-        </div>`;
-    
-    const saleItem = document.createElement('div');
-    saleItem.style = "background:#111; padding:15px; border:1px solid var(--spirit-green); margin-bottom:15px;";
-    saleItem.innerHTML = `
-        <h4 style="margin:0; color:var(--spirit-green)">${product.title}</h4>
-        <p style="font-size:0.7rem;">Tracking: ${trackingNum}</p>
-        <button class="btn-action" style="font-size:0.6rem; width:100%;" onclick="viewLabel('${btoa(labelHtml)}')">VOIR LE BORDEREAU</button>
-    `;
-    
-    if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
-    shippingList.appendChild(saleItem);
-}
-
-function confirmPayment(method) {
-    const carrierSelect = document.getElementById('pCarrierSelect');
-    const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
-    
-    alert("PAIEMENT SPIRIT VALIDÉ !\nFonds sécurisés au séquestre.");
-    
-    // On envoie vers l'onglet "Mes Ventes"
-    addToMySales(selectedProduct, carrierName);
-    
-    selectedProduct.status = 'sold';
-    renderMarket();
-    closeModals();
-}
-// --- FIN DU SYSTÈME ---
-
+    function confirmPayment(method) {
+        alert("Connexion sécurisée à " + method + "...\nFonds prélevés et sécurisés par Spirit Infinity.\nStatut de la figurine : VENDU");
+        selectedProduct.status = 'sold';
+        renderMarket();
+        closeModals();
     }
 
     // --- LOGIQUE CHAT ---
@@ -1030,4 +984,3 @@ function confirmPayment(method) {
 </script>
 </body>
 </html>
-
