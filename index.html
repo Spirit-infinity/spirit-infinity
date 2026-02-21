@@ -823,10 +823,12 @@
     }
 
     function confirmPayment(method) {
-        alert("Connexion sécurisée à " + method + "...\nFonds prélevés et sécurisés par Spirit Infinity.\nStatut de la figurine : VENDU");
-        selectedProduct.status = 'sold';
-        renderMarket();
-        closeModals();
+    alert("Paiement " + method + " confirmé !");
+    if(selectedProduct) recordSaleForVender(selectedProduct, method);
+    selectedProduct.status = 'sold';
+    renderMarket();
+    closeModals();
+}
     }
 
     // --- LOGIQUE CHAT ---
@@ -957,7 +959,11 @@
     }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
     function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
-    function openAccount() { updateUserAnnonces(); document.getElementById('accountModal').style.display = 'flex'; }
+    function openAccount() { 
+    updateUserAnnonces(); 
+    document.getElementById('accountModal').style.display = 'flex'; 
+    renderVentes(); 
+}
     function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
     function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
     function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
@@ -979,7 +985,67 @@
         document.getElementById('forumList').style.display = 'block';
         document.getElementById('topicEditor').style.display = 'none';
     }
+// (c) 2026 Spirit Infinity - Tous droits réservés
+window.spiritSales = window.spiritSales || [];
 
+function generateShippingLabel(product, carrierKey, method) {
+    const size = product.shipSize || "Moyen";
+    const date = new Date().toLocaleDateString('fr-FR');
+    const labelId = "SPIRIT-" + Math.floor(Math.random() * 900000 + 100000);
+    const carrierName = document.getElementById('pCarrierSelect').options[document.getElementById('pCarrierSelect').selectedIndex].text;
+    return `
+        <div style="border: 3px solid black; padding: 15px; background: white; color: black; font-family: 'Courier New', monospace;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid black; padding-bottom: 5px; margin-bottom: 10px;">
+                <span style="font-weight: bold;">SPIRIT LOGISTICS</span>
+                <span style="font-weight: bold;">ID: ${labelId}</span>
+            </div>
+            <div style="font-size: 1.1rem; font-weight: 900; margin-bottom: 10px; text-align: center;">BORDEREAU D'EXPÉDITION</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-bottom: 1px solid black; padding-bottom: 10px;">
+                <div><strong>EXPÉDITEUR:</strong><br>${product.owner || 'Vendeur Spirit'}</div>
+                <div><strong>DESTINATAIRE:</strong><br>${currentUser}<br>Via: ${method}</div>
+            </div>
+            <div style="margin-top: 10px;">
+                <strong>PRODUIT :</strong> ${product.title}<br>
+                <strong>VALEUR :</strong> ${product.price} € | <strong>TRANSPORTEUR :</strong> ${carrierName}
+            </div>
+            <div style="margin-top: 15px; border: 2px dashed black; padding: 10px; text-align: center;">
+                <div style="letter-spacing: 5px; font-weight: bold;">|| ||| | || |||| | ||| |</div>
+                <div style="font-size: 0.8rem; margin-top: 5px;">*${labelId}*</div>
+            </div>
+        </div>`;
+}
+
+function recordSaleForVender(product, method) {
+    const carrierKey = document.getElementById('pCarrierSelect').value;
+    window.spiritSales.push({
+        saleId: Date.now(),
+        productTitle: product.title,
+        buyer: currentUser,
+        labelHtml: generateShippingLabel(product, carrierKey, method)
+    });
+}
+
+function renderVentes() {
+    const container = document.getElementById('shipping-list');
+    if(!container) return;
+    container.innerHTML = window.spiritSales.length ? '' : '<p style="font-size:0.8rem; color:#777;">Aucune vente.</p>';
+    window.spiritSales.forEach(sale => {
+        const div = document.createElement('div');
+        div.style = "background:#111; padding:15px; border:1px solid #333; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;";
+        div.innerHTML = `
+            <div><div style="color:var(--neon-orange); font-weight:bold;">${sale.productTitle}</div><div style="font-size:0.7rem;">Acheteur : ${sale.buyer}</div></div>
+            <button class="btn-action" style="font-size:0.6rem; width:auto; padding:5px 10px;" onclick="showLabelPreview('${sale.saleId}')">VOIR BORDEREAU</button>`;
+        container.appendChild(div);
+    });
+}
+
+function showLabelPreview(saleId) {
+    const sale = window.spiritSales.find(s => s.saleId == saleId);
+    if(sale) {
+        document.getElementById('labelContent').innerHTML = sale.labelHtml;
+        document.getElementById('labelPreview').style.display = 'block';
+    }
+}
     renderMarket();
 </script>
 </body>
