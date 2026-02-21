@@ -960,10 +960,11 @@
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
     function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
     function openAccount() { 
-    updateUserAnnonces(); 
+    if(typeof updateUserAnnonces === "function") updateUserAnnonces(); 
     document.getElementById('accountModal').style.display = 'flex'; 
     renderVentes(); 
 }
+
     function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
     function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
     function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
@@ -1050,3 +1051,4 @@ function showLabelPreview(saleId) {
 </script>
 </body>
 </html>
+
