@@ -312,7 +312,8 @@
                 <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (Vente Directe)</button>
             </div>
         </div>
-       <div id="stepMethod" style="display:block;">
+       
+<div id="stepMethod" style="display:block;">
     <h2 style="text-align:center;">VENDRE & CERTIFIER</h2>
     <div style="display:grid; grid-template-columns: 1fr; gap:10px; margin-top:20px;">
         <button class="btn-action" onclick="chooseMethod('hot_native')" style="background:#ff4444;">1. HOT TOYS (ÉQUIPÉE SPIRIT + SCAN IA)</button>
@@ -361,10 +362,9 @@
     <input type="number" id="inputPrice" placeholder="Prix de vente (€)" style="width:100%; margin-bottom:10px;">
     <textarea id="inputDesc" placeholder="Description de votre objet..." style="width:100%; height:80px;"></textarea>
 
-   <button onclick="openSellProcess()">VENDRE</button>" style="width:100%; margin-top:15px; background:var(--neon-orange); color:black;">VALIDER L'EXPERTISE IA</button>
+    <button class="btn-action" onclick="startExpertScan()" style="width:100%; margin-top:15px; background:var(--neon-orange); color:black;">VALIDER L'EXPERTISE IA</button>
 </div>
-
-        
+  
             </div>
             <input type="file" id="file1" style="display:none" onchange="previewSale(this, 'pBox1', 0)">
             <input type="file" id="file2" style="display:none" onchange="previewSale(this, 'pBox2', 1)">
@@ -1253,6 +1253,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
