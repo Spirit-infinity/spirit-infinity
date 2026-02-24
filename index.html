@@ -313,13 +313,39 @@
             </div>
         </div>
         <div id="stepInfo" style="display:none;">
-            <h2 style="text-align:center;">PHOTOS & DÉTAILS</h2>
-            <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-bottom:20px;">
-                <div id="pBox1" onclick="triggerFile('file1')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 1</div>
-                <div id="pBox2" onclick="triggerFile('file2')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 2</div>
-                <div id="pBox3" onclick="triggerFile('file3')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 3</div>
-                <div id="pBox4" onclick="triggerFile('file4')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 4</div>
-                <div id="pBox5" onclick="triggerFile('file5')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 5</div>
+         <h2 style="text-align:center;">> EXPERTISE VISUELLE & DÉTAILS</h2>
+<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:15px;">
+    
+    <div id="pBox1" onclick="triggerFile('file-head')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
+        <span style="font-size:0.6rem; color:var(--neon-orange);">1. TÊTE</span>
+        <img id="img-head" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block; margin-top:5px;">
+        <input type="file" id="file-head" style="display:none;" onchange="previewExpert(this, 'img-head')">
+    </div>
+
+    <div id="pBox2" onclick="triggerFile('file-body')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
+        <span style="font-size:0.6rem; color:var(--neon-orange);">2. CORPS</span>
+        <img id="img-body" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block; margin-top:5px;">
+        <input type="file" id="file-body" style="display:none;" onchange="previewExpert(this, 'img-body')">
+    </div>
+
+    <div id="pBox3" onclick="triggerFile('file-acc')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
+        <span style="font-size:0.6rem; color:var(--neon-orange);">3. ACCS</span>
+        <img id="img-acc" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block; margin-top:5px;">
+        <input type="file" id="file-acc" style="display:none;" onchange="previewExpert(this, 'img-acc')">
+    </div>
+
+    <div id="pBox4" onclick="triggerFile('file-box')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
+        <span style="font-size:0.6rem; color:var(--neon-orange);">4. BOITE</span>
+        <img id="img-box" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block; margin-top:5px;">
+        <input type="file" id="file-box" style="display:none;" onchange="previewExpert(this, 'img-box')">
+    </div>
+
+    <div id="pBox5" onclick="triggerFile('file-brown')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer; grid-column: span 2;">
+        <span style="font-size:0.6rem; color:var(--neon-orange);">5. CARTON BRUN (BROWN BOX)</span>
+        <img id="img-brown" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block; margin-top:5px;">
+        <input type="file" id="file-brown" style="display:none;" onchange="previewExpert(this, 'img-brown')">
+    </div>
+</div>
             </div>
             <input type="file" id="file1" style="display:none" onchange="previewSale(this, 'pBox1', 0)">
             <input type="file" id="file2" style="display:none" onchange="previewSale(this, 'pBox2', 1)">
@@ -1208,6 +1234,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
