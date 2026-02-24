@@ -132,6 +132,8 @@
         .msg-user { color: var(--neon-orange); font-weight: bold; }
         .msg-text { color: white; margin-left: 5px; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 </head>
 <body>
 <header>
@@ -748,28 +750,47 @@ function goToScan() {
     // (c) 2026 Spirit Infinity - Tous droits réservés
     }, 3000);
 } 
-
 // (c) 2026 Spirit Infinity - Tous droits réservés
-async function saveSpiritAudit(listingUUID, modelName, score) {
-    console.log("[SPIRIT] Envoi au Ledger avec UUID valide...");
-    
-    // On génère un UUID aléatoire pour satisfaire Supabase
-    const cleanUUID = crypto.randomUUID(); 
+async function startAIAnalysis() {
+    const imgElement = document.getElementById('preview-img');
+    const resultText = document.getElementById('ai-status');
+    const publishBtn = document.getElementById('publish-btn');
 
-    const { data, error } = await _spirit
-        .from('spirit_authenticity_reports')
-        .insert([
-            { 
-                listing_id: cleanUUID, 
-                model_name_detected: String(modelName), 
-                confidence_score: parseInt(score) 
-            }
-        ]);
+    if (!imgElement.src || imgElement.src.includes('placeholder')) {
+        alert("❌ Erreur : Aucune image à analyser.");
+        return;
+    }
 
-    if (error) {
-        console.error("❌ Erreur SQL détaillée :", error.message);
-    } else {
-        console.log("✅ SUCCÈS : Donnée enregistrée dans le Ledger !");
+    resultText.innerHTML = "🔍 <span style='color: #ff9d00;'>SPIRIT EYES : Analyse réelle des pixels...</span>";
+
+    try {
+        // Chargement du modèle que tu as mis dans le HTML
+        const model = await mobilenet.load();
+        const predictions = await model.classify(imgElement);
+
+        console.log("Résultats IA :", predictions);
+
+        const topResult = predictions[0].className.toLowerCase();
+        const score = Math.round(predictions[0].probability * 100);
+
+        // FILTRE ANTI-FRAUDE (On bloque les cigarettes et gadgets)
+        const forbidden = ['cigarette', 'vape', 'lighter', 'phone', 'gadget', 'electronic'];
+        const isFraud = forbidden.some(term => topResult.includes(term));
+
+        if (isFraud) {
+            resultText.innerHTML = `<span style="color: #ff4444;">❌ FRAUDE DÉTECTÉE : ${topResult.toUpperCase()}</span>`;
+            publishBtn.disabled = true;
+            publishBtn.style.opacity = "0.3";
+        } else {
+            resultText.innerHTML = `<span style="color: #00ff88;">✅ CERTIFIÉ : ${topResult.toUpperCase()} (${score}%)</span>`;
+            publishBtn.disabled = false;
+            publishBtn.style.opacity = "1";
+            window.currentAIScore = score;
+        }
+
+    } catch (err) {
+        console.error("Erreur Vision :", err);
+        resultText.innerText = "❌ Erreur de chargement du moteur IA.";
     }
 }
 
@@ -1086,6 +1107,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
