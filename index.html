@@ -746,8 +746,9 @@ function goToScan() {
         // Sauvegarde temporaire du score pour l'envoi SQL
       document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
    }, 3000);
-} // Fin de goToScan
+} // FIN DE GOTOSCAN
 
+// --- BLOC UNIQUE : SAUVEGARDE LEDGER ---
 async function saveSpiritAudit(listingUUID, modelName, score) {
     console.log("[SPIRIT] Envoi au Ledger SQL...");
     const { data, error } = await _spirit
@@ -759,11 +760,12 @@ async function saveSpiritAudit(listingUUID, modelName, score) {
             web_reference_count: 142,
             ai_verdict: 'Verified'
         }]);
-    if (error) console.error("❌ Erreur SQL:", error);
-    else console.log("✅ Audit sauvegardé.");
+    
+    if (error) console.error("❌ Erreur Ledger:", error);
+    else console.log("✅ Audit certifié dans le Ledger.");
 }
 
-// --- FONCTION PUBLISH ---
+// --- BLOC UNIQUE : PUBLICATION FINALE ---
 function publishFinal() {
     const title = document.getElementById('inputTitle').value;
     const price = parseInt(document.getElementById('inputPrice').value);
@@ -780,6 +782,10 @@ function publishFinal() {
         ia_score: scoreIA,
         title: title,
         price: price,
+        type: (currentMethod === 'hot_native' ? 'native' : 'legacy'),
+        country: 'France',
+        cond: 'Certifié Spirit Eyes',
+        brand: 'Hot Toys',
         cat: cat,
         shipSize: ship,
         img: previewPhotos[0],
@@ -789,24 +795,15 @@ function publishFinal() {
         chat: [],
         owner: currentUser
     };
-    
+
     marketData.unshift(newItem);
-    saveSpiritAudit(listingUUID, title, scoreIA);
+    saveSpiritAudit(listingUUID, title, scoreIA); // Appel du Ledger
     
     renderMarket();
     updateUserAnnonces();
     closeModals();
-    alert("Annonce certifiée sur le Ledger !");
+    alert("Félicitations ! Annonce publiée et certifiée sur le Ledger Spirit.");
 }
-    // Envoi au Ledger SQL Supabase
-    saveSpiritAudit(listingUUID, title, scoreIA);
-
-    renderMarket();
-    updateUserAnnonces();
-    closeModals();
-    alert("Action réussie ! Annonce certifiée sur le Ledger.");
-}
-
     // 3. AJOUT : On appelle la fonction SQL que tu viens de créer
     saveSpiritAudit(listingUUID, title, scoreIA);
 
@@ -1096,6 +1093,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
