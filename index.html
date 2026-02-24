@@ -750,16 +750,21 @@ function goToScan() {
 } 
 
 async function saveSpiritAudit(listingUUID, modelName, score) {
+    console.log("[SPIRIT] Envoi des données au Ledger...");
     const { data, error } = await _spirit
         .from('spirit_authenticity_reports')
         .insert([{ 
-            listing_id: listingUUID, 
-            model_name_detected: modelName, 
-            confidence_score: score,
-            web_reference_count: 142,
-            ai_verdict: 'Verified'
+            listing_id: String(listingUUID), 
+            model_name_detected: String(modelName), 
+            confidence_score: parseInt(score) 
         }]);
-    if (error) console.error("❌ Erreur SQL:", error);
+
+    if (error) {
+        console.error("❌ Erreur 400 détaillée :", error.message);
+        console.error("Hint :", error.hint);
+    } else {
+        console.log("✅ SUCCÈS : Donnée enregistrée dans le Ledger !");
+    }
 }
 
 function publishFinal() {
@@ -1075,6 +1080,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
