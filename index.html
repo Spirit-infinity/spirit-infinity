@@ -776,10 +776,8 @@ function publishFinal() {
     const cat = document.getElementById('saleCat').value;
     const ship = document.getElementById('saleShip').value;
 
-    // 1. AJOUT : On récupère le score que le scan vient de calculer
+    // Récupération du score IA et création de l'ID unique
     const scoreIA = document.getElementById('stepFinish').dataset.lastScore || 95;
-    
-    // 2. AJOUT : On crée un identifiant unique pour lier l'annonce au Ledger
     const listingUUID = "SPIRIT-" + Date.now(); 
 
     if(editingId) {
@@ -796,8 +794,8 @@ function publishFinal() {
     } else {
         const newItem = {
             id: Date.now(),
-            uuid: listingUUID, // AJOUT : ID unique pour le SQL
-            ia_score: scoreIA, // AJOUT : Score pour l'affichage
+            uuid: listingUUID,
+            ia_score: scoreIA,
             title: title,
             price: price,
             type: (currentMethod === 'hot_native' ? 'native' : 'legacy'),
@@ -815,6 +813,15 @@ function publishFinal() {
         };
         marketData.unshift(newItem);
     }
+
+    // Envoi au Ledger SQL Supabase
+    saveSpiritAudit(listingUUID, title, scoreIA);
+
+    renderMarket();
+    updateUserAnnonces();
+    closeModals();
+    alert("Action réussie ! Annonce certifiée sur le Ledger.");
+}
 
     // 3. AJOUT : On appelle la fonction SQL que tu viens de créer
     saveSpiritAudit(listingUUID, title, scoreIA);
@@ -1105,6 +1112,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
