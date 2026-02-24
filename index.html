@@ -771,7 +771,7 @@ function publishFinal() {
     const cat = document.getElementById('saleCat').value;
     const ship = document.getElementById('saleShip').value;
 
-    const scoreIA = document.getElementById('stepFinish').dataset.lastScore || 95;
+    const scoreIA = document.getElementById('stepFinish').dataset.lastScore || 98;
     const listingUUID = "SPIRIT-" + Date.now(); 
 
     const newItem = {
@@ -791,59 +791,13 @@ function publishFinal() {
     };
     
     marketData.unshift(newItem);
-    saveSpiritAudit(listingUUID, title, scoreIA); // ENVOI SQL
+    saveSpiritAudit(listingUUID, title, scoreIA);
     
     renderMarket();
     updateUserAnnonces();
     closeModals();
-    alert("Annonce certifiée sur le Ledger Spirit !");
+    alert("Annonce publiée et certifiée sur le Ledger !");
 }
-
-function publishFinal() {
-    const title = document.getElementById('inputTitle').value;
-    const price = parseInt(document.getElementById('inputPrice').value);
-    const desc = document.getElementById('inputDesc').value;
-    const cat = document.getElementById('saleCat').value;
-    const ship = document.getElementById('saleShip').value;
-
-    // Récupération du score IA et création de l'ID unique
-    const scoreIA = document.getElementById('stepFinish').dataset.lastScore || 95;
-    const listingUUID = "SPIRIT-" + Date.now(); 
-
-    if(editingId) {
-        const idx = marketData.findIndex(m => m.id === editingId);
-        if(idx !== -1) {
-            marketData[idx].title = title;
-            marketData[idx].price = price;
-            marketData[idx].desc = desc;
-            marketData[idx].cat = cat;
-            marketData[idx].shipSize = ship;
-            if(previewPhotos[0]) marketData[idx].img = previewPhotos[0];
-            marketData[idx].photos = previewPhotos.filter(p => p !== null);
-        }
-    } else {
-        const newItem = {
-            id: Date.now(),
-            uuid: listingUUID,
-            ia_score: scoreIA,
-            title: title,
-            price: price,
-            type: (currentMethod === 'hot_native' ? 'native' : 'legacy'),
-            country: 'France',
-            cond: 'Certifié Spirit Eyes',
-            brand: (currentMethod === 'other' ? 'Autre' : 'Hot Toys'),
-            cat: cat,
-            shipSize: ship,
-            img: previewPhotos[0],
-            photos: previewPhotos.filter(p => p !== null),
-            desc: desc + (diagActive ? " [PUCE SPIRIT VERIFIÉE]" : ""),
-            status: 'available',
-            chat: [],
-            owner: currentUser
-        };
-        marketData.unshift(newItem);
-    }
-
     // Envoi au Ledger SQL Supabase
     saveSpiritAudit(listingUUID, title, scoreIA);
 
@@ -1142,6 +1096,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
