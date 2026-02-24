@@ -312,40 +312,59 @@
                 <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (Vente Directe)</button>
             </div>
         </div>
-        <div id="stepInfo" style="display:none;">
-         <h2 style="text-align:center;">> EXPERTISE VISUELLE & DÉTAILS</h2>
-<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:15px;">
-    
-    <div id="pBox1" onclick="triggerFile('file-head')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
-        <span style="font-size:0.6rem; color:var(--neon-orange);">1. TÊTE</span>
-        <img id="img-head" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block; margin-top:5px;">
-        <input type="file" id="file-head" style="display:none;" onchange="previewExpert(this, 'img-head')">
-    </div>
-
-    <div id="pBox2" onclick="triggerFile('file-body')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
-        <span style="font-size:0.6rem; color:var(--neon-orange);">2. CORPS</span>
-        <img id="img-body" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block; margin-top:5px;">
-        <input type="file" id="file-body" style="display:none;" onchange="previewExpert(this, 'img-body')">
-    </div>
-
-    <div id="pBox3" onclick="triggerFile('file-acc')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
-        <span style="font-size:0.6rem; color:var(--neon-orange);">3. ACCS</span>
-        <img id="img-acc" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block; margin-top:5px;">
-        <input type="file" id="file-acc" style="display:none;" onchange="previewExpert(this, 'img-acc')">
-    </div>
-
-    <div id="pBox4" onclick="triggerFile('file-box')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
-        <span style="font-size:0.6rem; color:var(--neon-orange);">4. BOITE</span>
-        <img id="img-box" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block; margin-top:5px;">
-        <input type="file" id="file-box" style="display:none;" onchange="previewExpert(this, 'img-box')">
-    </div>
-
-    <div id="pBox5" onclick="triggerFile('file-brown')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer; grid-column: span 2;">
-        <span style="font-size:0.6rem; color:var(--neon-orange);">5. CARTON BRUN (BROWN BOX)</span>
-        <img id="img-brown" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block; margin-top:5px;">
-        <input type="file" id="file-brown" style="display:none;" onchange="previewExpert(this, 'img-brown')">
+       <div id="stepMethod" style="display:block;">
+    <h2 style="text-align:center;">VENDRE & CERTIFIER</h2>
+    <div style="display:grid; grid-template-columns: 1fr; gap:10px; margin-top:20px;">
+        <button class="btn-action" onclick="chooseMethod('hot_native')" style="background:#ff4444;">1. HOT TOYS (ÉQUIPÉE SPIRIT + SCAN IA)</button>
+        <button class="btn-action" onclick="chooseMethod('hot_legacy')" style="background:#00aaff;">2. ANCIENNE HOT TOYS (SCAN IA UNIQUEMENT)</button>
+        <button class="btn-action" onclick="chooseMethod('other')" style="background:#444;">3. AUTRE MARQUE (VENTE DIRECTE)</button>
     </div>
 </div>
+
+<div id="stepInfo" style="display:none; margin-top:20px;">
+    <h2 style="text-align:center;">> EXPERTISE VISUELLE & DÉTAILS</h2>
+    
+    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:15px;">
+        <div class="pBox" onclick="triggerFile('file-head')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
+            <span style="font-size:0.6rem; color:var(--neon-orange);">1. TÊTE</span>
+            <img id="img-head" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block;">
+            <input type="file" id="file-head" hidden onchange="previewExpert(this, 'img-head')">
+        </div>
+        <div class="pBox" onclick="triggerFile('file-body')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
+            <span style="font-size:0.6rem; color:var(--neon-orange);">2. CORPS</span>
+            <img id="img-body" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block;">
+            <input type="file" id="file-body" hidden onchange="previewExpert(this, 'img-body')">
+        </div>
+        <div class="pBox" onclick="triggerFile('file-acc')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
+            <span style="font-size:0.6rem; color:var(--neon-orange);">3. ACCS</span>
+            <img id="img-acc" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block;">
+            <input type="file" id="file-acc" hidden onchange="previewExpert(this, 'img-acc')">
+        </div>
+        <div class="pBox" onclick="triggerFile('file-box')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer;">
+            <span style="font-size:0.6rem; color:var(--neon-orange);">4. BOITE</span>
+            <img id="img-box" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block;">
+            <input type="file" id="file-box" hidden onchange="previewExpert(this, 'img-box')">
+        </div>
+        <div class="pBox" onclick="triggerFile('file-brown')" style="background:#111; border:1px dashed var(--neon-orange); padding:5px; text-align:center; cursor:pointer; grid-column: span 2;">
+            <span style="font-size:0.6rem; color:var(--neon-orange);">5. CARTON BRUN</span>
+            <img id="img-brown" src="placeholder.png" style="width:100%; height:60px; object-fit:cover; display:block;">
+            <input type="file" id="file-brown" hidden onchange="previewExpert(this, 'img-brown')">
+        </div>
+    </div>
+
+    <input type="text" id="inputTitle" placeholder="Nom précis de la figurine" style="width:100%; margin-bottom:10px;">
+    <select id="saleCat" style="width:100%; margin-bottom:10px;">
+        <option value="">-- FORMAT DU PRODUIT --</option>
+        <option value="1/6">1/6 Scale Figure</option>
+        <option value="1/4">1/4 Scale Figure</option>
+    </select>
+    <input type="number" id="inputPrice" placeholder="Prix de vente (€)" style="width:100%; margin-bottom:10px;">
+    <textarea id="inputDesc" placeholder="Description de votre objet..." style="width:100%; height:80px;"></textarea>
+
+    <button class="btn-action" onclick="startExpertScan()" style="width:100%; margin-top:15px; background:var(--neon-orange); color:black;">VALIDER L'EXPERTISE IA</button>
+</div>
+
+        
             </div>
             <input type="file" id="file1" style="display:none" onchange="previewSale(this, 'pBox1', 0)">
             <input type="file" id="file2" style="display:none" onchange="previewSale(this, 'pBox2', 1)">
