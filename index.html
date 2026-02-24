@@ -745,9 +745,10 @@ function goToScan() {
         document.getElementById('s4').className = 'step active';
         // Sauvegarde temporaire du score pour l'envoi SQL
       document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
-   }, 3000);
-} 
+     }, 3000);
+} // Fin de la fonction goToScan
 
+// --- BLOC SPIRIT LEDGER (SUPABASE) ---
 async function saveSpiritAudit(listingUUID, modelName, score) {
     const { data, error } = await _spirit
         .from('spirit_authenticity_reports')
@@ -761,6 +762,7 @@ async function saveSpiritAudit(listingUUID, modelName, score) {
     if (error) console.error("❌ Erreur SQL:", error);
 }
 
+// --- FONCTION PUBLICATION FINALE ---
 function publishFinal() {
     const title = document.getElementById('inputTitle').value;
     const price = parseInt(document.getElementById('inputPrice').value);
@@ -771,10 +773,19 @@ function publishFinal() {
     const listingUUID = "SPIRIT-" + Date.now(); 
 
     const newItem = {
-        id: Date.now(), uuid: listingUUID, ia_score: scoreIA,
-        title: title, price: price, cat: cat, shipSize: ship,
-        img: previewPhotos[0], photos: previewPhotos.filter(p => p !== null),
-        desc: desc, status: 'available', chat: [], owner: currentUser
+        id: Date.now(),
+        uuid: listingUUID,
+        ia_score: scoreIA,
+        title: title,
+        price: price,
+        cat: cat,
+        shipSize: ship,
+        img: previewPhotos[0],
+        photos: previewPhotos.filter(p => p !== null),
+        desc: desc,
+        status: 'available',
+        chat: [],
+        owner: currentUser
     };
     
     marketData.unshift(newItem);
@@ -782,8 +793,9 @@ function publishFinal() {
     renderMarket();
     updateUserAnnonces();
     closeModals();
-    alert("Annonce certifiée sur le Ledger !");
+    alert("Annonce certifiée sur le Ledger Spirit !");
 }
+
     // 3. AJOUT : On appelle la fonction SQL que tu viens de créer
     saveSpiritAudit(listingUUID, title, scoreIA);
 
@@ -1073,6 +1085,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
