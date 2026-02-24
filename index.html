@@ -1148,10 +1148,15 @@ async function confirmPayment(method) {
         document.getElementById('forumList').style.display = 'block';
         document.getElementById('topicEditor').style.display = 'none';
     }
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
-   // (c) 2026 Spirit Infinity - Tous droits réservés
+    // Cette fonction ferme le bloc précédent proprement
+    renderMarket();
+}
 
-// FONCTION UNIQUE DE SCAN - AUCUN DOUBLON AUTORISÉ
+// ==========================================
+// MOTEUR IA SPIRIT EYES - FILTRE ANTI-FRAUDE
+// ==========================================
 async function startAIAnalysis() {
     const resultText = document.getElementById('ai-status');
     const imgElement = document.getElementById('preview-img');
@@ -1161,59 +1166,56 @@ async function startAIAnalysis() {
     const stepFinish = document.getElementById('stepFinish');
 
     if (!imgElement.src || imgElement.src.includes('placeholder')) {
-        alert("Veuillez d'abord prendre une photo.");
+        alert("Prenez une photo d'abord !");
         return;
     }
 
-    resultText.innerHTML = "🔍 <span style='color:orange;'>SPIRIT EYES : Analyse en cours...</span>";
+    resultText.innerHTML = "🔍 <span style='color:orange;'>ANALYSE EN COURS...</span>";
 
     try {
-        // Chargement du moteur IA
         const model = await mobilenet.load();
         const predictions = await model.classify(imgElement);
         
         const topResult = predictions[0].className.toLowerCase();
         const realScore = Math.round(predictions[0].probability * 100);
 
-        // Basculement d'écran
         stepScan.style.display = 'none';
         stepFinish.style.display = 'block';
 
-        // FILTRE ANTI-FRAUDE
+        // FILTRE ANTI-FRAUDE (Cigarette, Vape, Phone)
         const forbidden = ['cigarette', 'vape', 'lighter', 'phone', 'electronic', 'gadget'];
         const isFraud = forbidden.some(term => topResult.includes(term));
 
         if (isFraud) {
             finishMsg.innerHTML = `
-                <h2 style="color:#ff4444; margin:0; font-family: 'Orbitron', sans-serif;">OBJET NON CONFORME</h2>
-                <p style="color:white;">Détecté : <span style="color:#ff4444;">${topResult.toUpperCase()}</span></p>
-                <p style="font-size:0.8rem; color:#777;">La Marketplace Spirit Infinity n'accepte pas ce type d'objet.</p>
+                <h2 style="color:#ff4444; margin:0;">OBJET NON CONFORME</h2>
+                <p style="color:white;">Détecté : <strong style="color:#ff4444;">${topResult.toUpperCase()}</strong></p>
+                <p style="font-size:0.8rem; color:#777;">La Marketplace refuse les produits non-figurines.</p>
             `;
             publishBtn.disabled = true;
             publishBtn.style.opacity = "0.3";
-            publishBtn.style.cursor = "not-allowed";
         } else {
             finishMsg.innerHTML = `
-                <h2 style="color:#00ff88; margin:0; font-family: 'Orbitron', sans-serif;">SCAN RÉUSSI</h2>
-                <p style="color:white;">SCORE D'AUTHENTICITÉ : <span style="color:#00ff88;">${realScore}%</span></p>
-                <p style="font-size:0.8rem; color:#777;">Modèle identifié : ${topResult}</p>
+                <h2 style="color:#00ff88; margin:0;">SCAN RÉUSSI</h2>
+                <p style="color:white;">AUTHENTICITÉ : <strong style="color:#00ff88;">${realScore}%</strong></p>
+                <p style="font-size:0.8rem; color:#aaa;">Modèle : ${topResult}</p>
             `;
             publishBtn.disabled = false;
             publishBtn.style.opacity = "1";
-            publishBtn.style.cursor = "pointer";
-            
-            // Stockage pour le Ledger
-            stepFinish.dataset.lastScore = realScore;
         }
     } catch (err) {
-        console.error("Erreur Spirit Eyes :", err);
-        resultText.innerHTML = "<span style='color:red;'>ERREUR : Moteur IA non chargé</span>";
+        console.error("Erreur critique :", err);
+        resultText.innerHTML = "<span style='color:red;'>ERREUR CHARGEMENT IA</span>";
     }
-renderMarket();
+}
 
+// FIN DU SCRIPT
 </script>
 </body>
 </html>
+ 
+
+
 
 
 
