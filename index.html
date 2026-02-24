@@ -1098,64 +1098,10 @@ async function confirmPayment(method) {
                    (brand === 'all' || item.brand === brand) && (cat === 'all' || item.cat === cat) && 
                    (cond === 'all' || item.cond === cond);
         });
-        renderMarket(filtered);
-    }
-
-    function updateTotalWithCarrier() {
-        if(!selectedProduct) return;
-        const carrierKey = document.getElementById('pCarrierSelect').value;
-        const size = selectedProduct.shipSize || "Moyen";
-        let shipCost = 0;
-        let carrierName = "---";
-        if(carrierKey !== "0") {
-            shipCost = shippingRates[size][carrierKey];
-            carrierName = document.getElementById('pCarrierSelect').options[document.getElementById('pCarrierSelect').selectedIndex].text;
-        }
-        const prot = selectedProduct.price * 0.06;
-        document.getElementById('sumPrice').innerText = selectedProduct.price + " €";
-        document.getElementById('sumShip').innerText = shipCost.toFixed(2) + " €";
-        document.getElementById('sumCarrierName').innerText = carrierName;
-        document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
-        document.getElementById('sumTotal').innerText = (selectedProduct.price + shipCost + prot).toFixed(2) + " €";
-    }
-
-    function closeModals() { 
-        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); 
-        hideTopicEditor();
-    }
-    function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
-    function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
-    function openAccount() { updateUserAnnonces(); document.getElementById('accountModal').style.display = 'flex'; }
-    function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
-    function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
-    function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
-    function showAccountTab(tab) {
-        document.querySelectorAll('.account-page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.dash-nav button').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab-' + tab).classList.add('active');
-        document.getElementById('btn-' + tab).classList.add('active');
-    }
-    function zoomImg(src) {
-        document.getElementById('lightbox-img').src = src;
-        document.getElementById('lightbox').style.display = 'flex';
-    }
-    function showTopicEditor() {
-        document.getElementById('forumList').style.display = 'none';
-        document.getElementById('topicEditor').style.display = 'block';
-    }
-    function hideTopicEditor() {
-        document.getElementById('forumList').style.display = 'block';
-        document.getElementById('topicEditor').style.display = 'none';
-    }
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
-    // Cette fonction ferme le bloc précédent proprement
-    renderMarket();
-}
-// (c) 2026 Spirit Infinity - Tous droits réservés
+        // (c) 2026 Spirit Infinity - Tous droits réservés
 
     renderMarket();
-} // Cette accolade répare tout ton code précédent
+} 
 
 // --- MOTEUR IA SPIRIT EYES ---
 async function startAIAnalysis() {
@@ -1163,6 +1109,11 @@ async function startAIAnalysis() {
     const img = document.getElementById('preview-img');
     const msg = document.getElementById('finishMsg');
     const btn = document.getElementById('publish-btn');
+
+    if (!img.src || img.src.includes('placeholder')) {
+        alert("Prenez une photo d'abord !");
+        return;
+    }
 
     status.innerHTML = "🔍 <span style='color:orange;'>ANALYSE EN COURS...</span>";
 
@@ -1175,7 +1126,6 @@ async function startAIAnalysis() {
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'block';
 
-        // FILTRE ANTI-FRAUDE SPIRIT INFINITY
         const forbidden = ['vape', 'cigarette', 'lighter', 'phone', 'gadget'];
         const isFraud = forbidden.some(t => top.includes(t));
 
@@ -1188,16 +1138,20 @@ async function startAIAnalysis() {
             btn.disabled = false;
             btn.style.opacity = "1";
         }
-    } catch (e) { status.innerHTML = "ERREUR IA"; }
+    } catch (e) { 
+        console.error(e);
+        status.innerHTML = "<span style='color:red;'>ERREUR IA</span>"; 
+    }
 }
 
-renderMarket(); // On relance le marché pour être sûr
+// Lancement final au chargement
+renderMarket();
+
 </script>
 </body>
 </html>
-
-
  
+
 
 
 
