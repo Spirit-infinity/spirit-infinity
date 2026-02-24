@@ -752,45 +752,37 @@ function goToScan() {
 } 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function startAIAnalysis() {
-    const imgElement = document.getElementById('preview-img');
     const resultText = document.getElementById('ai-status');
-    const publishBtn = document.getElementById('publish-btn');
+    const scoreDisplay = document.querySelector('.score-authentification'); // Vérifie cette classe dans ton HTML
+    const imgElement = document.getElementById('preview-img');
 
-    if (!imgElement.src || imgElement.src.includes('placeholder')) {
-        alert("❌ Erreur : Aucune image à analyser.");
-        return;
-    }
-
-    resultText.innerHTML = "🔍 <span style='color: #ff9d00;'>SPIRIT EYES : Analyse réelle des pixels...</span>";
+    resultText.innerHTML = "🔍 <span style='color:orange;'>ANALYSE RÉELLE EN COURS...</span>";
 
     try {
-        // Chargement du modèle que tu as mis dans le HTML
         const model = await mobilenet.load();
         const predictions = await model.classify(imgElement);
-
-        console.log("Résultats IA :", predictions);
-
+        
         const topResult = predictions[0].className.toLowerCase();
-        const score = Math.round(predictions[0].probability * 100);
+        const realScore = Math.round(predictions[0].probability * 100);
 
-        // FILTRE ANTI-FRAUDE (On bloque les cigarettes et gadgets)
-        const forbidden = ['cigarette', 'vape', 'lighter', 'phone', 'gadget', 'electronic'];
+        // ANALYSE ANTI-TRICHE
+        const forbidden = ['cigarette', 'vape', 'lighter', 'gadget', 'electronic'];
         const isFraud = forbidden.some(term => topResult.includes(term));
 
         if (isFraud) {
-            resultText.innerHTML = `<span style="color: #ff4444;">❌ FRAUDE DÉTECTÉE : ${topResult.toUpperCase()}</span>`;
-            publishBtn.disabled = true;
-            publishBtn.style.opacity = "0.3";
+            // Mise à jour de l'écran avec la vérité
+            document.querySelector('h3').innerText = "OBJET NON CONFORME";
+            document.querySelector('h3').style.color = "red";
+            resultText.innerHTML = `<span style="color:red;">❌ FRAUDE : ${topResult.toUpperCase()}</span>`;
+            document.getElementById('publish-btn').disabled = true;
         } else {
-            resultText.innerHTML = `<span style="color: #00ff88;">✅ CERTIFIÉ : ${topResult.toUpperCase()} (${score}%)</span>`;
-            publishBtn.disabled = false;
-            publishBtn.style.opacity = "1";
-            window.currentAIScore = score;
+            // Mise à jour de l'écran avec le vrai score
+            resultText.innerHTML = `<span style="color:#00ff88;">✅ IDENTIFIÉ : ${topResult.toUpperCase()}</span>`;
+            // On injecte le VRAI score dans ton encadré vert
+            document.getElementById('stepFinish').querySelector('p').innerHTML = `SCORE D'AUTHENTICITÉ : ${realScore}%`;
         }
-
     } catch (err) {
-        console.error("Erreur Vision :", err);
-        resultText.innerText = "❌ Erreur de chargement du moteur IA.";
+        console.error("Erreur :", err);
     }
 }
 
@@ -1107,6 +1099,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
