@@ -132,8 +132,6 @@
         .msg-user { color: var(--neon-orange); font-weight: bold; }
         .msg-text { color: white; margin-left: 5px; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 </head>
 <body>
 <header>
@@ -750,39 +748,28 @@ function goToScan() {
     // (c) 2026 Spirit Infinity - Tous droits réservés
     }, 3000);
 } 
+
 // (c) 2026 Spirit Infinity - Tous droits réservés
-async function startAIAnalysis() {
-    const resultText = document.getElementById('ai-status');
-    const scoreDisplay = document.querySelector('.score-authentification'); // Vérifie cette classe dans ton HTML
-    const imgElement = document.getElementById('preview-img');
+async function saveSpiritAudit(listingUUID, modelName, score) {
+    console.log("[SPIRIT] Envoi au Ledger avec UUID valide...");
+    
+    // On génère un UUID aléatoire pour satisfaire Supabase
+    const cleanUUID = crypto.randomUUID(); 
 
-    resultText.innerHTML = "🔍 <span style='color:orange;'>ANALYSE RÉELLE EN COURS...</span>";
+    const { data, error } = await _spirit
+        .from('spirit_authenticity_reports')
+        .insert([
+            { 
+                listing_id: cleanUUID, 
+                model_name_detected: String(modelName), 
+                confidence_score: parseInt(score) 
+            }
+        ]);
 
-    try {
-        const model = await mobilenet.load();
-        const predictions = await model.classify(imgElement);
-        
-        const topResult = predictions[0].className.toLowerCase();
-        const realScore = Math.round(predictions[0].probability * 100);
-
-        // ANALYSE ANTI-TRICHE
-        const forbidden = ['cigarette', 'vape', 'lighter', 'gadget', 'electronic'];
-        const isFraud = forbidden.some(term => topResult.includes(term));
-
-        if (isFraud) {
-            // Mise à jour de l'écran avec la vérité
-            document.querySelector('h3').innerText = "OBJET NON CONFORME";
-            document.querySelector('h3').style.color = "red";
-            resultText.innerHTML = `<span style="color:red;">❌ FRAUDE : ${topResult.toUpperCase()}</span>`;
-            document.getElementById('publish-btn').disabled = true;
-        } else {
-            // Mise à jour de l'écran avec le vrai score
-            resultText.innerHTML = `<span style="color:#00ff88;">✅ IDENTIFIÉ : ${topResult.toUpperCase()}</span>`;
-            // On injecte le VRAI score dans ton encadré vert
-            document.getElementById('stepFinish').querySelector('p').innerHTML = `SCORE D'AUTHENTICITÉ : ${realScore}%`;
-        }
-    } catch (err) {
-        console.error("Erreur :", err);
+    if (error) {
+        console.error("❌ Erreur SQL détaillée :", error.message);
+    } else {
+        console.log("✅ SUCCÈS : Donnée enregistrée dans le Ledger !");
     }
 }
 
@@ -1099,8 +1086,6 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
-
-
 
 
 
