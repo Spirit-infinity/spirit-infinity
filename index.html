@@ -735,23 +735,56 @@ function goToScan() {
     setTimeout(() => { statusEl.innerText = "Recherche de références mondiales (142 sources)..."; }, 800);
     setTimeout(() => { statusEl.innerText = "Comparaison des textures et sculpt (Spirit Eyes)..."; }, 1800);
 
-    setTimeout(() => {
-       // (c) 2026 Spirit Infinity - Tous droits réservés
-// ON UTILISE LA VRAIE IA AU LIEU DU HASARD
-const model = await mobilenet.load();
-const predictions = await model.classify(document.getElementById('preview-img'));
-const topResult = predictions[0].className.toLowerCase();
-const scoreFinal = Math.round(predictions[0].probability * 100);
+ // (c) 2026 Spirit Infinity - Tous droits réservés
+// Fonction de scan corrigée et synchronisée
+setTimeout(async () => {
+    try {
+        const img = document.getElementById('preview-img');
+        const resultText = document.getElementById('ai-status');
+        
+        // 1. Chargement de l'IA
+        const model = await mobilenet.load();
+        const predictions = await model.classify(img);
+        
+        // 2. Extraction des résultats réels
+        const topResult = predictions[0].className.toLowerCase();
+        const scoreFinal = Math.round(predictions[0].probability * 100);
+        
+        // 3. Changement d'écran (Passage au résultat)
+        document.getElementById('stepScan').style.display = 'none';
+        document.getElementById('stepFinish').style.display = 'block';
 
-// Vérification de fraude
-if (topResult.includes('cigarette') || topResult.includes('vape') || topResult.includes('lighter')) {
-    document.getElementById('finishMsg').innerHTML = `<h2 style="color:red;">OBJET NON CONFORME</h2><p>L'IA a détecté : ${topResult.toUpperCase()}</p>`;
-    document.getElementById('publish-btn').disabled = true;
-} else {
-    document.getElementById('finishMsg').innerHTML = `<h2 style="color:var(--spirit-green);">SCAN RÉUSSI</h2><p>IDENTIFIÉ : ${topResult.toUpperCase()}</p>`;
-    document.getElementById('stepFinish').querySelector('p').innerHTML = `SCORE D'AUTHENTICITÉ : ${scoreFinal}%`;
-    document.getElementById('publish-btn').disabled = false;
-}
+        // 4. Vérification Anti-Fraude (Cigarette / Vape / Gadgets)
+        const forbidden = ['cigarette', 'vape', 'lighter', 'phone', 'gadget', 'electronic'];
+        const isFraud = forbidden.some(term => topResult.includes(term));
+
+        if (isFraud) {
+            document.getElementById('finishMsg').innerHTML = `
+                <h2 style="color:#ff4444; margin:0;">OBJET NON CONFORME</h2>
+                <p style="color:white; font-size:1.2rem; font-weight:bold;">DÉTECTÉ : ${topResult.toUpperCase()}</p>
+                <small style="color:#777;">La Marketplace Spirit Infinity n'accepte que les figurines.</small>
+            `;
+            document.getElementById('publish-btn').disabled = true;
+            document.getElementById('publish-btn').style.opacity = "0.3";
+        } else {
+            document.getElementById('finishMsg').innerHTML = `
+                <h2 style="color:var(--spirit-green); margin:0;">SCAN RÉUSSI</h2>
+                <p style="color:white; font-size:1.2rem; font-weight:bold;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
+                <small style="color:#777;">Rapport archivé dans le Spirit Ledger via Spirit Eyes.</small>
+            `;
+            document.getElementById('publish-btn').disabled = false;
+            document.getElementById('publish-btn').style.opacity = "1";
+        }
+
+        // Sauvegarde pour le Ledger SQL
+        document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
+        window.detectedModelName = topResult;
+
+    } catch (err) {
+        console.error("Erreur critique Spirit Eyes :", err);
+        alert("Le moteur d'IA a rencontré un problème. Vérifiez votre connexion.");
+    }
+}, 1000); 
         `;
         document.getElementById('s4').className = 'step active';
         // Sauvegarde temporaire du score pour l'envoi SQL
@@ -1108,6 +1141,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
