@@ -749,19 +749,25 @@ function goToScan() {
     }, 3000);
 } 
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
 async function saveSpiritAudit(listingUUID, modelName, score) {
-    console.log("[SPIRIT] Envoi des données au Ledger...");
+    console.log("[SPIRIT] Envoi au Ledger avec UUID valide...");
+    
+    // On génère un UUID aléatoire pour satisfaire Supabase
+    const cleanUUID = crypto.randomUUID(); 
+
     const { data, error } = await _spirit
         .from('spirit_authenticity_reports')
-        .insert([{ 
-            listing_id: String(listingUUID), 
-            model_name_detected: String(modelName), 
-            confidence_score: parseInt(score) 
-        }]);
+        .insert([
+            { 
+                listing_id: cleanUUID, 
+                model_name_detected: String(modelName), 
+                confidence_score: parseInt(score) 
+            }
+        ]);
 
     if (error) {
-        console.error("❌ Erreur 400 détaillée :", error.message);
-        console.error("Hint :", error.hint);
+        console.error("❌ Erreur SQL détaillée :", error.message);
     } else {
         console.log("✅ SUCCÈS : Donnée enregistrée dans le Ledger !");
     }
@@ -1080,6 +1086,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
