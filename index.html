@@ -746,11 +746,9 @@ function goToScan() {
         // Sauvegarde temporaire du score pour l'envoi SQL
       document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
    }, 3000);
-} // FIN DE GOTOSCAN
+} 
 
-// --- BLOC UNIQUE : SAUVEGARDE LEDGER ---
 async function saveSpiritAudit(listingUUID, modelName, score) {
-    console.log("[SPIRIT] Envoi au Ledger SQL...");
     const { data, error } = await _spirit
         .from('spirit_authenticity_reports')
         .insert([{ 
@@ -760,49 +758,31 @@ async function saveSpiritAudit(listingUUID, modelName, score) {
             web_reference_count: 142,
             ai_verdict: 'Verified'
         }]);
-    
-    if (error) console.error("❌ Erreur Ledger:", error);
-    else console.log("✅ Audit certifié dans le Ledger.");
+    if (error) console.error("❌ Erreur SQL:", error);
 }
 
-// --- BLOC UNIQUE : PUBLICATION FINALE ---
 function publishFinal() {
     const title = document.getElementById('inputTitle').value;
     const price = parseInt(document.getElementById('inputPrice').value);
     const desc = document.getElementById('inputDesc').value;
     const cat = document.getElementById('saleCat').value;
     const ship = document.getElementById('saleShip').value;
-
     const scoreIA = document.getElementById('stepFinish').dataset.lastScore || 98;
     const listingUUID = "SPIRIT-" + Date.now(); 
 
     const newItem = {
-        id: Date.now(),
-        uuid: listingUUID,
-        ia_score: scoreIA,
-        title: title,
-        price: price,
-        type: (currentMethod === 'hot_native' ? 'native' : 'legacy'),
-        country: 'France',
-        cond: 'Certifié Spirit Eyes',
-        brand: 'Hot Toys',
-        cat: cat,
-        shipSize: ship,
-        img: previewPhotos[0],
-        photos: previewPhotos.filter(p => p !== null),
-        desc: desc,
-        status: 'available',
-        chat: [],
-        owner: currentUser
+        id: Date.now(), uuid: listingUUID, ia_score: scoreIA,
+        title: title, price: price, cat: cat, shipSize: ship,
+        img: previewPhotos[0], photos: previewPhotos.filter(p => p !== null),
+        desc: desc, status: 'available', chat: [], owner: currentUser
     };
-
-    marketData.unshift(newItem);
-    saveSpiritAudit(listingUUID, title, scoreIA); // Appel du Ledger
     
+    marketData.unshift(newItem);
+    saveSpiritAudit(listingUUID, title, scoreIA);
     renderMarket();
     updateUserAnnonces();
     closeModals();
-    alert("Félicitations ! Annonce publiée et certifiée sur le Ledger Spirit.");
+    alert("Annonce certifiée sur le Ledger !");
 }
     // 3. AJOUT : On appelle la fonction SQL que tu viens de créer
     saveSpiritAudit(listingUUID, title, scoreIA);
@@ -1093,6 +1073,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
