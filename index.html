@@ -743,24 +743,22 @@ function goToScan() {
         `;
         document.getElementById('s4').className = 'step active';
         // Sauvegarde temporaire du score pour l'envoi SQL
-        document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
+      document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
     }, 3000);
-}
-    
+} // <--- UNE SEULE ACCOLADE ICI POUR FERMER GOTOSCAN
+
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function saveSpiritAudit(listingUUID, modelName, score) {
     console.log("[SPIRIT] Enregistrement de l'audit IA...");
     const { data, error } = await _spirit
         .from('spirit_authenticity_reports')
-        .insert([
-            { 
-                listing_id: listingUUID, 
-                model_name_detected: modelName, 
-                confidence_score: score,
-                web_reference_count: 142,
-                ai_verdict: 'Verified'
-            }
-        ]);
+        .insert([{ 
+            listing_id: listingUUID, 
+            model_name_detected: modelName, 
+            confidence_score: score,
+            web_reference_count: 142,
+            ai_verdict: 'Verified'
+        }]);
     if (error) {
         console.error("❌ Erreur Ledger SQL:", error);
     } else {
@@ -768,7 +766,7 @@ async function saveSpiritAudit(listingUUID, modelName, score) {
     }
 }
 
-   // (c) 2026 Spirit Infinity - Tous droits réservés
+function publishFinal() { 
 function publishFinal() {
     const title = document.getElementById('inputTitle').value;
     const price = parseInt(document.getElementById('inputPrice').value);
@@ -1112,6 +1110,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
