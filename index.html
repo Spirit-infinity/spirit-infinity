@@ -305,7 +305,8 @@
     <div class="modal-content" style="max-width:600px;">
         <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">PHOTOS & INFOS</span><span class="step" id="s3">ANALYSE IA</span><span class="step" id="s4">PUBLICATION</span></div>
         <div id="stepMethod">
-            <h2 id="sell-title" style="text-align:center;" data-key="btn_sell">VENDRE & CERTIFIER</h2>
+            <h2 id="sell-title" style="text-align:center;" data-key="<button onclick="openSellProcess()">VENDRE</button>
+</h2>
             <div style="display:grid; grid-template-columns: 1fr; gap:10px; margin-top:20px;">
                 <button class="btn-action" onclick="chooseMethod('hot_native')">1. Hot Toys (Equipée Spirit Infinity + Scan IA)</button>
                 <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan IA uniquement)</button>
@@ -1253,6 +1254,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
