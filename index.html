@@ -766,7 +766,6 @@ async function saveSpiritAudit(listingUUID, modelName, score) {
     } else {
         console.log("✅ Audit sauvegardé dans le Ledger.");
     }
-}
 
 // --- FONCTION PUBLISH ---
 function publishFinal() {
@@ -779,36 +778,29 @@ function publishFinal() {
     const scoreIA = document.getElementById('stepFinish').dataset.lastScore || 95;
     const listingUUID = "SPIRIT-" + Date.now(); 
 
-    if(editingId) {
-        // Mode Edition (ton code existant)
-    } else {
-        const newItem = {
-            id: Date.now(),
-            uuid: listingUUID,
-            ia_score: scoreIA,
-            title: title,
-            price: price,
-            type: (currentMethod === 'hot_native' ? 'native' : 'legacy'),
-            country: 'France',
-            cond: 'Certifié Spirit Eyes',
-            brand: 'Hot Toys',
-            cat: cat,
-            shipSize: ship,
-            img: previewPhotos[0],
-            photos: previewPhotos.filter(p => p !== null),
-            desc: desc,
-            status: 'available',
-            chat: [],
-            owner: currentUser
-        };
-        marketData.unshift(newItem);
-    }
-
-    saveSpiritAudit(listingUUID, title, scoreIA);
+    const newItem = {
+        id: Date.now(),
+        uuid: listingUUID,
+        ia_score: scoreIA,
+        title: title,
+        price: price,
+        cat: cat,
+        shipSize: ship,
+        img: previewPhotos[0],
+        photos: previewPhotos.filter(p => p !== null),
+        desc: desc,
+        status: 'available',
+        chat: [],
+        owner: currentUser
+    };
+    
+    marketData.unshift(newItem);
+    saveSpiritAudit(listingUUID, title, scoreIA); // ENVOI SQL
+    
     renderMarket();
     updateUserAnnonces();
     closeModals();
-    alert("Félicitations ! Annonce publiée avec succès.");
+    alert("Annonce certifiée sur le Ledger Spirit !");
 }
 
 function publishFinal() {
@@ -1154,6 +1146,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
