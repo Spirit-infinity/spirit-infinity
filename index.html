@@ -736,13 +736,22 @@ function goToScan() {
     setTimeout(() => { statusEl.innerText = "Comparaison des textures et sculpt (Spirit Eyes)..."; }, 1800);
 
     setTimeout(() => {
-        const scoreFinal = 92 + Math.floor(Math.random() * 8); // Score entre 92 et 100%
-        document.getElementById('stepScan').style.display = 'none';
-        document.getElementById('stepFinish').style.display = 'block';
-        document.getElementById('finishMsg').innerHTML = `
-            <h2 style="color:var(--spirit-green); margin:0;">SCAN RÉUSSI</h2>
-            <p style="color:white; font-size:1.2rem; font-weight:bold;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
-            <small style="color:#777">Rapport archivé dans le Spirit Ledger via IA Scan.</small>
+       // (c) 2026 Spirit Infinity - Tous droits réservés
+// ON UTILISE LA VRAIE IA AU LIEU DU HASARD
+const model = await mobilenet.load();
+const predictions = await model.classify(document.getElementById('preview-img'));
+const topResult = predictions[0].className.toLowerCase();
+const scoreFinal = Math.round(predictions[0].probability * 100);
+
+// Vérification de fraude
+if (topResult.includes('cigarette') || topResult.includes('vape') || topResult.includes('lighter')) {
+    document.getElementById('finishMsg').innerHTML = `<h2 style="color:red;">OBJET NON CONFORME</h2><p>L'IA a détecté : ${topResult.toUpperCase()}</p>`;
+    document.getElementById('publish-btn').disabled = true;
+} else {
+    document.getElementById('finishMsg').innerHTML = `<h2 style="color:var(--spirit-green);">SCAN RÉUSSI</h2><p>IDENTIFIÉ : ${topResult.toUpperCase()}</p>`;
+    document.getElementById('stepFinish').querySelector('p').innerHTML = `SCORE D'AUTHENTICITÉ : ${scoreFinal}%`;
+    document.getElementById('publish-btn').disabled = false;
+}
         `;
         document.getElementById('s4').className = 'step active';
         // Sauvegarde temporaire du score pour l'envoi SQL
@@ -1099,6 +1108,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
