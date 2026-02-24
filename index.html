@@ -346,6 +346,7 @@
                 <option value="Grand">Grand (Diecast / Statue / XL)</option>
             </select>
            <textarea id="inputDesc" placeholder="Description de votre objet..."></textarea>
+
             <button class="btn-action" style="width:100%;" onclick="goToScan()">VALIDER L'ANNONCE</button>
         </div>
         <div id="stepScan" style="display:none;">
@@ -744,15 +745,10 @@ function goToScan() {
         document.getElementById('s4').className = 'step active';
         // Sauvegarde temporaire du score pour l'envoi SQL
       document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
-    }, 3000);
-// (c) 2026 Spirit Infinity - Tous droits réservés
+         }, 3000);
+} // Fin de goToScan
 
-        // --- FIN DE GOTOSCAN ---
-        document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
-    }, 3000);
-} 
-
-// --- FONCTION DE SAUVEGARDE LEDGER ---
+// --- BLOC UNIQUE DE SAUVEGARDE LEDGER ---
 async function saveSpiritAudit(listingUUID, modelName, score) {
     console.log("[SPIRIT] Envoi au Ledger SQL...");
     const { data, error } = await _spirit
@@ -764,8 +760,12 @@ async function saveSpiritAudit(listingUUID, modelName, score) {
             web_reference_count: 142,
             ai_verdict: 'Verified'
         }]);
-    if (error) console.error("❌ Erreur SQL:", error);
-    else console.log("✅ Audit sauvegardé.");
+    
+    if (error) {
+        console.error("❌ Erreur SQL:", error);
+    } else {
+        console.log("✅ Audit sauvegardé dans le Ledger.");
+    }
 }
 
 // --- FONCTION PUBLISH ---
@@ -1154,6 +1154,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
