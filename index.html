@@ -1082,7 +1082,7 @@ async function confirmPayment(method) {
     }
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// --- FONCTIONS DE NAVIGATION (MODALS) ---
+// --- 1. FONCTIONS DE NAVIGATION (Ce qui répare tes boutons) ---
 function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
 function openAccount() { document.getElementById('accountModal').style.display = 'flex'; }
 function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
@@ -1090,38 +1090,19 @@ function openSecurity() { document.getElementById('securityModal').style.display
 function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
 function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
 
-// --- LOGIQUE FILTRES ---
-function applyFilters() {
-    const pRange = document.getElementById('fPrice').value;
-    const country = document.getElementById('fCountry').value;
-    const brand = document.getElementById('fBrand').value;
-    const cat = document.getElementById('fCat').value;
-    const cond = document.getElementById('fCond').value;
-    
-    const filtered = marketData.filter(item => {
-        let matchPrice = true;
-        if(pRange !== 'all') {
-            const [min, max] = pRange.split('-').map(v => parseInt(v));
-            if(pRange === '400+') matchPrice = item.price >= 400;
-            else matchPrice = (item.price >= min && item.price <= max);
-        }
-        return matchPrice && 
-               (country === 'all' || item.country === country) &&
-               (brand === 'all' || item.brand === brand) && 
-               (cat === 'all' || item.cat === cat) &&
-               (cond === 'all' || item.cond === cond);
-    });
-    renderMarket(filtered);
+// --- 2. LOGIQUE DE FERMETURE DES MODALS ---
+function closeModals() {
+    document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
 }
 
-// --- VERSION UNIQUE ET STABLE DE SPIRIT EYES ---
+// --- 3. MOTEUR IA SPIRIT EYES (Une seule fois !) ---
 async function startAIAnalysis() {
     const statusText = document.getElementById('scanStatus');
-    const img = document.getElementById('preview-img'); // Vérifie que tu as bien une <img id="preview-img">
+    const img = document.getElementById('preview-img'); 
     const msg = document.getElementById('finishMsg');
     const btn = document.getElementById('publish-btn');
 
-    statusText.innerHTML = "🔍 <span style='color:orange;'>ANALYSE SPIRIT EYES...</span>";
+    statusText.innerHTML = "🔍 <span style='color:orange;'>ANALYSE SPIRIT EYES EN COURS...</span>";
 
     try {
         const model = await mobilenet.load();
@@ -1133,26 +1114,27 @@ async function startAIAnalysis() {
         document.getElementById('stepFinish').style.display = 'block';
 
         const forbidden = ['vape', 'cigarette', 'lighter', 'phone'];
-        const isFraud = forbidden.some(term => top.includes(term));
-
-        if (isFraud) {
-            msg.innerHTML = `<h2 style="color:#ff4444;">NON CONFORME</h2><p>Détecté : ${top.toUpperCase()}</p>`;
+        if (forbidden.some(term => top.includes(term))) {
+            msg.innerHTML = `<h2 style="color:#ff4444;">NON CONFORME</h2><p>IA a détecté un objet interdit.</p>`;
             btn.disabled = true;
         } else {
             msg.innerHTML = `<h2 style="color:#00ff88;">SCAN RÉUSSI</h2><p>AUTHENTICITÉ : ${score}%</p>`;
             btn.disabled = false;
+            document.getElementById('stepFinish').dataset.lastScore = score;
         }
     } catch (err) {
         console.error("Erreur IA:", err);
-        statusText.innerHTML = "ERREUR SYSTÈME";
+        statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
 }
 
-// --- INITIALISATION ---
+// --- 4. LANCEMENT DU MARCHÉ ---
 renderMarket();
+
 </script>
 </body>
 </html>
+
 
 
 
