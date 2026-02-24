@@ -1098,24 +1098,26 @@ async function confirmPayment(method) {
                    (brand === 'all' || item.brand === brand) && (cat === 'all' || item.cat === cat) && 
                    (cond === 'all' || item.cond === cond);
         });
-        // (c) 2026 Spirit Infinity - Tous droits réservés
+      // (c) 2026 Spirit Infinity - Tous droits réservés
 
     renderMarket();
-} 
+} // FERMETURE DU BLOC PRÉCÉDENT
 
-// --- MOTEUR IA SPIRIT EYES ---
+// ==========================================
+// MOTEUR IA SPIRIT EYES - VERSION FINALE
+// ==========================================
 async function startAIAnalysis() {
-    const status = document.getElementById('ai-status');
+    const statusText = document.getElementById('ai-status');
     const img = document.getElementById('preview-img');
     const msg = document.getElementById('finishMsg');
     const btn = document.getElementById('publish-btn');
 
     if (!img.src || img.src.includes('placeholder')) {
-        alert("Prenez une photo d'abord !");
+        alert("Prenez une photo avant !");
         return;
     }
 
-    status.innerHTML = "🔍 <span style='color:orange;'>ANALYSE EN COURS...</span>";
+    statusText.innerHTML = "🔍 <span style='color:orange;'>SPIRIT EYES : Analyse...</span>";
 
     try {
         const model = await mobilenet.load();
@@ -1126,31 +1128,34 @@ async function startAIAnalysis() {
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'block';
 
+        // FILTRE ANTI-FRAUDE (Vape, Cigarette, Phone)
         const forbidden = ['vape', 'cigarette', 'lighter', 'phone', 'gadget'];
-        const isFraud = forbidden.some(t => top.includes(t));
+        const isFraud = forbidden.some(term => top.includes(term));
 
         if (isFraud) {
-            msg.innerHTML = `<h2 style="color:#ff4444;">OBJET NON CONFORME</h2><p>Détecté : ${top.toUpperCase()}</p>`;
+            msg.innerHTML = `<h2 style="color:#ff4444;">OBJET NON CONFORME</h2><p>IA a détecté : <strong>${top.toUpperCase()}</strong></p>`;
             btn.disabled = true;
             btn.style.opacity = "0.3";
         } else {
-            msg.innerHTML = `<h2 style="color:#00ff88;">SCAN RÉUSSI</h2><p>AUTHENTICITÉ : ${score}%</p>`;
+            msg.innerHTML = `<h2 style="color:#00ff88;">SCAN RÉUSSI</h2><p>AUTHENTICITÉ : <strong>${score}%</strong></p>`;
             btn.disabled = false;
             btn.style.opacity = "1";
         }
-    } catch (e) { 
-        console.error(e);
-        status.innerHTML = "<span style='color:red;'>ERREUR IA</span>"; 
+    } catch (err) {
+        console.error("Erreur IA:", err);
+        statusText.innerHTML = "ERREUR CHARGEMENT";
     }
 }
 
-// Lancement final au chargement
+// LANCEMENT DU MARCHÉ
 renderMarket();
 
 </script>
 </body>
 </html>
- 
+
+
+
 
 
 
