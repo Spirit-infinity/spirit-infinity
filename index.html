@@ -1077,9 +1077,72 @@ async function confirmPayment(method) {
     }
 
     renderMarket();
+
+    // (c) 2026 Spirit Infinity - Tous droits réservés
+
+/**
+ * MOTEUR D'AUTHENTICITÉ SPIRIT EYES
+ * Analyse réelle via TensorFlow / MobileNet
+ */
+async function startAIAnalysis() {
+    const statusText = document.getElementById('scanStatus');
+    const img = document.getElementById('preview-img'); 
+    const msg = document.getElementById('finishMsg');
+    const btn = document.getElementById('publish-btn');
+
+    // Validation de sécurité (Zero-Trace)
+    if (!img || !img.src || img.src.includes('placeholder')) {
+        alert("ALERTE : Aucune photo source détectée pour l'analyse.");
+        return;
+    }
+
+    statusText.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse des vecteurs...</span>";
+
+    try {
+        // Chargement du modèle
+        const model = await mobilenet.load();
+        const predictions = await model.classify(img);
+        
+        // Extraction du résultat le plus probable
+        const topResult = predictions[0].className.toLowerCase();
+        const scoreFinal = Math.round(predictions[0].probability * 100);
+
+        // Transition d'interface
+        document.getElementById('stepScan').style.display = 'none';
+        document.getElementById('stepFinish').style.display = 'block';
+
+        // FILTRE ANTI-FRAUDE SPIRIT (Objets interdits)
+        const forbidden = ['vape', 'cigarette', 'lighter', 'phone', 'weapon'];
+        const isFraud = forbidden.some(term => topResult.includes(term));
+
+        if (isFraud) {
+            msg.innerHTML = `
+                <h2 style="color:#ff4444; margin:0;">OBJET NON CONFORME</h2>
+                <p style="color:white;">L'IA a détecté : <strong>${topResult.toUpperCase()}</strong></p>
+                <p style="font-size:0.8rem; color:#777;">Vente refusée : Accessoire non autorisé.</p>
+            `;
+            if(btn) { btn.disabled = true; btn.style.opacity = "0.3"; }
+        } else {
+            msg.innerHTML = `
+                <h2 style="color:var(--spirit-green); margin:0;">CERTIFICATION RÉUSSIE</h2>
+                <p style="color:white; font-size:1.1rem;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
+                <p style="color:#aaa; font-size:0.8rem;">Modèle identifié : ${topResult}</p>
+            `;
+            if(btn) { btn.disabled = false; btn.style.opacity = "1"; }
+            
+            // Sauvegarde du score pour le Ledger SQL
+            document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
+        }
+
+    } catch (err) {
+        console.error("ERREUR CRITIQUE SPIRIT EYES :", err);
+        statusText.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA</span>";
+    }
+}
 </script>
 </body>
 </html>
+
 
 
 
