@@ -745,10 +745,9 @@ function goToScan() {
         document.getElementById('s4').className = 'step active';
         // Sauvegarde temporaire du score pour l'envoi SQL
       document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
-         }, 3000);
+   }, 3000);
 } // Fin de goToScan
 
-// --- BLOC UNIQUE DE SAUVEGARDE LEDGER ---
 async function saveSpiritAudit(listingUUID, modelName, score) {
     console.log("[SPIRIT] Envoi au Ledger SQL...");
     const { data, error } = await _spirit
@@ -760,12 +759,9 @@ async function saveSpiritAudit(listingUUID, modelName, score) {
             web_reference_count: 142,
             ai_verdict: 'Verified'
         }]);
-    
-    if (error) {
-        console.error("❌ Erreur SQL:", error);
-    } else {
-        console.log("✅ Audit sauvegardé dans le Ledger.");
-    }
+    if (error) console.error("❌ Erreur SQL:", error);
+    else console.log("✅ Audit sauvegardé.");
+}
 
 // --- FONCTION PUBLISH ---
 function publishFinal() {
@@ -1146,6 +1142,7 @@ async function confirmPayment(method) {
 </script>
 </body>
 </html>
+
 
 
 
