@@ -826,14 +826,26 @@ async function saveSpiritAudit(listingUUID, modelName, score) {
     }
 }
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
 function publishFinal() {
     const title = document.getElementById('inputTitle').value;
     const price = parseInt(document.getElementById('inputPrice').value);
     const desc = document.getElementById('inputDesc').value;
     const cat = document.getElementById('saleCat').value;
     const ship = document.getElementById('saleShip').value;
-    const scoreIA = document.getElementById('stepFinish').dataset.lastScore || 98;
-    const listingUUID = "SPIRIT-" + Date.now(); 
+    
+    // --- LE VERROU DE SÉCURITÉ SPIRIT EYES ---
+    const scoreIA = document.getElementById('stepFinish').dataset.lastScore;
+    const publishBtn = document.getElementById('btn-publish-final');
+
+    // Si le score est absent ou si le bouton est caché, on bloque la publication manuelle
+    if (!scoreIA || (publishBtn && publishBtn.style.display === 'none')) {
+        alert("ALERTE SÉCURITÉ : Tentative de publication forcée détectée. Objet non certifié par Spirit Eyes.");
+        return; 
+    }
+    // -----------------------------------------
+
+    const listingUUID = "SPIRIT-" + Date.now();
 
     const newItem = {
         id: Date.now(),
@@ -850,13 +862,13 @@ function publishFinal() {
         chat: [],
         owner: currentUser
     };
-    
+   
     marketData.unshift(newItem);
     saveSpiritAudit(listingUUID, title, scoreIA);
     renderMarket();
     updateUserAnnonces();
     closeModals();
-    alert("Annonce certifiée sur le Ledger Spirit !");
+    alert("ANNONCE CERTIFIÉE : Produit ajouté au Spirit Ledger avec succès !");
 }
 
     function updateUserAnnonces() {
@@ -1267,6 +1279,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
