@@ -932,41 +932,29 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
-async function confirmPayment(method) {
-    const carrierSelect = document.getElementById('pCarrierSelect');
-    const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
+// (c) 2026 Spirit Infinity - Tous droits réservés
+function openSellProcess() {
+    console.log("Spirit Infinity : Initialisation du menu de vente");
     
-    // CONFIGURATION FINANCIÈRE SPIRIT INFINITY
-    // Total 6% de frais : 3% pour l'utilisateur (Toi) et 3% pour la firme (Partenaire)
-    const commissionTotale = selectedProduct.price * 0.06; 
-    const maPart = selectedProduct.price * 0.03;
-    const partFirme = selectedProduct.price * 0.03;
+    // 1. Reset du formulaire avant ouverture
+    resetSellForm(); 
 
-    alert("PAIEMENT SPIRIT VALIDÉ !\nFonds sécurisés (Escrow).\nCommission 6% répartie (3%/3%).");
-
-    // ENVOI À SUPABASE
-    const { data, error } = await _spirit
-        .from('transactions')
-        .insert([
-            { 
-                product_id: selectedProduct.id, 
-                buyer: currentUser, 
-                amount: selectedProduct.price,
-                total_commission: commissionTotale,
-                user_profit: maPart,
-                firm_profit: partFirme,
-                status: 'escrow_active'
-            }
-        ]);
-
-    if (error) console.error("Erreur Ledger:", error);
-
-    // ACTIVATION DU BORDEREAU DANS "MES VENTES"
-    addToMySales(selectedProduct, carrierName);
-    
-    selectedProduct.status = 'sold';
-    renderMarket();
-    closeModals();
+    // 2. Ouverture de la modal de certification
+    const modal = document.getElementById('certifModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        
+        // 3. On force l'affichage de la première étape (Choix méthode)
+        document.getElementById('stepMethod').style.display = 'block';
+        document.getElementById('stepInfo').style.display = 'none';
+        document.getElementById('stepScan').style.display = 'none';
+        document.getElementById('stepFinish').style.display = 'none';
+        
+        // 4. Update visuel des onglets (Steps)
+        document.querySelectorAll('.step').forEach((s, i) => {
+            s.className = (i === 0) ? 'step active' : 'step';
+        });
+    }
 }
 
 // --- FIN DU SYSTÈME ---
@@ -1307,6 +1295,7 @@ function previewSale(input, imgId) {
 </script>
 </body>
 </html>
+
 
 
 
