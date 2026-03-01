@@ -312,6 +312,8 @@
                 <button class="btn-action" onclick="chooseMethod('hot_native')">1. Hot Toys (Equipée Spirit Infinity + Scan IA)</button>
                 <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan IA uniquement)</button>
                 <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (Vente Directe)</button>
+                <button id="btn-publish-final" class="btn-action" style="margin-top:20px; width:100%; display:none;" onclick="publishFinal()">PUBLIER SUR LE MARCHÉ MONDIAL</button>
+
             </div>
         </div>
         <div id="stepInfo" style="display:none;">
@@ -722,21 +724,22 @@ async function goToScan() {
     const title = document.getElementById('inputTitle').value;
     const price = document.getElementById('inputPrice').value;
     
+    // Validation de sécurité (Champs obligatoires)
     if(!title || !price) {
-        alert("Titre et Prix requis");
+        alert("Titre et Prix requis pour l'audit Spirit.");
         return;
     }
 
-    // On récupère l'image de la Photo 1 (pBox1)
+    // Capture de la Photo 1 pour l'IA Spirit Eyes
     const pBox1 = document.getElementById('pBox1');
     const imgToScan = pBox1.querySelector('img');
 
     if(!imgToScan) {
-        alert("ERREUR : La Photo 1 est obligatoire pour l'analyse IA Spirit Eyes.");
+        alert("ERREUR : La Photo 1 est obligatoire pour l'analyse IA.");
         return;
     }
 
-    // Affichage du scanneur
+    // Interface de transition
     document.getElementById('stepInfo').style.display = 'none';
     document.getElementById('stepScan').style.display = 'block';
     document.getElementById('s3').className = 'step active';
@@ -745,44 +748,49 @@ async function goToScan() {
     statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse des vecteurs...</span>";
 
     try {
-        // Chargement du modèle MobileNet
+        // CHARGEMENT DU CERVEAU IA
         const model = await mobilenet.load();
         const predictions = await model.classify(imgToScan);
         
         const topResult = predictions[0].className.toLowerCase();
         const scoreFinal = Math.round(predictions[0].probability * 100);
 
-        // LISTE NOIRE : Si l'IA voit ça, elle bloque (Meubles, Vapes, Animaux, etc.)
-        const forbidden = ['vape', 'refrigerator', 'fridge', 'desk', 'table', 'chair', 'dog', 'cat', 'phone', 'shirt', 'clothing'];
+        // LISTE NOIRE (Vape, Meubles, Animaux, Électronique)
+        const forbidden = ['vape', 'refrigerator', 'fridge', 'desk', 'table', 'chair', 'dog', 'cat', 'phone', 'shirt', 'clothing', 'television', 'tv'];
         const isFraud = forbidden.some(term => topResult.includes(term));
 
-        // Validation visuelle
+        // Affichage du résultat final
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'block';
         document.getElementById('s4').className = 'step active';
 
         const msg = document.getElementById('finishMsg');
         
-        if (isFraud) {
+        // RECUPERATION DU BOUTON PUBLIER (On va le forcer à rester caché si score < 50)
+        const publishBtn = document.querySelector("#stepFinish button");
+
+        if (isFraud || scoreFinal < 50) {
+            // ÉCHEC : VRAI vs FAUX (C'est un meuble ou une photo nulle)
             msg.innerHTML = `
                 <h2 style="color:var(--danger); margin:0;">OBJET NON CONFORME</h2>
-                <p style="color:white;">L'IA a détecté : <strong>${topResult.toUpperCase()}</strong></p>
-                <p style="font-size:0.8rem; color:#777;">Spirit Infinity refuse la mise en vente de meubles, vapes ou animaux.</p>
+                <p style="color:white;">Détecté : <strong>${topResult.toUpperCase()}</strong></p>
+                <p style="color:var(--danger); font-weight:bold;">SCORE : ${scoreFinal}% (Seuil critique : 50%)</p>
+                <p style="font-size:0.8rem; color:#777;">Spirit Infinity n'autorise pas la vente de cet objet.</p>
             `;
-            // On cache le bouton de publication si c'est une fraude
-            document.querySelector("button[onclick='publishFinal()']").style.display = 'none';
+            if(publishBtn) publishBtn.style.display = 'none'; // PROTECTION : On cache le bouton
         } else {
+            // SUCCÈS : C'est une figurine valide
             msg.innerHTML = `
-                <h2 style="color:var(--spirit-green); margin:0;">SCAN RÉUSSI</h2>
+                <h2 style="color:var(--spirit-green); margin:0;">CERTIFICATION RÉUSSIE</h2>
                 <p style="color:white; font-size:1.1rem;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
                 <p style="color:#aaa; font-size:0.8rem;">Modèle identifié : ${topResult}</p>
             `;
-            document.querySelector("button[onclick='publishFinal()']").style.display = 'block';
+            if(publishBtn) publishBtn.style.display = 'block'; // AUTORISATION : Le bouton apparaît
             document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
         }
     } catch (err) {
-        console.error("Erreur IA:", err);
-        statusEl.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA - Vérifiez votre connexion</span>";
+        console.error("Erreur moteur IA:", err);
+        statusEl.innerHTML = "<span style='color:red;'>ERREUR SERVEUR IA</span>";
     }
 }
 
@@ -1245,6 +1253,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
