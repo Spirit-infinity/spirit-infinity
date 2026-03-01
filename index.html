@@ -1250,25 +1250,31 @@ async function startExpertScan() {
         statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
 }
-    // (c) 2026 Spirit Infinity - Tous droits réservés
-
-// 1. Ouvre la modal de vente
+  // (c) 2026 Spirit Infinity - Tous droits réservés
 function openSellProcess() {
     console.log("Spirit Infinity : Initialisation du menu de vente");
     
-    // Ouvre le conteneur principal (Modal)
-    const modal = document.getElementById('sellModal');
-    if (modal) modal.style.display = 'flex';
+    // 1. Reset du formulaire avant ouverture
+    resetSellForm(); 
 
-    // Affiche l'étape 1 (Choix de la méthode)
-    const step1 = document.getElementById('stepMethod');
-    if (step1) step1.style.display = 'block';
-
-    // Cache l'étape 2 (Photos/Infos) au démarrage
-    const step2 = document.getElementById('stepInfo');
-    if (step2) step2.style.display = 'none';
+    // 2. Ouverture de la modal de certification
+    const modal = document.getElementById('certifModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        
+        // 3. On force l'affichage de la première étape (Choix méthode)
+        document.getElementById('stepMethod').style.display = 'block';
+        document.getElementById('stepInfo').style.display = 'none';
+        document.getElementById('stepScan').style.display = 'none';
+        document.getElementById('stepFinish').style.display = 'none';
+        
+        // 4. Update visuel des onglets (Steps)
+        document.querySelectorAll('.step').forEach((s, i) => {
+            s.className = (i === 0) ? 'step active' : 'step';
+        });
+    }
 }
-
+ 
 // 2. Gère le passage à l'étape des photos
 function chooseMethod(method) {
     window.currentMethod = method; // Mémorise le choix (Legacy ou Native)
@@ -1301,6 +1307,7 @@ function previewSale(input, imgId) {
 </script>
 </body>
 </html>
+
 
 
 
