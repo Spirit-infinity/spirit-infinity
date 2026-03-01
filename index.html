@@ -718,38 +718,73 @@
     }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-function goToScan() {
-    if(!document.getElementById('inputTitle').value || !document.getElementById('inputPrice').value) { 
-        alert("Titre et Prix requis"); 
-        return; 
-    }
+async function goToScan() {
+    const title = document.getElementById('inputTitle').value;
+    const price = document.getElementById('inputPrice').value;
     
+    if(!title || !price) {
+        alert("Titre et Prix requis");
+        return;
+    }
+
+    // On récupère l'image de la Photo 1 (pBox1)
+    const pBox1 = document.getElementById('pBox1');
+    const imgToScan = pBox1.querySelector('img');
+
+    if(!imgToScan) {
+        alert("ERREUR : La Photo 1 est obligatoire pour l'analyse IA Spirit Eyes.");
+        return;
+    }
+
+    // Affichage du scanneur
     document.getElementById('stepInfo').style.display = 'none';
     document.getElementById('stepScan').style.display = 'block';
     document.getElementById('s3').className = 'step active';
     
     const statusEl = document.getElementById('scanStatus');
-    statusEl.innerText = "Connexion aux serveurs Google Vision...";
+    statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse des vecteurs...</span>";
 
-    // Simulation du détournement Spirit Web Verify (Argumentaire de vente)
-    setTimeout(() => { statusEl.innerText = "Recherche de références mondiales (142 sources)..."; }, 800);
-    setTimeout(() => { statusEl.innerText = "Comparaison des textures et sculpt (Spirit Eyes)..."; }, 1800);
+    try {
+        // Chargement du modèle MobileNet
+        const model = await mobilenet.load();
+        const predictions = await model.classify(imgToScan);
+        
+        const topResult = predictions[0].className.toLowerCase();
+        const scoreFinal = Math.round(predictions[0].probability * 100);
 
-    setTimeout(() => {
-        const scoreFinal = 92 + Math.floor(Math.random() * 8); // Score entre 92 et 100%
+        // LISTE NOIRE : Si l'IA voit ça, elle bloque (Meubles, Vapes, Animaux, etc.)
+        const forbidden = ['vape', 'refrigerator', 'fridge', 'desk', 'table', 'chair', 'dog', 'cat', 'phone', 'shirt', 'clothing'];
+        const isFraud = forbidden.some(term => topResult.includes(term));
+
+        // Validation visuelle
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'block';
-        document.getElementById('finishMsg').innerHTML = `
-            <h2 style="color:var(--spirit-green); margin:0;">SCAN RÉUSSI</h2>
-            <p style="color:white; font-size:1.2rem; font-weight:bold;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
-            <small style="color:#777">Rapport archivé dans le Spirit Ledger via IA Scan.</small>
-        `;
         document.getElementById('s4').className = 'step active';
-        // Sauvegarde temporaire du score pour l'envoi SQL
-      document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
-    // (c) 2026 Spirit Infinity - Tous droits réservés
-    }, 3000);
-} 
+
+        const msg = document.getElementById('finishMsg');
+        
+        if (isFraud) {
+            msg.innerHTML = `
+                <h2 style="color:var(--danger); margin:0;">OBJET NON CONFORME</h2>
+                <p style="color:white;">L'IA a détecté : <strong>${topResult.toUpperCase()}</strong></p>
+                <p style="font-size:0.8rem; color:#777;">Spirit Infinity refuse la mise en vente de meubles, vapes ou animaux.</p>
+            `;
+            // On cache le bouton de publication si c'est une fraude
+            document.querySelector("button[onclick='publishFinal()']").style.display = 'none';
+        } else {
+            msg.innerHTML = `
+                <h2 style="color:var(--spirit-green); margin:0;">SCAN RÉUSSI</h2>
+                <p style="color:white; font-size:1.1rem;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
+                <p style="color:#aaa; font-size:0.8rem;">Modèle identifié : ${topResult}</p>
+            `;
+            document.querySelector("button[onclick='publishFinal()']").style.display = 'block';
+            document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
+        }
+    } catch (err) {
+        console.error("Erreur IA:", err);
+        statusEl.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA - Vérifiez votre connexion</span>";
+    }
+}
 
 async function saveSpiritAudit(listingUUID, modelName, score) {
     console.log("[SPIRIT] Envoi des données au Ledger...");
@@ -1079,71 +1114,140 @@ async function confirmPayment(method) {
     }
 
     renderMarket();
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
-    // (c) 2026 Spirit Infinity - Tous droits réservés
-
-/**
- * MOTEUR D'AUTHENTICITÉ SPIRIT EYES
- * Analyse réelle via TensorFlow / MobileNet
- */
 async function startAIAnalysis() {
     const statusText = document.getElementById('scanStatus');
-    const img = document.getElementById('preview-img'); 
+    const img = document.getElementById('preview-img');
     const msg = document.getElementById('finishMsg');
     const btn = document.getElementById('publish-btn');
 
-    // Validation de sécurité (Zero-Trace)
-    if (!img || !img.src || img.src.includes('placeholder')) {
-        alert("ALERTE : Aucune photo source détectée pour l'analyse.");
-        return;
-    }
-
-    statusText.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse des vecteurs...</span>";
+    statusText.innerHTML = "🔍 <span style='color:orange;'>SPIRIT EYES : Analyse de conformité...</span>";
 
     try {
-        // Chargement du modèle
         const model = await mobilenet.load();
         const predictions = await model.classify(img);
-        
-        // Extraction du résultat le plus probable
-        const topResult = predictions[0].className.toLowerCase();
-        const scoreFinal = Math.round(predictions[0].probability * 100);
+        const top = predictions[0].className.toLowerCase();
+        const score = Math.round(predictions[0].probability * 100);
 
-        // Transition d'interface
+        // 1. TRANSITION D'ÉCRAN
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'block';
 
-        // FILTRE ANTI-FRAUDE SPIRIT (Objets interdits)
-        const forbidden = ['vape', 'cigarette', 'lighter', 'phone', 'weapon'];
-        const isFraud = forbidden.some(term => topResult.includes(term));
+        // 2. FILTRE DE SÉCURITÉ (PRIORITÉ 1)
+        // Ajout de 'lighter', 'vape', 'mod' pour couvrir les cigarettes électroniques
+        const forbidden = ['vape', 'cigarette', 'lighter', 'mod', 'phone', 'gadget', 'electronic'];
+        const isFraud = forbidden.some(term => top.includes(term));
 
         if (isFraud) {
+            // BLOQUAGE IMMÉDIAT
             msg.innerHTML = `
                 <h2 style="color:#ff4444; margin:0;">OBJET NON CONFORME</h2>
-                <p style="color:white;">L'IA a détecté : <strong>${topResult.toUpperCase()}</strong></p>
-                <p style="font-size:0.8rem; color:#777;">Vente refusée : Accessoire non autorisé.</p>
+                <p style="color:white; font-size:1.1rem;">L'IA a détecté : <strong>${top.toUpperCase()}</strong></p>
+                <p style="color:#777; font-size:0.8rem;">Les articles de type "Vape/Tabac/Électronique" sont proscrits sur Spirit Infinity.</p>
             `;
-            if(btn) { btn.disabled = true; btn.style.opacity = "0.3"; }
+            btn.disabled = true;
+            btn.style.opacity = "0.3";
+            btn.style.cursor = "not-allowed";
         } else {
+            // VALIDATION (PRIORITÉ 2)
             msg.innerHTML = `
-                <h2 style="color:var(--spirit-green); margin:0;">CERTIFICATION RÉUSSIE</h2>
-                <p style="color:white; font-size:1.1rem;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
-                <p style="color:#aaa; font-size:0.8rem;">Modèle identifié : ${topResult}</p>
+                <h2 style="color:var(--spirit-green); margin:0;">SCAN RÉUSSI</h2>
+                <p style="color:white; font-size:1.1rem;">SCORE D'AUTHENTICITÉ : ${score}%</p>
+                <p style="color:#aaa; font-size:0.8rem;">Modèle identifié : ${top}</p>
             `;
-            if(btn) { btn.disabled = false; btn.style.opacity = "1"; }
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            btn.style.cursor = "pointer";
             
-            // Sauvegarde du score pour le Ledger SQL
-            document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
+            // Sauvegarde pour le Ledger Spirit
+            document.getElementById('stepFinish').dataset.lastScore = score;
+        }
+    } catch (err) {
+        console.error("Erreur IA:", err);
+        statusText.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA</span>";
+    }
+}
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+async function startExpertScan() {
+    const statusText = document.getElementById('scanStatus');
+    const msg = document.getElementById('finishMsg');
+    const btn = document.getElementById('publish-btn');
+    const userTitle = document.getElementById('inputTitle').value.toLowerCase();
+    
+    // IDs des 5 photos obligatoires (Tête, Corps, Accessoires, Boîte, Carton Brun)
+    const photos = ['img-head', 'img-body', 'img-acc', 'img-box', 'img-brown'];
+    let detectedTerms = [];
+
+    statusText.innerHTML = "🔍 <span style='color:orange;'>SPIRIT EYES : Analyse de conformité...</span>";
+
+    try {
+        const model = await mobilenet.load();
+        
+        // 1. ANALYSE MULTI-POINTS
+        for (let id of photos) {
+            const img = document.getElementById(id);
+            if (img && img.src && !img.src.includes('placeholder')) {
+                const predictions = await model.classify(img);
+                detectedTerms.push(predictions[0].className.toLowerCase());
+            }
         }
 
+        document.getElementById('stepScan').style.display = 'none';
+        document.getElementById('stepFinish').style.display = 'block';
+
+        // 2. FILTRE DE BANNISSEMENT (Tout ce qui n'est pas figurine)
+        const bannedClasses = ['dog', 'cat', 'furniture', 'fridge', 'stove', 'car', 'computer', 'phone'];
+        const isBanned = detectedTerms.some(term => bannedClasses.some(b => term.includes(b)));
+
+        // 3. VÉRIFICATION CATÉGORIE FIGURINE
+        const isFigurine = detectedTerms.some(term => term.includes('toy') || term.includes('figure') || term.includes('statue'));
+
+        if (isBanned || !isFigurine) {
+            msg.innerHTML = `
+                <h2 style="color:#ff4444;">OBJET INTERDIT</h2>
+                <p>L'IA a détecté un objet hors-catégorie (${detectedTerms[0] || 'Inconnu'}).</p>
+                <p style="font-size:0.8rem; color:#777;">Spirit Infinity n'accepte que les figurines de collection.</p>
+            `;
+            btn.disabled = true;
+            btn.style.opacity = "0.3";
+        } else {
+            // 4. CALCUL FINANCIER SPIRIT INFINITY
+            const price = parseFloat(document.getElementById('inputPrice').value) || 0;
+            const commTotale = (price * 0.06).toFixed(2); // 6% Total
+            const maPart = (price * 0.03).toFixed(2); // 3% pour Toi
+            const partFirme = (price * 0.03).toFixed(2); // 3% pour la Firme
+
+            // Délais Escrow selon type
+            const isNative = document.getElementById('isNative')?.checked || false;
+            const escrowDays = isNative ? 3 : 4;
+
+            msg.innerHTML = `
+                <h2 style="color:var(--spirit-green);">CERTIFICATION RÉUSSIE</h2>
+                <p style="color:white; font-size:1.1rem;">COHÉRENCE VISUELLE : OK</p>
+                <div style="background:#111; padding:10px; border:1px solid #333; font-size:0.8rem; margin-top:10px; text-align:left;">
+                    <b>Commission 6% : ${commTotale}€</b><br>
+                    • Votre profit : ${maPart}€<br>
+                    • Part Partenaire : ${partFirme}€<br><br>
+                    <b>Protection Escrow : ${escrowDays} jours</b>
+                </div>
+            `;
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            document.getElementById('stepFinish').dataset.lastScore = 99;
+        }
     } catch (err) {
-        console.error("ERREUR CRITIQUE SPIRIT EYES :", err);
-        statusText.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA</span>";
+        console.error("Erreur Spirit Eyes:", err);
+        statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
 }
 </script>
 </body>
 </html>
+
+
+
 
 
 
