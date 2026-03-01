@@ -131,6 +131,34 @@
         .msg-line { margin-bottom: 8px; font-size: 0.8rem; }
         .msg-user { color: var(--neon-orange); font-weight: bold; }
         .msg-text { color: white; margin-left: 5px; }
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+function resetSellForm() {
+    editingId = null;
+    diagActive = false;
+    previewPhotos = [null, null, null, null, null];
+
+    // Vérification sécurisée des champs texte
+    const fields = ['inputTitle', 'inputPrice', 'inputDesc', 'saleCat'];
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+
+    const shipEl = document.getElementById('saleShip');
+    if (shipEl) shipEl.value = 'Moyen';
+
+    // Correction cruciale pour les photos : évite l'erreur 'null'
+    for (let i = 1; i <= 5; i++) {
+        const pBox = document.getElementById('pBox' + i);
+        if (pBox) {
+            pBox.innerHTML = 'PHOTO ' + i;
+        }
+    }
+
+    const diagLink = document.getElementById('diag-link');
+    if (diagLink) diagLink.style.display = 'none';
+}
     </style>
 </head>
 <body>
@@ -1302,6 +1330,7 @@ function previewSale(input, imgId) {
 </script>
 </body>
 </html>
+
 
 
 
