@@ -791,6 +791,8 @@ async function goToScan() {
             `;
             if(publishBtn) publishBtn.style.display = 'none';
 
+          saveSpiritAudit(title, topResult, scoreFinal, 'REJECTED', isFraud ? 'Fraud' : 'Low Quality');  
+
         } else {
             // CAS C : AUTHENTIQUE (Figurine de collection validée)
             msg.innerHTML = `
@@ -800,6 +802,8 @@ async function goToScan() {
             `;
             if(publishBtn) publishBtn.style.display = 'block';
             document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
+
+            // Déjà géré dans publishFinal, mais tu peux l'ajouter ici pour un double archivage
         }
 
     } catch (err) {
@@ -1283,6 +1287,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
