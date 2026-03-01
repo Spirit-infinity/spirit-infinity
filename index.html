@@ -808,21 +808,25 @@ async function goToScan() {
     }
 }
 
-async function saveSpiritAudit(listingUUID, modelName, score) {
-    console.log("[SPIRIT] Envoi des données au Ledger...");
+// (c) 2026 Spirit Infinity - Tous droits réservés
+async function saveSpiritAudit(title, detected, score, status, reason) {
+    console.log("[SPIRIT LEDGER] Archivage de l'audit en cours...");
+    
     const { data, error } = await _spirit
-        .from('spirit_authenticity_reports')
-        .insert([{ 
-            listing_id: String(listingUUID), 
-            model_name_detected: String(modelName), 
-            confidence_score: parseInt(score) 
+        .from('spirit_ledger')
+        .insert([{
+            listing_title: title,
+            detected_object: detected,
+            ia_score: parseInt(score),
+            status: status, // 'CERTIFIED' ou 'REJECTED'
+            reason: reason,
+            seller_name: currentUser
         }]);
 
     if (error) {
-        console.error("❌ Erreur 400 détaillée :", error.message);
-        console.error("Hint :", error.hint);
+        console.error("❌ Erreur Ledger:", error.message);
     } else {
-        console.log("✅ SUCCÈS : Donnée enregistrée dans le Ledger !");
+        console.log(`✅ SPIRIT LEDGER : Objet ${status} archivé.`);
     }
 }
 
@@ -1279,6 +1283,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
