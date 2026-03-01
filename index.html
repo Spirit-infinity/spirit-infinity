@@ -723,74 +723,88 @@
 async function goToScan() {
     const title = document.getElementById('inputTitle').value;
     const price = document.getElementById('inputPrice').value;
-    
-    // Validation de sécurité (Champs obligatoires)
-    if(!title || !price) {
-        alert("Titre et Prix requis pour l'audit Spirit.");
-        return;
-    }
-
-    // Capture de la Photo 1 pour l'IA Spirit Eyes
     const pBox1 = document.getElementById('pBox1');
     const imgToScan = pBox1.querySelector('img');
 
+    // --- SÉCURITÉ PRÉ-SCAN ---
+    if(!title || !price) {
+        alert("TITRE ET PRIX REQUIS : Spirit Ledger ne peut pas indexer un objet vide.");
+        return;
+    }
     if(!imgToScan) {
-        alert("ERREUR : La Photo 1 est obligatoire pour l'analyse IA.");
+        alert("PHOTO MANQUANTE : La Photo 1 est la base de l'audit Spirit Eyes.");
         return;
     }
 
-    // Interface de transition
+    // Affichage interface de scan
     document.getElementById('stepInfo').style.display = 'none';
     document.getElementById('stepScan').style.display = 'block';
     document.getElementById('s3').className = 'step active';
     
     const statusEl = document.getElementById('scanStatus');
-    statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse des vecteurs...</span>";
+    statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse des vecteurs et textures...</span>";
 
     try {
-        // CHARGEMENT DU CERVEAU IA
+        // --- CHARGEMENT DU MOTEUR IA ---
         const model = await mobilenet.load();
         const predictions = await model.classify(imgToScan);
         
+        // Extraction des résultats
         const topResult = predictions[0].className.toLowerCase();
+        const secondResult = predictions[1] ? predictions[1].className.toLowerCase() : "";
         const scoreFinal = Math.round(predictions[0].probability * 100);
 
-        // LISTE NOIRE (Vape, Meubles, Animaux, Électronique)
-        const forbidden = ['vape', 'refrigerator', 'fridge', 'desk', 'table', 'chair', 'dog', 'cat', 'phone', 'shirt', 'clothing', 'television', 'tv'];
+        // --- FILTRES DE SÉCURITÉ SPIRIT ---
+        // 1. Liste Noire (Objets interdits)
+        const forbidden = ['vape', 'refrigerator', 'fridge', 'desk', 'table', 'chair', 'dog', 'cat', 'phone', 'tv', 'furniture'];
         const isFraud = forbidden.some(term => topResult.includes(term));
 
-        // Affichage du résultat final
+        // 2. Détection de "Qualité Jouet" (Indice de contrefaçon)
+        const lowQualityTerms = ['toy', 'plastic', 'doll', 'lego', 'mask', 'trinket'];
+        const isLowQuality = lowQualityTerms.some(term => topResult.includes(term) || secondResult.includes(term));
+
+        // --- TRANSITION VERS RÉSULTAT ---
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'block';
         document.getElementById('s4').className = 'step active';
 
         const msg = document.getElementById('finishMsg');
-        
-        // RECUPERATION DU BOUTON PUBLIER (On va le forcer à rester caché si score < 50)
-        const publishBtn = document.querySelector("#stepFinish button");
+        const publishBtn = document.getElementById('btn-publish-final');
 
+        // --- LOGIQUE DE DÉCISION (LE COEUR DU SYSTÈME) ---
+        
         if (isFraud || scoreFinal < 50) {
-            // ÉCHEC : VRAI vs FAUX (C'est un meuble ou une photo nulle)
+            // CAS A : Objet interdit ou Photo illisible
             msg.innerHTML = `
-                <h2 style="color:var(--danger); margin:0;">OBJET NON CONFORME</h2>
+                <h2 style="color:var(--danger); margin:0;">REFUSÉ : HORS CATÉGORIE</h2>
                 <p style="color:white;">Détecté : <strong>${topResult.toUpperCase()}</strong></p>
-                <p style="color:var(--danger); font-weight:bold;">SCORE : ${scoreFinal}% (Seuil critique : 50%)</p>
-                <p style="font-size:0.8rem; color:#777;">Spirit Infinity n'autorise pas la vente de cet objet.</p>
+                <p style="font-size:0.8rem; color:#777;">L'IA Spirit n'autorise que les objets de collection certifiables.</p>
             `;
-            if(publishBtn) publishBtn.style.display = 'none'; // PROTECTION : On cache le bouton
-        } else {
-            // SUCCÈS : C'est une figurine valide
+            if(publishBtn) publishBtn.style.display = 'none';
+
+        } else if (isLowQuality && scoreFinal < 80) {
+            // CAS B : Suspect (Plastique brillant, jouet, possible contrefaçon)
             msg.innerHTML = `
-                <h2 style="color:var(--spirit-green); margin:0;">CERTIFICATION RÉUSSIE</h2>
-                <p style="color:white; font-size:1.1rem;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
-                <p style="color:#aaa; font-size:0.8rem;">Modèle identifié : ${topResult}</p>
+                <h2 style="color:orange; margin:0;">ALERTE : QUALITÉ SUSPECTE</h2>
+                <p style="color:white; font-size:1.1rem;">INDICE DE CONFIANCE : ${scoreFinal}%</p>
+                <p style="font-size:0.8rem; color:#aaa;">Attention : Les textures détectées ressemblent à un jouet de série (Toy Grade) ou un Recast. Certification impossible.</p>
             `;
-            if(publishBtn) publishBtn.style.display = 'block'; // AUTORISATION : Le bouton apparaît
+            if(publishBtn) publishBtn.style.display = 'none';
+
+        } else {
+            // CAS C : AUTHENTIQUE (Figurine de collection validée)
+            msg.innerHTML = `
+                <h2 style="color:var(--spirit-green); margin:0;">SCAN RÉUSSI</h2>
+                <p style="color:white; font-size:1.1rem;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
+                <p style="color:#aaa; font-size:0.8rem;">Modèle identifié : ${topResult}<br>Signature thermique et sculpt conformes.</p>
+            `;
+            if(publishBtn) publishBtn.style.display = 'block';
             document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
         }
+
     } catch (err) {
-        console.error("Erreur moteur IA:", err);
-        statusEl.innerHTML = "<span style='color:red;'>ERREUR SERVEUR IA</span>";
+        console.error("ERREUR CRITIQUE SPIRIT EYES :", err);
+        statusEl.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA - VÉRIFIEZ CONNEXION</span>";
     }
 }
 
@@ -1253,6 +1267,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
