@@ -728,25 +728,33 @@
         });
     }
 
-    function resetSellForm() {
-        editingId = null;
-        diagActive = false;
-        previewPhotos = [null, null, null, null, null];
-        document.getElementById('inputTitle').value = '';
-        document.getElementById('inputPrice').value = '';
-        document.getElementById('inputDesc').value = '';
-        document.getElementById('saleCat').value = '';
-        document.getElementById('saleShip').value = 'Moyen';
-        for(let i=1; i<=5; i++) {
-            document.getElementById('pBox' + i).innerHTML = 'PHOTO ' + i;
+    // (c) 2026 Spirit Infinity - Tous droits réservés
+function resetSellForm() {
+    editingId = null;
+    diagActive = false;
+    previewPhotos = [null, null, null, null, null];
+
+    // Vérification sécurisée des champs texte
+    const fields = ['inputTitle', 'inputPrice', 'inputDesc', 'saleCat'];
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+
+    const shipEl = document.getElementById('saleShip');
+    if (shipEl) shipEl.value = 'Moyen';
+
+    // Correction cruciale pour les photos : évite l'erreur 'null'
+    for (let i = 1; i <= 5; i++) {
+        const pBox = document.getElementById('pBox' + i);
+        if (pBox) {
+            pBox.innerHTML = 'PHOTO ' + i;
         }
-        document.getElementById('diag-link').style.display = 'none';
-        document.getElementById('stepMethod').style.display = 'block';
-        document.getElementById('stepInfo').style.display = 'none';
-        document.getElementById('stepScan').style.display = 'none';
-        document.getElementById('stepFinish').style.display = 'none';
-        document.querySelectorAll('.step').forEach((s, i) => s.className = i===0 ? 'step active' : 'step');
     }
+
+    const diagLink = document.getElementById('diag-link');
+    if (diagLink) diagLink.style.display = 'none';
+}
 
     function startCertification() {
         resetSellForm();
@@ -1295,6 +1303,7 @@ function previewSale(input, imgId) {
 </script>
 </body>
 </html>
+
 
 
 
