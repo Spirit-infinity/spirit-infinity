@@ -770,7 +770,8 @@ async function goToScan() {
 
         const msg = document.getElementById('finishMsg');
         const publishBtn = document.getElementById('btn-publish-final');
-  // ... (après le calcul du score et des filtres) ...
+ 
+        // ... (après le calcul du score et des filtres) ...
 
         if (isFraud || scoreFinal < 50) {
             // CAS REFUSÉ
@@ -1000,12 +1001,48 @@ function addToMySales(product, carrierName) {
 async function confirmPayment(method) {
     const carrierSelect = document.getElementById('pCarrierSelect');
     const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
-    
-    // CONFIGURATION FINANCIÈRE SPIRIT INFINITY
-    // Total 6% de frais : 3% pour l'utilisateur (Toi) et 3% pour la firme (Partenaire)
-    const commissionTotale = selectedProduct.price * 0.06; 
-    const maPart = selectedProduct.price * 0.03;
-    const partFirme = selectedProduct.price * 0.03;
+  // (c) 2026 Spirit Infinity - Tous droits réservés
+// CALCUL DES ROYALTIES SPIRIT INFINITY (Split 3% / 3%)
+const split = calculateSpiritSplit(selectedProduct.price);
+
+const commissionTotale = split.totalFee;
+const maPart = split.myShare;
+const partFirme = split.firmShare;
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+async function confirmReceipt(itemId) {
+    const item = marketData.find(i => i.id === itemId);
+    const split = calculateSpiritSplit(item.price);
+
+    if(!confirm(`Confirmer la réception de "${item.title}" ?\nL'argent sera libéré et les commissions prélevées.`)) return;
+
+    // --- MISE À JOUR DU LEDGER (Preuve pour ton dossier financier) ---
+    const { error } = await _spirit
+        .from('spirit_ledger')
+        .insert([{
+            listing_title: item.title,
+            status: 'COMPLETED',
+            ia_score: item.ia_score,
+            seller_name: item.owner,
+            // C'est ici qu'on prouve la rentabilité :
+            commission_total: split.totalFee,
+            royalty_spirit: split.myShare, // Tes 3%
+            royalty_firm: split.firmShare // Les 3% du partenaire
+        }]);
+
+    if (error) {
+        console.error("Erreur Ledger Final:", error.message);
+    } else {
+        alert(`TRANSACTION TERMINÉE !\n
+        Vendeur crédité de : ${split.sellerNet} €\n
+        Spirit Infinity (Toi) : +${split.myShare} €\n
+        Partenaire (Firm) : +${split.firmShare} €`);
+        
+        // On retire l'objet du market ou on change son statut
+        item.status = 'sold';
+        renderMarket();
+    }
+}
 
     alert("PAIEMENT SPIRIT VALIDÉ !\nFonds sécurisés (Escrow).\nCommission 6% répartie (3%/3%).");
 
@@ -1318,6 +1355,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
