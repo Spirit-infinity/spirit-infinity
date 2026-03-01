@@ -770,6 +770,36 @@ async function goToScan() {
 
         const msg = document.getElementById('finishMsg');
         const publishBtn = document.getElementById('btn-publish-final');
+  // ... (après le calcul du score et des filtres) ...
+
+        if (isFraud || scoreFinal < 50) {
+            // CAS REFUSÉ
+            msg.innerHTML = `<h2 style="color:var(--danger);">OBJET REJETÉ</h2>...`;
+            if(publishBtn) publishBtn.style.display = 'none';
+
+            // --- LA GREFFE ICI ---
+            // On envoie le REJET à Supabase immédiatement
+            saveSpiritAudit(title, topResult, scoreFinal, 'REJECTED');
+            // ---------------------
+
+        } else if (isLowQuality && scoreFinal < 80) {
+            // CAS SUSPECT
+            msg.innerHTML = `<h2 style="color:orange;">QUALITÉ SUSPECTE</h2>...`;
+            if(publishBtn) publishBtn.style.display = 'none';
+
+            // --- ET ICI AUSSI ---
+            saveSpiritAudit(title, topResult, scoreFinal, 'SUSPECT');
+            // ---------------------
+
+        } else {
+            // CAS VALIDÉ
+            msg.innerHTML = `<h2 style="color:var(--spirit-green);">SCAN RÉUSSI</h2>...`;
+            if(publishBtn) publishBtn.style.display = 'block';
+            document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
+            
+            // Note : Pour les succès, on peut attendre le clic sur "Publier" 
+            // ou l'envoyer ici avec le statut 'CERTIFIED-PENDING'
+        }
 
         // --- LOGIQUE DE DÉCISION (LE COEUR DU SYSTÈME) ---
         
@@ -813,26 +843,27 @@ async function goToScan() {
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-async function saveSpiritAudit(title, detected, score, status, reason) {
-    console.log("[SPIRIT LEDGER] Archivage de l'audit en cours...");
+async function saveSpiritAudit(title, detected, score, status) {
+    console.log("[SPIRIT LEDGER] Tentative d'archivage...");
     
+    // On s'assure que _spirit (Supabase) est bien initialisé
     const { data, error } = await _spirit
-        .from('spirit_ledger')
+        .from('spirit_ledger') // Assure-toi que la table s'appelle bien comme ça
         .insert([{
             listing_title: title,
             detected_object: detected,
             ia_score: parseInt(score),
             status: status, // 'CERTIFIED' ou 'REJECTED'
-            reason: reason,
             seller_name: currentUser
         }]);
 
     if (error) {
-        console.error("❌ Erreur Ledger:", error.message);
+        console.error("❌ Erreur SQL Ledger:", error.message);
     } else {
-        console.log(`✅ SPIRIT LEDGER : Objet ${status} archivé.`);
+        console.log("✅ SPIRIT LEDGER : Donnée archivée avec succès !");
     }
 }
+
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 function publishFinal() {
@@ -1287,6 +1318,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
