@@ -1321,13 +1321,12 @@ async function confirmReceipt(transactionId, productId) {
     }
 }
 
-// CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
+// (c) 2026 Spirit Infinity - Tous droits réservés
 async function loadUserPurchases() {
     const listBody = document.getElementById('list-achats');
     if(!listBody) return;
     listBody.innerHTML = '';
 
-    // On récupère les transactions où l'utilisateur est l'acheteur
     const { data, error } = await _spirit
         .from('transactions')
         .select('*')
@@ -1339,33 +1338,34 @@ async function loadUserPurchases() {
         return;
     }
 
-    if (!data || data.length === 0) {
-        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
-        return;
-    }
-
-    data.forEach(tr => {
-        // On cherche le nom du produit dans marketData ou via une jointure
-        const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
-        const dateStr = new Date(tr.created_at).toLocaleDateString();
+    data.forEach(purchase => {
+        const row = document.createElement('div');
+        row.style.borderBottom = "1px solid #444";
+        row.style.padding = "10px 0";
         
-        const row = document.createElement('tr');
+        // Boutons : Uniquement si c'est en attente (escrow_active)
+        let actions = `<span style="color:#ffa500">Statut : ${purchase.status}</span>`;
+        if(purchase.status === 'escrow_active') {
+            actions = `
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                    <button onclick="confirmReceipt(${purchase.id}, ${purchase.product_id})" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">✅ REÇU</button>
+                    <button onclick="openDispute(${purchase.id})" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">⚠️ LITIGE</button>
+                </div>
+            `;
+        }
+
         row.innerHTML = `
-            <td>${dateStr}</td>
-            <td><b style="color:var(--neon-orange)">${product.title}</b></td>
-            <td>${tr.amount} €</td>
-            <td><span style="color:${tr.status === 'completed' ? 'var(--spirit-green)' : 'orange'}">${tr.status.toUpperCase()}</span></td>
-            <td style="text-align:center;">
-                ${tr.status === 'escrow_active' ? `
-                    <button class="btn-shield-ok" onclick="confirmReceipt(${tr.id}, ${tr.product_id})">✅ REÇU</button>
-                    <button class="btn-shield-bad" onclick="openDispute(${tr.id})">⚠️ LITIGE</button>
-                ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
-            </td>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong>ID Transaction: #${purchase.id}</strong><br>
+                    <span style="font-size:0.9rem;">Montant : ${purchase.amount} €</span>
+                </div>
+                <div>${actions}</div>
+            </div>
         `;
         listBody.appendChild(row);
     });
 }
-
 
     renderMarket();
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -1499,6 +1499,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
