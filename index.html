@@ -1419,24 +1419,15 @@ async function startExpertScan() {
         console.error("Erreur Spirit Eyes:", err);
         statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
-   // (c) 2026 Spirit Infinity - Système d'Achat Spirit Shield
+   // --- (c) 2026 Spirit Infinity - Système d'Achat Spirit Shield ---
+
 async function buyProduct(productId, price) {
-    await processSpiritPurchase(productId, price);
-}
-
-async function confirmPayment(productId, price) {
-    await processSpiritPurchase(productId, price);
-}
-
-async function processSpiritPurchase(productId, price) {
-    if (!currentUser) { 
+    if (!window.currentUser) { 
         alert("🔒 SÉCURITÉ : Connectez-vous pour acheter."); 
         return; 
     }
     
-    const ok = confirm("SPIRIT SHIELD : Confirmer l'achat ?\nLes fonds seront bloqués jusqu'à la réception.");
-    
-    if (ok) {
+    if (confirm("SPIRIT SHIELD : Confirmer l'achat ?\nLes fonds seront bloqués jusqu'à la réception.")) {
         const { error } = await _spirit.from('transactions').insert([{
             product_id: productId, 
             buyer: currentUser, 
@@ -1453,10 +1444,17 @@ async function processSpiritPurchase(productId, price) {
         }
     }
 }
+
+// Sécurité si ton bouton utilise l'ancien nom
+async function confirmPayment(id, prix) {
+    await buyProduct(id, prix);
+}
+
  
 </script>
 </body>
 </html>
+
 
 
 
