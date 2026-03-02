@@ -1079,38 +1079,29 @@ function addToMySales(product, carrierName) {
 async function confirmPayment(method) {
     const carrierSelect = document.getElementById('pCarrierSelect');
     const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
-    
-    // CALCUL DES ROYALTIES SPIRIT INFINITY (Split 3% / 3%)
     const split = calculateSpiritSplit(selectedProduct.price);
 
-    // ENVOI À SUPABASE (Création de la trace d'achat)
     const { data, error } = await _spirit
         .from('transactions')
-        .insert([
-            {
-                product_id: selectedProduct.id,
-                buyer: currentUser, 
-                amount: selectedProduct.price,
-                total_commission: split.totalFee,
-                user_profit: split.myShare,
-                firm_profit: split.firmShare,
-                status: 'escrow_active'
-            }
-        ]);
+        .insert([{
+            product_id: selectedProduct.id,
+            buyer: currentUser, 
+            amount: parseFloat(selectedProduct.price), // On force le format nombre
+            total_commission: parseFloat(split.totalFee),
+            user_profit: parseFloat(split.myShare),
+            firm_profit: parseFloat(split.firmShare),
+            status: 'escrow_active'
+        }]);
 
     if (error) {
-        console.error("Erreur Ledger:", error.message);
-        alert("Erreur base de données : " + error.message);
+        console.error("Erreur Ledger Finale:", error.message);
+        alert("Erreur critique : " + error.message);
         return;
     }
 
-    alert("PAIEMENT SPIRIT VALIDÉ !\nFonds sécurisés (Escrow).\nCommission 6% répartie (3%/3%).");
-
-    addToMySales(selectedProduct, carrierName);
-    selectedProduct.status = 'sold';
-    renderMarket();
+    alert("SPIRIT PAY : Succès ! Votre achat est enregistré.");
     closeModals();
-    loadUserPurchases(); // Actualise l'onglet "Mes Achats" immédiatement
+    loadUserPurchases();
 }
 
 // --- FIN DU SYSTÈME ---
@@ -1503,6 +1494,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
