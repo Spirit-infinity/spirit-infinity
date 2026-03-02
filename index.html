@@ -69,12 +69,12 @@
         /* ANIMATIONS & LEDGER STATUS */
         .laser { height: 2px; background: var(--neon-orange); box-shadow: 0 0 15px var(--neon-orange); animation: move 2s infinite ease-in-out; }
         @keyframes move { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(100px); } }
-        .ledger-status { 
-            padding: 20px; 
-            border: 1px solid var(--spirit-green); 
-            color: var(--spirit-green); 
-            margin-bottom: 20px; 
-            font-family: monospace; 
+        .ledger-status {
+            padding: 20px;
+            border: 1px solid var(--spirit-green);
+            color: var(--spirit-green);
+            margin-bottom: 20px;
+            font-family: monospace;
             background: rgba(0,255,170,0.05);
             animation: pulse-border 2s infinite alternate;
         }
@@ -259,7 +259,7 @@
                 <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
                 <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
                 <div id="pDescBox" style="font-size:0.85rem; color:#aaa; margin-bottom:15px; background:#111; padding:10px; border-left:2px solid var(--neon-orange);"></div>
-                
+               
                 <div style="background:rgba(255,102,0,0.05); padding:15px; border:1px solid #333; margin-bottom:15px;">
                     <label style="font-size:0.7rem; color:var(--neon-orange); font-weight:bold; display:block; margin-bottom:5px;">LIVRAISON (Taille: <span id="pSizeLabel">---</span>)</label>
                     <select id="pCarrierSelect" onchange="updateTotalWithCarrier()" style="margin:0;">
@@ -335,7 +335,7 @@
             <input type="file" id="file2" style="display:none" onchange="previewSale(this, 'pBox2', 1)">
             <input type="file" id="file3" style="display:none" onchange="previewSale(this, 'pBox3', 2)">
             <input type="file" id="file4" style="display:none" onchange="previewSale(this, 'pBox4', 3)">
-            <input type="file" id="file5" style="display:none" onchange="previewSale(this, 'pBox5', 4)"> 
+            <input type="file" id="file5" style="display:none" onchange="previewSale(this, 'pBox5', 4)">
             <div id="diag-link" style="background:rgba(0,255,170,0.1); padding:10px; border:1px solid var(--spirit-green); margin-bottom:10px; display:none;">
                 <span style="color:var(--spirit-green); font-size:0.8rem;">✓ Auto-diagnostic Puce Spirit lié à cette annonce</span>
             </div>
@@ -420,10 +420,11 @@
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div class="dash-container">
             <div class="dash-nav">
-            <button id="btn-dashboard" class="active" onclick="showAccountTab('dashboard')">🏠 DASHBOARD</button>
-            <button id="btn-achats" onclick="showAccountTab('achats'); loadUserPurchases();">📦 MES ACHATS</button>
-            <button id="btn-annonces" onclick="showAccountTab('annonces')">🏷️ MES ANNONCES</button>
-            <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
+                <button id="btn-dashboard" class="active" onclick="showAccountTab('dashboard')">DASHBOARD</button>
+                <button id="btn-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
+                <button id="btn-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
+                <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
+                <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
             <div class="dash-content">
                 <div id="tab-dashboard" class="account-page active">
@@ -438,11 +439,7 @@
                         <p style="font-size:0.8rem;">Veuillez vous connecter pour voir vos données.</p>
                     </div>
                 </div>
-               <div id="tab-achats" class="account-page" style="display:none;">
-    <h3 style="color:var(--spirit-green)">🛡️ SPIRIT SHIELD : SUIVI DES ACHATS</h3>
-    <div id="list-achats" style="margin-top:20px;">
-        </div>
-</div>
+                <div id="tab-achats" class="account-page">
     <h3>MES ACHATS & SÉCURITÉ SÉQUESTRE</h3>
     <div style="background:rgba(0,255,170,0.05); padding:10px; border:1px solid var(--spirit-green); font-size:0.75rem; margin-bottom:15px; color:var(--spirit-green);">
         🛡️ SPIRIT SHIELD : Vos fonds sont bloqués. Confirmez la réception pour libérer le paiement ou ouvrez un litige en cas de problème.
@@ -583,7 +580,7 @@
     const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
     const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
+   
     const translations = {
         'FR': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANNEAU DE CONTROLE', 'nav_forum': 'FORUM', 'nav_account': 'MON COMPTE',
@@ -634,8 +631,7 @@
             'lbl_total_pay': 'TOTAL A PAGAR', 'btn_buy': 'COMPRA DIRECTA', 'btn_offer': 'HACER OFERTA'
         }
     };
-
-    const shippingRates = {
+     const shippingRates = {
         "Petit": { "mr": 4.90, "cl": 6.50, "dh": 12.00 },
         "Moyen": { "mr": 6.90, "cl": 14.90, "dh": 25.00 },
         "Grand": { "mr": 12.90, "cl": 25.00, "dh": 45.00 }
@@ -671,11 +667,53 @@ function calculateSpiritSplit(price) {
 }
 
 // CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
+async function loadUserPurchases() {
+    const listBody = document.getElementById('list-achats');
+    if(!listBody) return;
+    listBody.innerHTML = '';
 
+    // On récupère les transactions où l'utilisateur est l'acheteur
+    const { data, error } = await _spirit
+        .from('transactions')
+        .select('*')
+        .eq('buyer', currentUser)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Erreur de chargement des achats:", error);
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
+        return;
+    }
+
+    data.forEach(tr => {
+        // On cherche le nom du produit dans marketData ou via une jointure
+        const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
+        const dateStr = new Date(tr.created_at).toLocaleDateString();
+       
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${dateStr}</td>
+            <td><b style="color:var(--neon-orange)">${product.title}</b></td>
+            <td>${tr.amount} €</td>
+            <td><span style="color:${tr.status === 'completed' ? 'var(--spirit-green)' : 'orange'}">${tr.status.toUpperCase()}</span></td>
+            <td style="text-align:center;">
+                ${tr.status === 'escrow_active' ? `
+                    <button class="btn-shield-ok" onclick="confirmReceipt(${tr.id}, ${tr.product_id})">✅ REÇU</button>
+                    <button class="btn-shield-bad" onclick="openDispute(${tr.id})">⚠️ LITIGE</button>
+                ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+            </td>
+        `;
+        listBody.appendChild(row);
+    });
+}
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
-    
+   
     function filterMessage(text) {
         let cleanText = text.toLowerCase();
         let suspicious = false;
@@ -711,24 +749,15 @@ function calculateSpiritSplit(price) {
             const soldBadge = item.status === 'sold' ? '<div class="badge-sold">VENDU</div>' : '';
             const imgContent = item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}`;
             card.innerHTML = `
-               // (c) 2026 Spirit Infinity - Tous droits réservés
-card.innerHTML = `
-    ${soldBadge}
-    <div class="badge ${badgeClass}">${badgeText}</div>
-    <div class="img-placeholder">${imgContent}</div>
-    <div class="card-info">
-        <div class="price">${item.price} €</div>
-        <div class="title">${item.title}</div>
-        <div class="legende"><span>${item.country}</span><span>${item.type==='native'?'Auto-Diag: OK':'IA: Validé'}</span></div>
-        
-        ${item.status === 'available' ? `
-            <button onclick="event.stopPropagation(); buyProduct('${item.id}', ${item.price})" 
-                    style="width:100%; margin-top:10px; background:var(--spirit-green); color:black; border:none; padding:8px; font-weight:bold; cursor:pointer;">
-                🛒 ACHETER
-            </button>
-        ` : ''}
-    </div>
-`;
+                ${soldBadge}
+                <div class="badge ${badgeClass}">${badgeText}</div>
+                <div class="img-placeholder">${imgContent}</div>
+                <div class="card-info">
+                    <div class="price">${item.price} €</div>
+                    <div class="title">${item.title}</div>
+                    <div class="legende"><span>${item.country}</span><span>${item.type==='native'?'Auto-Diag: OK':'IA: Validé'}</span></div>
+                </div>
+            `;
             if(item.type === 'native') gn.appendChild(card);
             else gl.appendChild(card);
         });
@@ -787,7 +816,7 @@ async function goToScan() {
     document.getElementById('stepInfo').style.display = 'none';
     document.getElementById('stepScan').style.display = 'block';
     document.getElementById('s3').className = 'step active';
-    
+   
     const statusEl = document.getElementById('scanStatus');
     statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse des vecteurs et textures...</span>";
 
@@ -795,7 +824,7 @@ async function goToScan() {
         // --- CHARGEMENT DU MOTEUR IA ---
         const model = await mobilenet.load();
         const predictions = await model.classify(imgToScan);
-        
+       
         // Extraction des résultats
         const topResult = predictions[0].className.toLowerCase();
         const secondResult = predictions[1] ? predictions[1].className.toLowerCase() : "";
@@ -844,13 +873,13 @@ async function goToScan() {
             msg.innerHTML = `<h2 style="color:var(--spirit-green);">SCAN RÉUSSI</h2>...`;
             if(publishBtn) publishBtn.style.display = 'block';
             document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
-            
-            // Note : Pour les succès, on peut attendre le clic sur "Publier" 
+           
+            // Note : Pour les succès, on peut attendre le clic sur "Publier"
             // ou l'envoyer ici avec le statut 'CERTIFIED-PENDING'
         }
 
         // --- LOGIQUE DE DÉCISION (LE COEUR DU SYSTÈME) ---
-        
+       
         if (isFraud || scoreFinal < 50) {
             // CAS A : Objet interdit ou Photo illisible
             msg.innerHTML = `
@@ -893,7 +922,7 @@ async function goToScan() {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function saveSpiritAudit(title, detected, score, status) {
     console.log("[SPIRIT LEDGER] Tentative d'archivage...");
-    
+   
     // On s'assure que _spirit (Supabase) est bien initialisé
     const { data, error } = await _spirit
         .from('spirit_ledger') // Assure-toi que la table s'appelle bien comme ça
@@ -920,7 +949,7 @@ function publishFinal() {
     const desc = document.getElementById('inputDesc').value;
     const cat = document.getElementById('saleCat').value;
     const ship = document.getElementById('saleShip').value;
-    
+   
     // --- LE VERROU DE SÉCURITÉ SPIRIT EYES ---
     const scoreIA = document.getElementById('stepFinish').dataset.lastScore;
     const publishBtn = document.getElementById('btn-publish-final');
@@ -928,7 +957,7 @@ function publishFinal() {
     // Si le score est absent ou si le bouton est caché, on bloque la publication manuelle
     if (!scoreIA || (publishBtn && publishBtn.style.display === 'none')) {
         alert("ALERTE SÉCURITÉ : Tentative de publication forcée détectée. Objet non certifié par Spirit Eyes.");
-        return; 
+        return;
     }
     // -----------------------------------------
 
@@ -961,7 +990,7 @@ function publishFinal() {
     function updateUserAnnonces() {
         const container = document.getElementById('user-annonces-list');
         container.innerHTML = '';
-        const myAnnonces = marketData.filter(m => m.owner === currentUser || !m.owner); 
+        const myAnnonces = marketData.filter(m => m.owner === currentUser || !m.owner);
         myAnnonces.forEach(a => {
             const div = document.createElement('div');
             div.style = "background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px;";
@@ -1022,7 +1051,7 @@ function viewLabel(encodedHtml) {
 function addToMySales(product, carrierName) {
     const shippingList = document.getElementById('shipping-list');
     const trackingNum = "SP-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-    
+   
     const labelHtml = `
         <div style="padding:15px; border:2px dashed #555; background:#fff; color:#000; font-family:monospace; width:100%;">
             <b style="font-size:1.2rem;">SPIRIT LOGISTICS</b><br>
@@ -1033,7 +1062,7 @@ function addToMySales(product, carrierName) {
                 <b>TRACKING : ${trackingNum}</b>
             </div>
         </div>`;
-    
+   
     const saleItem = document.createElement('div');
     saleItem.style = "background:#111; padding:15px; border:1px solid var(--spirit-green); margin-bottom:15px;";
     saleItem.innerHTML = `
@@ -1041,11 +1070,44 @@ function addToMySales(product, carrierName) {
         <p style="font-size:0.7rem;">Tracking: ${trackingNum}</p>
         <button class="btn-action" style="font-size:0.6rem; width:100%;" onclick="viewLabel('${btoa(labelHtml)}')">VOIR LE BORDEREAU</button>
     `;
-    
+   
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
+// (c) 2026 Spirit Infinity - Tous droits réservés
+async function confirmPayment(method) {
+    const carrierSelect = document.getElementById('pCarrierSelect');
+    const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
+   
+    // Calcul des commissions 3% / 3%
+    const split = calculateSpiritSplit(selectedProduct.price);
 
+    // Envoi propre à Supabase
+    const { data, error } = await _spirit
+        .from('transactions')
+        .insert([{
+            product_id: selectedProduct.id,
+            buyer: currentUser,
+            amount: Number(selectedProduct.price),
+            total_commission: Number(split.totalFee),
+            user_profit: Number(split.myShare),
+            firm_profit: Number(split.firmShare),
+            status: 'escrow_active'
+        }]);
+
+    if (error) {
+        console.error("Détail Erreur Supabase:", error);
+        alert("Erreur de synchronisation Ledger : " + error.message);
+        return;
+    }
+
+    alert("✅ PAIEMENT SPIRIT VALIDÉ !\n\nL'achat est enregistré dans votre compte.");
+   
+    selectedProduct.status = 'sold';
+    renderMarket();
+    closeModals();
+    loadUserPurchases(); // <--- Lance l'affichage automatique dans ton compte
+}
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1087,7 +1149,7 @@ function addToMySales(product, carrierName) {
         document.getElementById('pDescBox').innerText = item.desc;
         document.getElementById('pSizeLabel').innerText = item.shipSize;
         document.getElementById('pCarrierSelect').value = "0";
-        
+       
         let galleryHtml = '';
         if(item.photos && item.photos.length > 0) {
             item.photos.forEach(p => {
@@ -1144,8 +1206,8 @@ function addToMySales(product, carrierName) {
                 if(pRange === '400+') matchPrice = item.price >= 400;
                 else matchPrice = (item.price >= min && item.price <= max);
             }
-            return matchPrice && (country === 'all' || item.country === country) && 
-                   (brand === 'all' || item.brand === brand) && (cat === 'all' || item.cat === cat) && 
+            return matchPrice && (country === 'all' || item.country === country) &&
+                   (brand === 'all' || item.brand === brand) && (cat === 'all' || item.cat === cat) &&
                    (cond === 'all' || item.cond === cond);
         });
         renderMarket(filtered);
@@ -1169,8 +1231,8 @@ function addToMySales(product, carrierName) {
         document.getElementById('sumTotal').innerText = (selectedProduct.price + shipCost + prot).toFixed(2) + " €";
     }
 
-    function closeModals() { 
-        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); 
+    function closeModals() {
+        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
         hideTopicEditor();
     }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
@@ -1196,12 +1258,12 @@ function addToMySales(product, carrierName) {
         document.getElementById('forumList').style.display = 'block';
         document.getElementById('topicEditor').style.display = 'none';
     }
-   function openAccount() { 
-    updateUserAnnonces(); 
+   function openAccount() {
+    updateUserAnnonces();
     loadUserPurchases(); // <--- On appelle le chargement ici !
-    document.getElementById('accountModal').style.display = 'flex'; 
+    document.getElementById('accountModal').style.display = 'flex';
 }
-    
+   
 // (c) 2026 Spirit Infinity - Tous droits réservés
 // CALCUL DU SPLIT FINANCIER 3% / 3%
 function calculateSpiritSplit(price) {
@@ -1216,10 +1278,34 @@ function calculateSpiritSplit(price) {
     };
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
+async function confirmReceipt(transactionId, productId) {
+    if (!confirm("CONFIRMATION SPIRIT SHIELD :\nAvez-vous reçu la figurine ?\nCela libérera les royalties.")) return;
+
+    try {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({
+                status: 'completed',
+                completed_at: new Date().toISOString()
+            })
+            .eq('id', transactionId);
+
+        if (error) throw error;
+
+        alert("✅ TRANSACTION RÉUSSIE !");
+        loadUserPurchases();
+        renderMarket();
+    } catch (err) {
+        alert("Erreur Ledger : " + err.message);
+    }
+}
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function loadUserPurchases() {
     const listBody = document.getElementById('list-achats');
     if(!listBody) return;
-    listBody.innerHTML = '<p style="color:orange;">Chargement du Ledger...</p>';
+    listBody.innerHTML = '';
 
     const { data, error } = await _spirit
         .from('transactions')
@@ -1227,68 +1313,61 @@ async function loadUserPurchases() {
         .eq('buyer', currentUser)
         .order('created_at', { ascending: false });
 
-    if (error) { listBody.innerHTML = "Erreur : " + error.message; return; }
+    if (error) {
+        console.error("Erreur Ledger:", error);
+        return;
+    }
 
-    listBody.innerHTML = ''; 
-
-    data.forEach(tr => {
+    data.forEach(purchase => {
         const row = document.createElement('div');
-        row.className = "transaction-item";
-        row.style = "border:1px solid #333; padding:15px; margin-bottom:10px; background:#111; display:flex; justify-content:space-between; align-items:center;";
-        
-        let actionsHtml = `<span style="color:var(--neon-orange)">${tr.status.toUpperCase()}</span>`;
-        
-        if(tr.status === 'escrow_active') {
-            actionsHtml = `
-                <div style="display:flex; gap:10px;">
-                    <button onclick="confirmReceipt('${tr.id}')" style="background:var(--spirit-green); color:black; border:none; padding:8px 12px; cursor:pointer; font-weight:bold;">✅ REÇU</button>
-                    <button onclick="openDispute('${tr.id}')" style="background:red; color:white; border:none; padding:8px 12px; cursor:pointer; font-weight:bold;">⚠️ LITIGE</button>
-                </div>`;
+        row.style.borderBottom = "1px solid #444";
+        row.style.padding = "10px";
+       
+        let actions = '<span style="color:#ffa500">Statut : ' + purchase.status + '</span>';
+       
+        if(purchase.status === 'escrow_active') {
+            actions = '<div style="display:flex; gap:10px; margin-top:5px;">' +
+                      '<button onclick="confirmReceipt(' + purchase.id + ',' + purchase.product_id + ')" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">✅ RECU</button>' +
+                      '<button onclick="openDispute(' + purchase.id + ')" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">⚠️ LITIGE</button>' +
+                      '</div>';
         }
 
-        row.innerHTML = `
-            <div>
-                <b style="color:white;">ID: #${tr.id.slice(0,8)}</b><br>
-                <span style="color:#aaa;">Montant: ${tr.amount} €</span>
-            </div>
-            <div>${actionsHtml}</div>`;
+        row.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                        '<div><strong>ID: #' + purchase.id + '</strong><br>Montant: ' + purchase.amount + ' €</div>' +
+                        '<div>' + actions + '</div>' +
+                        '</div>';
         listBody.appendChild(row);
     });
 }
 
-
-async function confirmReceipt(transactionId) {
-    if (!confirm("CONFIRMATION SPIRIT SHIELD :\nAvez-vous reçu la figurine ?\nCela libérera les royalties (3% / 3%).")) return;
-
-    const { error } = await _spirit
-        .from('transactions')
-        .update({ status: 'completed', completed_at: new Date().toISOString() })
-        .eq('id', transactionId);
-
-    if (error) {
-        alert("Erreur Ledger : " + error.message);
-    } else {
-        alert("✅ TRANSACTION RÉUSSIE !");
-        loadUserPurchases(); // Rafraîchit la liste
-        if(window.renderMarket) renderMarket(); // Met à jour le catalogue
-    }
-}
-
-async function openDispute(transactionId) {
-    const reason = prompt("MOTIF DU LITIGE (Spirit Shield active) :");
-    if (!reason) return;
+async function confirmReceipt(tId, pId) {
+    if (!confirm("LIBERER LES FONDS ?\nCela valide la vente et vos royalties.")) return;
 
     const { error } = await _spirit
         .from('transactions')
-        .update({ status: 'disputed', dispute_reason: reason })
-        .eq('id', transactionId);
+        .update({ status: 'completed' })
+        .eq('id', tId);
 
     if (error) {
         alert("Erreur : " + error.message);
     } else {
-        alert("⚠️ LITIGE OUVERT. Les fonds sont bloqués par la protection Spirit.");
+        alert("✅ VENTE VALIDEE !");
         loadUserPurchases();
+        renderMarket();
     }
+}
+
+async function openDispute(tId) {
+    const reason = prompt("Motif du litige :");
+    if (!reason) return;
+
+    await _spirit
+        .from('transactions')
+        .update({ status: 'disputed', dispute_reason: reason })
+        .eq('id', tId);
+
+    alert("⚠️ LITIGE OUVERT. Spirit Shield active.");
+    loadUserPurchases();
 }
 
     renderMarket();
@@ -1337,7 +1416,7 @@ async function startAIAnalysis() {
             btn.disabled = false;
             btn.style.opacity = "1";
             btn.style.cursor = "pointer";
-            
+           
             // Sauvegarde pour le Ledger Spirit
             document.getElementById('stepFinish').dataset.lastScore = score;
         }
@@ -1353,7 +1432,7 @@ async function startExpertScan() {
     const msg = document.getElementById('finishMsg');
     const btn = document.getElementById('publish-btn');
     const userTitle = document.getElementById('inputTitle').value.toLowerCase();
-    
+   
     // IDs des 5 photos obligatoires (Tête, Corps, Accessoires, Boîte, Carton Brun)
     const photos = ['img-head', 'img-body', 'img-acc', 'img-box', 'img-brown'];
     let detectedTerms = [];
@@ -1362,7 +1441,7 @@ async function startExpertScan() {
 
     try {
         const model = await mobilenet.load();
-        
+       
         // 1. ANALYSE MULTI-POINTS
         for (let id of photos) {
             const img = document.getElementById(id);
@@ -1419,55 +1498,7 @@ async function startExpertScan() {
         console.error("Erreur Spirit Eyes:", err);
         statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
-  
- 
+}
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
