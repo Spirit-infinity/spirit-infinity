@@ -1075,77 +1075,42 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
+// (c) 2026 Spirit Infinity - Tous droits réservés
 async function confirmPayment(method) {
     const carrierSelect = document.getElementById('pCarrierSelect');
     const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
-  // (c) 2026 Spirit Infinity - Tous droits réservés
-// CALCUL DES ROYALTIES SPIRIT INFINITY (Split 3% / 3%)
-const split = calculateSpiritSplit(selectedProduct.price);
+    
+    // CALCUL DES ROYALTIES SPIRIT INFINITY (Split 3% / 3%)
+    const split = calculateSpiritSplit(selectedProduct.price);
 
-const commissionTotale = split.totalFee;
-const maPart = split.myShare;
-const partFirme = split.firmShare;
-
-// (c) 2026 Spirit Infinity - Tous droits réservés
-async function confirmReceipt(itemId) {
-    const item = marketData.find(i => i.id === itemId);
-    const split = calculateSpiritSplit(item.price);
-
-    if(!confirm(`Confirmer la réception de "${item.title}" ?\nL'argent sera libéré et les commissions prélevées.`)) return;
-
-    // --- MISE À JOUR DU LEDGER (Preuve pour ton dossier financier) ---
-    const { error } = await _spirit
-        .from('spirit_ledger')
-        .insert([{
-            listing_title: item.title,
-            status: 'COMPLETED',
-            ia_score: item.ia_score,
-            seller_name: item.owner,
-            // C'est ici qu'on prouve la rentabilité :
-            commission_total: split.totalFee,
-            royalty_spirit: split.myShare, // Tes 3%
-            royalty_firm: split.firmShare // Les 3% du partenaire
-        }]);
-
-    if (error) {
-        console.error("Erreur Ledger Final:", error.message);
-    } else {
-        alert(`TRANSACTION TERMINÉE !\n
-        Vendeur crédité de : ${split.sellerNet} €\n
-        Spirit Infinity (Toi) : +${split.myShare} €\n
-        Partenaire (Firm) : +${split.firmShare} €`);
-        
-        // On retire l'objet du market ou on change son statut
-        item.status = 'sold';
-        renderMarket();
-    }
-}
-
-    alert("PAIEMENT SPIRIT VALIDÉ !\nFonds sécurisés (Escrow).\nCommission 6% répartie (3%/3%).");
-
-    // ENVOI À SUPABASE
+    // ENVOI À SUPABASE (Création de la trace d'achat)
     const { data, error } = await _spirit
         .from('transactions')
         .insert([
-            { 
-                product_id: selectedProduct.id, 
+            {
+                product_id: selectedProduct.id,
                 buyer: currentUser, 
                 amount: selectedProduct.price,
-                total_commission: commissionTotale,
-                user_profit: maPart,
-                firm_profit: partFirme,
+                total_commission: split.totalFee,
+                user_profit: split.myShare,
+                firm_profit: split.firmShare,
                 status: 'escrow_active'
             }
         ]);
 
-    if (error) console.error("Erreur Ledger:", error);
+    if (error) {
+        console.error("Erreur Ledger:", error.message);
+        alert("Erreur base de données : " + error.message);
+        return;
+    }
 
-    // ACTIVATION DU BORDEREAU DANS "MES VENTES"
+    alert("PAIEMENT SPIRIT VALIDÉ !\nFonds sécurisés (Escrow).\nCommission 6% répartie (3%/3%).");
+
     addToMySales(selectedProduct, carrierName);
-    
     selectedProduct.status = 'sold';
     renderMarket();
     closeModals();
+    loadUserPurchases(); // Actualise l'onglet "Mes Achats" immédiatement
 }
 
 // --- FIN DU SYSTÈME ---
@@ -1538,6 +1503,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
