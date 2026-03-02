@@ -711,15 +711,24 @@ function calculateSpiritSplit(price) {
             const soldBadge = item.status === 'sold' ? '<div class="badge-sold">VENDU</div>' : '';
             const imgContent = item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}`;
             card.innerHTML = `
-                ${soldBadge}
-                <div class="badge ${badgeClass}">${badgeText}</div>
-                <div class="img-placeholder">${imgContent}</div>
-                <div class="card-info">
-                    <div class="price">${item.price} €</div>
-                    <div class="title">${item.title}</div>
-                    <div class="legende"><span>${item.country}</span><span>${item.type==='native'?'Auto-Diag: OK':'IA: Validé'}</span></div>
-                </div>
-            `;
+               // (c) 2026 Spirit Infinity - Tous droits réservés
+card.innerHTML = `
+    ${soldBadge}
+    <div class="badge ${badgeClass}">${badgeText}</div>
+    <div class="img-placeholder">${imgContent}</div>
+    <div class="card-info">
+        <div class="price">${item.price} €</div>
+        <div class="title">${item.title}</div>
+        <div class="legende"><span>${item.country}</span><span>${item.type==='native'?'Auto-Diag: OK':'IA: Validé'}</span></div>
+        
+        ${item.status === 'available' ? `
+            <button onclick="event.stopPropagation(); buyProduct('${item.id}', ${item.price})" 
+                    style="width:100%; margin-top:10px; background:var(--spirit-green); color:black; border:none; padding:8px; font-weight:bold; cursor:pointer;">
+                🛒 ACHETER
+            </button>
+        ` : ''}
+    </div>
+`;
             if(item.type === 'native') gn.appendChild(card);
             else gl.appendChild(card);
         });
@@ -1410,10 +1419,38 @@ async function startExpertScan() {
         console.error("Erreur Spirit Eyes:", err);
         statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
+    // ... ton code actuel finit ici ligne 1421
+    } 
 }
+
+// (c) 2026 Spirit Infinity - Système d'Achat Spirit Shield
+async function buyProduct(productId, price) {
+    if (!currentUser) { 
+        alert("🔒 SÉCURITÉ : Connectez-vous pour acheter."); 
+        return; 
+    }
+    if (confirm("SPIRIT SHIELD : Confirmer l'achat ?\nLes fonds seront bloqués jusqu'à la réception.")) {
+        const { error } = await _spirit.from('transactions').insert([{
+            product_id: productId, 
+            buyer: currentUser, 
+            amount: price, 
+            status: 'escrow_active',
+            created_at: new Date().toISOString()
+        }]);
+        
+        if (error) {
+            alert("Erreur Ledger : " + error.message);
+        } else { 
+            alert("✅ ACHAT VALIDÉ ! Retrouvez-le dans 'MES ACHATS'."); 
+            if(window.renderMarket) renderMarket(); 
+        }
+    }
+}
+
 </script>
 </body>
 </html>
+
 
 
 
