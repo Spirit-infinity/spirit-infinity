@@ -1338,27 +1338,32 @@ async function loadUserPurchases() {
         return;
     }
 
-    data.forEach(purchase => {
-        const row = document.createElement('div');
-        row.style.borderBottom = "1px solid #444";
-        row.style.padding = "10px";
-        
-        // (c) 2026 Spirit Infinity - Tous droits réservés
-        let actions = '<span style="color:#ffa500">Statut : ' + purchase.status + '</span>';
-        
-        if(purchase.status === 'escrow_active') {
-            actions = '<div style="display:flex; gap:10px; margin-top:5px;">' +
-                      '<button onclick="confirmReceipt(' + purchase.id + ',' + purchase.product_id + ')" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">✅ REÇU</button>' +
-                      '<button onclick="openDispute(' + purchase.id + ')" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">⚠️ LITIGE</button>' +
-                      '</div>';
-        }
-
-        row.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
-                        '<div><strong>ID: #' + purchase.id + '</strong><br>Montant: ' + purchase.amount + ' €</div>' +
-                        '<div>' + actions + '</div>' +
-                        '</div>';
-listBody.appendChild(row);
-    });
+    // (c) 2026 Spirit Infinity - Tous droits réservés
+data.forEach(purchase => {
+    const row = document.createElement('div');
+    row.style.borderBottom = "1px solid #444";
+    row.style.padding = "10px";
+    
+    // Construction sécurisée de l'affichage
+    let htmlContent = '<div style="display:flex; justify-content:space-between; align-items:center;">';
+    htmlContent += '<div><strong>ID Transaction: #' + purchase.id + '</strong><br>';
+    htmlContent += '<span>Montant: ' + purchase.amount + ' €</span></div>';
+    
+    if (purchase.status === 'escrow_active') {
+        htmlContent += '<div style="display:flex; gap:10px;">';
+        // Bouton REÇU
+        htmlContent += '<button onclick="confirmReceipt(' + purchase.id + ',' + purchase.product_id + ')" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">✅ REÇU</button>';
+        // Bouton LITIGE
+        htmlContent += '<button onclick="openDispute(' + purchase.id + ')" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">⚠️ LITIGE</button>';
+        htmlContent += '</div>';
+    } else {
+        htmlContent += '<span style="color:#ffa500">Statut: ' + purchase.status + '</span>';
+    }
+    
+    htmlContent += '</div>';
+    row.innerHTML = htmlContent;
+    listBody.appendChild(row);
+});
 }
 
     renderMarket();
@@ -1493,6 +1498,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
