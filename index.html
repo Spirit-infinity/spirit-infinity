@@ -1419,41 +1419,12 @@ async function startExpertScan() {
         console.error("Erreur Spirit Eyes:", err);
         statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
-   // --- (c) 2026 Spirit Infinity - Système d'Achat Spirit Shield ---
-
-async function buyProduct(productId, price) {
-    if (!window.currentUser) { 
-        alert("🔒 SÉCURITÉ : Connectez-vous pour acheter."); 
-        return; 
-    }
-    
-    if (confirm("SPIRIT SHIELD : Confirmer l'achat ?\nLes fonds seront bloqués jusqu'à la réception.")) {
-        const { error } = await _spirit.from('transactions').insert([{
-            product_id: productId, 
-            buyer: currentUser, 
-            amount: price, 
-            status: 'escrow_active',
-            created_at: new Date().toISOString()
-        }]);
-        
-        if (error) {
-            alert("Erreur Ledger : " + error.message);
-        } else { 
-            alert("✅ ACHAT VALIDÉ !"); 
-            if(window.renderMarket) renderMarket(); 
-        }
-    }
-}
-
-// Sécurité si ton bouton utilise l'ancien nom
-async function confirmPayment(id, prix) {
-    await buyProduct(id, prix);
-}
-
+  
  
 </script>
 </body>
 </html>
+
 
 
 
