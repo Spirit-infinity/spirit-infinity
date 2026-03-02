@@ -1500,38 +1500,11 @@ async function startExpertScan() {
     }
 }
     
-// (c) 2026 Spirit Infinity - Système Spirit Shield
-async function confirmReceipt(transactionId) {
-    if (confirm("🛡️ SPIRIT SHIELD : Confirmez-vous avoir reçu l'article ?")) {
-        const { error } = await _spirit.from('transactions').update({ status: 'completed' }).eq('id', transactionId);
-        if (error) alert(error.message);
-        else { alert("✅ TRANSACTION TERMINÉE"); loadUserPurchases(); }
-    }
-}
-
-async function openDispute(transactionId) {
-    const motif = prompt("⚠️ MOTIF DU LITIGE :");
-    if (motif) {
-        const { error } = await _spirit.from('transactions').update({ status: 'dispute', dispute_reason: motif }).eq('id', transactionId);
-        if (error) alert(error.message);
-        else { alert("⚖️ LITIGE OUVERT"); loadUserPurchases(); }
-    }
-}
-
-// Pour corriger l'erreur de ta Photo 1 (confirmPayment)
-async function confirmPayment(productId, price) {
-    if (confirm("Acheter pour " + price + "€ ?")) {
-        const { error } = await _spirit.from('transactions').insert([{
-            product_id: productId, buyer: currentUser, amount: price, status: 'escrow_active'
-        }]);
-        if (error) alert(error.message);
-        else { alert("✅ ACHAT VALIDÉ"); loadUserPurchases(); }
-    }
-}
 
 </script>
 </body>
 </html>
+
 
 
 
