@@ -1499,6 +1499,48 @@ async function startExpertScan() {
         statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
 }
+    // (c) 2026 Spirit Infinity - Gestion du Séquestre (Spirit Shield)
+
+async function confirmReceipt(transactionId) {
+    const ok = confirm("🛡️ SPIRIT SHIELD :\nConfirmez-vous avoir reçu l'article ?\nLe paiement sera débloqué pour le vendeur.");
+    
+    if (ok) {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ status: 'completed' })
+            .eq('id', transactionId);
+
+        if (error) {
+            alert("Erreur : " + error.message);
+        } else {
+            alert("✅ TRANSACTION TERMINÉE ! Merci de votre confiance.");
+            loadUserPurchases(); // Rafraîchit la liste
+        }
+    }
+}
+
+async function openDispute(transactionId) {
+    const motif = prompt("⚠️ OUVERTURE DE LITIGE :\nVeuillez indiquer la raison (Non reçu, Cassé, Contrefaçon) :");
+    
+    if (motif) {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ 
+                status: 'dispute',
+                dispute_reason: motif 
+            })
+            .eq('id', transactionId);
+
+        if (error) {
+            alert("Erreur : " + error.message);
+        } else {
+            alert("⚖️ LITIGE OUVERT. Le support Spirit Infinity va analyser votre dossier.");
+            loadUserPurchases(); // Rafraîchit la liste
+        }
+    }
+}
+
 </script>
 </body>
 </html>
+
