@@ -1334,35 +1334,29 @@ async function loadUserPurchases() {
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error("Erreur de chargement des achats:", error);
+        console.error("Erreur Ledger:", error);
         return;
     }
 
     data.forEach(purchase => {
         const row = document.createElement('div');
         row.style.borderBottom = "1px solid #444";
-        row.style.padding = "10px 0";
+        row.style.padding = "10px";
         
-        // Boutons : Uniquement si c'est en attente (escrow_active)
         let actions = `<span style="color:#ffa500">Statut : ${purchase.status}</span>`;
+        
         if(purchase.status === 'escrow_active') {
-            actions = `
-                <div style="display:flex; gap:10px; margin-top:5px;">
-                    <button onclick="confirmReceipt(${purchase.id}, ${purchase.product_id})" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">✅ REÇU</button>
-                    <button onclick="openDispute(${purchase.id})" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">⚠️ LITIGE</button>
-                </div>
-            `;
+            // Utilisation de guillemets simples standard pour éviter le SyntaxError
+            actions = '<div style="display:flex; gap:10px; margin-top:5px;">' +
+                      '<button onclick="confirmReceipt(' + purchase.id + ',' + purchase.product_id + ')" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">✅ REÇU</button>' +
+                      '<button onclick="openDispute(' + purchase.id + ')" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">⚠️ LITIGE</button>' +
+                      '</div>';
         }
 
-        row.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <strong>ID Transaction: #${purchase.id}</strong><br>
-                    <span style="font-size:0.9rem;">Montant : ${purchase.amount} €</span>
-                </div>
-                <div>${actions}</div>
-            </div>
-        `;
+        row.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                        '<div><strong>ID: #' + purchase.id + '</strong><br>Montant: ' + purchase.amount + ' €</div>' +
+                        '<div>' + actions + '</div>' +
+                        '</div>';
         listBody.appendChild(row);
     });
 }
@@ -1499,6 +1493,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
