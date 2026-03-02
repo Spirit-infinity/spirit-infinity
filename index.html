@@ -1343,13 +1343,13 @@ async function loadUserPurchases() {
         row.style.borderBottom = "1px solid #444";
         row.style.padding = "10px";
         
-        let actions = `<span style="color:#ffa500">Statut : ${purchase.status}</span>`;
+        // (c) 2026 Spirit Infinity - Tous droits réservés
+        let actions = '<span style="color:#ffa500">Statut : ' + purchase.status + '</span>';
         
         if(purchase.status === 'escrow_active') {
-            // Utilisation de guillemets simples standard pour éviter le SyntaxError
             actions = '<div style="display:flex; gap:10px; margin-top:5px;">' +
-                      '<button onclick="confirmReceipt(' + purchase.id + ',' + purchase.product_id + ')" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">✅ REÇU</button>' +
-                      '<button onclick="openDispute(' + purchase.id + ')" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">⚠️ LITIGE</button>' +
+                      '<button onclick="confirmReceipt(' + purchase.id + ',' + purchase.product_id + ')" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">✅ REÇU</button>' +
+                      '<button onclick="openDispute(' + purchase.id + ')" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">⚠️ LITIGE</button>' +
                       '</div>';
         }
 
@@ -1357,7 +1357,7 @@ async function loadUserPurchases() {
                         '<div><strong>ID: #' + purchase.id + '</strong><br>Montant: ' + purchase.amount + ' €</div>' +
                         '<div>' + actions + '</div>' +
                         '</div>';
-        listBody.appendChild(row);
+listBody.appendChild(row);
     });
 }
 
@@ -1493,6 +1493,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
