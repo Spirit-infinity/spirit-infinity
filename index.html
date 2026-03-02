@@ -423,7 +423,6 @@
             <button id="btn-dashboard" class="active" onclick="showAccountTab('dashboard')">🏠 DASHBOARD</button>
             <button id="btn-achats" onclick="showAccountTab('achats'); loadUserPurchases();">📦 MES ACHATS</button>
             <button id="btn-annonces" onclick="showAccountTab('annonces')">🏷️ MES ANNONCES</button>
-            <button id="btn-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>  
             <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
             <div class="dash-content">
@@ -439,11 +438,11 @@
                         <p style="font-size:0.8rem;">Veuillez vous connecter pour voir vos données.</p>
                     </div>
                 </div>
-                <div id="tab-achats" class="account-page" style="display:none;">
-            <h3 style="color:var(--spirit-green)">🛡️ SPIRIT SHIELD : SUIVI DES ACHATS</h3>
-            <div id="list-achats" style="margin-top:20px;">
-                </div>
+               <div id="tab-achats" class="account-page" style="display:none;">
+    <h3 style="color:var(--spirit-green)">🛡️ SPIRIT SHIELD : SUIVI DES ACHATS</h3>
+    <div id="list-achats" style="margin-top:20px;">
         </div>
+</div>
     <h3>MES ACHATS & SÉCURITÉ SÉQUESTRE</h3>
     <div style="background:rgba(0,255,170,0.05); padding:10px; border:1px solid var(--spirit-green); font-size:0.75rem; margin-bottom:15px; color:var(--spirit-green);">
         🛡️ SPIRIT SHIELD : Vos fonds sont bloqués. Confirmez la réception pour libérer le paiement ou ouvrez un litige en cas de problème.
@@ -1208,15 +1207,10 @@ function calculateSpiritSplit(price) {
     };
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
-// SYSTEME SPIRIT SHIELD : GESTION DES ACHATS ET LITIGES
-
 async function loadUserPurchases() {
     const listBody = document.getElementById('list-achats');
-    if(!listBody) {
-        console.error("ERREUR : L'élément HTML 'list-achats' est introuvable.");
-        return;
-    }
-    listBody.innerHTML = '<p style="text-align:center; color:var(--neon-orange);">Synchronisation Ledger...</p>';
+    if(!listBody) return;
+    listBody.innerHTML = '<p style="color:orange;">Chargement du Ledger...</p>';
 
     const { data, error } = await _spirit
         .from('transactions')
@@ -1224,41 +1218,35 @@ async function loadUserPurchases() {
         .eq('buyer', currentUser)
         .order('created_at', { ascending: false });
 
-    if (error) {
-        listBody.innerHTML = "Erreur Ledger : " + error.message;
-        return;
-    }
+    if (error) { listBody.innerHTML = "Erreur : " + error.message; return; }
 
-    listBody.innerHTML = ''; // On vide pour reconstruire proprement
+    listBody.innerHTML = ''; 
 
     data.forEach(tr => {
         const row = document.createElement('div');
         row.className = "transaction-item";
-        row.style = "border:1px solid #333; padding:15px; margin-bottom:10px; background:#0a0a0a; border-radius:5px;";
+        row.style = "border:1px solid #333; padding:15px; margin-bottom:10px; background:#111; display:flex; justify-content:space-between; align-items:center;";
         
-        // Logique d'affichage des boutons selon le statut
-        let actionsHtml = `<span style="color:var(--neon-orange); font-weight:bold;">${tr.status.toUpperCase()}</span>`;
+        let actionsHtml = `<span style="color:var(--neon-orange)">${tr.status.toUpperCase()}</span>`;
         
         if(tr.status === 'escrow_active') {
             actionsHtml = `
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button onclick="confirmReceipt(${tr.id})" style="background:var(--spirit-green); color:black; border:none; padding:8px; cursor:pointer; flex:1; font-weight:bold;">✅ REÇU</button>
-                    <button onclick="openDispute(${tr.id})" style="background:var(--danger); color:white; border:none; padding:8px; cursor:pointer; flex:1; font-weight:bold;">⚠️ LITIGE</button>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="confirmReceipt('${tr.id}')" style="background:var(--spirit-green); color:black; border:none; padding:8px 12px; cursor:pointer; font-weight:bold;">✅ REÇU</button>
+                    <button onclick="openDispute('${tr.id}')" style="background:red; color:white; border:none; padding:8px 12px; cursor:pointer; font-weight:bold;">⚠️ LITIGE</button>
                 </div>`;
         }
 
         row.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div>
-                    <b style="color:white; font-size:1rem;">ID #${tr.id}</b><br>
-                    <span style="color:#aaa;">Montant : ${tr.amount} €</span><br>
-                    <small style="color:#555;">${new Date(tr.created_at).toLocaleDateString()}</small>
-                </div>
-                <div style="text-align:right;">${actionsHtml}</div>
-            </div>`;
+            <div>
+                <b style="color:white;">ID: #${tr.id.slice(0,8)}</b><br>
+                <span style="color:#aaa;">Montant: ${tr.amount} €</span>
+            </div>
+            <div>${actionsHtml}</div>`;
         listBody.appendChild(row);
     });
 }
+
 
 async function confirmReceipt(transactionId) {
     if (!confirm("CONFIRMATION SPIRIT SHIELD :\nAvez-vous reçu la figurine ?\nCela libérera les royalties (3% / 3%).")) return;
@@ -1426,6 +1414,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
