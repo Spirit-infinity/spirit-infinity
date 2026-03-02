@@ -1080,7 +1080,7 @@ async function confirmPayment(method) {
     const carrierSelect = document.getElementById('pCarrierSelect');
     const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
     
-    // Calcul précis des parts Spirit Infinity
+    // Calcul des commissions (3% / 3%)
     const split = calculateSpiritSplit(selectedProduct.price);
 
     const { data, error } = await _spirit
@@ -1088,7 +1088,7 @@ async function confirmPayment(method) {
         .insert([{
             product_id: selectedProduct.id,
             buyer: currentUser, 
-            amount: parseFloat(selectedProduct.price), // <--- Doit matcher avec Supabase
+            amount: parseFloat(selectedProduct.price),
             total_commission: parseFloat(split.totalFee),
             user_profit: parseFloat(split.myShare),
             firm_profit: parseFloat(split.firmShare),
@@ -1097,13 +1097,20 @@ async function confirmPayment(method) {
 
     if (error) {
         console.error("Erreur Ledger Finale:", error.message);
-        alert("Erreur de synchronisation : " + error.message);
+        alert("Erreur base de données : " + error.message);
         return;
     }
 
     alert("SPIRIT PAY : Succès ! Votre achat est enregistré et sécurisé.");
+    
+    // Mise à jour de l'interface
+    if (typeof addToMySales === "function") addToMySales(selectedProduct, carrierName);
+    selectedProduct.status = 'sold';
+    renderMarket();
     closeModals();
-    loadUserPurchases(); // Rafraîchit ton historique d'achats
+    
+    // Rafraîchir l'onglet "Mes Achats"
+    if (typeof loadUserPurchases === "function") loadUserPurchases();
 }
 
 // --- FIN DU SYSTÈME ---
@@ -1496,6 +1503,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
