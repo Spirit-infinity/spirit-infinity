@@ -1301,8 +1301,8 @@ async function confirmReceipt(transactionId, productId) {
     }
 }
 
-
 // (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function loadUserPurchases() {
     const listBody = document.getElementById('list-achats');
     if(!listBody) return;
@@ -1319,33 +1319,56 @@ async function loadUserPurchases() {
         return;
     }
 
-   // (c) 2026 Spirit Infinity - Tous droits réservés
-data.forEach(purchase => {
-    const row = document.createElement('div');
-    row.style.borderBottom = "1px solid #444";
-    row.style.padding = "10px";
-    
-    // On crée les variables proprement avant de les injecter
-    const pId = purchase.id;
-    const prodId = purchase.product_id;
-    const price = purchase.amount || 0;
-    
-    let actionsHTML = '<span style="color:#ffa500">Statut : ' + purchase.status + '</span>';
-    
-    if (purchase.status === 'escrow_active') {
-        actionsHTML = '<div style="display:flex; gap:10px; margin-top:5px;">' +
-            '<button onclick="confirmReceipt(' + pId + ',' + prodId + ')" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">✅ REÇU</button>' +
-            '<button onclick="openDispute(' + pId + ')" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">⚠️ LITIGE</button>' +
-            '</div>';
-    }
-
-    row.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
-        '<div><strong>ID: #' + pId + '</strong><br>Montant: ' + price + ' €</div>' +
-        '<div>' + actionsHTML + '</div>' +
-        '</div>';
+    data.forEach(purchase => {
+        const row = document.createElement('div');
+        row.style.borderBottom = "1px solid #444";
+        row.style.padding = "10px";
         
-    listBody.appendChild(row);
-});
+        let actions = '<span style="color:#ffa500">Statut : ' + purchase.status + '</span>';
+        
+        if(purchase.status === 'escrow_active') {
+            actions = '<div style="display:flex; gap:10px; margin-top:5px;">' +
+                      '<button onclick="confirmReceipt(' + purchase.id + ',' + purchase.product_id + ')" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">✅ RECU</button>' +
+                      '<button onclick="openDispute(' + purchase.id + ')" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">⚠️ LITIGE</button>' +
+                      '</div>';
+        }
+
+        row.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                        '<div><strong>ID: #' + purchase.id + '</strong><br>Montant: ' + purchase.amount + ' €</div>' +
+                        '<div>' + actions + '</div>' +
+                        '</div>';
+        listBody.appendChild(row);
+    });
+}
+
+async function confirmReceipt(tId, pId) {
+    if (!confirm("LIBERER LES FONDS ?\nCela valide la vente et vos royalties.")) return;
+
+    const { error } = await _spirit
+        .from('transactions')
+        .update({ status: 'completed' })
+        .eq('id', tId);
+
+    if (error) {
+        alert("Erreur : " + error.message);
+    } else {
+        alert("✅ VENTE VALIDEE !");
+        loadUserPurchases();
+        renderMarket();
+    }
+}
+
+async function openDispute(tId) {
+    const reason = prompt("Motif du litige :");
+    if (!reason) return;
+
+    await _spirit
+        .from('transactions')
+        .update({ status: 'disputed', dispute_reason: reason })
+        .eq('id', tId);
+
+    alert("⚠️ LITIGE OUVERT. Spirit Shield active.");
+    loadUserPurchases();
 }
 
     renderMarket();
@@ -1480,6 +1503,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
