@@ -133,6 +133,12 @@
         .msg-line { margin-bottom: 8px; font-size: 0.8rem; }
         .msg-user { color: var(--neon-orange); font-weight: bold; }
         .msg-text { color: white; margin-left: 5px; }
+        /* (c) 2026 Spirit Infinity - Tous droits réservés */
+.btn-shield-ok { background: var(--spirit-green); color: black; border: none; padding: 5px 10px; font-weight: bold; cursor: pointer; font-size: 0.7rem; border-radius: 2px; }
+.btn-shield-bad { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 5px 10px; font-weight: bold; cursor: pointer; font-size: 0.7rem; border-radius: 2px; margin-left: 5px; }
+.btn-shield-ok:hover { opacity: 0.8; }
+.btn-shield-bad:hover { background: var(--danger); color: white; }
+
     </style>
 </head>
 <body>
@@ -434,12 +440,25 @@
                     </div>
                 </div>
                 <div id="tab-achats" class="account-page">
-                    <h3>MES ACHATS</h3>
-                    <table class="table-spirit">
-                        <thead><tr><th>Date</th><th>Produit</th><th>Montant</th><th>Statut</th></tr></thead>
-                        <tbody id="list-achats"></tbody>
-                    </table>
-                </div>
+    <h3>MES ACHATS & SÉCURITÉ SÉQUESTRE</h3>
+    <div style="background:rgba(0,255,170,0.05); padding:10px; border:1px solid var(--spirit-green); font-size:0.75rem; margin-bottom:15px; color:var(--spirit-green);">
+        🛡️ SPIRIT SHIELD : Vos fonds sont bloqués. Confirmez la réception pour libérer le paiement ou ouvrez un litige en cas de problème.
+    </div>
+    <table class="table-spirit">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Produit</th>
+                <th>Montant</th>
+                <th>Statut</th>
+                <th style="text-align:center;">Actions Spirit Shield</th>
+            </tr>
+        </thead>
+        <tbody id="list-achats">
+            </tbody>
+    </table>
+</div>
+
                 <div id="tab-ventes" class="account-page">
                     <h3>MES VENTES RÉALISÉES</h3>
                     <div id="shipping-list"></div>
@@ -634,6 +653,64 @@
     let currentUser = "INVITÉ";
     let diagActive = false;
     let editingId = null;
+// (c) 2026 Spirit Infinity - Tous droits réservés
+// CALCUL DU SPLIT FINANCIER 3% / 3%
+function calculateSpiritSplit(price) {
+    const totalFee = price * 0.06;
+    const myShare = price * 0.03; // Tes 3% (Marketplace)
+    const firmShare = price * 0.03; // Les 3% Partenaire (Royalties)
+    return {
+        totalFee: totalFee.toFixed(2),
+        myShare: myShare.toFixed(2),
+        firmShare: firmShare.toFixed(2),
+        sellerNet: (price - totalFee).toFixed(2)
+    };
+}
+
+// CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
+async function loadUserPurchases() {
+    const listBody = document.getElementById('list-achats');
+    if(!listBody) return;
+    listBody.innerHTML = '';
+
+    // On récupère les transactions où l'utilisateur est l'acheteur
+    const { data, error } = await _spirit
+        .from('transactions')
+        .select('*')
+        .eq('buyer', currentUser)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Erreur de chargement des achats:", error);
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
+        return;
+    }
+
+    data.forEach(tr => {
+        // On cherche le nom du produit dans marketData ou via une jointure
+        const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
+        const dateStr = new Date(tr.created_at).toLocaleDateString();
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${dateStr}</td>
+            <td><b style="color:var(--neon-orange)">${product.title}</b></td>
+            <td>${tr.amount} €</td>
+            <td><span style="color:${tr.status === 'completed' ? 'var(--spirit-green)' : 'orange'}">${tr.status.toUpperCase()}</span></td>
+            <td style="text-align:center;">
+                ${tr.status === 'escrow_active' ? `
+                    <button class="btn-shield-ok" onclick="confirmReceipt(${tr.id}, ${tr.product_id})">✅ REÇU</button>
+                    <button class="btn-shield-bad" onclick="openDispute(${tr.id})">⚠️ LITIGE</button>
+                ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+            </td>
+        `;
+        listBody.appendChild(row);
+    });
+}
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
@@ -1200,7 +1277,6 @@ async function confirmReceipt(itemId) {
     }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
     function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
-    function openAccount() { updateUserAnnonces(); document.getElementById('accountModal').style.display = 'flex'; }
     function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
     function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
     function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
@@ -1222,6 +1298,113 @@ async function confirmReceipt(itemId) {
         document.getElementById('forumList').style.display = 'block';
         document.getElementById('topicEditor').style.display = 'none';
     }
+   function openAccount() { 
+    updateUserAnnonces(); 
+    loadUserPurchases(); // <--- On appelle le chargement ici !
+    document.getElementById('accountModal').style.display = 'flex'; 
+}
+    
+// (c) 2026 Spirit Infinity - Tous droits réservés
+// CALCUL DU SPLIT FINANCIER 3% / 3%
+function calculateSpiritSplit(price) {
+    const totalFee = price * 0.06;
+    const myShare = price * 0.03; // Tes 3% (Marketplace)
+    const firmShare = price * 0.03; // Les 3% Partenaire (Royalties)
+    return {
+        totalFee: totalFee.toFixed(2),
+        myShare: myShare.toFixed(2),
+        firmShare: firmShare.toFixed(2),
+        sellerNet: (price - totalFee).toFixed(2)
+    };
+}
+// (c) 2026 Spirit Infinity - Tous droits réservés
+// ACTION FINALE : CONFIRMER LA RÉCEPTION & LIBÉRER LES ROYALTIES
+async function confirmReceipt(transactionId, productId) {
+    const item = marketData.find(i => i.id === productId);
+    const productName = item ? item.title : "Figurine #" + productId;
+
+    if(!confirm(`CONFIRMATION SPIRIT SHIELD :\nAvez-vous bien reçu "${productName}" ?\nCette action libère les fonds et valide les royalties (3%/3%).`)) return;
+
+    try {
+        // 1. On récupère le montant de la transaction pour calculer le Split
+        const { data: trData } = await _spirit
+            .from('transactions')
+            .select('amount')
+            .eq('id', transactionId)
+            .single();
+
+        const split = calculateSpiritSplit(trData.amount);
+
+        // 2. MISE À JOUR DU LEDGER (Preuve de rentabilité pour ton dossier)
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ 
+                status: 'completed',
+                user_profit: split.myShare, // Tes 3% encaissés
+                firm_profit: split.firmShare, // Les 3% de la Firme
+                completed_at: new Date().toISOString()
+            })
+            .eq('id', transactionId);
+
+        if (error) throw error;
+
+        // 3. MISE À JOUR VISUELLE
+        alert(`🎯 TRANSACTION RÉUSSIE !\n\nRoyalties Spirit Infinity : +${split.myShare} € (Encaissés)\nRoyalties Partenaire : +${split.firmShare} €\n\nLe Ledger a été mis à jour.`);
+        
+        loadUserPurchases(); // Actualise le tableau "Mes Achats"
+        renderMarket(); // Actualise le Market
+
+    } catch (err) {
+        console.error("Erreur Confirmation Ledger:", err.message);
+        alert("ERREUR CRITIQUE : Impossible de valider la transaction. Vérifiez votre connexion.");
+    }
+}
+
+// CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
+async function loadUserPurchases() {
+    const listBody = document.getElementById('list-achats');
+    if(!listBody) return;
+    listBody.innerHTML = '';
+
+    // On récupère les transactions où l'utilisateur est l'acheteur
+    const { data, error } = await _spirit
+        .from('transactions')
+        .select('*')
+        .eq('buyer', currentUser)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Erreur de chargement des achats:", error);
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
+        return;
+    }
+
+    data.forEach(tr => {
+        // On cherche le nom du produit dans marketData ou via une jointure
+        const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
+        const dateStr = new Date(tr.created_at).toLocaleDateString();
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${dateStr}</td>
+            <td><b style="color:var(--neon-orange)">${product.title}</b></td>
+            <td>${tr.amount} €</td>
+            <td><span style="color:${tr.status === 'completed' ? 'var(--spirit-green)' : 'orange'}">${tr.status.toUpperCase()}</span></td>
+            <td style="text-align:center;">
+                ${tr.status === 'escrow_active' ? `
+                    <button class="btn-shield-ok" onclick="confirmReceipt(${tr.id}, ${tr.product_id})">✅ REÇU</button>
+                    <button class="btn-shield-bad" onclick="openDispute(${tr.id})">⚠️ LITIGE</button>
+                ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+            </td>
+        `;
+        listBody.appendChild(row);
+    });
+}
+
 
     renderMarket();
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -1355,6 +1538,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
