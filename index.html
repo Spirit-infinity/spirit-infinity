@@ -1279,45 +1279,25 @@ function calculateSpiritSplit(price) {
     };
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
-// ACTION FINALE : CONFIRMER LA RÉCEPTION & LIBÉRER LES ROYALTIES
 async function confirmReceipt(transactionId, productId) {
-    const item = marketData.find(i => i.id === productId);
-    const productName = item ? item.title : "Figurine #" + productId;
-
-    if(!confirm(`CONFIRMATION SPIRIT SHIELD :\nAvez-vous bien reçu "${productName}" ?\nCette action libère les fonds et valide les royalties (3%/3%).`)) return;
+    if (!confirm("CONFIRMATION SPIRIT SHIELD :\nAvez-vous bien reçu votre figurine ?\nCela libérera les fonds et les royalties.")) return;
 
     try {
-        // 1. On récupère le montant de la transaction pour calculer le Split
-        const { data: trData } = await _spirit
-            .from('transactions')
-            .select('amount')
-            .eq('id', transactionId)
-            .single();
-
-        const split = calculateSpiritSplit(trData.amount);
-
-        // 2. MISE À JOUR DU LEDGER (Preuve de rentabilité pour ton dossier)
+        // 1. Mise à jour du Ledger
         const { error } = await _spirit
             .from('transactions')
-            .update({ 
-                status: 'completed',
-                user_profit: split.myShare, // Tes 3% encaissés
-                firm_profit: split.firmShare, // Les 3% de la Firme
-                completed_at: new Date().toISOString()
-            })
+            .update({ status: 'completed' })
             .eq('id', transactionId);
 
         if (error) throw error;
 
-        // 3. MISE À JOUR VISUELLE
-        alert(`🎯 TRANSACTION RÉUSSIE !\n\nRoyalties Spirit Infinity : +${split.myShare} € (Encaissés)\nRoyalties Partenaire : +${split.firmShare} €\n\nLe Ledger a été mis à jour.`);
+        alert("✅ TRANSACTION RÉUSSIE !\nRoyalties Spirit Infinity encaissées.");
         
-        loadUserPurchases(); // Actualise le tableau "Mes Achats"
-        renderMarket(); // Actualise le Market
-
+        loadUserPurchases(); // Actualise l'affichage
+        renderMarket(); // Actualise le marché
     } catch (err) {
-        console.error("Erreur Confirmation Ledger:", err.message);
-        alert("ERREUR CRITIQUE : Impossible de valider la transaction. Vérifiez votre connexion.");
+        console.error("Erreur Ledger:", err.message);
+        alert("ERREUR CRITIQUE : Impossible de valider.");
     }
 }
 
@@ -1498,6 +1478,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
