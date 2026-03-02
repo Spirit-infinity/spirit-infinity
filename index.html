@@ -1419,17 +1419,24 @@ async function startExpertScan() {
         console.error("Erreur Spirit Eyes:", err);
         statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
-    // ... ton code actuel finit ici ligne 1421
-    } 
+   // (c) 2026 Spirit Infinity - Système d'Achat Spirit Shield
+async function buyProduct(productId, price) {
+    await processSpiritPurchase(productId, price);
 }
 
-// (c) 2026 Spirit Infinity - Système d'Achat Spirit Shield
-async function buyProduct(productId, price) {
+async function confirmPayment(productId, price) {
+    await processSpiritPurchase(productId, price);
+}
+
+async function processSpiritPurchase(productId, price) {
     if (!currentUser) { 
         alert("🔒 SÉCURITÉ : Connectez-vous pour acheter."); 
         return; 
     }
-    if (confirm("SPIRIT SHIELD : Confirmer l'achat ?\nLes fonds seront bloqués jusqu'à la réception.")) {
+    
+    const ok = confirm("SPIRIT SHIELD : Confirmer l'achat ?\nLes fonds seront bloqués jusqu'à la réception.");
+    
+    if (ok) {
         const { error } = await _spirit.from('transactions').insert([{
             product_id: productId, 
             buyer: currentUser, 
@@ -1441,15 +1448,16 @@ async function buyProduct(productId, price) {
         if (error) {
             alert("Erreur Ledger : " + error.message);
         } else { 
-            alert("✅ ACHAT VALIDÉ ! Retrouvez-le dans 'MES ACHATS'."); 
+            alert("✅ ACHAT VALIDÉ !"); 
             if(window.renderMarket) renderMarket(); 
         }
     }
 }
-
+ 
 </script>
 </body>
 </html>
+
 
 
 
