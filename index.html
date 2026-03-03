@@ -1090,13 +1090,23 @@ async function confirmPayment(method) {
     const { data, error } = await _spirit
         .from('transactions')
         .insert([{
-            product_id: selectedProduct.id,
-            buyer: currentUser,
-            amount: Number(selectedProduct.price),
-            total_commission: Number(split.totalFee),
-            user_profit: Number(split.myShare),
-            firm_profit: Number(split.firmShare),
-            status: 'escrow_active'
+           // (c) 2026 Spirit Infinity - Tous droits réservés
+{
+    product_id: selectedProduct.id,
+    buyer: currentUser,
+    // --- ON ALIGNE TOUT ICI ---
+    price: Number(selectedProduct.price), 
+    figurine_name: selectedProduct.name, // Le nom de la pièce
+    manufacturer_name: selectedProduct.factory, // L'usine d'origine
+    // --------------------------
+    amount: Number(selectedProduct.price),
+    total_commission: Number(split.totalFee),
+    user_profit: Number(split.myShare),
+    firm_profit: Number(split.firmShare),
+    status: 'escrow_active',
+    created_at: new Date()
+}
+
         }]);
 
     if (error) {
@@ -1518,6 +1528,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
