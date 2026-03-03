@@ -1082,28 +1082,43 @@ function addToMySales(product, carrierName) {
 async function confirmPayment(method) {
     const carrierSelect = document.getElementById('pCarrierSelect');
     const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
-   
-    // Calcul des commissions 3% / 3%
-    const split = calculateSpiritSplit(selectedProduct.price);
 
-    // Envoi propre à Supabase
+    // Calcul direct 6% (3% pour toi / 3% pour la firme)
+    const priceValue = Number(selectedProduct.price);
+    const myCommission = priceValue * 0.03;   
+    const firmCommission = priceValue * 0.03; 
+    const totalFees = myCommission + firmCommission;
+
     const { data, error } = await _spirit
         .from('transactions')
         .insert([{
             product_id: selectedProduct.id,
             buyer: currentUser,
-            amount: Number(selectedProduct.price),
-            total_commission: Number(split.totalFee),
-            user_profit: Number(split.myShare),
-            firm_profit: Number(split.firmShare),
-            status: 'escrow_active'
+            
+            // --- REMPLISSAGE DES COLONNES (Inversion corrigée) ---
+            figurine_name: selectedProduct.name,      
+            manufacturer_name: selectedProduct.factory, 
+            
+            // --- FINANCES (Split 6% Net) ---
+            price: priceValue,
+            amount: priceValue,
+            total_commission: totalFees,
+            user_profit: myCommission,   
+            firm_profit: firmCommission, 
+            
+            status: 'escrow_active',
+            created_at: new Date()
         }]);
 
     if (error) {
         console.error("Détail Erreur Supabase:", error);
-        alert("Erreur de synchronisation Ledger : " + error.message);
-        return;
+        alert("Erreur lors de l'achat : " + error.message);
+    } else {
+        alert("🛡️ SPIRIT SHIELD : Achat réussi ! 6% de commission validés.");
+        location.reload();
     }
+}
+
 
     alert("✅ PAIEMENT SPIRIT VALIDÉ !\n\nL'achat est enregistré dans votre compte.");
    
@@ -1518,6 +1533,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
