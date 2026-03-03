@@ -1326,43 +1326,40 @@ async function loadUserPurchases() {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmReceipt(trId) {
-    console.log("🛠️ Action: Confirmation de réception pour ID:", trId);
+    console.log("🛠️ Tentative de validation pour la transaction ID :", trId);
     
-    const { data, error } = await _spirit
-        .from('transactions')
-        .update({ status: 'completed' })
-        .eq('id', trId)
-        .select(); // On demande le retour des données pour confirmer l'écriture
+    if (!trId) return alert("Erreur : ID de transaction manquant.");
 
-    if (error) {
-        console.error("❌ ERREUR SUPABASE (Reçu):", error);
-        alert("Action impossible : " + error.message + " (Vérifie les RLS sur Supabase)");
-    } else {
-        console.log("✅ Succès:", data);
-        alert("🛡️ SPIRIT SHIELD : Argent débloqué !");
-        loadUserPurchases();
+    if (confirm("🛡️ SPIRIT SHIELD : Confirmer la réception et débloquer les fonds ?")) {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ status: 'completed' })
+            .eq('id', trId);
+
+        if (error) {
+            console.error("Erreur Supabase :", error);
+            alert("Erreur : " + error.message);
+        } else {
+            alert("✅ TRANSACTION TERMINÉE !");
+            loadUserPurchases(); // Recharge ton tableau
+        }
     }
 }
 
 async function openDispute(trId) {
-    const reason = prompt("⚠️ MOTIF DU LITIGE :");
-    if (!reason) return;
+    const reason = prompt("⚠️ MOTIF DU LITIGE (Casse, non conforme, etc) :");
+    if (reason) {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ status: 'dispute', dispute_reason: reason })
+            .eq('id', trId);
 
-    const { data, error } = await _spirit
-        .from('transactions')
-        .update({ 
-            status: 'dispute',
-            dispute_reason: reason 
-        })
-        .eq('id', trId)
-        .select();
-
-    if (error) {
-        console.error("❌ ERREUR SUPABASE (Litige):", error);
-        alert("Échec du litige : " + error.message);
-    } else {
-        alert("⚖️ Litige enregistré. Le support Spirit Infinity a été alerté.");
-        loadUserPurchases();
+        if (error) {
+            alert("Erreur : " + error.message);
+        } else {
+            alert("⚖️ LITIGE OUVERT. Spirit Infinity va analyser le dossier.");
+            loadUserPurchases();
+        }
     }
 }
 
@@ -1500,6 +1497,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
