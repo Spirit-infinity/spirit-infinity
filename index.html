@@ -1308,9 +1308,6 @@ async function loadUserPurchases() {
        
         let actions = '<span style="color:#ffa500">Statut : ' + purchase.status + '</span>';
        
-        if(purchase.status === 'escrow_active') {
-            actions = '<div style="display:flex; gap:10px; margin-top:5px;">' +
-                    
                 // (c) 2026 Spirit Infinity - Tous droits réservés
 if (purchase.status === 'escrow_active') {
     actions = `
@@ -1513,6 +1510,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
