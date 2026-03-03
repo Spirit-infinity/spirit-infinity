@@ -704,7 +704,6 @@ async function loadUserPurchases() {
                // (c) 2026 Spirit Infinity - Tous droits réservés
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-
 ${tr.status === 'escrow_active' ? `
     <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
     <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>
@@ -1494,16 +1493,18 @@ async function startExpertScan() {
 }
     
 // (c) 2026 Spirit Infinity - Tous droits réservés
-
 document.addEventListener('click', function (e) {
+    // Détection du bouton REÇU
     if (e.target.classList.contains('btn-recu-action')) {
         const trId = e.target.getAttribute('data-id');
-        alert("BOUTON DÉTECTÉ ! ID : " + trId); // TEST VISUEL
-        if (typeof confirmReceipt === "function") {
-            confirmReceipt(trId);
-        } else {
-            alert("ERREUR : La fonction confirmReceipt n'existe pas dans le script !");
-        }
+        console.log("🛠️ Action REÇU pour l'ID :", trId);
+        confirmReceipt(trId);
+    }
+    // Détection du bouton LITIGE
+    if (e.target.classList.contains('btn-litige-action')) {
+        const trId = e.target.getAttribute('data-id');
+        console.log("🛠️ Action LITIGE pour l'ID :", trId);
+        openDispute(trId);
     }
 });
 
@@ -1511,6 +1512,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
