@@ -1082,45 +1082,42 @@ function addToMySales(product, carrierName) {
 async function confirmPayment(method) {
     const carrierSelect = document.getElementById('pCarrierSelect');
     const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
-   
-   // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// Calcul manuel du split 6% (3% / 3%) pour le Marketplace
-const priceValue = Number(selectedProduct.price);
-const myShare = priceValue * 0.03; // Tes 3%
-const firmShare = priceValue * 0.03; // Les 3% Firme
-const totalFee = myShare + firmShare;
+    // Calcul direct 6% (3% pour toi / 3% pour la firme)
+    const priceValue = Number(selectedProduct.price);
+    const myCommission = priceValue * 0.03;   
+    const firmCommission = priceValue * 0.03; 
+    const totalFees = myCommission + firmCommission;
 
-const { data, error } = await _spirit
-    .from('transactions')
-    .insert([{
-        product_id: selectedProduct.id,
-        buyer: currentUser,
-        
-        // --- FORÇAGE DES COLONNES (Inversion corrigée) ---
-        // Si c'est toujours inversé en base, on inverse les deux lignes ci-dessous
-        figurine_name: selectedProduct.name,      
-        manufacturer_name: selectedProduct.factory, 
-        
-        // --- FINANCES (Split 6% Net) ---
-        price: priceValue,
-        amount: priceValue,
-        total_commission: totalFee,
-        user_profit: myShare, // Tes 3% vont ici
-        firm_profit: firmShare, // Les 3% Firme vont ici
-        
-        status: 'escrow_active',
-        created_at: new Date()
-    }]);
+    const { data, error } = await _spirit
+        .from('transactions')
+        .insert([{
+            product_id: selectedProduct.id,
+            buyer: currentUser,
+            
+            // --- REMPLISSAGE DES COLONNES VIDES ---
+            figurine_name: selectedProduct.name,      
+            manufacturer_name: selectedProduct.factory, 
+            
+            // --- FINANCES 6% ---
+            price: priceValue,
+            amount: priceValue,
+            total_commission: totalFees,
+            user_profit: myCommission,   
+            firm_profit: firmCommission, 
+            
+            status: 'escrow_active',
+            created_at: new Date()
+        }]);
 
-if (error) {
-    console.error("Détail Erreur Supabase:", error);
-    alert("Erreur lors de l'achat : " + error.message);
-} else {
-    alert("🛡️ SPIRIT SHIELD : Achat réussi ! 6% de commission sécurisés.");
-    location.reload();
+    if (error) {
+        console.error("Détail Erreur Supabase:", error);
+        alert("Erreur lors de l'achat : " + error.message);
+    } else {
+        alert("🛡️ SPIRIT SHIELD : Achat réussi ! 6% de commission validés.");
+        location.reload();
+    }
 }
-
 
     alert("✅ PAIEMENT SPIRIT VALIDÉ !\n\nL'achat est enregistré dans votre compte.");
    
@@ -1535,6 +1532,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
