@@ -1078,48 +1078,58 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
+    
 // (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function confirmPayment(method) {
     try {
-        if (!selectedProduct) {
-            alert("Erreur : Aucun produit sélectionné.");
-            return;
-        }
+        if (!selectedProduct) return alert("Erreur : Aucun produit sélectionné.");
 
-        // --- CALCUL 6% (3% pour toi / 3% pour la firme) ---
         const priceVal = Number(selectedProduct.price) || 0;
-        const myCommission = priceVal * 0.03;   
-        const firmCommission = priceVal * 0.03; 
+        let myCommission = 0;
+        let firmCommission = 0;
+        let typeVente = "";
+
+        // --- LOGIQUE DE SÉPARATION SPIRIT INFINITY ---
+        if (selectedProduct.status === 'factory' || selectedProduct.type === 'new_unit') {
+            // CAS 1 : VENTE NEUVE (ROYALTIES FIXES)
+            typeVente = "FACTORY_SALE";
+            myCommission = 3.00; // Ta part fixe sur le neuf
+            firmCommission = 0; // Déjà inclus dans le prix usine ou géré à part
+        } else {
+            // CAS 2 : MARKETPLACE / OCCASION (SPLIT 5% ou 6%)
+            // Selon tes notes : 5% de commission (2.5% / 2.5%)
+            typeVente = "MARKETPLACE_P2P";
+            myCommission = priceVal * 0.025; // Tes 2.5%
+            firmCommission = priceVal * 0.025; // Les 2.5% Partenaire
+        }
 
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
                 product_id: selectedProduct.id,
                 buyer: currentUser,
-                
-                // --- CORRECTION DES NOMS (Fin du NULL) ---
-                figurine_name: selectedProduct.name || selectedProduct.title || "Figurine Spirit",
-                manufacturer_name: selectedProduct.factory || selectedProduct.brand || "Usine Partenaire",
-                
-                // --- FINANCES (Split 6% Net) ---
+                type_transaction: typeVente, // NOUVEAU : Pour le tri SQL
+                figurine_name: selectedProduct.title || "Figurine Spirit",
+                manufacturer_name: selectedProduct.brand || "Usine Partenaire",
                 price: priceVal,
                 amount: priceVal,
+                // On enregistre les parts distinctes pour ton dashboard
+                user_profit: myCommission,  
+                firm_profit: firmCommission,
                 total_commission: myCommission + firmCommission,
-                user_profit: myCommission,   
-                firm_profit: firmCommission, 
-                
                 status: 'escrow_active',
                 created_at: new Date()
             }]);
 
         if (error) throw error;
 
-        alert("🛡️ SPIRIT SHIELD : Achat réussi ! 6% de commission validés.");
+        alert(`🛡️ SPIRIT SHIELD : Achat ${typeVente === 'FACTORY_SALE' ? 'Neuf' : 'Occasion'} validé !`);
         location.reload();
 
     } catch (err) {
         console.error("Erreur critique Spirit:", err);
-        alert("Erreur technique. Vérifie la console (F12).");
+        alert("Erreur technique de split financier.");
     }
 }
 
@@ -1529,6 +1539,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
