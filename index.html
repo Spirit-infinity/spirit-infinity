@@ -1078,46 +1078,41 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
-    
-// (c) 2026 Spirit Infinity - Tous droits réservés
+    // (c) 2026 Spirit Infinity - Tous droits réservés
 async function confirmPayment(method) {
     try {
-        // 1. Calcul des 6% (3% / 3%) sans les 3€ fixes
-        const priceVal = Number(selectedProduct.price) || 0;
-        const shareMe = priceVal * 0.03;   
-        const shareFirm = priceVal * 0.03; 
+        if (!selectedProduct) {
+            alert("Erreur : Aucun produit sélectionné.");
+            return;
+        }
 
-        // 2. Envoi à Supabase
+        const priceVal = Number(selectedProduct.price) || 0;
+        const myCommission = priceVal * 0.03;   
+        const firmCommission = priceVal * 0.03; 
+
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
                 product_id: selectedProduct.id,
                 buyer: currentUser,
-                
-                // Correction Inversion : on force les cases
-                figurine_name: selectedProduct.name,      
-                manufacturer_name: selectedProduct.factory, 
-                
-                // Finances 6%
+                figurine_name: selectedProduct.name || selectedProduct.title || "Inconnu",
+                manufacturer_name: selectedProduct.factory || selectedProduct.brand || "Inconnu",
                 price: priceVal,
                 amount: priceVal,
-                total_commission: shareMe + shareFirm,
-                user_profit: shareMe,   
-                firm_profit: shareFirm, 
-                
+                total_commission: myCommission + firmCommission,
+                user_profit: myCommission,
+                firm_profit: firmCommission,
                 status: 'escrow_active',
                 created_at: new Date()
             }]);
 
-        if (error) {
-            alert("Erreur base de données : " + error.message);
-        } else {
-            alert("🛡️ SPIRIT SHIELD : Achat Marketplace Validé !");
-            location.reload();
-        }
+        if (error) throw error;
+        alert("🛡️ SPIRIT SHIELD : Achat réussi !");
+        location.reload();
+
     } catch (err) {
-        console.error("Erreur critique:", err);
-        alert("Erreur de script. Vérifie la console (F12).");
+        console.error("Erreur critique Spirit:", err);
+        alert("Erreur technique. Vérifie la console (F12).");
     }
 }
     alert("✅ PAIEMENT SPIRIT VALIDÉ !\n\nL'achat est enregistré dans votre compte.");
@@ -1533,6 +1528,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
