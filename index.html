@@ -1090,49 +1090,55 @@ async function confirmPayment(method) {
         let firmShare = 0;
         let categoryVente = "";
 
-        // --- DÉTERMINATION DU MODÈLE ÉCONOMIQUE ---
-        // Si le produit vient du Marketplace (type native ou legacy d'occasion)
+        // --- VERROU DE SÉCURITÉ SPIRIT INFINITY ---
+        // Si le produit est marqué comme 'native', 'legacy' ou a un propriétaire, c'est du MARKETPLACE
         if (selectedProduct.type === 'native' || selectedProduct.type === 'legacy' || selectedProduct.owner) {
             categoryVente = "MARKETPLACE";
-            myShare = priceVal * 0.03; // 3% pour Toi
-            firmShare = priceVal * 0.03; // 3% pour le Partenaire
-            // ICI : On s'assure que les 3€ de royalties NE SONT PAS ajoutés
+            myShare = priceVal * 0.03; // STRICTEMENT 3% (Pas de +3€ ici)
+            firmShare = priceVal * 0.03; // 3% Partenaire
         } 
-        // Sinon, c'est une vente de figurine NEUVE (Sortie d'usine / Partenariat)
+        // Sinon, c'est une vente NEUVE DIRECTE (Factory / Dossier Partenariat)
         else {
             categoryVente = "FACTORY";
-            myShare = 3.00; // Uniquement tes 3€ de Royalties fixes
+            myShare = 3.00; // STRICTEMENT 3€ (Royalties fixes)
             firmShare = 0;
         }
 
-        console.log(`[SPIRIT DEBUG] Catégorie: ${categoryVente} | Prix: ${priceVal}€ | Ta part: ${myShare}€`);
-
+        // --- INSERTION AVEC NOM DE LA FIGURINE RÉCUPÉRÉ ---
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
                 product_id: selectedProduct.id,
                 buyer: currentUser,
                 type_transaction: categoryVente,
+                
+                // RÉCUPÉRATION DU NOM ET DU FABRICANT
+                figurine_name: selectedProduct.title || "Figurine Spirit",
+                manufacturer_name: selectedProduct.brand || "Usine Partenaire",
+                
                 price: priceVal,
                 amount: priceVal,
+                
+                // FINANCES
                 user_profit: myShare,      
                 firm_profit: firmShare,    
                 total_commission: myShare + firmShare,
+                
                 status: 'escrow_active',
                 created_at: new Date()
             }]);
 
         if (error) throw error;
 
-        alert(`🛡️ SPIRIT SHIELD : Achat ${categoryVente} validé ! Commission : ${myShare}€`);
+        alert(`🛡️ SPIRIT SHIELD : Achat ${categoryVente} validé !\nFigurine : ${selectedProduct.title}\nCommission : ${myShare.toFixed(2)}€`);
         location.reload();
 
     } catch (err) {
-        console.error("Erreur de split financier :", err);
-        alert("Erreur SQL : Vérifie que la colonne 'type_transaction' existe dans Supabase.");
+        console.error("Erreur technique :", err);
+        alert("Erreur de split financier ou colonnes SQL manquantes.");
     }
 }
-
+    
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1539,6 +1545,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
