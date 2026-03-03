@@ -1090,55 +1090,56 @@ async function confirmPayment(method) {
         let firmShare = 0;
         let categoryVente = "";
 
-        // --- VERROU DE SÉCURITÉ SPIRIT INFINITY ---
-        // Si le produit est marqué comme 'native', 'legacy' ou a un propriétaire, c'est du MARKETPLACE
+        // --- DÉTERMINATION DES COMMISSIONS ---
         if (selectedProduct.type === 'native' || selectedProduct.type === 'legacy' || selectedProduct.owner) {
             categoryVente = "MARKETPLACE";
-            myShare = priceVal * 0.03; // STRICTEMENT 3% (Pas de +3€ ici)
-            firmShare = priceVal * 0.03; // 3% Partenaire
-        } 
-        // Sinon, c'est une vente NEUVE DIRECTE (Factory / Dossier Partenariat)
-        else {
+            myShare = priceVal * 0.03; // 3% pour Toi
+            firmShare = priceVal * 0.03; // 3% pour la Firme
+        } else {
             categoryVente = "FACTORY";
-            myShare = 3.00; // STRICTEMENT 3€ (Royalties fixes)
-            firmShare = 0;
+            myShare = 3.00; // Royalties fixes 3€
+            firmShare = 0.00;
         }
 
-        // --- INSERTION AVEC NOM DE LA FIGURINE RÉCUPÉRÉ ---
+        // --- 1. ENREGISTREMENT DE LA TRANSACTION ---
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
                 product_id: selectedProduct.id,
                 buyer: currentUser,
                 type_transaction: categoryVente,
-                
-                // RÉCUPÉRATION DU NOM ET DU FABRICANT
                 figurine_name: selectedProduct.title || "Figurine Spirit",
-                manufacturer_name: selectedProduct.brand || "Usine Partenaire",
-                
+                manufacturer_name: selectedProduct.brand || "Inconnu",
                 price: priceVal,
-                amount: priceVal,
-                
-                // FINANCES
-                user_profit: myShare,      
-                firm_profit: firmShare,    
-                total_commission: myShare + firmShare,
-                
-                status: 'escrow_active',
+                commission_spirit: myShare,
+                commission_firm: firmShare,
+                status: 'completed',
                 created_at: new Date()
             }]);
 
         if (error) throw error;
 
-        alert(`🛡️ SPIRIT SHIELD : Achat ${categoryVente} validé !\nFigurine : ${selectedProduct.title}\nCommission : ${myShare.toFixed(2)}€`);
-        location.reload();
+        // --- 2. GREFFE CHIRURGICALE : PASSAGE EN "VENDU" ---
+        // Cette partie permet d'afficher le badge orange sur la page de garde
+        const { error: productError } = await _spirit
+            .from('products') 
+            .update({ status: 'sold' }) 
+            .eq('id', selectedProduct.id);
+
+        if (productError) console.error("Erreur mise à jour statut produit:", productError);
+
+        // --- 3. FINALISATION ET RECHARGEMENT STABLE ---
+        alert(`✅ ${categoryVente} : ${selectedProduct.title} validé !`);
+        
+        // On recharge la page pour actualiser l'affichage SANS déconnecter l'utilisateur
+        window.location.reload();
 
     } catch (err) {
-        console.error("Erreur technique :", err);
-        alert("Erreur de split financier ou colonnes SQL manquantes.");
+        console.error("Détail Erreur:", err);
+        alert("Une erreur est survenue lors de la validation. Vérifiez votre session.");
     }
 }
-    
+
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1545,6 +1546,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
