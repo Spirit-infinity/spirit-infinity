@@ -701,10 +701,13 @@ async function loadUserPurchases() {
             <td>${tr.amount} €</td>
             <td><span style="color:${tr.status === 'completed' ? 'var(--spirit-green)' : 'orange'}">${tr.status.toUpperCase()}</span></td>
             <td style="text-align:center;">
-                ${tr.status === 'escrow_active' ? `
-                    <button class="btn-shield-ok" onclick="confirmReceipt(${tr.id}, ${tr.product_id})">✅ REÇU</button>
-                    <button class="btn-shield-bad" onclick="openDispute(${tr.id})">⚠️ LITIGE</button>
-                ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+               // (c) 2026 Spirit Infinity - Tous droits réservés
+
+${tr.status === 'escrow_active' ? `
+    <button class="btn-shield-ok" onclick="confirmReceipt('${tr.id}')">✅ REÇU</button>
+    <button class="btn-shield-bad" onclick="openDispute('${tr.id}')">⚠️ LITIGE</button>
+` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+                
             </td>
         `;
         listBody.appendChild(row);
@@ -1495,6 +1498,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
