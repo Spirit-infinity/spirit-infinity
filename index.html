@@ -709,7 +709,7 @@ ${tr.status === 'escrow_active' ? `
     <button class="btn-shield-ok" onclick="confirmReceipt(\'${tr.id}\')">✅ REÇU</button>
     <button class="btn-shield-bad" onclick="openDispute(\'${tr.id}\')">⚠️ LITIGE</button>
 ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
-                
+
             </td>
         `;
         listBody.appendChild(row);
@@ -1497,6 +1497,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
