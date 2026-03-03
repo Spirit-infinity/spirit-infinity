@@ -1087,33 +1087,30 @@ async function confirmPayment(method) {
     const split = calculateSpiritSplit(selectedProduct.price);
 
     // Envoi propre à Supabase
-    const { data, error } = await _spirit
-        .from('transactions')
-        .insert([{
-             product_id: selectedProduct.id,
-    buyer: currentUser,
-    // --- ON ALIGNE TOUT ICI ---
-    price: Number(selectedProduct.price), 
-    figurine_name: selectedProduct.name, // Le nom de la pièce
-    manufacturer_name: selectedProduct.factory, // L'usine d'origine
-    // --------------------------
-    amount: Number(selectedProduct.price),
-    total_commission: Number(split.totalFee),
-    user_profit: Number(split.myShare),
-    firm_profit: Number(split.firmShare),
-    status: 'escrow_active',
-    created_at: new Date()
+// (c) 2026 Spirit Infinity - Tous droits réservés
+const { data, error } = await _spirit
+    .from('transactions')
+    .insert([{
+        product_id: selectedProduct.id,
+        buyer: currentUser,
+        price: Number(selectedProduct.price),
+        figurine_name: selectedProduct.name,
+        manufacturer_name: selectedProduct.factory,
+        amount: Number(selectedProduct.price),
+        total_commission: Number(split.totalFee),
+        user_profit: Number(split.myShare),
+        firm_profit: Number(split.firmShare),
+        status: 'escrow_active',
+        created_at: new Date()
+    }]);
+
+if (error) {
+    console.error("Détail Erreur Supabase:", error);
+    alert("Erreur lors de l'achat : " + error.message);
+} else {
+    alert("Achat réussi ! Produit en cours de livraison.");
+    location.reload();
 }
-
-            status: 'escrow_active'
-        }]);
-
-    if (error) {
-        console.error("Détail Erreur Supabase:", error);
-        alert("Erreur de synchronisation Ledger : " + error.message);
-        return;
-    }
-
     alert("✅ PAIEMENT SPIRIT VALIDÉ !\n\nL'achat est enregistré dans votre compte.");
    
     selectedProduct.status = 'sold';
@@ -1527,6 +1524,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
