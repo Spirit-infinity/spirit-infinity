@@ -706,9 +706,10 @@ async function loadUserPurchases() {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 ${tr.status === 'escrow_active' ? `
-    <button class="btn-shield-ok" onclick="confirmReceipt('&apos;${tr.id}&apos;')">✅ REÇU</button>
-    <button class="btn-shield-bad" onclick="openDispute('&apos;${tr.id}&apos;')">⚠️ LITIGE</button>
-` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+    <button class="btn-shield-ok" data-id="${tr.id}" onclick="confirmReceipt(this)">✅ REÇU</button>
+    <button class="btn-shield-bad" data-id="${tr.id}" onclick="openDispute(this)">⚠️ LITIGE</button>
+` : `<span>TERMINÉ</span>`}
+
 
             </td>
         `;
@@ -1325,26 +1326,11 @@ async function loadUserPurchases() {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-async function confirmReceipt(trId) {
-    console.log("🛠️ Tentative de validation pour la transaction ID :", trId);
-    
-    if (!trId) return alert("Erreur : ID de transaction manquant.");
+${tr.status === 'escrow_active' ? `
+    <button class="btn-shield-ok" data-id="${tr.id}" onclick="confirmReceipt(this)">✅ REÇU</button>
+    <button class="btn-shield-bad" data-id="${tr.id}" onclick="openDispute(this)">⚠️ LITIGE</button>
+` : `<span>TERMINÉ</span>`}
 
-    if (confirm("🛡️ SPIRIT SHIELD : Confirmer la réception et débloquer les fonds ?")) {
-        const { error } = await _spirit
-            .from('transactions')
-            .update({ status: 'completed' })
-            .eq('id', trId);
-
-        if (error) {
-            console.error("Erreur Supabase :", error);
-            alert("Erreur : " + error.message);
-        } else {
-            alert("✅ TRANSACTION TERMINÉE !");
-            loadUserPurchases(); // Recharge ton tableau
-        }
-    }
-}
 
 async function openDispute(trId) {
     const reason = prompt("⚠️ MOTIF DU LITIGE (Casse, non conforme, etc) :");
@@ -1497,6 +1483,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
