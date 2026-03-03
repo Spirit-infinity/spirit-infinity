@@ -1080,35 +1080,51 @@ function addToMySales(product, carrierName) {
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function confirmPayment(method) {
-    const carrierSelect = document.getElementById('pCarrierSelect');
-    const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
+    try {
+        // 1. On récupère les données brutes pour éviter les erreurs de variables
+        const nameFigurine = selectedProduct.name || selectedProduct.figurine_name || "Figurine Spirit";
+        const nameFactory = selectedProduct.factory || selectedProduct.manufacturer || "Usine Partenaire";
+        const priceValue = Number(selectedProduct.price) || 0;
 
-    // Calcul direct 6% (3% pour toi / 3% pour la firme)
-    const priceValue = Number(selectedProduct.price);
-    const myCommission = priceValue * 0.03;   
-    const firmCommission = priceValue * 0.03; 
-    const totalFees = myCommission + firmCommission;
+        // 2. CALCUL 6% MARKETPLACE (3% + 3%) - On oublie les 3€ fixes ici
+        const myCommission = priceValue * 0.03;   
+        const firmCommission = priceValue * 0.03; 
+        const totalFees = myCommission + firmCommission;
 
-    const { data, error } = await _spirit
-        .from('transactions')
-        .insert([{
-            product_id: selectedProduct.id,
-            buyer: currentUser,
-            
-            // --- REMPLISSAGE DES COLONNES (Inversion corrigée) ---
-            figurine_name: selectedProduct.name,      
-            manufacturer_name: selectedProduct.factory, 
-            
-            // --- FINANCES (Split 6% Net) ---
-            price: priceValue,
-            amount: priceValue,
-            total_commission: totalFees,
-            user_profit: myCommission,   
-            firm_profit: firmCommission, 
-            
-            status: 'escrow_active',
-            created_at: new Date()
-        }]);
+        const { data, error } = await _spirit
+            .from('transactions')
+            .insert([{
+                product_id: selectedProduct.id,
+                buyer: currentUser,
+                
+                // --- FORCE LE REMPLISSAGE (Correction Inversion) ---
+                figurine_name: nameFigurine,      
+                manufacturer_name: nameFactory, 
+                
+                // --- FINANCES (Split 6% Net) ---
+                price: priceValue,
+                amount: priceValue,
+                total_commission: totalFees,
+                user_profit: myCommission,   
+                firm_profit: firmCommission, 
+                
+                // --- CATÉGORIE ---
+                status: 'escrow_active', // C'est ici qu'on identifie le Market (Escrow)
+                created_at: new Date()
+            }]);
+
+        if (error) {
+            console.error("Erreur Supabase:", error);
+            alert("Erreur : " + error.message);
+        } else {
+            alert("🛡️ SPIRIT SHIELD : Achat Marketplace Validé (6%)");
+            location.reload();
+        }
+    } catch (err) {
+        console.error("Erreur critique:", err);
+        alert("Bug détecté dans l'objet selectedProduct. Vérifie la console.");
+    }
+}
 
     alert("✅ PAIEMENT SPIRIT VALIDÉ !\n\nL'achat est enregistré dans votre compte.");
    
@@ -1523,6 +1539,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
