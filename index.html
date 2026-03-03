@@ -1083,53 +1083,53 @@ function addToMySales(product, carrierName) {
 
 async function confirmPayment(method) {
     try {
-        if (!selectedProduct) return alert("Erreur : Aucun produit sélectionné.");
+        if (!selectedProduct) return alert("Erreur : Produit introuvable.");
 
         const priceVal = Number(selectedProduct.price) || 0;
-        let myCommission = 0;
-        let firmCommission = 0;
-        let typeVente = "";
+        let myShare = 0;
+        let firmShare = 0;
+        let categoryVente = "";
 
-        // --- LOGIQUE DE SÉPARATION SPIRIT INFINITY ---
-        if (selectedProduct.status === 'factory' || selectedProduct.type === 'new_unit') {
-            // CAS 1 : VENTE NEUVE (ROYALTIES FIXES)
-            typeVente = "FACTORY_SALE";
-            myCommission = 3.00; // Ta part fixe sur le neuf
-            firmCommission = 0; // Déjà inclus dans le prix usine ou géré à part
-        } else {
-            // CAS 2 : MARKETPLACE / OCCASION (SPLIT 5% ou 6%)
-            // Selon tes notes : 5% de commission (2.5% / 2.5%)
-            typeVente = "MARKETPLACE_P2P";
-            myCommission = priceVal * 0.025; // Tes 2.5%
-            firmCommission = priceVal * 0.025; // Les 2.5% Partenaire
+        // --- DÉTERMINATION DU MODÈLE ÉCONOMIQUE ---
+        // Si le produit vient du Marketplace (type native ou legacy d'occasion)
+        if (selectedProduct.type === 'native' || selectedProduct.type === 'legacy' || selectedProduct.owner) {
+            categoryVente = "MARKETPLACE";
+            myShare = priceVal * 0.03; // 3% pour Toi
+            firmShare = priceVal * 0.03; // 3% pour le Partenaire
+            // ICI : On s'assure que les 3€ de royalties NE SONT PAS ajoutés
+        } 
+        // Sinon, c'est une vente de figurine NEUVE (Sortie d'usine / Partenariat)
+        else {
+            categoryVente = "FACTORY";
+            myShare = 3.00; // Uniquement tes 3€ de Royalties fixes
+            firmShare = 0;
         }
+
+        console.log(`[SPIRIT DEBUG] Catégorie: ${categoryVente} | Prix: ${priceVal}€ | Ta part: ${myShare}€`);
 
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
                 product_id: selectedProduct.id,
                 buyer: currentUser,
-                type_transaction: typeVente, // NOUVEAU : Pour le tri SQL
-                figurine_name: selectedProduct.title || "Figurine Spirit",
-                manufacturer_name: selectedProduct.brand || "Usine Partenaire",
+                type_transaction: categoryVente,
                 price: priceVal,
                 amount: priceVal,
-                // On enregistre les parts distinctes pour ton dashboard
-                user_profit: myCommission,  
-                firm_profit: firmCommission,
-                total_commission: myCommission + firmCommission,
+                user_profit: myShare,      
+                firm_profit: firmShare,    
+                total_commission: myShare + firmShare,
                 status: 'escrow_active',
                 created_at: new Date()
             }]);
 
         if (error) throw error;
 
-        alert(`🛡️ SPIRIT SHIELD : Achat ${typeVente === 'FACTORY_SALE' ? 'Neuf' : 'Occasion'} validé !`);
+        alert(`🛡️ SPIRIT SHIELD : Achat ${categoryVente} validé ! Commission : ${myShare}€`);
         location.reload();
 
     } catch (err) {
-        console.error("Erreur critique Spirit:", err);
-        alert("Erreur technique de split financier.");
+        console.error("Erreur de split financier :", err);
+        alert("Erreur SQL : Vérifie que la colonne 'type_transaction' existe dans Supabase.");
     }
 }
 
@@ -1539,6 +1539,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
