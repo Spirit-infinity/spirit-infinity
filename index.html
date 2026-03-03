@@ -1083,23 +1083,32 @@ async function confirmPayment(method) {
     const carrierSelect = document.getElementById('pCarrierSelect');
     const carrierName = carrierSelect.options[carrierSelect.selectedIndex].text;
    
-    // Calcul des commissions 3% / 3%
-    const split = calculateSpiritSplit(selectedProduct.price);
+   // (c) 2026 Spirit Infinity - Tous droits réservés
 
-    // Envoi propre à Supabase
-// (c) 2026 Spirit Infinity - Tous droits réservés
+// Calcul manuel du split 6% (3% / 3%) pour le Marketplace
+const priceValue = Number(selectedProduct.price);
+const myShare = priceValue * 0.03; // Tes 3%
+const firmShare = priceValue * 0.03; // Les 3% Firme
+const totalFee = myShare + firmShare;
+
 const { data, error } = await _spirit
     .from('transactions')
     .insert([{
         product_id: selectedProduct.id,
         buyer: currentUser,
-        price: Number(selectedProduct.price),
-        figurine_name: selectedProduct.name,
-        manufacturer_name: selectedProduct.factory,
-        amount: Number(selectedProduct.price),
-        total_commission: Number(split.totalFee),
-        user_profit: Number(split.myShare),
-        firm_profit: Number(split.firmShare),
+        
+        // --- FORÇAGE DES COLONNES (Inversion corrigée) ---
+        // Si c'est toujours inversé en base, on inverse les deux lignes ci-dessous
+        figurine_name: selectedProduct.name,      
+        manufacturer_name: selectedProduct.factory, 
+        
+        // --- FINANCES (Split 6% Net) ---
+        price: priceValue,
+        amount: priceValue,
+        total_commission: totalFee,
+        user_profit: myShare, // Tes 3% vont ici
+        firm_profit: firmShare, // Les 3% Firme vont ici
+        
         status: 'escrow_active',
         created_at: new Date()
     }]);
@@ -1108,9 +1117,11 @@ if (error) {
     console.error("Détail Erreur Supabase:", error);
     alert("Erreur lors de l'achat : " + error.message);
 } else {
-    alert("Achat réussi ! Produit en cours de livraison.");
+    alert("🛡️ SPIRIT SHIELD : Achat réussi ! 6% de commission sécurisés.");
     location.reload();
 }
+
+
     alert("✅ PAIEMENT SPIRIT VALIDÉ !\n\nL'achat est enregistré dans votre compte.");
    
     selectedProduct.status = 'sold';
@@ -1524,6 +1535,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
