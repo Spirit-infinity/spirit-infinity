@@ -1090,9 +1090,7 @@ async function confirmPayment(method) {
     const { data, error } = await _spirit
         .from('transactions')
         .insert([{
-           // (c) 2026 Spirit Infinity - Tous droits réservés
-{
-    product_id: selectedProduct.id,
+             product_id: selectedProduct.id,
     buyer: currentUser,
     // --- ON ALIGNE TOUT ICI ---
     price: Number(selectedProduct.price), 
@@ -1106,6 +1104,7 @@ async function confirmPayment(method) {
     status: 'escrow_active',
     created_at: new Date()
 }
+
             status: 'escrow_active'
         }]);
 
