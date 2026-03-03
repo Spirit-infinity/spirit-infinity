@@ -1095,11 +1095,11 @@ async function confirmPayment(method) {
             product_id: selectedProduct.id,
             buyer: currentUser,
             
-            // --- REMPLISSAGE DES COLONNES VIDES ---
+            // --- REMPLISSAGE DES COLONNES (Inversion corrigée) ---
             figurine_name: selectedProduct.name,      
             manufacturer_name: selectedProduct.factory, 
             
-            // --- FINANCES 6% ---
+            // --- FINANCES (Split 6% Net) ---
             price: priceValue,
             amount: priceValue,
             total_commission: totalFees,
@@ -1532,6 +1532,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
