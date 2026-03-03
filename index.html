@@ -1277,28 +1277,6 @@ function calculateSpiritSplit(price) {
         sellerNet: (price - totalFee).toFixed(2)
     };
 }
-// (c) 2026 Spirit Infinity - Tous droits réservés
-async function confirmReceipt(transactionId, productId) {
-    if (!confirm("CONFIRMATION SPIRIT SHIELD :\nAvez-vous reçu la figurine ?\nCela libérera les royalties.")) return;
-
-    try {
-        const { error } = await _spirit
-            .from('transactions')
-            .update({
-                status: 'completed',
-                completed_at: new Date().toISOString()
-            })
-            .eq('id', transactionId);
-
-        if (error) throw error;
-
-        alert("✅ TRANSACTION RÉUSSIE !");
-        loadUserPurchases();
-        renderMarket();
-    } catch (err) {
-        alert("Erreur Ledger : " + err.message);
-    }
-}
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -1340,36 +1318,43 @@ async function loadUserPurchases() {
     });
 }
 
-async function confirmReceipt(tId, pId) {
-    if (!confirm("LIBERER LES FONDS ?\nCela valide la vente et vos royalties.")) return;
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
-    const { error } = await _spirit
-        .from('transactions')
-        .update({ status: 'completed' })
-        .eq('id', tId);
+async function confirmReceipt(transactionId) {
+    if (confirm("🛡️ SPIRIT SHIELD : Confirmer la réception ?\nCela débloque le paiement pour le vendeur.")) {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ status: 'completed' })
+            .eq('id', transactionId);
 
-    if (error) {
-        alert("Erreur : " + error.message);
-    } else {
-        alert("✅ VENTE VALIDEE !");
-        loadUserPurchases();
-        renderMarket();
+        if (error) {
+            alert("Erreur : " + error.message);
+        } else {
+            alert("✅ TRANSACTION TERMINÉE !");
+            loadUserPurchases(); // Rafraîchit ton tableau
+        }
     }
 }
 
-async function openDispute(tId) {
-    const reason = prompt("Motif du litige :");
-    if (!reason) return;
+async function openDispute(transactionId) {
+    const motif = prompt("⚠️ OUVERTURE DE LITIGE :\nIndiquez la raison (Casse, Non reçu, etc) :");
+    if (motif) {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ 
+                status: 'dispute',
+                dispute_reason: motif 
+            })
+            .eq('id', transactionId);
 
-    await _spirit
-        .from('transactions')
-        .update({ status: 'disputed', dispute_reason: reason })
-        .eq('id', tId);
-
-    alert("⚠️ LITIGE OUVERT. Spirit Shield active.");
-    loadUserPurchases();
+        if (error) {
+            alert("Erreur : " + error.message);
+        } else {
+            alert("⚖️ LITIGE OUVERT. Le support va analyser le dossier.");
+            loadUserPurchases(); // Rafraîchit ton tableau
+        }
+    }
 }
-
     renderMarket();
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -1504,6 +1489,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
