@@ -1086,6 +1086,7 @@ async function confirmPayment(method) {
             return;
         }
 
+        // --- CALCUL 6% (3% pour toi / 3% pour la firme) ---
         const priceVal = Number(selectedProduct.price) || 0;
         const myCommission = priceVal * 0.03;   
         const firmCommission = priceVal * 0.03; 
@@ -1095,19 +1096,25 @@ async function confirmPayment(method) {
             .insert([{
                 product_id: selectedProduct.id,
                 buyer: currentUser,
-                figurine_name: selectedProduct.name || selectedProduct.title || "Inconnu",
-                manufacturer_name: selectedProduct.factory || selectedProduct.brand || "Inconnu",
+                
+                // --- CORRECTION DES NOMS (Fin du NULL) ---
+                figurine_name: selectedProduct.name || selectedProduct.title || "Figurine Spirit",
+                manufacturer_name: selectedProduct.factory || selectedProduct.brand || "Usine Partenaire",
+                
+                // --- FINANCES (Split 6% Net) ---
                 price: priceVal,
                 amount: priceVal,
                 total_commission: myCommission + firmCommission,
-                user_profit: myCommission,
-                firm_profit: firmCommission,
+                user_profit: myCommission,   
+                firm_profit: firmCommission, 
+                
                 status: 'escrow_active',
                 created_at: new Date()
             }]);
 
         if (error) throw error;
-        alert("🛡️ SPIRIT SHIELD : Achat réussi !");
+
+        alert("🛡️ SPIRIT SHIELD : Achat réussi ! 6% de commission validés.");
         location.reload();
 
     } catch (err) {
@@ -1116,13 +1123,6 @@ async function confirmPayment(method) {
     }
 }
 
-    alert("✅ PAIEMENT SPIRIT VALIDÉ !\n\nL'achat est enregistré dans votre compte.");
-   
-    selectedProduct.status = 'sold';
-    renderMarket();
-    closeModals();
-    loadUserPurchases(); // <--- Lance l'affichage automatique dans ton compte
-}
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1529,6 +1529,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
