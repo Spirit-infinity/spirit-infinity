@@ -706,9 +706,9 @@ async function loadUserPurchases() {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 ${tr.status === 'escrow_active' ? `
-    <button class="btn-shield-ok" onclick="confirmReceipt(\'${tr.id}\')">✅ REÇU</button>
-    <button class="btn-shield-bad" onclick="openDispute(\'${tr.id}\')">⚠️ LITIGE</button>
-` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+    <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
+    <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>
+` : `<span style="color:gray;">TERMINÉ</span>`}
 
             </td>
         `;
@@ -1492,11 +1492,30 @@ async function startExpertScan() {
         statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
 }
-    
+ // (c) 2026 Spirit Infinity - Tous droits réservés
+
+document.addEventListener('click', function (e) {
+    // Si on clique sur le bouton REÇU
+    if (e.target.classList.contains('btn-recu-action')) {
+        const trId = e.target.getAttribute('data-id');
+        console.log("Clic Reçu détecté pour :", trId);
+        confirmReceipt(trId); // Appelle ta fonction existante
+    }
+
+    // Si on clique sur le bouton LITIGE
+    if (e.target.classList.contains('btn-litige-action')) {
+        const trId = e.target.getAttribute('data-id');
+        console.log("Clic Litige détecté pour :", trId);
+        openDispute(trId); // Appelle ta fonction existante
+    }
+});
+
+   
 
 </script>
 </body>
 </html>
+
 
 
 
