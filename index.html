@@ -142,8 +142,6 @@
     </style>
 </head>
 <body>
-    <h1>VÉRIFICATION SPIRIT INFINITY V2</h1>
-
 <header>
     <div class="logo-box" onclick="location.reload()">
         <span class="logo-top">HOT TOYS</span>
@@ -1311,7 +1309,9 @@ async function loadUserPurchases() {
        
         if(purchase.status === 'escrow_active') {
             actions = '<div style="display:flex; gap:10px; margin-top:5px;">' +
-                      '<button onclick="confirmReceipt(' + purchase.id + ',' + purchase.product_id + ')" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">✅ RECU</button>' +
+                     onclick :
+<button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
+
                       '<button onclick="openDispute(' + purchase.id + ')" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">⚠️ LITIGE</button>' +
                       '</div>';
         }
@@ -1515,6 +1515,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
