@@ -706,9 +706,11 @@ async function loadUserPurchases() {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 ${tr.status === 'escrow_active' ? `
-    <button class="btn-shield-ok" onclick="confirmReceipt('${tr.id}')">✅ REÇU</button>
-    <button class="btn-shield-bad" onclick="openDispute('${tr.id}')">⚠️ LITIGE</button>
-` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+    <div style="display:flex; gap:5px;">
+        <button class="btn-shield-ok" onclick="confirmReceipt('${tr.id}')" style="cursor:pointer; padding:5px 10px; border-radius:4px;">✅ REÇU</button>
+        <button class="btn-shield-bad" onclick="openDispute('${tr.id}')" style="cursor:pointer; padding:5px 10px; border-radius:4px;">⚠️ LITIGE</button>
+    </div>
+` : `<span style="color:#00ff00; font-weight:bold;">COMPLÉTÉ</span>`}
                 
             </td>
         `;
@@ -1497,6 +1499,7 @@ async function startExpertScan() {
 </script>
 </body>
 </html>
+
 
 
 
