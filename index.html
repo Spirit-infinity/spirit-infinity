@@ -142,7 +142,6 @@
     </style>
 </head>
 <body>
-    
 <header>
     <div class="logo-box" onclick="location.reload()">
         <span class="logo-top">HOT TOYS</span>
@@ -1308,7 +1307,7 @@ async function loadUserPurchases() {
        
         let actions = '<span style="color:#ffa500">Statut : ' + purchase.status + '</span>';
        
-                // (c) 2026 Spirit Infinity - Tous droits réservés
+       // (c) 2026 Spirit Infinity - Tous droits réservés
 if (purchase.status === 'escrow_active') {
     actions = `
         <div style="display:flex; gap:10px; margin-top:5px;">
@@ -1317,7 +1316,6 @@ if (purchase.status === 'escrow_active') {
         </div>
     `;
 }
-        }
 
         row.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
                         '<div><strong>ID: #' + purchase.id + '</strong><br>Montant: ' + purchase.amount + ' €</div>' +
@@ -1510,12 +1508,6 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
-
-
-
-
-
-
 
 
 
