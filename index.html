@@ -1109,14 +1109,6 @@ async function confirmPayment(method) {
             status: 'escrow_active',
             created_at: new Date()
         }]);
-
-    if (error) {
-        console.error("Détail Erreur Supabase:", error);
-        alert("Erreur lors de l'achat : " + error.message);
-    } else {
-        alert("🛡️ SPIRIT SHIELD : Achat réussi ! 6% de commission validés.");
-        location.reload();
-    }
 }
 
     alert("✅ PAIEMENT SPIRIT VALIDÉ !\n\nL'achat est enregistré dans votre compte.");
@@ -1532,8 +1524,6 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
-
-
 
 
 
