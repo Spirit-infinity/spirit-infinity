@@ -1300,29 +1300,39 @@ async function loadUserPurchases() {
         return;
     }
 
-    data.forEach(purchase => {
-        const row = document.createElement('div');
-        row.style.borderBottom = "1px solid #444";
-        row.style.padding = "10px";
-       
-        let actions = '<span style="color:#ffa500">Statut : ' + purchase.status + '</span>';
-       
-       // (c) 2026 Spirit Infinity - Tous droits réservés
-if (purchase.status === 'escrow_active') {
-    actions = `
-        <div style="display:flex; gap:10px; margin-top:5px;">
-            <button class="btn-recu-action" data-id="${purchase.id}">✅ REÇU</button>
-            <button class="btn-litige-action" data-id="${purchase.id}">⚠️ LITIGE</button>
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+data.forEach(purchase => {
+    const row = document.createElement('div');
+    row.style.borderBottom = "1px solid #444";
+    row.style.padding = "10px";
+
+    let actions = `<span style="color:#ffa500">Statut : ${purchase.status}</span>`;
+
+    if (purchase.status === 'escrow_active') {
+        actions = `
+            <div style="display:flex; gap:10px; margin-top:5px;">
+                <button class="btn-recu-action" data-id="${purchase.id}">✅ REÇU</button>
+                <button class="btn-litige-action" data-id="${purchase.id}">⚠️ LITIGE</button>
+            </div>
+        `;
+    }
+
+    row.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <strong>ID: #${purchase.id.substring(0, 8)}</strong><br>
+                Prix Vente: ${purchase.price || 0} €<br>
+                Com. Spirit (5%): ${purchase.royalty_amount || 0} €
+            </div>
+            <div>
+                ${actions}
+            </div>
         </div>
     `;
-}
+    listBody.appendChild(row); // Vérifie bien que ta variable s'appelle listBody juste au-dessus
+});
 
-        row.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
-                        '<div><strong>ID: #' + purchase.id + '</strong><br>Montant: ' + purchase.amount + ' €</div>' +
-                        '<div>' + actions + '</div>' +
-                        '</div>';
-        listBody.appendChild(row);
-    });
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -1508,6 +1518,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
