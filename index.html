@@ -1311,9 +1311,15 @@ async function loadUserPurchases() {
         if(purchase.status === 'escrow_active') {
             actions = '<div style="display:flex; gap:10px; margin-top:5px;">' +
                     
-                      '<button onclick="confirmReceipt(' + purchase.id + ',' + purchase.product_id + ')" style="background:#28a745; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">✅ RECU</button>' +
-                      '<button onclick="openDispute(' + purchase.id + ')" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold;">⚠️ LITIGE</button>' +
-                      '</div>';
+                // (c) 2026 Spirit Infinity - Tous droits réservés
+if (purchase.status === 'escrow_active') {
+    actions = `
+        <div style="display:flex; gap:10px; margin-top:5px;">
+            <button class="btn-recu-action" data-id="${purchase.id}">✅ REÇU</button>
+            <button class="btn-litige-action" data-id="${purchase.id}">⚠️ LITIGE</button>
+        </div>
+    `;
+}
         }
 
         row.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
@@ -1495,26 +1501,19 @@ async function startExpertScan() {
 }
     
 // (c) 2026 Spirit Infinity - Tous droits réservés
-
 document.addEventListener('click', function (e) {
-    // Si on clique sur le bouton REÇU
     if (e.target.classList.contains('btn-recu-action')) {
-        const trId = e.target.getAttribute('data-id');
-        confirmReceipt(trId);
+        confirmReceipt(e.target.getAttribute('data-id'));
     }
-    // Si on clique sur le bouton LITIGE
     if (e.target.classList.contains('btn-litige-action')) {
-        const trId = e.target.getAttribute('data-id');
-        openDispute(trId);
+        openDispute(e.target.getAttribute('data-id'));
     }
 });
-
-
-
 
 </script>
 </body>
 </html>
+
 
 
 
