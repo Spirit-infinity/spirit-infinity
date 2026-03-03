@@ -1492,29 +1492,26 @@ async function startExpertScan() {
         statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
 }
- // (c) 2026 Spirit Infinity - Tous droits réservés
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
 document.addEventListener('click', function (e) {
-    // Si on clique sur le bouton REÇU
+    // 1. Détecte le clic sur REÇU
     if (e.target.classList.contains('btn-recu-action')) {
         const trId = e.target.getAttribute('data-id');
-        console.log("Clic Reçu détecté pour :", trId);
-        confirmReceipt(trId); // Appelle ta fonction existante
+        confirmReceipt(trId); 
     }
 
-    // Si on clique sur le bouton LITIGE
+    // 2. Détecte le clic sur LITIGE
     if (e.target.classList.contains('btn-litige-action')) {
         const trId = e.target.getAttribute('data-id');
-        console.log("Clic Litige détecté pour :", trId);
-        openDispute(trId); // Appelle ta fonction existante
+        openDispute(trId);
     }
 });
-
-   
 
 </script>
 </body>
 </html>
+
 
 
 
