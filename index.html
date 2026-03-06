@@ -1078,63 +1078,67 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
-/* (c) 2026 Spirit Infinity - Tous droits réservés */
+    
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
-async function confirmPayment(mode) {
-    console.log("🚀 Tentative de paiement via : " + mode);
-
-    // Sécurité 1 : Vérifier si l'objet Supabase existe
-    if (typeof supabase === 'undefined' || !supabase.from) {
-        alert("ERREUR CRITIQUE : Supabase n'est pas chargé. Vérifiez votre connexion ou l'import du script.");
-        return;
-    }
-
+async function confirmPayment(method) {
     try {
-        // Sécurité 2 : Vérifier le produit
-        if (typeof selectedProduct === 'undefined' || !selectedProduct.id) {
-            alert("Erreur : Aucun produit sélectionné.");
-            return;
+        if (!selectedProduct) return alert("Erreur : Produit introuvable.");
+
+        const priceVal = Number(selectedProduct.price) || 0;
+        let myShare = 0;
+        let firmShare = 0;
+        let categoryVente = "";
+
+        // --- VERROU DE SÉCURITÉ SPIRIT INFINITY ---
+        // Si le produit est marqué comme 'native', 'legacy' ou a un propriétaire, c'est du MARKETPLACE
+        if (selectedProduct.type === 'native' || selectedProduct.type === 'legacy' || selectedProduct.owner) {
+            categoryVente = "MARKETPLACE";
+            myShare = priceVal * 0.03; // STRICTEMENT 3% (Pas de +3€ ici)
+            firmShare = priceVal * 0.03; // 3% Partenaire
+        } 
+        // Sinon, c'est une vente NEUVE DIRECTE (Factory / Dossier Partenariat)
+        else {
+            categoryVente = "FACTORY";
+            myShare = 3.00; // STRICTEMENT 3€ (Royalties fixes)
+            firmShare = 0;
         }
 
-        // Calcul des 8% (3% / 3% / 2%) [cite: 2026-03-03]
-        const prix = parseFloat(selectedProduct.price) || 0;
-        const partMe = prix * 0.03;   
-        const partFirm = prix * 0.03; 
-        const partBank = prix * 0.02; 
-        const totalFrais = partMe + partFirm + partBank;
-
-        // Préparation Data (UUID Format texte) [cite: 2026-02-12]
-        const dataTransaction = {
-            product_id: String(selectedProduct.id), 
-            item_id: String(selectedProduct.id),    
-            buyer: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : "SPIRIT_USER",
-            figurine_name: selectedProduct.name || "Figurine Spirit",
-            amount: prix,
-            payment_method: mode,
-            commission_spirit: partMe,
-            commission_firm: partFirm,
-            commission_bank: partBank,
-            total_commission: totalFrais,
-            status: 'escrow_active', // Protection 6% [cite: 2026-03-03]
-            currency: 'EUR',
-            created_at: new Date().toISOString()
-        };
-
-        // Envoi à la table transactions
-        const { data, error } = await supabase
-            .from('transactions') // Utilise l'objet supabase global
-            .insert([dataTransaction]);
+        // --- INSERTION AVEC NOM DE LA FIGURINE RÉCUPÉRÉ ---
+        const { data, error } = await _spirit
+            .from('transactions')
+            .insert([{
+                product_id: selectedProduct.id,
+                buyer: currentUser,
+                type_transaction: categoryVente,
+                
+                // RÉCUPÉRATION DU NOM ET DU FABRICANT
+                figurine_name: selectedProduct.title || "Figurine Spirit",
+                manufacturer_name: selectedProduct.brand || "Usine Partenaire",
+                
+                price: priceVal,
+                amount: priceVal,
+                
+                // FINANCES
+                user_profit: myShare,      
+                firm_profit: firmShare,    
+                total_commission: myShare + firmShare,
+                
+                status: 'escrow_active',
+                created_at: new Date()
+            }]);
 
         if (error) throw error;
 
-        alert("✅ " + mode + " validé ! Figurine certifiée dans le Ledger.");
+        alert(`🛡️ SPIRIT SHIELD : Achat ${categoryVente} validé !\nFigurine : ${selectedProduct.title}\nCommission : ${myShare.toFixed(2)}€`);
+        location.reload();
 
     } catch (err) {
-        console.error("❌ Erreur Spirit Market :", err.message);
-        alert("ERREUR CRITIQUE : " + err.message);
+        console.error("Erreur technique :", err);
+        alert("Erreur de split financier ou colonnes SQL manquantes.");
     }
 }
-
+    
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1538,58 +1542,9 @@ document.addEventListener('click', function (e) {
     }
 });
 
-    // (c) 2026 Spirit Infinity - Tous droits réservés
-// ÉTAPE 1 : AJOUT DE LA FONCTION DANS LE SCRIPT
-async function leaveSpiritReview(trId) {
-    const rating = prompt("⭐ Notez la transaction (1 à 5) :");
-    const comment = prompt("💬 Un commentaire sur la figurine ?");
-
-    if (rating && !isNaN(rating) && rating >= 1 && rating <= 5) {
-        const { error } = await _spirit
-            .from('reviews') 
-            .insert([{ 
-                transaction_id: trId, 
-                rating: parseInt(rating), 
-                comment: comment,
-                reviewer: currentUser 
-            }]);
-
-        if (error) {
-            console.error("Erreur Review:", error.message);
-        } else {
-            alert("✅ MERCI ! Votre avis a été ajouté au Spirit Ledger.");
-            if(typeof loadUserPurchases === 'function') loadUserPurchases(); 
-        }
-    } else {
-        alert("⚠️ Note invalide (doit être entre 1 et 5).");
-    }
-}
-
-
-
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
