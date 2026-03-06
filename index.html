@@ -1100,19 +1100,19 @@ async function confirmPayment(method) {
             bankShare = 0;
         }
 
-        // --- ALIGNEMENT PARFAIT SUR TES PHOTOS SUPABASE ---
+        // --- ALIGNEMENT STRICT SUR TES PHOTOS SUPABASE ---
         const dataToInsert = {
-            product_id: parseInt(selectedProduct.id) || 0, //
-            buyer: "SPIRIT", //
-            figurine_name: selectedProduct.name || "N/A", // RÉINTÉGRATION DU NOM
-            manufacturer_name: selectedProduct.brand || "Hot Toys", //
-            type_transaction: categoryVente, //
-            amount: priceVal, //
-            commission_spirit: myShare, //
-            commission_firm: firmShare, //
-            total_commission: (myShare + firmShare + bankShare), //
-            status: 'escrow_active', //
-            currency: 'EUR' //
+            product_id: parseInt(selectedProduct.id) || 1, // Vu
+            buyer: "SPIRIT", // Vu
+            figurine_name: selectedProduct.name || "N/A", // Vu
+            manufacturer_name: selectedProduct.brand || "N/A", // Vu
+            type_transaction: categoryVente, // Vu
+            amount: priceVal, // Vu
+            commission_spirit: myShare, // Vu
+            commission_firm: firmShare, // Vu
+            total_commission: (myShare + firmShare + bankShare), // Vu
+            status: 'escrow_active', // Vu
+            currency: 'EUR' // Vu
         };
 
         const { error } = await _spirit
@@ -1121,13 +1121,13 @@ async function confirmPayment(method) {
 
         if (error) throw error;
 
-        alert(`🛡️ SPIRIT SHIELD : Transaction validée avec le nom de la figurine !`);
+        alert(`🛡️ SPIRIT SHIELD : Transaction de "${dataToInsert.figurine_name}" validée !`);
         location.reload();
 
     } catch (err) {
-        console.error("Erreur Split:", err);
-        // Si ça bug encore, l'alerte va nous dire EXACTEMENT quelle colonne manque
-        alert("DÉFAUT SYSTÈME : " + (err.message || "Vérifiez vos colonnes Supabase"));
+        console.error("Crash Spirit:", err);
+        // Si ça bug encore, l'alerte va citer la colonne exacte qui pose problème
+        alert("DÉFAUT SYSTÈME : " + (err.message || "Erreur de base de données"));
     }
 }
     
@@ -1566,6 +1566,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
