@@ -1081,29 +1081,33 @@ function addToMySales(product, carrierName) {
     
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function confirmPayment(method) {
-    console.log("Démarrage paiement...");
+    console.log("Démarrage du bouclier Spirit Shield...");
     try {
-        // Sécurité : Si pas de produit ou pas d'utilisateur, on sort proprement sans crash
         if (typeof selectedProduct === 'undefined' || !selectedProduct) {
-            return alert("Sélectionnez un produit d'abord.");
+            return alert("Erreur : Aucun produit sélectionné.");
         }
-        
+
         const priceVal = Number(selectedProduct.price) || 0;
-        let myShare = 0, firmShare = 0, bankShare = 0;
+        let myShare = 0;
+        let firmShare = 0;
+        let bankShare = 0;
         let categoryVente = selectedProduct.owner ? "MARKETPLACE" : "FACTORY";
 
-        // CALCUL DU SPLIT 8% (3/3/2)
+        // --- LOGIQUE DE SPLIT 8% (3/3/2) ---
         if (categoryVente === "MARKETPLACE") {
-            myShare = priceVal * 0.03;
-            firmShare = priceVal * 0.03;
-            bankShare = priceVal * 0.02;
+            myShare = priceVal * 0.03; // Tes 3%
+            firmShare = priceVal * 0.03; // 3% Firme
+            bankShare = priceVal * 0.02; // 2% Frais bancaires
         } else {
-            myShare = 3.00; // Royalties fixes
+            myShare = 3.00; // Tes 3€ royalties sortie d'usine
+            firmShare = 0;
+            bankShare = 0;
         }
 
+        // --- PRÉPARATION DES DONNÉES (Alignées sur Supabase) ---
         const dataToInsert = {
-            product_id: selectedProduct.id,
-            buyer: (typeof currentUser !== 'undefined') ? currentUser : "Guest",
+            item_id: selectedProduct.id, // Changé product_id en item_id pour corriger l'erreur
+            buyer: (typeof currentUser !== 'undefined') ? currentUser : "Client Anonyme",
             type_transaction: categoryVente,
             price: priceVal,
             user_profit: myShare,
@@ -1112,20 +1116,19 @@ async function confirmPayment(method) {
             status: 'escrow_active'
         };
 
-        console.log("Données à envoyer:", dataToInsert);
-
         const { error } = await _spirit
             .from('transactions')
             .insert([dataToInsert]);
 
         if (error) throw error;
 
-        alert("🛡️ SPIRIT SHIELD ACTIVÉ\nSplit 8% enregistré.");
+        alert(`🛡️ SPIRIT SHIELD : Transaction Sécurisée !\n\nSplit 8% appliqué :\n- Ta part : ${myShare.toFixed(2)}€\n- Firme : ${firmShare.toFixed(2)}€\n- Frais : ${bankShare.toFixed(2)}€`);
+        
         location.reload();
 
     } catch (err) {
-        console.error("Erreur critique détectée:", err);
-        alert("ERREUR SYSTÈME : " + (err.message || "Problème de connexion Base de données"));
+        console.error("Erreur critique Spirit:", err);
+        alert("DÉFAUT SYSTÈME : " + (err.message || "Erreur de connexion base de données"));
     }
 }
     
@@ -1564,6 +1567,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
