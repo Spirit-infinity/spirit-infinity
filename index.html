@@ -1091,26 +1091,28 @@ async function confirmPayment(method) {
 
         // CALCUL DU SPLIT 8% (3% / 3% / 2%)
         if (categoryVente === "MARKETPLACE") {
-            myShare = priceVal * 0.03;
-            firmShare = priceVal * 0.03;
-            bankShare = priceVal * 0.02;
+            myShare = priceVal * 0.03; // commission_spirit
+            firmShare = priceVal * 0.03; // commission_firm
+            bankShare = priceVal * 0.02; // Frais bancaires
         } else {
             myShare = 3.00; // Royalties fixes usine
             firmShare = 0;
             bankShare = 0;
         }
 
-        // --- ALIGNEMENT SUR TES PHOTOS SUPABASE ---
+        // --- ALIGNEMENT PARFAIT SUR TES PHOTOS SUPABASE ---
         const dataToInsert = {
-            product_id: parseInt(selectedProduct.id) || 1, // Colonne integer
-            buyer: "SPIRIT", // Nom par défaut vu sur tes captures
-            type_transaction: categoryVente, 
-            amount: priceVal, // Correction : 'amount' au lieu de 'price'
-            commission_spirit: myShare, // Ta part
-            commission_firm: firmShare, // Part firme
-            total_commission: (myShare + firmShare + bankShare),
-            status: 'escrow_active',
-            currency: 'EUR'
+            product_id: parseInt(selectedProduct.id) || 0, //
+            buyer: "SPIRIT", //
+            figurine_name: selectedProduct.name || "N/A", // RÉINTÉGRATION DU NOM
+            manufacturer_name: selectedProduct.brand || "Hot Toys", //
+            type_transaction: categoryVente, //
+            amount: priceVal, //
+            commission_spirit: myShare, //
+            commission_firm: firmShare, //
+            total_commission: (myShare + firmShare + bankShare), //
+            status: 'escrow_active', //
+            currency: 'EUR' //
         };
 
         const { error } = await _spirit
@@ -1119,11 +1121,12 @@ async function confirmPayment(method) {
 
         if (error) throw error;
 
-        alert(`🛡️ SPIRIT SHIELD : Split 8% validé !`);
+        alert(`🛡️ SPIRIT SHIELD : Transaction validée avec le nom de la figurine !`);
         location.reload();
 
     } catch (err) {
         console.error("Erreur Split:", err);
+        // Si ça bug encore, l'alerte va nous dire EXACTEMENT quelle colonne manque
         alert("DÉFAUT SYSTÈME : " + (err.message || "Vérifiez vos colonnes Supabase"));
     }
 }
@@ -1563,6 +1566,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
