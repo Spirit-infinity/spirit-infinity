@@ -1081,60 +1081,49 @@ function addToMySales(product, carrierName) {
 /* (c) 2026 Spirit Infinity - Tous droits réservés */
 
 // Cette fonction doit être liée à ton bouton "CARTE BANCAIRE"
-async function payerParCarte() {
-    console.log("🚀 Lancement du paiement Spirit Infinity...");
+  async function confirmPayment(mode) {
+            console.log("🚀 Initialisation du paiement Spirit via : " + mode);
+            try {
+                if (typeof selectedProduct === 'undefined' || !selectedProduct.id) {
+                    alert("Erreur : Aucun produit sélectionné.");
+                    return;
+                }
 
-    try {
-        // 1. Vérification des données produits
-        if (typeof selectedProduct === 'undefined' || !selectedProduct.id) {
-            alert("Erreur : Aucun produit sélectionné.");
-            return;
+                const prix = parseFloat(selectedProduct.price) || 0;
+                const partMe = prix * 0.03; // Tes 3% [cite: 2026-03-03]
+                const partFirm = prix * 0.03; // Part firme 3% [cite: 2026-03-03]
+                const partBank = prix * 0.02; // Frais bancaires 2% [cite: 2026-03-03]
+                const totalFrais = partMe + partFirm + partBank;
+
+                const dataTransaction = {
+                    product_id: String(selectedProduct.id), // UUID format [cite: 2026-02-12]
+                    item_id: String(selectedProduct.id),    
+                    buyer: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : "SPIRIT_USER",
+                    figurine_name: selectedProduct.name || "Figurine Spirit",
+                    amount: prix,
+                    payment_method: mode,
+                    commission_spirit: partMe,
+                    commission_firm: partFirm,
+                    commission_bank: partBank,
+                    total_commission: totalFrais,
+                    status: 'escrow_active', // Protection 6% [cite: 2026-03-03]
+                    currency: 'EUR',
+                    created_at: new Date().toISOString()
+                };
+
+                const { data, error } = await supabase
+                    .from('transactions')
+                    .insert([dataTransaction]);
+
+                if (error) throw error;
+                alert("✅ Paiement " + mode + " validé !");
+                
+            } catch (err) {
+                console.error("❌ Erreur :", err.message);
+                alert("ERREUR CRITIQUE : " + err.message);
+            }
         }
 
-        // 2. Calcul des frais (Règle des 8%) [cite: 2026-03-03]
-        const prix = parseFloat(selectedProduct.price) || 0;
-        const partMe = prix * 0.03; // 3% pour toi
-        const partFirm = prix * 0.03; // 3% pour la firme
-        const partBank = prix * 0.02; // 2% frais Stripe/Banque
-        const totalFrais = partMe + partFirm + partBank;
-
-        // 3. Préparation de l'objet (Format UUID Strict)
-        const dataTransaction = {
-            product_id: String(selectedProduct.id), // Force l'UUID en texte
-            item_id: String(selectedProduct.id), // Lien Spirit Ledger
-            buyer: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : "SPIRIT_USER",
-            figurine_name: selectedProduct.name || "Figurine Spirit",
-            amount: prix,
-            
-            // Répartition des 8% [cite: 2026-03-03]
-            commission_spirit: partMe,
-            commission_firm: partFirm,
-            commission_bank: partBank,
-            total_commission: totalFrais,
-            
-            status: 'escrow_active', // Protection acheteur 6% [cite: 2026-03-03]
-            currency: 'EUR',
-            created_at: new Date().toISOString()
-        };
-
-        // 4. Envoi à Supabase
-        const { data, error } = await supabase
-            .from('transactions')
-            .insert([dataTransaction]);
-
-        if (error) throw error;
-
-        // 5. Redirection ou Message de succès
-        alert("✅ Paiement Stripe validé ! La figurine est certifiée dans le Ledger.");
-        
-        // Optionnel : redirection vers le compte
-        // window.location.href = "compte.html";
-
-    } catch (err) {
-        console.error("❌ Erreur critique :", err.message);
-        alert("ERREUR CRITIQUE : " + err.message);
-    }
-}
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1570,6 +1559,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
