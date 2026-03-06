@@ -1080,29 +1080,34 @@ function addToMySales(product, carrierName) {
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function confirmPayment(method) {
+    console.log("Démarrage du bouclier Spirit Shield...");
     try {
-        if (!selectedProduct) return alert("Erreur : Produit introuvable.");
+        if (!selectedProduct) return alert("Erreur : Aucun produit sélectionné.");
 
         const priceVal = Number(selectedProduct.price) || 0;
         let myShare = (selectedProduct.owner) ? (priceVal * 0.03) : 3.00;
         let firmShare = (selectedProduct.owner) ? (priceVal * 0.03) : 0;
         let bankShare = (selectedProduct.owner) ? (priceVal * 0.02) : 0;
 
-        // --- BLINDAGE CONTRE L'ERREUR ITEM_ID ---
+        // --- PRÉPARATION DES DONNÉES (ALIGNÉES SUR TES PHOTOS SUPABASE) ---
         const dataToInsert = {
-            product_id: selectedProduct.id, // Ce que l'on voit sur ta photo
-            item_id: selectedProduct.id, // ON AJOUTE ÇA POUR CALMER LE TRIGGER
-            buyer: "SPIRIT", //
-            figurine_name: selectedProduct.name || "Figurine Spirit", //
-            manufacturer_name: selectedProduct.brand || "N/A", //
-            type_transaction: selectedProduct.owner ? "MARKETPLACE" : "FACTORY", //
-            amount: priceVal, //
-            commission_spirit: myShare, //
-            commission_firm: firmShare, //
-            total_commission: (myShare + firmShare + bankShare), //
-            status: 'escrow_active', //
-            currency: 'EUR' //
+            // L'ID réel pour la colonne UUID (ne pas mettre parseInt ici !)
+            product_id: selectedProduct.id, 
+            // Le chiffre 1 pour ta nouvelle colonne int8
+            item_id: 1,                          
+            buyer: "SPIRIT",                     
+            figurine_name: selectedProduct.name || "N/A",
+            manufacturer_name: selectedProduct.brand || "N/A",
+            type_transaction: selectedProduct.owner ? "MARKETPLACE" : "FACTORY",
+            amount: priceVal,                    
+            commission_spirit: myShare,          
+            commission_firm: firmShare,          
+            total_commission: (myShare + firmShare + bankShare),
+            status: 'escrow_active',             
+            currency: 'EUR'                      
         };
+
+        console.log("Envoi des données à Supabase...", dataToInsert);
 
         const { error } = await _spirit
             .from('transactions')
@@ -1110,16 +1115,17 @@ async function confirmPayment(method) {
 
         if (error) throw error;
 
-        alert(`🛡️ SPIRIT SHIELD : Transaction de "${dataToInsert.figurine_name}" validée !`);
+        // --- CONFIRMATION VISUELLE ---
+        alert(`🛡️ SPIRIT SHIELD ACTIVÉ !\n\nTransaction de "${dataToInsert.figurine_name}" enregistrée.\nSplit 8% calculé.`);
+        
         location.reload();
 
     } catch (err) {
-        console.error("Crash Spirit:", err);
-        // Si ça marque encore field "item_id", il FAUT créer la colonne dans Supabase
-        alert("DÉFAUT SYSTÈME : " + err.message);
+        console.error("Erreur critique détectée :", err);
+        // Si ça bug encore, l'alerte dira EXACTEMENT pourquoi (UUID ou autre)
+        alert("DÉFAUT SYSTÈME : " + (err.message || "Erreur base de données"));
     }
 }
-    
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1555,6 +1561,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
