@@ -652,16 +652,20 @@
     let currentUser = "INVITÉ";
     let diagActive = false;
     let editingId = null;
+    
 // (c) 2026 Spirit Infinity - Tous droits réservés
-// CALCUL DU SPLIT FINANCIER 3% / 3%
+// CALCUL DU SPLIT FINANCIER 3% / 3% / 2%
 function calculateSpiritSplit(price) {
-    const totalFee = price * 0.06;
+    const totalFee = price * 0.08; 
     const myShare = price * 0.03; // Tes 3% (Marketplace)
-    const firmShare = price * 0.03; // Les 3% Partenaire (Royalties)
+    const firmShare = price * 0.03; // Les 3% Partenaire
+    const bankShare = price * 0.02; // Les 2% Banque
+
     return {
-        totalFee: totalFee.toFixed(2),
+        totalFee: totalFee.toFixed(2), // C'est ce montant qui sera affiché comme "Protection"
         myShare: myShare.toFixed(2),
         firmShare: firmShare.toFixed(2),
+        bankShare: bankShare.toFixed(2),
         sellerNet: (price - totalFee).toFixed(2)
     };
 }
@@ -1545,6 +1549,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
