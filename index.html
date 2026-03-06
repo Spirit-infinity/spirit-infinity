@@ -1084,35 +1084,24 @@ async function confirmPayment(method) {
         if (!selectedProduct) return alert("Erreur : Produit introuvable.");
 
         const priceVal = Number(selectedProduct.price) || 0;
-        let myShare = 0;
-        let firmShare = 0;
-        let bankShare = 0;
-        let categoryVente = selectedProduct.owner ? "MARKETPLACE" : "FACTORY";
+        let myShare = (selectedProduct.owner) ? (priceVal * 0.03) : 3.00;
+        let firmShare = (selectedProduct.owner) ? (priceVal * 0.03) : 0;
+        let bankShare = (selectedProduct.owner) ? (priceVal * 0.02) : 0;
 
-        // CALCUL DU SPLIT 8% (3% / 3% / 2%)
-        if (categoryVente === "MARKETPLACE") {
-            myShare = priceVal * 0.03; // commission_spirit
-            firmShare = priceVal * 0.03; // commission_firm
-            bankShare = priceVal * 0.02; // Frais bancaires
-        } else {
-            myShare = 3.00; // Royalties fixes usine
-            firmShare = 0;
-            bankShare = 0;
-        }
-
-        // --- ALIGNEMENT STRICT SUR TES PHOTOS SUPABASE ---
+        // --- PRÉPARATION MULTI-COLONNES (Blindage Spirit Shield) ---
         const dataToInsert = {
-            product_id: parseInt(selectedProduct.id) || 1, // Vu
-            buyer: "SPIRIT", // Vu
-            figurine_name: selectedProduct.name || "N/A", // Vu
-            manufacturer_name: selectedProduct.brand || "N/A", // Vu
-            type_transaction: categoryVente, // Vu
-            amount: priceVal, // Vu
-            commission_spirit: myShare, // Vu
-            commission_firm: firmShare, // Vu
-            total_commission: (myShare + firmShare + bankShare), // Vu
-            status: 'escrow_active', // Vu
-            currency: 'EUR' // Vu
+            id: selectedProduct.id, // Ton ID réel
+            product_id: selectedProduct.id, // Variante 1
+            item_id: selectedProduct.id, // Variante 2 (Celle que l'erreur demande)
+            buyer: "SPIRIT", //
+            figurine_name: selectedProduct.name || "N/A",
+            type_transaction: selectedProduct.owner ? "MARKETPLACE" : "FACTORY",
+            amount: priceVal, //
+            commission_spirit: myShare, //
+            commission_firm: firmShare, //
+            total_commission: (myShare + firmShare + bankShare),
+            status: 'escrow_active', //
+            currency: 'EUR' //
         };
 
         const { error } = await _spirit
@@ -1126,8 +1115,7 @@ async function confirmPayment(method) {
 
     } catch (err) {
         console.error("Crash Spirit:", err);
-        // Si ça bug encore, l'alerte va citer la colonne exacte qui pose problème
-        alert("DÉFAUT SYSTÈME : " + (err.message || "Erreur de base de données"));
+        alert("ERREUR SYSTÈME : " + err.message);
     }
 }
     
@@ -1566,6 +1554,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
