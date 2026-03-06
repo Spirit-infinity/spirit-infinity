@@ -652,16 +652,20 @@
     let currentUser = "INVITÉ";
     let diagActive = false;
     let editingId = null;
+    
 // (c) 2026 Spirit Infinity - Tous droits réservés
-// CALCUL DU SPLIT FINANCIER 3% / 3%
+// CALCUL DU SPLIT FINANCIER 3% / 3% / 2%
 function calculateSpiritSplit(price) {
-    const totalFee = price * 0.06;
+    const totalFee = price * 0.08; 
     const myShare = price * 0.03; // Tes 3% (Marketplace)
-    const firmShare = price * 0.03; // Les 3% Partenaire (Royalties)
+    const firmShare = price * 0.03; // Les 3% Partenaire
+    const bankShare = price * 0.02; // Les 2% Banque
+
     return {
-        totalFee: totalFee.toFixed(2),
+        totalFee: totalFee.toFixed(2), // C'est ce montant qui sera affiché comme "Protection"
         myShare: myShare.toFixed(2),
         firmShare: firmShare.toFixed(2),
+        bankShare: bankShare.toFixed(2),
         sellerNet: (price - totalFee).toFixed(2)
     };
 }
@@ -1084,19 +1088,34 @@ function addToMySales(product, carrierName) {
 async function confirmPayment(method) {
     try {
         if (!selectedProduct) return alert("Erreur : Produit introuvable.");
+const priceVal = Number(selectedProduct.price) || 0;
+const split = calculateSpiritSplit(priceVal); // Appelle ta fonction 8%
 
-        const priceVal = Number(selectedProduct.price) || 0;
-        let myShare = 0;
-        let firmShare = 0;
-        let categoryVente = "";
+let myShare = split.myShare; // Tes 3%
+let firmShare = split.firmShare; // Les 3% Firme
+let bankShare = split.bankShare; // Les 2% Banque
+let categoryVente = "";
 
+// AFFICHAGE DU RÉCAPITULATIF POUR L'ACHETEUR
+const messageAchat = `
+RÉCAPITULATIF SPIRIT INFINITY
+------------------------------
+Prix figurine : ${priceVal} €
+Protection (8%) : ${split.totalFee} €
+------------------------------
+TOTAL À PAYER : ${(parseFloat(priceVal) + parseFloat(split.totalFee)).toFixed(2)} €
+`;
+
+if (!confirm(messageAchat)) return; // S'il annule, on arrête tout ici.
+        
         // --- VERROU DE SÉCURITÉ SPIRIT INFINITY ---
         // Si le produit est marqué comme 'native', 'legacy' ou a un propriétaire, c'est du MARKETPLACE
-        if (selectedProduct.type === 'native' || selectedProduct.type === 'legacy' || selectedProduct.owner) {
-            categoryVente = "MARKETPLACE";
-            myShare = priceVal * 0.03; // STRICTEMENT 3% (Pas de +3€ ici)
-            firmShare = priceVal * 0.03; // 3% Partenaire
-        } 
+        if (selectedProduct.type === 'native' || selectedProduct.type === 'legacy') {
+    categoryVente = "MARKETPLACE";
+    myShare = split.myShare; // Tes 3%
+    firmShare = split.firmShare; // Les 3% Partenaire
+    // Ajoute bankShare ici si ta base Supabase a la colonne
+}
         // Sinon, c'est une vente NEUVE DIRECTE (Factory / Dossier Partenariat)
         else {
             categoryVente = "FACTORY";
