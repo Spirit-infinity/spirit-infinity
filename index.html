@@ -1098,29 +1098,28 @@ let categoryVente = "";
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
         
-// 1. On récupère le prix de livraison de l'annonce, sinon 0
-const livraison = selectedProduct.shipping ? parseFloat(selectedProduct.shipping) : 0;
+// 1. On récupère les frais réels de l'annonce (assure-toi que ces noms correspondent à ta table PRODUITS)
+const livraison = parseFloat(selectedProduct.shipping_cost) || 0;
+const douane = parseFloat(selectedProduct.customs_cost) || 0;
 
-// 2. Douane : On ne l'affiche QUE si ce n'est pas la France (Exemple simple)
-// Si tu as une variable 'userCountry', utilise-la ici. Sinon, on check l'annonce.
-let douane = 0;
-if (selectedProduct.customs && selectedProduct.country !== 'FR') {
-    douane = parseFloat(selectedProduct.customs);
-}
+// 2. On utilise le total de commission de ta base (8%)
+const fraisProtection = parseFloat(split.totalFee) || 0;
 
-// 3. Calcul du Total Final avec la protection de 8%
-const totalFinal = (parseFloat(priceVal) + parseFloat(split.totalFee) + livraison + douane).toFixed(2);
+// 3. Calcul du total réel
+const totalFinal = (parseFloat(priceVal) + fraisProtection + livraison + douane).toFixed(2);
 
 const messageAchat = `
 RÉCAPITULATIF SPIRIT INFINITY
 ------------------------------
 Prix figurine : ${priceVal} €
-Protection (8%) : ${split.totalFee} €
+Protection (8%) : ${fraisProtection.toFixed(2)} €
 Livraison : ${livraison.toFixed(2)} €
 Frais de douane : ${douane.toFixed(2)} €
 ------------------------------
 TOTAL À PAYER : ${totalFinal} €
 `;
+
+if (!confirm(messageAchat)) return;
 
 if (!confirm(messageAchat)) return; // S'il annule, on arrête tout ici.
 
@@ -1581,6 +1580,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
