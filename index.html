@@ -1078,7 +1078,8 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
- // (c) 2026 Spirit Infinity - Tous droits réservés
+    
+// (c) 2026 Spirit Infinity - Tous droits réservés
 async function confirmPayment(method) {
     try {
         if (!selectedProduct) return alert("Erreur : Produit introuvable.");
@@ -1086,45 +1087,49 @@ async function confirmPayment(method) {
         const priceVal = Number(selectedProduct.price) || 0;
         let myShare = 0;
         let firmShare = 0;
-        let bankShare = 0; // Les 2% bancaires
+        let bankShare = 0;
         let categoryVente = "";
 
-        // --- CALCUL DE SPLIT EXACT (3% / 3% / 2%) ---
+        // CALCUL DU SPLIT 3% / 3% / 2%
         if (selectedProduct.owner) { 
             categoryVente = "MARKETPLACE";
-            myShare = priceVal * 0.03; // 3% pour Toi
-            firmShare = priceVal * 0.03; // 3% pour la Firme
-            bankShare = priceVal * 0.02; // 2% pour le Bancaire (Ayden)
+            myShare = priceVal * 0.03; // Tes 3%
+            firmShare = priceVal * 0.03; // 3% Firme
+            bankShare = priceVal * 0.02; // 2% Bancaire
         } else {
             categoryVente = "FACTORY";
-            myShare = 3.00; // Tes 3€ de royalties fixes sortie d'usine
+            myShare = 3.00; // Tes 3€ royalties
             firmShare = 0;
             bankShare = 0;
         }
 
+        // On crée l'objet de données proprement
+        const dataToInsert = {
+            product_id: selectedProduct.id,
+            buyer: currentUser,
+            type_transaction: categoryVente,
+            price: priceVal,
+            status: 'escrow_active'
+        };
+
+        // AJOUT DES PROFITS (On utilise les noms de colonnes les plus sûrs)
+        dataToInsert.user_profit = myShare;
+        dataToInsert.firm_profit = firmShare;
+        dataToInsert.total_commission = (myShare + firmShare + bankShare);
+
         const { error } = await _spirit
             .from('transactions')
-            .insert([{
-                product_id: selectedProduct.id,
-                buyer: currentUser,
-                type_transaction: categoryVente,
-                price: priceVal,
-                user_profit: myShare,
-                firm_profit: firmShare,
-                // On additionne les frais bancaires dans le total_commission 
-                // pour éviter de faire planter le site si la colonne ayden n'existe pas
-                total_commission: (myShare + firmShare + bankShare),
-                status: 'escrow_active'
-            }]);
+            .insert([dataToInsert]);
 
         if (error) throw error;
 
-        alert(`🛡️ SPIRIT SHIELD : Split 8% appliqué !\nPart Perso: ${myShare.toFixed(2)}€\nFerme: ${firmShare.toFixed(2)}€\nFrais: ${bankShare.toFixed(2)}€`);
+        alert("🛡️ SPIRIT SHIELD ACTIVÉ\nTransaction validée avec split 8%.");
         location.reload();
 
     } catch (err) {
-        console.error("Erreur de transaction Spirit:", err);
-        alert("Erreur critique : Le calcul du split a échoué. Contactez l'administrateur.");
+        console.error("Crash Code:", err);
+        // L'alerte suivante va nous dire EXACTEMENT quelle colonne pose problème
+        alert("DÉFAUT SYSTÈME : " + (err.message || "Erreur de colonne"));
     }
 }
 
@@ -1598,6 +1603,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
