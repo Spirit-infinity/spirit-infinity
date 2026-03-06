@@ -932,27 +932,23 @@ async function saveSpiritAudit(title, detected, score, status) {
     console.log("[SPIRIT LEDGER] Tentative d'archivage...");
    
     // On s'assure que _spirit (Supabase) est bien initialisé
-   const { data, error } = await supabase
-  .from('transactions')
-  .insert([{
-    figurine_name: selectedProduct ? selectedProduct.title : "Unité Spirit Infinity",
-    price: selectedProduct ? selectedProduct.price : 695.90,
-    amount: 695.90,
-    user_profit: (695.90 * 0.03), // Ta part 3%
-    firm_profit: (695.90 * 0.03), // Part Firme 3%
-    bank_share: (695.90 * 0.02), // Part Banque 2% (le reste du split 8%)
-    total_commission: (695.90 * 0.08),
-    status: 'escrow_active',
-    type_transaction: 'MARKETPLACE'
-  }]);
+    const { data, error } = await _spirit
+        .from('spirit_ledger') // Assure-toi que la table s'appelle bien comme ça
+        .insert([{
+            listing_title: title,
+            detected_object: detected,
+            ia_score: parseInt(score),
+            status: status, // 'CERTIFIED' ou 'REJECTED'
+            seller_name: currentUser
+        }]);
 
-if (error) {
-    console.error("ERREUR SQL SPIRIT :", error);
-    alert("Erreur de split financier ou colonnes SQL manquantes.");
-} else {
-    console.log("✅ [SPIRIT LEDGER] Transaction validée !");
-    alert("Paiement validé et archivé !");
+    if (error) {
+        console.error("❌ Erreur SQL Ledger:", error.message);
+    } else {
+        console.log("✅ SPIRIT LEDGER : Donnée archivée avec succès !");
+    }
 }
+
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 function publishFinal() {
@@ -1088,37 +1084,29 @@ function addToMySales(product, carrierName) {
 }
     
 // (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function confirmPayment(method) {
-    const totalAmount = 695.90; // Fixé selon ton modèle économique
-    
     try {
-        console.log("🚀 [SPIRIT] Tentative de paiement via " + method);
+        if (!selectedProduct) return alert("Erreur : Produit introuvable.");
+const priceVal = Number(selectedProduct.price) || 0;
+const split = calculateSpiritSplit(priceVal); // Appelle ta fonction 8%
 
-        // Envoi sécurisé à Supabase avec le split financier 3/3/2
-        const { data, error } = await supabase
-            .from('transactions')
-            .insert([{
-                figurine_name: selectedProduct ? selectedProduct.title : "Unité Spirit Infinity",
-                amount: totalAmount,
-                user_profit: (totalAmount * 0.03), // Tes 3%
-                firm_profit: (totalAmount * 0.03), // Part Firme 3%
-                bank_share: (totalAmount * 0.02), // Part Banque 2%
-                status: 'escrow_active',
-                type_transaction: 'MARKETPLACE'
-            }]);
+let myShare = split.myShare; // Tes 3%
+let firmShare = split.firmShare; // Les 3% Firme
+let bankShare = split.bankShare; // Les 2% Banque
+let categoryVente = "";
 
-        if (error) throw error;
+// AFFICHAGE DU RÉCAPITULATIF POUR L'ACHETEUR
+const messageAchat = `
+RÉCAPITULATIF SPIRIT INFINITY
+------------------------------
+Prix figurine : ${priceVal} €
+Protection (8%) : ${split.totalFee} €
+------------------------------
+TOTAL À PAYER : ${(parseFloat(priceVal) + parseFloat(split.totalFee)).toFixed(2)} €
+`;
 
-        alert("PAIEMENT SPECTACULAIRE ! (c) 2026 Spirit Infinity");
-        window.location.reload(); // On recharge pour éviter que le market reste bloqué
-
-    } catch (err) {
-        console.error("❌ CRASH TRANSACTION :", err);
-        // Si ça plante ici, c'est que tes colonnes SQL ne sont pas créées !
-        alert("ALERTE : Ta base Supabase rejette le split financier. Vérifie tes colonnes.");
-    }
-}
-
+if (!confirm(messageAchat)) return; // S'il annule, on arrête tout ici.
         
         // --- VERROU DE SÉCURITÉ SPIRIT INFINITY ---
         // Si le produit est marqué comme 'native', 'legacy' ou a un propriétaire, c'est du MARKETPLACE
@@ -1576,8 +1564,6 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
-
-
 
 
 
