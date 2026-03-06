@@ -1097,27 +1097,29 @@ let bankShare = split.bankShare; // Les 2% Banque
 let categoryVente = "";
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-        
-// 1. On récupère les frais réels de l'annonce (assure-toi que ces noms correspondent à ta table PRODUITS)
-const livraison = parseFloat(selectedProduct.shipping_cost) || 0;
-const douane = parseFloat(selectedProduct.customs_cost) || 0;
+ // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// 2. On utilise le total de commission de ta base (8%)
-const fraisProtection = parseFloat(split.totalFee) || 0;
+// On essaie de lire 'shipping' ou 'shipping_cost' (ajuste selon ton Supabase)
+const livraison = parseFloat(selectedProduct.shipping) || parseFloat(selectedProduct.shipping_cost) || 0;
 
-// 3. Calcul du total réel
-const totalFinal = (parseFloat(priceVal) + fraisProtection + livraison + douane).toFixed(2);
+// Douane : 0 si c'est la France, sinon on cherche la colonne customs
+let douane = 0;
+if (selectedProduct.country !== 'FR' && selectedProduct.country !== 'France') {
+    douane = parseFloat(selectedProduct.customs) || parseFloat(selectedProduct.customs_cost) || 0;
+}
+
+const totalFinal = (parseFloat(priceVal) + parseFloat(split.totalFee) + livraison + douane).toFixed(2);
 
 const messageAchat = `
 RÉCAPITULATIF SPIRIT INFINITY
 ------------------------------
 Prix figurine : ${priceVal} €
-Protection (8%) : ${fraisProtection.toFixed(2)} €
+Protection (8%) : ${split.totalFee} €
 Livraison : ${livraison.toFixed(2)} €
 Frais de douane : ${douane.toFixed(2)} €
 ------------------------------
 TOTAL À PAYER : ${totalFinal} €
-`;
+`;       
 
 if (!confirm(messageAchat)) return;
 
@@ -1580,6 +1582,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
