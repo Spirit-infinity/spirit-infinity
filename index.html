@@ -1078,9 +1078,7 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
-    
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
+    // (c) 2026 Spirit Infinity - Tous droits réservés
 async function confirmPayment(method) {
     try {
         if (!selectedProduct) return alert("Erreur : Produit introuvable.");
@@ -1088,21 +1086,48 @@ async function confirmPayment(method) {
         const priceVal = Number(selectedProduct.price) || 0;
         let myShare = 0;
         let firmShare = 0;
+        let aydenShare = 0; // Nouvelle part Ayden
         let categoryVente = "";
 
-        // --- VERROU DE SÉCURITÉ SPIRIT INFINITY ---
-        // Si le produit est marqué comme 'native', 'legacy' ou a un propriétaire, c'est du MARKETPLACE
-        if (selectedProduct.type === 'native' || selectedProduct.type === 'legacy' || selectedProduct.owner) {
+        // --- NOUVEAU CALCUL DE SPLIT 8% TOTAL ---
+        if (selectedProduct.owner) { 
+            // Cas MARKETPLACE
             categoryVente = "MARKETPLACE";
-            myShare = priceVal * 0.03; // STRICTEMENT 3% (Pas de +3€ ici)
-            firmShare = priceVal * 0.03; // 3% Partenaire
-        } 
-        // Sinon, c'est une vente NEUVE DIRECTE (Factory / Dossier Partenariat)
-        else {
+            myShare = priceVal * 0.03; // 3% pour Toi
+            firmShare = priceVal * 0.03; // 3% pour la Firme
+            aydenShare = priceVal * 0.02; // 2% pour Ayden
+        } else {
+            // Cas FACTORY (Sortie d'usine)
             categoryVente = "FACTORY";
-            myShare = 3.00; // STRICTEMENT 3€ (Royalties fixes)
+            myShare = 3.00; // Tes 3€ de royalties fixes
             firmShare = 0;
+            aydenShare = 0;
         }
+
+        const { error } = await _spirit
+            .from('transactions')
+            .insert([{
+                product_id: selectedProduct.id,
+                buyer: currentUser,
+                type_transaction: categoryVente,
+                price: priceVal,
+                user_profit: myShare,
+                firm_profit: firmShare,
+                ayden_profit: aydenShare, // Assure-toi que cette colonne existe dans Supabase
+                total_commission: myShare + firmShare + aydenShare,
+                status: 'escrow_active'
+            }]);
+
+        if (error) throw error;
+
+        alert(`🛡️ SPIRIT SHIELD : Split 8% validé !\n(Moi: 3% | Firme: 3% | Ayden: 2%)`);
+        location.reload();
+
+    } catch (err) {
+        console.error("Erreur Split 8%:", err);
+        alert("ERREUR : Vérifiez que la colonne 'ayden_profit' existe dans votre table transactions sur Supabase.");
+    }
+}
 
         // --- INSERTION AVEC NOM DE LA FIGURINE RÉCUPÉRÉ ---
         const { data, error } = await _spirit
@@ -1574,6 +1599,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
