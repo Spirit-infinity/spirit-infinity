@@ -1080,24 +1080,25 @@ function addToMySales(product, carrierName) {
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function confirmPayment(method) {
-    console.log("Démarrage du bouclier Spirit Shield...");
+    console.log("Tentative de paiement Spirit Shield...");
     try {
-        if (!selectedProduct) return alert("Erreur : Aucun produit sélectionné.");
+        if (!selectedProduct || !selectedProduct.id) {
+            return alert("Erreur : ID du produit manquant.");
+        }
 
         const priceVal = Number(selectedProduct.price) || 0;
         let myShare = (selectedProduct.owner) ? (priceVal * 0.03) : 3.00;
         let firmShare = (selectedProduct.owner) ? (priceVal * 0.03) : 0;
         let bankShare = (selectedProduct.owner) ? (priceVal * 0.02) : 0;
 
-        // --- PRÉPARATION DES DONNÉES (ALIGNÉES SUR TES PHOTOS SUPABASE) ---
+        // --- ALIGNEMENT UUID & INT8 ---
         const dataToInsert = {
-            // L'ID réel pour la colonne UUID (ne pas mettre parseInt ici !)
-            product_id: selectedProduct.id, 
-            // Le chiffre 1 pour ta nouvelle colonne int8
+            // On envoie l'ID réel (ex: "a1b2c3...") pour la colonne UUID
+            product_id: selectedProduct.id,      
+            // On envoie le chiffre 1 pour ta colonne item_id (int8)
             item_id: 1,                          
             buyer: "SPIRIT",                     
             figurine_name: selectedProduct.name || "N/A",
-            manufacturer_name: selectedProduct.brand || "N/A",
             type_transaction: selectedProduct.owner ? "MARKETPLACE" : "FACTORY",
             amount: priceVal,                    
             commission_spirit: myShare,          
@@ -1107,23 +1108,19 @@ async function confirmPayment(method) {
             currency: 'EUR'                      
         };
 
-        console.log("Envoi des données à Supabase...", dataToInsert);
-
         const { error } = await _spirit
             .from('transactions')
             .insert([dataToInsert]);
 
         if (error) throw error;
 
-        // --- CONFIRMATION VISUELLE ---
-        alert(`🛡️ SPIRIT SHIELD ACTIVÉ !\n\nTransaction de "${dataToInsert.figurine_name}" enregistrée.\nSplit 8% calculé.`);
-        
+        alert(`🛡️ SPIRIT SHIELD : Transaction Validée !`);
         location.reload();
 
     } catch (err) {
-        console.error("Erreur critique détectée :", err);
-        // Si ça bug encore, l'alerte dira EXACTEMENT pourquoi (UUID ou autre)
-        alert("DÉFAUT SYSTÈME : " + (err.message || "Erreur base de données"));
+        console.error("Détails de l'erreur :", err);
+        // Si l'erreur affiche encore UUID "1", c'est que le fichier n'est pas à jour
+        alert("ERREUR SUPABASE : " + err.message);
     }
 }
 // --- FIN DU SYSTÈME ---
@@ -1561,6 +1558,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
