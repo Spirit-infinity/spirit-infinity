@@ -1083,78 +1083,33 @@ function addToMySales(product, carrierName) {
     shippingList.appendChild(saleItem);
 }
     
-// (c) 2026 Spirit Infinity - Tous droits réservés
+// (c) 2026 Spirit Infinity - Tous droits réservés [cite: 2026-01-26]
 
-async function confirmPayment(method) {
+async function processPayment(method) {
+    // On récupère le prix réel de la figurine affichée, pas un prix inventé
+    const montantReel = selectedProduct.price; 
+    
     try {
-        if (!selectedProduct) return alert("Erreur : Produit introuvable.");
-const priceVal = Number(selectedProduct.price) || 0;
-const split = calculateSpiritSplit(priceVal); // Appelle ta fonction 8%
-
-let myShare = split.myShare; // Tes 3%
-let firmShare = split.firmShare; // Les 3% Firme
-let bankShare = split.bankShare; // Les 2% Banque
-let categoryVente = "";
-
-// AFFICHAGE DU RÉCAPITULATIF POUR L'ACHETEUR
-const messageAchat = `
-RÉCAPITULATIF SPIRIT INFINITY
-------------------------------
-Prix figurine : ${priceVal} €
-Protection (8%) : ${split.totalFee} €
-------------------------------
-TOTAL À PAYER : ${(parseFloat(priceVal) + parseFloat(split.totalFee)).toFixed(2)} €
-`;
-
-if (!confirm(messageAchat)) return; // S'il annule, on arrête tout ici.
-        
-        // --- VERROU DE SÉCURITÉ SPIRIT INFINITY ---
-        // Si le produit est marqué comme 'native', 'legacy' ou a un propriétaire, c'est du MARKETPLACE
-        if (selectedProduct.type === 'native' || selectedProduct.type === 'legacy') {
-    categoryVente = "MARKETPLACE";
-    myShare = split.myShare; // Tes 3%
-    firmShare = split.firmShare; // Les 3% Partenaire
-    // Ajoute bankShare ici si ta base Supabase a la colonne
-}
-        // Sinon, c'est une vente NEUVE DIRECTE (Factory / Dossier Partenariat)
-        else {
-            categoryVente = "FACTORY";
-            myShare = 3.00; // STRICTEMENT 3€ (Royalties fixes)
-            firmShare = 0;
-        }
-
-        // --- INSERTION AVEC NOM DE LA FIGURINE RÉCUPÉRÉ ---
-        const { data, error } = await _spirit
+        const { data, error } = await supabase
             .from('transactions')
             .insert([{
-                product_id: selectedProduct.id,
-                buyer: currentUser,
-                type_transaction: categoryVente,
-                
-                // RÉCUPÉRATION DU NOM ET DU FABRICANT
-                figurine_name: selectedProduct.title || "Figurine Spirit",
-                manufacturer_name: selectedProduct.brand || "Usine Partenaire",
-                
-                price: priceVal,
-                amount: priceVal,
-                
-                // FINANCES
-                user_profit: myShare,      
-                firm_profit: firmShare,    
-                total_commission: myShare + firmShare,
-                
-                status: 'escrow_active',
-                created_at: new Date()
+                figurine_name: selectedProduct.title,
+                amount: montantReel,
+                // Le split 3% / 3% / 2% calculé sur le VRAI prix [cite: 2026-03-03, 2026-03-06]
+                user_profit: (montantReel * 0.03).toFixed(2),
+                firm_profit: (montantReel * 0.03).toFixed(2),
+                bank_share: (montantReel * 0.02).toFixed(2),
+                status: 'escrow_active'
             }]);
 
         if (error) throw error;
 
-        alert(`🛡️ SPIRIT SHIELD : Achat ${categoryVente} validé !\nFigurine : ${selectedProduct.title}\nCommission : ${myShare.toFixed(2)}€`);
+        alert("✅ Spirit Ledger mis à jour pour : " + selectedProduct.title);
         location.reload();
 
     } catch (err) {
-        console.error("Erreur technique :", err);
-        alert("Erreur de split financier ou colonnes SQL manquantes.");
+        console.error("Erreur :", err);
+        alert("Le market a planté car les colonnes user_profit/firm_profit/bank_share n'existent pas dans Supabase.");
     }
 }
     
@@ -1564,6 +1519,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
