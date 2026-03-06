@@ -1097,8 +1097,12 @@ let bankShare = split.bankShare; // Les 2% Banque
 let categoryVente = "";
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-const livraison = selectedProduct.shipping || 0;
-const douane = selectedProduct.customs || 0;
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+// On définit des frais par défaut si selectedProduct.shipping n'existe pas
+const livraison = selectedProduct.shipping !== undefined ? selectedProduct.shipping : 20.00; 
+const douane = selectedProduct.customs !== undefined ? selectedProduct.customs : 35.00; 
+
 const totalFinal = (parseFloat(priceVal) + parseFloat(split.totalFee) + parseFloat(livraison) + parseFloat(douane)).toFixed(2);
 
 const messageAchat = `
@@ -1111,6 +1115,7 @@ Frais de douane : ${douane} €
 ------------------------------
 TOTAL À PAYER : ${totalFinal} €
 `;
+
 
 if (!confirm(messageAchat)) return; // S'il annule, on arrête tout ici.
 
@@ -1571,6 +1576,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
