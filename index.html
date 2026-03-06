@@ -1542,9 +1542,39 @@ document.addEventListener('click', function (e) {
     }
 });
 
+    // (c) 2026 Spirit Infinity - Tous droits réservés
+// ÉTAPE 1 : AJOUT DE LA FONCTION DANS LE SCRIPT
+async function leaveSpiritReview(trId) {
+    const rating = prompt("⭐ Notez la transaction (1 à 5) :");
+    const comment = prompt("💬 Un commentaire sur la figurine ?");
+
+    if (rating && !isNaN(rating) && rating >= 1 && rating <= 5) {
+        const { error } = await _spirit
+            .from('reviews') 
+            .insert([{ 
+                transaction_id: trId, 
+                rating: parseInt(rating), 
+                comment: comment,
+                reviewer: currentUser 
+            }]);
+
+        if (error) {
+            console.error("Erreur Review:", error.message);
+        } else {
+            alert("✅ MERCI ! Votre avis a été ajouté au Spirit Ledger.");
+            if(typeof loadUserPurchases === 'function') loadUserPurchases(); 
+        }
+    } else {
+        alert("⚠️ Note invalide (doit être entre 1 et 5).");
+    }
+}
+
+
+
 </script>
 </body>
 </html>
+
 
 
 
