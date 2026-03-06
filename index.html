@@ -1078,82 +1078,53 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
-// (c) 2026 Spirit Infinity - Tous droits réservés
+/* (c) 2026 Spirit Infinity - Tous droits réservés */
 
-/**
- * Fonction de confirmation de paiement avec Split 8% et protection Spirit Shield
- * Aligné sur la structure Supabase : product_id (int8), item_id (int8), amount (float8)
- */
-async function confirmPayment(method) {
-    console.log("🚀 Lancement du protocole de paiement Spirit Infinity...");
+// 1. Calcul des parts selon la règle des 8% [cite: 2026-03-03]
+const priceVal = parseFloat(selectedProduct.price) || 0;
+const myShare = priceVal * 0.03; // Tes 3% [cite: 2026-03-03]
+const firmShare = priceVal * 0.03; // Part de la firme 3% [cite: 2026-03-03]
+const bankShare = priceVal * 0.02; // Frais bancaires 2% [cite: 2026-03-03]
+const totalFees = myShare + firmShare + bankShare; // Total 8%
+
+// 2. Construction de l'objet DATA (Alignement strict UUID)
+// Note : PLUS de parseInt ici pour éviter l'erreur "uuid = bigint"
+const dataToInsert = {
+    product_id: selectedProduct.id, // Envoi direct de l'UUID
+    item_id: selectedProduct.id, // Liaison directe avec le Spirit Ledger
+    buyer: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : "SPIRIT_USER",
+    figurine_name: selectedProduct.name || "Figurine Spirit",
+    manufacturer_name: selectedProduct.brand || "N/A",
+    type_transaction: categoryVente,
+    amount: priceVal,
     
-    try {
-        // 1. Vérification de la présence du produit
-        if (typeof selectedProduct === 'undefined' || !selectedProduct) {
-            return alert("DÉFAUT : Aucun produit sélectionné dans le tunnel d'achat.");
-        }
+    // Répartition financière Spirit Infinity
+    commission_spirit: myShare,
+    commission_firm: firmShare,
+    commission_bank: bankShare,
+    total_commission: totalFees,
+    
+    // Sécurité et Traçabilité "Zero-Trace"
+    status: 'escrow_active', // Protection acheteur 6% active (3% + 3%) [cite: 2026-03-03]
+    currency: 'EUR',
+    created_at: new Date().toISOString()
+};
 
-        // 2. Préparation des variables financières
-        const priceVal = Number(selectedProduct.price) || 0;
-        let myShare = 0; // commission_spirit (Toi)
-        let firmShare = 0; // commission_firm (La Firme)
-        let bankShare = 0; // Frais techniques
-        let categoryVente = selectedProduct.owner ? "MARKETPLACE" : "FACTORY";
+console.log("🛡️ Données prêtes pour injection Spirit Ledger :", dataToInsert);
 
-        // 3. Calcul du Split (Règle des 8% pour la Marketplace / 3€ pour la Factory)
-        if (categoryVente === "MARKETPLACE") {
-            myShare = priceVal * 0.03; // Tes 3%
-            firmShare = priceVal * 0.03; // Les 3% de la firme
-            bankShare = priceVal * 0.02; // Les 2% de frais bancaires
-        } else {
-            myShare = 3.00; // Royalties fixes Spirit Infinity
-            firmShare = 0;
-            bankShare = 0;
-        }
+// 3. Envoi à Supabase
+const { data, error } = await supabase
+    .from('transactions')
+    .insert([dataToInsert]);
 
-        // 4. Construction de l'objet DATA (Alignement strict sur tes colonnes Supabase)
-        // Note : On utilise parseInt car ton erreur "uuid = bigint" montre que ta base attend des chiffres.
-        const dataToInsert = {
-            product_id: parseInt(selectedProduct.id) || 1, // Colonne int8/bigint
-            item_id: parseInt(selectedProduct.id) || 1, // Colonne int8/bigint (celle qu'on a créée)
-            buyer: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : "SPIRIT_USER",
-            figurine_name: selectedProduct.name || "Figurine Spirit",
-            manufacturer_name: selectedProduct.brand || "N/A",
-            type_transaction: categoryVente,
-            amount: priceVal, // Ton prix de vente
-            commission_spirit: myShare, // Ta part directe
-            commission_firm: firmShare, // Part de la firme
-            total_commission: (myShare + firmShare + bankShare), // Total des frais
-            status: 'escrow_active', // Protection acheteur 6% active
-            currency: 'EUR',
-            created_at: new Date().toISOString()
-        };
-
-        console.log("📦 Données prêtes pour injection Supabase :", dataToInsert);
-
-        // 5. Injection dans la table 'transactions'
-        const { data, error } = await _spirit
-            .from('transactions')
-            .insert([dataToInsert])
-            .select();
-
-        if (error) {
-            // Si l'erreur persiste, on l'affiche précisément pour ajuster
-            throw new Error(`Erreur SQL : ${error.message} (Code: ${error.code})`);
-        }
-
-        // 6. Confirmation visuelle (Succès)
-        console.log("✅ Transaction réussie :", data);
-        alert(`🛡️ SPIRIT SHIELD ACTIVÉ\n\nProduit : ${dataToInsert.figurine_name}\nStatut : Paiement en Séquestre (Escrow)\n\nLa transaction a été enregistrée avec succès.`);
-        
-        // Redirection ou rafraîchissement pour finaliser
-        window.location.reload();
-
-    } catch (err) {
-        console.error("❌ CRASH SYSTÈME :", err);
-        alert("ERREUR CRITIQUE : " + err.message + "\n\nVérifiez que les types de colonnes (int8 vs uuid) correspondent bien dans Supabase.");
-    }
+if (error) {
+    console.error("ERREUR CRITIQUE :", error.message);
+    alert("ERREUR CRITIQUE : Erreur SQL : " + error.message);
+} else {
+    console.log("✅ Transaction validée dans le Spirit Ledger");
+    // Afficher la confirmation visuelle ici
 }
+
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1589,6 +1560,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
