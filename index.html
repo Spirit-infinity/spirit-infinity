@@ -1080,49 +1080,60 @@ function addToMySales(product, carrierName) {
 }
 /* (c) 2026 Spirit Infinity - Tous droits réservés */
 
-// Cette fonction doit être liée à ton bouton "CARTE BANCAIRE"
-  async function confirmPayment(mode) {
-            console.log("🚀 Initialisation du paiement Spirit via : " + mode);
-            try {
-                if (typeof selectedProduct === 'undefined' || !selectedProduct.id) {
-                    alert("Erreur : Aucun produit sélectionné.");
-                    return;
-                }
+async function confirmPayment(mode) {
+    console.log("🚀 Tentative de paiement via : " + mode);
 
-                const prix = parseFloat(selectedProduct.price) || 0;
-                const partMe = prix * 0.03; // Tes 3% [cite: 2026-03-03]
-                const partFirm = prix * 0.03; // Part firme 3% [cite: 2026-03-03]
-                const partBank = prix * 0.02; // Frais bancaires 2% [cite: 2026-03-03]
-                const totalFrais = partMe + partFirm + partBank;
+    // Sécurité 1 : Vérifier si l'objet Supabase existe
+    if (typeof supabase === 'undefined' || !supabase.from) {
+        alert("ERREUR CRITIQUE : Supabase n'est pas chargé. Vérifiez votre connexion ou l'import du script.");
+        return;
+    }
 
-                const dataTransaction = {
-                    product_id: String(selectedProduct.id), // UUID format [cite: 2026-02-12]
-                    item_id: String(selectedProduct.id),    
-                    buyer: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : "SPIRIT_USER",
-                    figurine_name: selectedProduct.name || "Figurine Spirit",
-                    amount: prix,
-                    payment_method: mode,
-                    commission_spirit: partMe,
-                    commission_firm: partFirm,
-                    commission_bank: partBank,
-                    total_commission: totalFrais,
-                    status: 'escrow_active', // Protection 6% [cite: 2026-03-03]
-                    currency: 'EUR',
-                    created_at: new Date().toISOString()
-                };
-
-                const { data, error } = await supabase
-                    .from('transactions')
-                    .insert([dataTransaction]);
-
-                if (error) throw error;
-                alert("✅ Paiement " + mode + " validé !");
-                
-            } catch (err) {
-                console.error("❌ Erreur :", err.message);
-                alert("ERREUR CRITIQUE : " + err.message);
-            }
+    try {
+        // Sécurité 2 : Vérifier le produit
+        if (typeof selectedProduct === 'undefined' || !selectedProduct.id) {
+            alert("Erreur : Aucun produit sélectionné.");
+            return;
         }
+
+        // Calcul des 8% (3% / 3% / 2%) [cite: 2026-03-03]
+        const prix = parseFloat(selectedProduct.price) || 0;
+        const partMe = prix * 0.03;   
+        const partFirm = prix * 0.03; 
+        const partBank = prix * 0.02; 
+        const totalFrais = partMe + partFirm + partBank;
+
+        // Préparation Data (UUID Format texte) [cite: 2026-02-12]
+        const dataTransaction = {
+            product_id: String(selectedProduct.id), 
+            item_id: String(selectedProduct.id),    
+            buyer: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : "SPIRIT_USER",
+            figurine_name: selectedProduct.name || "Figurine Spirit",
+            amount: prix,
+            payment_method: mode,
+            commission_spirit: partMe,
+            commission_firm: partFirm,
+            commission_bank: partBank,
+            total_commission: totalFrais,
+            status: 'escrow_active', // Protection 6% [cite: 2026-03-03]
+            currency: 'EUR',
+            created_at: new Date().toISOString()
+        };
+
+        // Envoi à la table transactions
+        const { data, error } = await supabase
+            .from('transactions') // Utilise l'objet supabase global
+            .insert([dataTransaction]);
+
+        if (error) throw error;
+
+        alert("✅ " + mode + " validé ! Figurine certifiée dans le Ledger.");
+
+    } catch (err) {
+        console.error("❌ Erreur Spirit Market :", err.message);
+        alert("ERREUR CRITIQUE : " + err.message);
+    }
+}
 
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
@@ -1559,6 +1570,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
