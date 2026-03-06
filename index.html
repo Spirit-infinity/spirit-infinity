@@ -1096,17 +1096,24 @@ let firmShare = split.firmShare; // Les 3% Firme
 let bankShare = split.bankShare; // Les 2% Banque
 let categoryVente = "";
 
-// AFFICHAGE DU RÉCAPITULATIF POUR L'ACHETEUR
+// (c) 2026 Spirit Infinity - Tous droits réservés
+const livraison = selectedProduct.shipping || 0;
+const douane = selectedProduct.customs || 0;
+const totalFinal = (parseFloat(priceVal) + parseFloat(split.totalFee) + parseFloat(livraison) + parseFloat(douane)).toFixed(2);
+
 const messageAchat = `
 RÉCAPITULATIF SPIRIT INFINITY
 ------------------------------
 Prix figurine : ${priceVal} €
 Protection (8%) : ${split.totalFee} €
+Livraison : ${livraison} €
+Frais de douane : ${douane} €
 ------------------------------
-TOTAL À PAYER : ${(parseFloat(priceVal) + parseFloat(split.totalFee)).toFixed(2)} €
+TOTAL À PAYER : ${totalFinal} €
 `;
 
 if (!confirm(messageAchat)) return; // S'il annule, on arrête tout ici.
+
         
         // --- VERROU DE SÉCURITÉ SPIRIT INFINITY ---
         // Si le produit est marqué comme 'native', 'legacy' ou a un propriétaire, c'est du MARKETPLACE
@@ -1564,6 +1571,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
