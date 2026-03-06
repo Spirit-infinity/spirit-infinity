@@ -932,23 +932,27 @@ async function saveSpiritAudit(title, detected, score, status) {
     console.log("[SPIRIT LEDGER] Tentative d'archivage...");
    
     // On s'assure que _spirit (Supabase) est bien initialisé
-    const { data, error } = await _spirit
-        .from('spirit_ledger') // Assure-toi que la table s'appelle bien comme ça
-        .insert([{
-            listing_title: title,
-            detected_object: detected,
-            ia_score: parseInt(score),
-            status: status, // 'CERTIFIED' ou 'REJECTED'
-            seller_name: currentUser
-        }]);
+   const { data, error } = await supabase
+  .from('transactions')
+  .insert([{
+    figurine_name: selectedProduct ? selectedProduct.title : "Unité Spirit Infinity",
+    price: selectedProduct ? selectedProduct.price : 695.90,
+    amount: 695.90,
+    user_profit: (695.90 * 0.03), // Ta part 3%
+    firm_profit: (695.90 * 0.03), // Part Firme 3%
+    bank_share: (695.90 * 0.02), // Part Banque 2% (le reste du split 8%)
+    total_commission: (695.90 * 0.08),
+    status: 'escrow_active',
+    type_transaction: 'MARKETPLACE'
+  }]);
 
-    if (error) {
-        console.error("❌ Erreur SQL Ledger:", error.message);
-    } else {
-        console.log("✅ SPIRIT LEDGER : Donnée archivée avec succès !");
-    }
+if (error) {
+    console.error("ERREUR SQL SPIRIT :", error);
+    alert("Erreur de split financier ou colonnes SQL manquantes.");
+} else {
+    console.log("✅ [SPIRIT LEDGER] Transaction validée !");
+    alert("Paiement validé et archivé !");
 }
-
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 function publishFinal() {
@@ -1564,6 +1568,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
