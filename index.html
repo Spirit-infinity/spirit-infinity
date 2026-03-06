@@ -1083,45 +1083,68 @@ function addToMySales(product, carrierName) {
     shippingList.appendChild(saleItem);
 }
     
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
 async function confirmPayment(method) {
     try {
-        if (!selectedProduct) return alert("Erreur : Produit introuvable.");
-const priceVal = Number(selectedProduct.price) || 0;
-const split = calculateSpiritSplit(priceVal); // Appelle ta fonction 8%
+        if (!selectedProduct) {
+            return alert("Erreur : Produit introuvable.");
+        }
 
-let myShare = split.myShare; // Tes 3%
-let firmShare = split.firmShare; // Les 3% Firme
-let bankShare = split.bankShare; // Les 2% Banque
-let categoryVente = "";
+        const priceVal = Number(selectedProduct.price) || 0;
+        
+        // Calcul des frais selon la règle Spirit Infinity (8% total)
+        // 3% Firme, 3% Spirit Infinity, 2% Banque
+        const protectionFee = priceVal * 0.08;
+        const totalFinal = priceVal + protectionFee;
 
-// (c) 2026 Spirit Infinity - Tous droits réservés
- // (c) 2026 Spirit Infinity - Tous droits réservés
+        // Préparation du récapitulatif direct et franc
+        const messageAchat = `
+RÉCAPITULATIF SPIRIT INFINITY
+-----------------------------
+Produit : ${selectedProduct.name}
+Prix figurine : ${priceVal} €
+Protection (8%) : ${protectionFee.toFixed(2)} €
+Livraison : ${selectedProduct.shipping || 0} €
+Frais de douane : ${selectedProduct.customs || 0} €
+-----------------------------
+TOTAL À PAYER : ${totalFinal.toFixed(2)} €
+        `;
 
-// On essaie de lire 'shipping' ou 'shipping_cost' (ajuste selon ton Supabase)
-const livraison = parseFloat(selectedProduct.shipping) || parseFloat(selectedProduct.shipping_cost) || 0;
+        // Validation utilisateur
+        if (!confirm(messageAchat)) return;
 
-// Douane : 0 si c'est la France, sinon on cherche la colonne customs
-let douane = 0;
-if (selectedProduct.country !== 'FR' && selectedProduct.country !== 'France') {
-    douane = parseFloat(selectedProduct.customs) || parseFloat(selectedProduct.customs_cost) || 0;
+        // Insertion dans la base de données sécurisée
+        const { data, error } = await supabase
+            .from('transactions')
+            .insert([{
+                figurine_name: selectedProduct.name,
+                price_brut: priceVal,
+                buyer_id: "INVITÉ", // Ou auth.user().id si connecté
+                status: 'pending',
+                brand: selectedProduct.brand // Hot Toys ou InArt
+            }]);
+
+        if (error) throw error;
+
+        // Redirection vers le module de paiement
+        console.log(`Paiement lancé via ${method} pour un total de ${totalFinal} €`);
+        
+        if (method === 'CB') {
+            // Logique Stripe ici
+            alert("Redirection vers Stripe sécurisé...");
+        } else {
+            // Logique PayPal ici
+            alert("Redirection vers PayPal sécurisé...");
+        }
+
+    } catch (err) {
+        console.error("Erreur critique transaction:", err.message);
+        alert("Erreur lors de la sécurisation de l'achat.");
+    }
 }
 
-const totalFinal = (parseFloat(priceVal) + parseFloat(split.totalFee) + livraison + douane).toFixed(2);
-
-const messageAchat = `
-RÉCAPITULATIF SPIRIT INFINITY
-------------------------------
-Prix figurine : ${priceVal} €
-Protection (8%) : ${split.totalFee} €
-Livraison : ${livraison.toFixed(2)} €
-Frais de douane : ${douane.toFixed(2)} €
-------------------------------
-TOTAL À PAYER : ${totalFinal} €
-`;       
-
-if (!confirm(messageAchat)) return;
+    // Suite de la logique (Stripe / PayPal)
+    console.log("Paiement lancé via " + method + " pour un total de " + totalFinal + "€");
+}
 
 if (!confirm(messageAchat)) return; // S'il annule, on arrête tout ici.
 
@@ -1582,6 +1605,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
