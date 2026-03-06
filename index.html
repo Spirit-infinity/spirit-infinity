@@ -1078,7 +1078,7 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
-    // (c) 2026 Spirit Infinity - Tous droits réservés
+ // (c) 2026 Spirit Infinity - Tous droits réservés
 async function confirmPayment(method) {
     try {
         if (!selectedProduct) return alert("Erreur : Produit introuvable.");
@@ -1086,22 +1086,20 @@ async function confirmPayment(method) {
         const priceVal = Number(selectedProduct.price) || 0;
         let myShare = 0;
         let firmShare = 0;
-        let aydenShare = 0; // Nouvelle part Ayden
+        let bankShare = 0; // Les 2% bancaires
         let categoryVente = "";
 
-        // --- NOUVEAU CALCUL DE SPLIT 8% TOTAL ---
+        // --- CALCUL DE SPLIT EXACT (3% / 3% / 2%) ---
         if (selectedProduct.owner) { 
-            // Cas MARKETPLACE
             categoryVente = "MARKETPLACE";
             myShare = priceVal * 0.03; // 3% pour Toi
             firmShare = priceVal * 0.03; // 3% pour la Firme
-            aydenShare = priceVal * 0.02; // 2% pour Ayden
+            bankShare = priceVal * 0.02; // 2% pour le Bancaire (Ayden)
         } else {
-            // Cas FACTORY (Sortie d'usine)
             categoryVente = "FACTORY";
-            myShare = 3.00; // Tes 3€ de royalties fixes
+            myShare = 3.00; // Tes 3€ de royalties fixes sortie d'usine
             firmShare = 0;
-            aydenShare = 0;
+            bankShare = 0;
         }
 
         const { error } = await _spirit
@@ -1113,19 +1111,20 @@ async function confirmPayment(method) {
                 price: priceVal,
                 user_profit: myShare,
                 firm_profit: firmShare,
-                ayden_profit: aydenShare, // Assure-toi que cette colonne existe dans Supabase
-                total_commission: myShare + firmShare + aydenShare,
+                // On additionne les frais bancaires dans le total_commission 
+                // pour éviter de faire planter le site si la colonne ayden n'existe pas
+                total_commission: (myShare + firmShare + bankShare),
                 status: 'escrow_active'
             }]);
 
         if (error) throw error;
 
-        alert(`🛡️ SPIRIT SHIELD : Split 8% validé !\n(Moi: 3% | Firme: 3% | Ayden: 2%)`);
+        alert(`🛡️ SPIRIT SHIELD : Split 8% appliqué !\nPart Perso: ${myShare.toFixed(2)}€\nFerme: ${firmShare.toFixed(2)}€\nFrais: ${bankShare.toFixed(2)}€`);
         location.reload();
 
     } catch (err) {
-        console.error("Erreur Split 8%:", err);
-        alert("ERREUR : Vérifiez que la colonne 'ayden_profit' existe dans votre table transactions sur Supabase.");
+        console.error("Erreur de transaction Spirit:", err);
+        alert("Erreur critique : Le calcul du split a échoué. Contactez l'administrateur.");
     }
 }
 
@@ -1599,6 +1598,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
