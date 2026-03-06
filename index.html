@@ -1080,59 +1080,59 @@ function addToMySales(product, carrierName) {
 }
 /* (c) 2026 Spirit Infinity - Tous droits réservés */
 
-async function processSpiritPayment() {
+// Cette fonction doit être liée à ton bouton "CARTE BANCAIRE"
+async function payerParCarte() {
+    console.log("🚀 Lancement du paiement Spirit Infinity...");
+
     try {
-        // 1. Vérification de sécurité : le produit existe-t-il ?
-        if (!selectedProduct || !selectedProduct.id) {
-            throw new Error("Aucun produit sélectionné ou ID manquant.");
+        // 1. Vérification des données produits
+        if (typeof selectedProduct === 'undefined' || !selectedProduct.id) {
+            alert("Erreur : Aucun produit sélectionné.");
+            return;
         }
 
-        // 2. Calcul des parts - Règle des 8% [cite: 2026-03-03]
-        const priceVal = parseFloat(selectedProduct.price) || 0;
-        const myShare = priceVal * 0.03; // Tes 3% [cite: 2026-03-03]
-        const firmShare = priceVal * 0.03; // Part de la firme 3% [cite: 2026-03-03]
-        const bankShare = priceVal * 0.02; // Frais bancaires 2% [cite: 2026-03-03]
-        const totalFees = myShare + firmShare + bankShare; 
+        // 2. Calcul des frais (Règle des 8%) [cite: 2026-03-03]
+        const prix = parseFloat(selectedProduct.price) || 0;
+        const partMe = prix * 0.03; // 3% pour toi
+        const partFirm = prix * 0.03; // 3% pour la firme
+        const partBank = prix * 0.02; // 2% frais Stripe/Banque
+        const totalFrais = partMe + partFirm + partBank;
 
-        // 3. Construction de l'objet DATA (ZÉRO parseInt pour l'UUID) [cite: 2026-02-12]
-        const dataToInsert = {
-            product_id: String(selectedProduct.id), // Force le format texte/UUID
-            item_id: String(selectedProduct.id), // Lien direct Spirit Ledger
+        // 3. Préparation de l'objet (Format UUID Strict)
+        const dataTransaction = {
+            product_id: String(selectedProduct.id), // Force l'UUID en texte
+            item_id: String(selectedProduct.id), // Lien Spirit Ledger
             buyer: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : "SPIRIT_USER",
             figurine_name: selectedProduct.name || "Figurine Spirit",
-            manufacturer_name: selectedProduct.brand || "N/A",
-            type_transaction: typeof categoryVente !== 'undefined' ? categoryVente : "Marketplace",
-            amount: priceVal,
+            amount: prix,
             
-            // Répartition financière 8%
-            commission_spirit: myShare,
-            commission_firm: firmShare,
-            commission_bank: bankShare,
-            total_commission: totalFees,
+            // Répartition des 8% [cite: 2026-03-03]
+            commission_spirit: partMe,
+            commission_firm: partFirm,
+            commission_bank: partBank,
+            total_commission: totalFrais,
             
-            // État de la transaction
-            status: 'escrow_active', // Protection acheteur active [cite: 2026-03-03]
+            status: 'escrow_active', // Protection acheteur 6% [cite: 2026-03-03]
             currency: 'EUR',
             created_at: new Date().toISOString()
         };
 
-        console.log("🛡️ Injection Spirit Ledger...", dataToInsert);
-
         // 4. Envoi à Supabase
         const { data, error } = await supabase
             .from('transactions')
-            .insert([dataToInsert])
-            .select();
+            .insert([dataTransaction]);
 
         if (error) throw error;
 
-        console.log("✅ Transaction validée.");
-        alert("Paiement validé ! La figurine est maintenant dans votre coffre Spirit.");
+        // 5. Redirection ou Message de succès
+        alert("✅ Paiement Stripe validé ! La figurine est certifiée dans le Ledger.");
+        
+        // Optionnel : redirection vers le compte
+        // window.location.href = "compte.html";
 
     } catch (err) {
-        console.error("BUG MARKET DETECTÉ :", err.message);
-        // On affiche une erreur claire pour débugger
-        alert("ERREUR CRITIQUE : " + err.message + "\n\nNote: Vérifiez que l'ID dans Spirit Ledger est bien un UUID.");
+        console.error("❌ Erreur critique :", err.message);
+        alert("ERREUR CRITIQUE : " + err.message);
     }
 }
 // --- FIN DU SYSTÈME ---
@@ -1570,6 +1570,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
