@@ -1088,18 +1088,18 @@ async function confirmPayment(method) {
         let firmShare = (selectedProduct.owner) ? (priceVal * 0.03) : 0;
         let bankShare = (selectedProduct.owner) ? (priceVal * 0.02) : 0;
 
-        // --- PRÉPARATION MULTI-COLONNES (Blindage Spirit Shield) ---
+        // --- BLINDAGE CONTRE L'ERREUR ITEM_ID ---
         const dataToInsert = {
-            id: selectedProduct.id, // Ton ID réel
-            product_id: selectedProduct.id, // Variante 1
-            item_id: selectedProduct.id, // Variante 2 (Celle que l'erreur demande)
+            product_id: selectedProduct.id, // Ce que l'on voit sur ta photo
+            item_id: selectedProduct.id, // ON AJOUTE ÇA POUR CALMER LE TRIGGER
             buyer: "SPIRIT", //
-            figurine_name: selectedProduct.name || "N/A",
-            type_transaction: selectedProduct.owner ? "MARKETPLACE" : "FACTORY",
+            figurine_name: selectedProduct.name || "Figurine Spirit", //
+            manufacturer_name: selectedProduct.brand || "N/A", //
+            type_transaction: selectedProduct.owner ? "MARKETPLACE" : "FACTORY", //
             amount: priceVal, //
             commission_spirit: myShare, //
             commission_firm: firmShare, //
-            total_commission: (myShare + firmShare + bankShare),
+            total_commission: (myShare + firmShare + bankShare), //
             status: 'escrow_active', //
             currency: 'EUR' //
         };
@@ -1115,7 +1115,8 @@ async function confirmPayment(method) {
 
     } catch (err) {
         console.error("Crash Spirit:", err);
-        alert("ERREUR SYSTÈME : " + err.message);
+        // Si ça marque encore field "item_id", il FAUT créer la colonne dans Supabase
+        alert("DÉFAUT SYSTÈME : " + err.message);
     }
 }
     
@@ -1554,6 +1555,7 @@ async function leaveSpiritReview(trId) {
 </script>
 </body>
 </html>
+
 
 
 
