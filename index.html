@@ -1085,7 +1085,7 @@ function addToMySales(product, carrierName) {
     
 // (c) 2026 Spirit Infinity - Tous droits réservés [cite: 2026-01-26]
 
-async function processPayment(method) {
+async function confirmPayment(method) {
     // On récupère le prix réel de la figurine affichée, pas un prix inventé
     const montantReel = selectedProduct.price; 
     
@@ -1519,6 +1519,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
