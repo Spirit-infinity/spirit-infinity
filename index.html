@@ -1082,52 +1082,82 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
+    
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-async function confirmPayment() {
-    // 1. Récupération du prix de base
-    const prixFigurine = parseFloat(selectedProduct.price); // Ex: 650€ [cite: 2026-01-30]
-    const fraisLivraison = 6.90; // Mondial Relay [cite: 2026-03-03]
-    
-    if (!prixFigurine || prixFigurine <= 0) {
-        return alert("Erreur : Prix de l'annonce non détecté.");
-    }
-
-    // 2. Calcul des frais de protection (8% total) [cite: 2026-03-03, 2026-03-06]
-    const partUtilisateur = prixFigurine * 0.03; // Tes 3% [cite: 2026-03-03]
-    const partFirme = prixFigurine * 0.03; // Les 3% Firme [cite: 2026-03-03]
-    const partBanque = prixFigurine * 0.02; // Les 2% Frais [cite: 2026-03-03]
-    const totalProtection = partUtilisateur + partFirme + partBanque;
-
-    // 3. Montant TOTAL à enregistrer dans la colonne 'amount'
-    // C'est ce montant qui doit être bloqué au séquestre
-    const montantTotalPaye = prixFigurine + fraisLivraison + totalProtection;
-
+async function confirmPayment(method) {
     try {
+        if (!selectedProduct) return alert("Erreur : Produit introuvable.");
+const priceVal = Number(selectedProduct.price) || 0;
+const split = calculateSpiritSplit(priceVal); // Appelle ta fonction 8%
+
+let myShare = split.myShare; // Tes 3%
+let firmShare = split.firmShare; // Les 3% Firme
+let bankShare = split.bankShare; // Les 2% Banque
+let categoryVente = "";
+
+// AFFICHAGE DU RÉCAPITULATIF POUR L'ACHETEUR
+const messageAchat = `
+RÉCAPITULATIF SPIRIT INFINITY
+------------------------------
+Prix figurine : ${priceVal} €
+Protection (8%) : ${split.totalFee} €
+------------------------------
+TOTAL À PAYER : ${(parseFloat(priceVal) + parseFloat(split.totalFee)).toFixed(2)} €
+`;
+
+if (!confirm(messageAchat)) return; // S'il annule, on arrête tout ici.
+        
+        // --- VERROU DE SÉCURITÉ SPIRIT INFINITY ---
+        // Si le produit est marqué comme 'native', 'legacy' ou a un propriétaire, c'est du MARKETPLACE
+        if (selectedProduct.type === 'native' || selectedProduct.type === 'legacy') {
+    categoryVente = "MARKETPLACE";
+    myShare = split.myShare; // Tes 3%
+    firmShare = split.firmShare; // Les 3% Partenaire
+    // Ajoute bankShare ici si ta base Supabase a la colonne
+}
+        // Sinon, c'est une vente NEUVE DIRECTE (Factory / Dossier Partenariat)
+        else {
+            categoryVente = "FACTORY";
+            myShare = 3.00; // STRICTEMENT 3€ (Royalties fixes)
+            firmShare = 0;
+        }
+
+        // --- INSERTION AVEC NOM DE LA FIGURINE RÉCUPÉRÉ ---
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                // On utilise EXACTEMENT les noms de tes colonnes Supabase
-                amount: montantTotalPaye.toFixed(2), // Ici on aura 708.90€ [cite: 2026-03-03]
-                user_profit: partUtilisateur.toFixed(2),
-                firm_profit: partFirme.toFixed(2),
-                bank_share: partBanque.toFixed(2),
-                status: 'SÉQUESTRE ACTIF',
-                figurine_name: selectedProduct.name || "Figurine Spirit",
-                created_at: new Date().toISOString()
+                product_id: selectedProduct.id,
+                buyer: currentUser,
+                type_transaction: categoryVente,
+                
+                // RÉCUPÉRATION DU NOM ET DU FABRICANT
+                figurine_name: selectedProduct.title || "Figurine Spirit",
+                manufacturer_name: selectedProduct.brand || "Usine Partenaire",
+                
+                price: priceVal,
+                amount: priceVal,
+                
+                // FINANCES
+                user_profit: myShare,      
+                firm_profit: firmShare,    
+                total_commission: myShare + firmShare,
+                
+                status: 'escrow_active',
+                created_at: new Date()
             }]);
 
         if (error) throw error;
 
-        alert(`✅ Spirit Ledger : ${montantTotalPaye.toFixed(2)} € (Total avec frais) sécurisés au séquestre.`);
+        alert(`🛡️ SPIRIT SHIELD : Achat ${categoryVente} validé !\nFigurine : ${selectedProduct.title}\nCommission : ${myShare.toFixed(2)}€`);
         location.reload();
 
     } catch (err) {
-        console.error("Erreur SQL:", err);
-        alert("Erreur lors de l'enregistrement. Vérifiez la console.");
+        console.error("Erreur technique :", err);
+        alert("Erreur de split financier ou colonnes SQL manquantes.");
     }
 }
-
+    
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1243,7 +1273,7 @@ async function confirmPayment() {
             shipCost = shippingRates[size][carrierKey];
             carrierName = document.getElementById('pCarrierSelect').options[document.getElementById('pCarrierSelect').selectedIndex].text;
         }
-        const prot = selectedProduct.price * 0.08;
+        const prot = selectedProduct.price * 0.06;
         document.getElementById('sumPrice').innerText = selectedProduct.price + " €";
         document.getElementById('sumShip').innerText = shipCost.toFixed(2) + " €";
         document.getElementById('sumCarrierName').innerText = carrierName;
@@ -1285,26 +1315,16 @@ async function confirmPayment() {
 }
    
 // (c) 2026 Spirit Infinity - Tous droits réservés
-// CALCUL DU SPLIT FINANCIER 3% / 3% / 2% + LIVRAISON [cite: 2026-03-03, 2026-03-06]
+// CALCUL DU SPLIT FINANCIER 3% / 3%
 function calculateSpiritSplit(price) {
-    const prix = parseFloat(price);
-    const livraison = 6.90; // Frais fixes Mondial Relay [cite: 2026-03-03]
-    
-    // Calcul des 3 piliers de protection (Total 8%) [cite: 2026-03-06]
-    const myShare = prix * 0.03; // Tes 3% Marketplace [cite: 2026-02-09]
-    const firmShare = prix * 0.03; // Les 3% Partenaire [cite: 2026-03-03]
-    const bankShare = prix * 0.02; // Les 2% Frais de banque [cite: 2026-03-06]
-    
-    const totalProtection = myShare + firmShare + bankShare;
-    const totalAcheteur = prix + livraison + totalProtection;
-
+    const totalFee = price * 0.06;
+    const myShare = price * 0.03; // Tes 3% (Marketplace)
+    const firmShare = price * 0.03; // Les 3% Partenaire (Royalties)
     return {
+        totalFee: totalFee.toFixed(2),
         myShare: myShare.toFixed(2),
         firmShare: firmShare.toFixed(2),
-        bankShare: bankShare.toFixed(2),
-        totalFee: totalProtection.toFixed(2), // Les 52€ pour une fig à 650€
-        shipping: livraison.toFixed(2),
-        totalPaid: totalAcheteur.toFixed(2) // Les 708.90€ finaux
+        sellerNet: (price - totalFee).toFixed(2)
     };
 }
 
@@ -1349,7 +1369,7 @@ data.forEach(purchase => {
             <div>
                 <strong>ID: #${purchase.id.substring(0, 8)}</strong><br>
                 Prix Vente: ${purchase.price || 0} €<br>
-                Com. Spirit (8%): ${purchase.royalty_amount || 0} €
+                Com. Spirit (6%): ${purchase.royalty_amount || 0} €
             </div>
             <div>
                 ${actions}
@@ -1501,7 +1521,7 @@ async function startExpertScan() {
             btn.disabled = true;
             btn.style.opacity = "0.3";
         } else {
-// 4. CALCUL FINANCIER SPIRIT INFINITY
+            // 4. CALCUL FINANCIER SPIRIT INFINITY
             const price = parseFloat(document.getElementById('inputPrice').value) || 0;
             const commTotale = (price * 0.06).toFixed(2); // 6% Total
             const maPart = (price * 0.03).toFixed(2); // 3% pour Toi
@@ -1530,23 +1550,7 @@ async function startExpertScan() {
         statusText.innerHTML = "ERREUR SYSTÈME IA";
     }
 }
-    // Vérification du message HTML
-    const messageBox = document.getElementById('msg'); 
-    if (messageBox) {
-        messageBox.innerHTML = `
-            <h2 style="color:#00ff00;">CERTIFICATION RÉUSSIE</h2>
-            <div style="background:#111; padding:15px; border:1px solid #333; margin-top:10px; border-left: 4px solid #ff4500;">
-                <b style="color:#ff4500;">Protection 8% : ${commTotale}€</b><br>
-                <small>(Moi 3% | Firme 3% | Banque 2%)</small><br>
-                <b>Livraison : ${shipping}€</b><br>
-                <hr style="border:0.5px solid #444; margin:10px 0;">
-                <h3 style="color:#00ff00; margin:0;">TOTAL CLIENT : ${totalAcheteur}€</h3>
-            </div>
-        `;
-    }
-} catch (e) {
-    console.error("Erreur dans le calcul Spirit:", e);
-}
+    
 // (c) 2026 Spirit Infinity - Tous droits réservés
 document.addEventListener('click', function (e) {
     if (e.target.classList.contains('btn-recu-action')) {
@@ -1560,22 +1564,6 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
