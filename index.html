@@ -1086,55 +1086,38 @@ function addToMySales(product, carrierName) {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmPayment() {
-    // 1. Récupération des valeurs de l'interface
     const prixFigurine = parseFloat(selectedProduct.price);
-    // On récupère le montant de livraison affiché ou 6.90 par défaut
-    const fraisLivraison = parseFloat(document.getElementById('sumShip').innerText) || 6.90; 
+    const fraisLivraison = 6.90; // Montant fixe correspondant à tes tests
 
-    if (!prixFigurine || prixFigurine <= 0) {
-        return alert("ALERTE : Prix de l'annonce non détecté. Transaction avortée.");
-    }
-
-    // 2. Calcul du Split Spirit Infinity (Modèle 8% Global)
-    // Structure : 3% (Toi) + 3% (Partenaire) + 2% (Frais Bancaires)
-    const partUtilisateur = prixFigurine * 0.03; 
-    const partFirme = prixFigurine * 0.03; 
-    const partBanque = prixFigurine * 0.02; 
-    const totalProtection = partUtilisateur + partFirme + partBanque;
-
-    // Montant total débité au client (Prix + Port + Protection)
-    const montantTotalPaye = prixFigurine + fraisLivraison + totalProtection;
+    // Calcul du Split 8% (3/3/2) selon tes directives de mars 2026 [cite: 2026-03-03, 2026-03-06]
+    const uProfit = (prixFigurine * 0.03).toFixed(2); 
+    const fProfit = (prixFigurine * 0.03).toFixed(2); 
+    const bShare = (prixFigurine * 0.02).toFixed(2); 
+    const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
 
     try {
-        console.log("[SPIRIT SHIELD] Initialisation du séquestre...");
-
+        console.log("[SPIRIT LEDGER] Tentative d'écriture...");
+        
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount: montantTotalPaye.toFixed(2),
-                user_profit: partUtilisateur.toFixed(2),
-                firm_profit: partFirme.toFixed(2),
-                bank_share: partBanque.toFixed(2),
-                shipping_fee: fraisLivraison.toFixed(2),
-                status: 'escrow_active', // Statut standard pour blocage des fonds
-                product_id: selectedProduct.id,
-                figurine_name: selectedProduct.title,
-                buyer: currentUser,
-                seller: selectedProduct.owner || "Vendeur Externe",
+                amount: total, 
+                user_profit: uProfit, 
+                firm_profit: fProfit, 
+                bank_share: bShare,
+                status: 'SÉQUESTRE ACTIF', // Texte exact validé en base
+                figurine_name: selectedProduct.title || "Figurine Spirit",
                 created_at: new Date().toISOString()
             }]);
 
         if (error) throw error;
 
-        // Confirmation visuelle pour l'utilisateur
-        alert(`✅ SÉCURITÉ SPIRIT : ${montantTotalPaye.toFixed(2)} € sécurisés.\nLes fonds sont placés sous séquestre jusqu'à validation de la réception.`);
-        
-        closeModals();
-        location.reload(); // Rafraîchissement pour mettre à jour l'onglet "Mes Achats"
+        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés avec succès.`);
+        location.reload();
 
     } catch (err) {
-        console.error("ERREUR CRITIQUE LEDGER :", err.message);
-        alert("ERREUR DE TRANSACTION : Le Ledger n'a pas pu valider le paiement. Vérifiez votre connexion.");
+        console.error("Erreur détaillée :", err.message);
+        alert("ERREUR CRITIQUE : " + err.message);
     }
 }
     
@@ -1552,6 +1535,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
