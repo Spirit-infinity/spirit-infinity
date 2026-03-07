@@ -1369,29 +1369,30 @@ data.forEach(purchase => {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmReception(transactionId) {
-    // Demande de confirmation à l'utilisateur pour éviter les erreurs
-    const confirmation = confirm("Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.");
+    const confirmation = confirm("Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds.");
 
     if (!confirmation) return;
 
     try {
-        console.log(`[SPIRIT SHIELD] Validation de la transaction : ${transactionId}`);
-
+        // Mise à jour du statut vers la valeur validée dans tes logs
         const { data, error } = await _spirit
             .from('transactions')
-            .update({ status: 'LIVRAISON VALIDÉE' }) // On change le statut visible sur tes captures
-            .eq('id', transactionId); // On cible la bonne ligne par son UUID
+            .update({ status: 'LIVRAISON VALIDÉE' })
+            .eq('id', transactionId);
 
         if (error) throw error;
 
-        alert("✅ RÉCEPTION CONFIRMÉE. Merci d'utiliser Spirit Infinity. Les fonds sont désormais débloqués.");
+        alert("✅ RÉCEPTION CONFIRMÉE. Spirit Shield a débloqué les fonds.");
         
-        // Rafraîchir l'affichage des achats pour faire disparaître ou mettre à jour la carte
-        loadMyPurchases();
-
+        // Relance l'affichage pour mettre à jour la liste
+        if (typeof loadMyPurchases === "function") {
+            loadMyPurchases();
+        } else {
+            location.reload();
+        }
     } catch (err) {
-        console.error("Erreur lors de la validation :", err.message);
-        alert("ERREUR : Impossible de valider la réception. " + err.message);
+        console.error("Erreur Ledger:", err.message);
+        alert("ERREUR : " + err.message);
     }
 }
 
@@ -1563,6 +1564,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
