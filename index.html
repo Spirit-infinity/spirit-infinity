@@ -1244,7 +1244,7 @@ async function confirmPayment() {
             shipCost = shippingRates[size][carrierKey];
             carrierName = document.getElementById('pCarrierSelect').options[document.getElementById('pCarrierSelect').selectedIndex].text;
         }
-        const prot = selectedProduct.price * 0.06;
+        const prot = selectedProduct.price * 0.08;
         document.getElementById('sumPrice').innerText = selectedProduct.price + " €";
         document.getElementById('sumShip').innerText = shipCost.toFixed(2) + " €";
         document.getElementById('sumCarrierName').innerText = carrierName;
