@@ -1501,35 +1501,29 @@ async function startExpertScan() {
             btn.disabled = true;
             btn.style.opacity = "0.3";
         } else {
-   // (c) 2026 Spirit Infinity - Tous droits réservés
-// (c) 2026 Spirit Infinity - Tous droits réservés
-// 4. CALCUL FINANCIER SPIRIT INFINITY (8% : 3+3+2) [cite: 2026-03-06]
-const priceValue = parseFloat(document.getElementById('inputPrice').value) || 0;
-const shippingFee = 6.90; // [cite: 2026-03-03]
+ // (c) 2026 Spirit Infinity - Tous droits réservés
+// CALCUL 8% (3+3+2) + LIVRAISON 6.90 [cite: 2026-03-03, 2026-03-06]
+const valBrute = document.getElementById('inputPrice').value;
+const pNet = parseFloat(valBrute) || 0;
+const fraisPort = 6.90; [cite: 2026-03-03]
 
-const mP = (priceValue * 0.03).toFixed(2); // [cite: 2026-03-03]
-const fP = (priceValue * 0.03).toFixed(2); // [cite: 2026-03-03]
-const bP = (priceValue * 0.02).toFixed(2); // [cite: 2026-03-06]
+const partMoi = (pNet * 0.03); [cite: 2026-03-03]
+const partFirme = (pNet * 0.03); [cite: 2026-03-03]
+const partBanque = (pNet * 0.02); [cite: 2026-03-06]
 
-const totalFees = (parseFloat(mP) + parseFloat(fP) + parseFloat(bP)).toFixed(2);
-const totalBuyer = (priceValue + shippingFee + parseFloat(totalFees)).toFixed(2);
+const totalProtec = (partMoi + partFirme + partBanque).toFixed(2);
+const totalFinal = (pNet + fraisPort + parseFloat(totalProtec)).toFixed(2);
 
-// Délais Escrow
-const isNativeCheck = document.getElementById('isNative')?.checked || false;
-const escrowDaysCount = isNativeCheck ? 3 : 4;
-
-// Affichage sécurisé sans conflit de variable
-const msgContainer = document.getElementById('msg');
-if (msgContainer) {
-    msgContainer.innerHTML = `
+const boiteMsg = document.getElementById('msg');
+if (boiteMsg) {
+    boiteMsg.innerHTML = `
         <h2 style="color:#00ff00;">CERTIFICATION RÉUSSIE</h2>
         <div style="background:#111; padding:10px; border:1px solid #333; margin-top:10px;">
-            <b style="color:#ff4500;">Protection 8% : ${totalFees}€</b><br>
+            <b style="color:#ff4500;">Protection 8% : ${totalProtec}€</b><br>
             <small>(Moi 3% | Firme 3% | Banque 2%)</small><br>
-            <b>Livraison : ${shippingFee}€</b><br>
+            <b>Livraison : ${fraisPort}€</b><br>
             <hr style="border:0.5px solid #333; margin:10px 0;">
-            <h3 style="color:#00ff00; margin:0;">TOTAL CLIENT : ${totalBuyer}€</h3>
-            <p style="font-size:0.8rem; margin-top:5px;">Escrow : ${escrowDaysCount} jours</p>
+            <h3 style="color:#00ff00; margin:0;">TOTAL CLIENT : ${totalFinal}€</h3>
         </div>
     `;
 }
@@ -1564,6 +1558,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
