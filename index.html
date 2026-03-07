@@ -1417,89 +1417,47 @@ async function loadMyPurchases() {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 /**
- * CONFIRMER LA RÉCEPTION (LIBÈRE LES FONDS)
+ * OUVRIR UN LITIGE
+ * On met à jour uniquement le statut pour éviter l'erreur de colonne manquante
  */
-async function confirmReceipt(transactionId) {
-    if (!confirm("ATTENTION : En confirmant la réception, vous libérez les fonds au vendeur et clôturez la protection Spirit Infinity.")) return;
+async function openDispute(transactionId) {
+    if (!confirm("⚠️ Voulez-vous ouvrir un litige sur cette figurine ? Les fonds seront gelés.")) return;
 
     try {
         const { error } = await _spirit
             .from('transactions')
-            .update({ status: 'LIVRAISON VALIDÉE' })
+            .update({ status: 'LITIGE OUVERT' }) // On ne change que le status ici
             .eq('id', transactionId);
 
         if (error) throw error;
 
-        alert("✅ RÉCEPTION CONFIRMÉE : La transaction est terminée.");
-        loadUserPurchases(); // Rechargement de la liste
+        alert("⚖️ LITIGE OUVERT : Le séquestre est bloqué. L'équipe Spirit Infinity va analyser les preuves.");
+        loadMyPurchases(); // Rafraîchit l'affichage
     } catch (err) {
         console.error("Erreur Ledger:", err.message);
-        alert("Erreur de mise à jour : " + err.message);
+        alert("Erreur lors de l'ouverture : " + err.message);
     }
 }
 
 /**
- * OUVRIR UN LITIGE (BLOQUE LES FONDS)
+ * CONFIRMER LA RÉCEPTION
  */
-async function openDispute(transactionId) {
-    const reason = prompt("⚠️ MOTIF DU LITIGE : Veuillez décrire précisément le problème (Casse, Contrefaçon, Non reçu) :");
-    if (!reason) return;
+async function confirmReception(transactionId) {
+    if (!confirm("✅ Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.")) return;
 
     try {
         const { error } = await _spirit
-            .from('transactions')
-            .update({ 
-                status: 'LITIGE OUVERT', 
-                dispute_reason: reason 
-            })
-            .eq('id', transactionId);
-
-        if (error) throw error;
-
-        alert("⚖️ LITIGE OUVERT : Les fonds sont gelés. Spirit Guard va comparer vos photos de déballage avec les 7 photos d'archive du vendeur.");
-        loadUserPurchases();
-    } catch (err) {
-        console.error("Erreur Ledger:", err.message);
-        alert("Erreur lors de l'ouverture du litige.");
-    }
-}      
-
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
-async function confirmReception(transactionId) {
-    if (!confirm("Confirmez-vous avoir reçu la figurine ?")) return;
-
-    try {
-        const { data, error } = await _spirit
             .from('transactions')
             .update({ status: 'LIVRAISON VALIDÉE' })
             .eq('id', transactionId);
 
         if (error) throw error;
 
-        alert("✅ RÉCEPTION CONFIRMÉE.");
-        location.reload(); 
+        alert("✅ TRANSACTION TERMINÉE : Merci de votre confiance.");
+        loadMyPurchases(); 
     } catch (err) {
-        console.error("Détail erreur:", err.message);
-        alert("Erreur Ledger: " + err.message);
-    }
-} // <--- Vérifie bien que cette accolade ferme la fonction et qu'il n'y en a pas une autre juste après.
-
-
-async function openDispute(trId) {
-    const reason = prompt("⚠️ MOTIF DU LITIGE (Casse, non conforme, etc) :");
-    if (reason) {
-        const { error } = await _spirit
-            .from('transactions')
-            .update({ status: 'dispute', dispute_reason: reason })
-            .eq('id', trId);
-
-        if (error) {
-            alert("Erreur : " + error.message);
-        } else {
-            alert("⚖️ LITIGE OUVERT. Spirit Infinity va analyser le dossier.");
-            loadUserPurchases();
-        }
+        console.error("Erreur Ledger:", err.message);
+        alert("Erreur de validation : " + err.message);
     }
 }
 
@@ -1654,6 +1612,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
