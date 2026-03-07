@@ -1085,51 +1085,46 @@ function addToMySales(product, carrierName) {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmPayment() {
-    // 1. Récupération de la base
-    const prixFigurine = parseFloat(selectedProduct.price); 
-    const fraisLivraison = 6.90; // Exemple Mondial Relay, à rendre dynamique si besoin
+    // 1. Récupération du prix de base
+    const prixFigurine = parseFloat(selectedProduct.price); // Ex: 650€ [cite: 2026-01-30]
+    const fraisLivraison = 6.90; // Mondial Relay [cite: 2026-03-03]
     
     if (!prixFigurine || prixFigurine <= 0) {
         return alert("Erreur : Prix de l'annonce non détecté.");
     }
 
-    // 2. Calcul des frais de protection (8% au total)
-    // 3% Moi / 3% Firme / 2% Banque
-    const partUtilisateur = prixFigurine * 0.03;
-    const partFirme = prixFigurine * 0.03;
-    const partBanque = prixFigurine * 0.02;
+    // 2. Calcul des frais de protection (8% total) [cite: 2026-03-03, 2026-03-06]
+    const partUtilisateur = prixFigurine * 0.03; // Tes 3% [cite: 2026-03-03]
+    const partFirme = prixFigurine * 0.03; // Les 3% Firme [cite: 2026-03-03]
+    const partBanque = prixFigurine * 0.02; // Les 2% Frais [cite: 2026-03-03]
     const totalProtection = partUtilisateur + partFirme + partBanque;
 
-    // 3. Montant Total encaissé (Ce que l'acheteur paye réellement)
-    const montantTotalSequestre = prixFigurine + fraisLivraison + totalProtection;
+    // 3. Montant TOTAL à enregistrer dans la colonne 'amount'
+    // C'est ce montant qui doit être bloqué au séquestre
+    const montantTotalPaye = prixFigurine + fraisLivraison + totalProtection;
 
     try {
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount_item: prixFigurine, // 650€
-                shipping_fees: fraisLivraison, // 6.90€
-                protection_fees: totalProtection.toFixed(2), // 52€ (8% de 650)
-                
-                total_paid: montantTotalSequestre.toFixed(2), // 708.90€ au total
-                
-                // Répartition précise pour l'audit Spirit Ledger
+                // On utilise EXACTEMENT les noms de tes colonnes Supabase
+                amount: montantTotalPaye.toFixed(2), // Ici on aura 708.90€ [cite: 2026-03-03]
                 user_profit: partUtilisateur.toFixed(2),
                 firm_profit: partFirme.toFixed(2),
                 bank_share: partBanque.toFixed(2),
-                
                 status: 'SÉQUESTRE ACTIF',
+                figurine_name: selectedProduct.name || "Figurine Spirit",
                 created_at: new Date().toISOString()
             }]);
 
         if (error) throw error;
 
-        alert(`✅ Spirit Ledger : ${montantTotalSequestre.toFixed(2)} € sécurisés (dont livraison et protection).`);
+        alert(`✅ Spirit Ledger : ${montantTotalPaye.toFixed(2)} € (Total avec frais) sécurisés au séquestre.`);
         location.reload();
 
     } catch (err) {
         console.error("Erreur SQL:", err);
-        alert("Le market a planté. Vérifiez la console F12.");
+        alert("Erreur lors de l'enregistrement. Vérifiez la console.");
     }
 }
 
@@ -1539,6 +1534,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
