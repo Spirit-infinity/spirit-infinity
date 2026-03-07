@@ -1372,10 +1372,13 @@ async function loadUserPurchases() {
         listBody.appendChild(row);
     });
 }
-      
-// Fonction de validation finale
-async function confirmReception(transactionId) {
-    if (!confirm("Confirmez-vous la réception de votre commande ?")) return;
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+/**
+ * CONFIRMER LA RÉCEPTION (LIBÈRE LES FONDS)
+ */
+async function confirmReceipt(transactionId) {
+    if (!confirm("ATTENTION : En confirmant la réception, vous libérez les fonds au vendeur et clôturez la protection Spirit Infinity.")) return;
 
     try {
         const { error } = await _spirit
@@ -1385,14 +1388,39 @@ async function confirmReception(transactionId) {
 
         if (error) throw error;
 
-        alert("✅ RÉCEPTION CONFIRMÉE. Merci pour votre confiance.");
-        loadMyPurchases(); // Rechargement fluide de la liste
-
+        alert("✅ RÉCEPTION CONFIRMÉE : La transaction est terminée.");
+        loadUserPurchases(); // Rechargement de la liste
     } catch (err) {
-        alert("Erreur lors de la validation : " + err.message);
+        console.error("Erreur Ledger:", err.message);
+        alert("Erreur de mise à jour : " + err.message);
     }
 }
 
+/**
+ * OUVRIR UN LITIGE (BLOQUE LES FONDS)
+ */
+async function openDispute(transactionId) {
+    const reason = prompt("⚠️ MOTIF DU LITIGE : Veuillez décrire précisément le problème (Casse, Contrefaçon, Non reçu) :");
+    if (!reason) return;
+
+    try {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ 
+                status: 'LITIGE OUVERT', 
+                dispute_reason: reason 
+            })
+            .eq('id', transactionId);
+
+        if (error) throw error;
+
+        alert("⚖️ LITIGE OUVERT : Les fonds sont gelés. Spirit Guard va comparer vos photos de déballage avec les 7 photos d'archive du vendeur.");
+        loadUserPurchases();
+    } catch (err) {
+        console.error("Erreur Ledger:", err.message);
+        alert("Erreur lors de l'ouverture du litige.");
+    }
+}      
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -1584,6 +1612,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
