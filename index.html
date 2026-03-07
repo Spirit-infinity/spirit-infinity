@@ -1329,50 +1329,47 @@ async function loadMyPurchases() {
         console.error("Erreur d'affichage :", err.message);
     }
 }
-
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-data.forEach(purchase => 
+data.forEach(purchase => {
     const row = document.createElement('div');
     row.style.borderBottom = "1px solid #444";
     row.style.padding = "10px";
 
+    // Utilisation du statut exact provenant de ta base
     let actions = `<span style="color:#ffa500">Statut : ${purchase.status}</span>`;
 
-    if (purchase.status === 'escrow_active') {
+    if (purchase.status === 'SÉQUESTRE ACTIF') {
         actions = `
             <div style="display:flex; gap:10px; margin-top:5px;">
-                <button class="btn-recu-action" data-id="${purchase.id}">✅ REÇU</button>
-                <button class="btn-litige-action" data-id="${purchase.id}">⚠️ LITIGE</button>
-            </div>
-        `;
+                <button class="btn-recu-action" onclick="confirmReception('${purchase.id}')">✅ REÇU</button>
+                <button class="btn-litige-action">⚠️ LITIGE</button>
+            </div>`;
     }
 
     row.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <div>
                 <strong>ID: #${purchase.id.substring(0, 8)}</strong><br>
-                Prix Vente: ${purchase.price || 0} €<br>
-                Com. Spirit (6%): ${purchase.royalty_amount || 0} €
+                Prix Vente: ${purchase.amount || 0} €<br>
+                Com. Spirit (3%): ${purchase.user_profit || 0} €
             </div>
             <div>
                 ${actions}
             </div>
-        </div>
-    `;
-    listBody.appendChild(row); // Vérifie bien que ta variable s'appelle listBody juste au-dessus
+        </div>`;
+    
+    listBody.appendChild(row); 
+}); // La fermeture correcte est ici, sans le ";" de trop que tu avais avant.
 
-    });
+
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmReception(transactionId) {
-    const confirmation = confirm("Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds.");
-
-    if (!confirmation) return;
+    if (!confirm("Confirmez-vous avoir reçu la figurine ?")) return;
 
     try {
-        // Mise à jour du statut vers la valeur validée dans tes logs
         const { data, error } = await _spirit
             .from('transactions')
             .update({ status: 'LIVRAISON VALIDÉE' })
@@ -1380,19 +1377,14 @@ async function confirmReception(transactionId) {
 
         if (error) throw error;
 
-        alert("✅ RÉCEPTION CONFIRMÉE. Spirit Shield a débloqué les fonds.");
-        
-        // Relance l'affichage pour mettre à jour la liste
-        if (typeof loadMyPurchases === "function") {
-            loadMyPurchases();
-        } else {
-            location.reload();
-        }
+        alert("✅ RÉCEPTION CONFIRMÉE.");
+        location.reload(); 
     } catch (err) {
-        console.error("Erreur Ledger:", err.message);
-        alert("ERREUR : " + err.message);
+        console.error("Détail erreur:", err.message);
+        alert("Erreur Ledger: " + err.message);
     }
-}
+} // <--- Vérifie bien que cette accolade ferme la fonction et qu'il n'y en a pas une autre juste après.
+
 
 async function openDispute(trId) {
     const reason = prompt("⚠️ MOTIF DU LITIGE (Casse, non conforme, etc) :");
@@ -1562,6 +1554,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
