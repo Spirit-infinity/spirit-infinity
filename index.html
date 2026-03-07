@@ -1293,21 +1293,42 @@ function calculateSpiritSplit(price) {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-async function loadUserPurchases() {
-    const listBody = document.getElementById('list-achats');
-    if(!listBody) return;
-    listBody.innerHTML = '';
+async function loadMyPurchases() {
+    try {
+        // Récupération des transactions avec le statut SÉQUESTRE ACTIF
+        const { data: purchases, error } = await _spirit
+            .from('transactions')
+            .select('*')
+            .eq('status', 'SÉQUESTRE ACTIF') // Filtre sur le statut exact de tes photos
+            .order('created_at', { ascending: false });
 
-    const { data, error } = await _spirit
-        .from('transactions')
-        .select('*')
-        .eq('buyer', currentUser)
-        .order('created_at', { ascending: false });
+        if (error) throw error;
 
-    if (error) {
-        console.error("Erreur Ledger:", error);
-        return;
+        const container = document.getElementById('my-purchases-list');
+        container.innerHTML = ''; // On vide pour rafraîchir
+
+        purchases.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'purchase-card'; // Design Industrial Dark à appliquer en CSS
+            card.innerHTML = `
+                <div style="border: 1px solid #FF4500; padding: 15px; margin-bottom: 10px; background: #1a1a1a;">
+                    <h3 style="color: #FF4500; margin-top: 0;">${item.figurine_name}</h3>
+                    <p><strong>Montant payé :</strong> ${item.amount} € (Frais inclus)</p>
+                    <p><strong>Statut :</strong> <span style="color: #00FF00;">${item.status}</span></p>
+                    <p><small>ID Transaction : ${item.id}</small></p>
+                    <button onclick="confirmReception('${item.id}')" 
+                            style="background: #FF4500; color: white; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold;">
+                        J'AI REÇU LA FIGURINE
+                    </button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+    } catch (err) {
+        console.error("Erreur d'affichage :", err.message);
     }
+}
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -1346,24 +1367,30 @@ data.forEach(purchase => {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-async function confirmReceipt(trId) {
-    console.log("🛠️ Tentative de validation pour la transaction ID :", trId);
-    
-    if (!trId) return alert("Erreur : ID de transaction manquant.");
+async function confirmReception(transactionId) {
+    // Demande de confirmation à l'utilisateur pour éviter les erreurs
+    const confirmation = confirm("Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.");
 
-    if (confirm("🛡️ SPIRIT SHIELD : Confirmer la réception et débloquer les fonds ?")) {
-        const { error } = await _spirit
+    if (!confirmation) return;
+
+    try {
+        console.log(`[SPIRIT SHIELD] Validation de la transaction : ${transactionId}`);
+
+        const { data, error } = await _spirit
             .from('transactions')
-            .update({ status: 'completed' })
-            .eq('id', trId);
+            .update({ status: 'LIVRAISON VALIDÉE' }) // On change le statut visible sur tes captures
+            .eq('id', transactionId); // On cible la bonne ligne par son UUID
 
-        if (error) {
-            console.error("Erreur Supabase :", error);
-            alert("Erreur : " + error.message);
-        } else {
-            alert("✅ TRANSACTION TERMINÉE !");
-            loadUserPurchases(); // Recharge ton tableau
-        }
+        if (error) throw error;
+
+        alert("✅ RÉCEPTION CONFIRMÉE. Merci d'utiliser Spirit Infinity. Les fonds sont désormais débloqués.");
+        
+        // Rafraîchir l'affichage des achats pour faire disparaître ou mettre à jour la carte
+        loadMyPurchases();
+
+    } catch (err) {
+        console.error("Erreur lors de la validation :", err.message);
+        alert("ERREUR : Impossible de valider la réception. " + err.message);
     }
 }
 
@@ -1535,6 +1562,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
