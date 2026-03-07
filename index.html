@@ -1502,34 +1502,38 @@ async function startExpertScan() {
             btn.style.opacity = "0.3";
         } else {
             // (c) 2026 Spirit Infinity - Tous droits réservés
-// 4. CALCUL FINANCIER SPIRIT INFINITY (Modèle 8%) [cite: 2026-03-06]
-const price = parseFloat(document.getElementById('inputPrice').value) || 0;
-const shipping = 6.90; // Frais fixes [cite: 2026-03-03]
+// (c) 2026 Spirit Infinity - Tous droits réservés
+// 4. CALCUL FINANCIER SPIRIT INFINITY (Modèle 8% + Livraison) [cite: 2026-03-06]
+try {
+    const inputVal = document.getElementById('inputPrice').value;
+    const price = parseFloat(inputVal) || 0;
+    const shipping = 6.90; // [cite: 2026-03-03]
 
-const maPart = (price * 0.03).toFixed(2); // 3% pour Toi [cite: 2026-03-03]
-const partFirme = (price * 0.03).toFixed(2); // 3% pour la Firme [cite: 2026-03-03]
-const bankFee = (price * 0.02).toFixed(2); // 2% Frais de banque [cite: 2026-03-06]
+    // Calcul précis des parts
+    const maPart = price * 0.03; // [cite: 2026-03-03]
+    const partFirme = price * 0.03; // [cite: 2026-03-03]
+    const bankFee = price * 0.02; // [cite: 2026-03-06]
+    
+    const commTotale = (maPart + partFirme + bankFee).toFixed(2);
+    const totalAcheteur = (price + shipping + parseFloat(commTotale)).toFixed(2);
 
-const commTotale = (parseFloat(maPart) + parseFloat(partFirme) + parseFloat(bankFee)).toFixed(2); // Total 8% [cite: 2026-03-06]
-const totalPaye = (price + shipping + parseFloat(commTotale)).toFixed(2);
-
-// Délais Escrow selon type
-const isNative = document.getElementById('isNative')?.checked || false;
-const escrowDays = isNative ? 3 : 4;
-
-msg.innerHTML = `
-    <h2 style="color:var(--spirit-green);">CERTIFICATION RÉUSSIE</h2>
-    <p style="color:white; font-size:1.1rem;">COHÉRENCE VISUELLE : OK</p>
-    <div style="background:#111; padding:10px; border:1px solid #333; font-size:0.9rem; margin-top:10px;">
-        <b style="color:var(--spirit-orange);">Total Protection 8% : ${commTotale}€</b><br>
-        <span style="font-size:0.8rem;">(Moi 3%: ${maPart}€ | Firme 3%: ${partFirme}€ | Banque 2%: ${bankFee}€)</span><br>
-        <b>Livraison : ${shipping}€</b><br>
-        <hr style="border:0.5px solid #333; margin:10px 0;">
-        <h3 style="color:var(--spirit-green); margin:0;">TOTAL CLIENT : ${totalPaye}€</h3>
-        <p style="margin-top:5px;">Protection Escrow : ${escrowDays} jours</p>
-    </div>
-`;
-
+    // Vérification du message HTML
+    const messageBox = document.getElementById('msg'); 
+    if (messageBox) {
+        messageBox.innerHTML = `
+            <h2 style="color:#00ff00;">CERTIFICATION RÉUSSIE</h2>
+            <div style="background:#111; padding:15px; border:1px solid #333; margin-top:10px; border-left: 4px solid #ff4500;">
+                <b style="color:#ff4500;">Protection 8% : ${commTotale}€</b><br>
+                <small>(Moi 3% | Firme 3% | Banque 2%)</small><br>
+                <b>Livraison : ${shipping}€</b><br>
+                <hr style="border:0.5px solid #444; margin:10px 0;">
+                <h3 style="color:#00ff00; margin:0;">TOTAL CLIENT : ${totalAcheteur}€</h3>
+            </div>
+        `;
+    }
+} catch (e) {
+    console.error("Erreur dans le calcul Spirit:", e);
+}
 // (c) 2026 Spirit Infinity - Tous droits réservés
 document.addEventListener('click', function (e) {
     if (e.target.classList.contains('btn-recu-action')) {
@@ -1543,6 +1547,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
