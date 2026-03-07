@@ -1293,67 +1293,86 @@ function calculateSpiritSplit(price) {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-async function loadMyPurchases() {
-    try {
-        // 1. Récupération des données depuis Supabase
-        const { data, error } = await _spirit
-            .from('transactions')
-            .select('*')
-            .order('created_at', { ascending: false });
+/**
+ * CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
+ * Récupère les transactions depuis Supabase et affiche les boutons d'action
+ */
+async function loadUserPurchases() {
+    const listBody = document.getElementById('my-purchases-list'); // ID de ton conteneur dans l'onglet compte
+    if (!listBody) return;
 
-        if (error) throw error;
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">CHARGEMENT DU LEDGER...</div>';
 
-        // 2. Ciblage du conteneur HTML
-        const listBody = document.getElementById('my-purchases-list'); 
-        if (!listBody) return;
-        listBody.innerHTML = ''; 
+    // Récupération des transactions selon tes colonnes Supabase
+    // On filtre par l'utilisateur actuel (currentUser)
+    const { data, error } = await _spirit
+        .from('transactions')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-        // 3. Boucle d'affichage (Correction de la syntaxe ForEach)
-        data.forEach(purchase => {
-            const row = document.createElement('div');
-            row.style.borderBottom = "1px solid #444";
-            row.style.padding = "15px";
-            row.style.marginBottom = "10px";
-            row.style.background = "#1a1a1a";
-
-            // Gestion des boutons selon le statut exact en base
-            let actions = `<span style="color:#ffa500; font-weight:bold;">Statut : ${purchase.status}</span>`;
-
-            if (purchase.status === 'SÉQUESTRE ACTIF') {
-                actions = `
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button onclick="confirmReception('${purchase.id}')" 
-                                style="background:#28a745; color:white; border:none; padding:8px 15px; cursor:pointer; border-radius:4px; font-weight:bold;">
-                            ✅ REÇU
-                        </button>
-                        <button style="background:#dc3545; color:white; border:none; padding:8px 15px; cursor:pointer; border-radius:4px; font-weight:bold;">
-                            ⚠️ LITIGE
-                        </button>
-                    </div>`;
-            }
-
-            // Construction de la ligne avec tes colonnes réelles
-            row.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-                    <div style="color:white;">
-                        <strong style="color:#FF4500;">ID: #${purchase.id.substring(0, 8)}</strong><br>
-                        <span style="font-size:1.1em;">${purchase.figurine_name || 'Figurine Spirit'}</span><br>
-                        <small>Total payé: <strong>${purchase.amount} €</strong></small><br>
-                        <small>Protection Spirit: ${purchase.user_profit} €</small>
-                    </div>
-                    <div style="text-align:right;">
-                        ${actions}
-                    </div>
-                </div>`;
-            
-            listBody.appendChild(row);
-        });
-
-    } catch (err) {
-        console.error("Erreur Ledger d'affichage :", err.message);
+    if (error) {
+        console.error("Erreur de chargement des achats:", error);
+        listBody.innerHTML = '<div style="color:red; padding:10px;">Erreur de synchronisation Spirit Ledger.</div>';
+        return;
     }
-}
 
+    if (!data || data.length === 0) {
+        listBody.innerHTML = '<div style="text-align:center; padding:20px; color:#555;">Aucune transaction enregistrée dans votre historique.</div>';
+        return;
+    }
+
+    listBody.innerHTML = ''; // On vide pour afficher les résultats
+
+    data.forEach(tr => {
+        const row = document.createElement('div');
+        row.className = "purchase-card";
+        row.style = "background:#111; border:1px solid #333; padding:15px; margin-bottom:15px; border-left:4px solid var(--neon-orange);";
+
+        // Détermination de la couleur du statut
+        let statusColor = "orange";
+        if(tr.status === 'LIVRAISON VALIDÉE') statusColor = "var(--spirit-green)";
+        if(tr.status === 'LITIGE OUVERT') statusColor = "red";
+
+        // Génération des boutons d'action SEULEMENT si le séquestre est actif
+        let actionButtons = "";
+        if (tr.status === 'SÉQUESTRE ACTIF') {
+            actionButtons = `
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="btn-recu-action" data-id="${tr.id}" 
+                            style="background:var(--spirit-green); color:black; border:none; padding:8px 12px; font-weight:bold; cursor:pointer; flex:1;">
+                        ✅ REÇU
+                    </button>
+                    <button class="btn-litige-action" data-id="${tr.id}" 
+                            style="background:var(--danger); color:white; border:none; padding:8px 12px; font-weight:bold; cursor:pointer; flex:1;">
+                        ⚠️ LITIGE
+                    </button>
+                </div>
+            `;
+        } else {
+            actionButtons = `<div style="margin-top:10px; font-size:0.8rem; color:#777; text-align:center; border-top:1px solid #222; padding-top:5px;">TRANSACTION ${tr.status}</div>`;
+        }
+
+        row.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <b style="color:var(--neon-orange); font-size:1.1rem;">${tr.figurine_name || 'Objet Spirit Infinity'}</b><br>
+                    <small style="color:#777;">ID Transaction: #${tr.id.substring(0, 8)}</small>
+                </div>
+                <div style="text-align:right;">
+                    <span style="font-weight:bold; font-size:1.2rem;">${tr.amount} €</span><br>
+                    <span style="font-size:0.7rem; color:${statusColor}">${tr.status.toUpperCase()}</span>
+                </div>
+            </div>
+            <div style="margin-top:10px; font-size:0.85rem; color:#bbb; background:#0a0a0a; padding:8px; border-radius:4px;">
+                <span>🛡️ Protection (Split 8%): <b>${tr.user_profit} €</b></span><br>
+                <span>📦 Livraison: <b>6.90 €</b></span>
+            </div>
+            ${actionButtons}
+        `;
+        listBody.appendChild(row);
+    });
+}
+      
 // Fonction de validation finale
 async function confirmReception(transactionId) {
     if (!confirm("Confirmez-vous la réception de votre commande ?")) return;
@@ -1565,6 +1584,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
