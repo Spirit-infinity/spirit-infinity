@@ -1084,44 +1084,40 @@ function addToMySales(product, carrierName) {
 }
  // (c) 2026 Spirit Infinity - Tous droits réservés [cite: 2026-01-26]
 
-async function confirmPayment(paymentMethod) {
-    // On récupère le prix réel de la figurine affichée
-    const montantReel = parseFloat(document.getElementById('sumTotal').innerText.replace(' €', ''));
+async function confirmPayment() {
+    // On récupère dynamiquement le prix de l'objet cliqué (pas de prix fixe !)
+    const prixAnnonce = parseFloat(selectedProduct.price); 
     
-    if (isNaN(montantReel) || montantReel <= 0) {
-        return alert("Erreur : Montant invalide.");
+    if (!prixAnnonce || prixAnnonce <= 0) {
+        return alert("Erreur : Prix de l'annonce non détecté.");
     }
 
     try {
-        // Utilisation de _spirit (Partie 1) pour éviter le TypeError
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                // On s'assure que les noms de colonnes correspondent à ta DB
-                amount: montantReel,
-                payment_method: paymentMethod, // Renommé pour éviter le conflit 'method'
+                amount: prixAnnonce, // Le prix de la figurine (ex: 49€, 79€, etc.) [cite: 2026-01-30]
                 
-                // Le split 3% / 3% / 2%
-                user_profit: (montantReel * 0.03).toFixed(2),
-                firm_profit: (montantReel * 0.03).toFixed(2),
-                bank_share: (montantReel * 0.02).toFixed(2),
+                // Calcul automatique des royalties 3% / 3% / 2% [cite: 2026-03-03, 2026-03-06]
+                user_profit: (prixAnnonce * 0.03).toFixed(2),
+                firm_profit: (prixAnnonce * 0.03).toFixed(2),
+                bank_share: (prixAnnonce * 0.02).toFixed(2),
                 
-                status: 'escrow_active',
+                status: 'SÉQUESTRE ACTIF',
                 created_at: new Date().toISOString()
             }]);
 
         if (error) throw error;
 
-        alert("✅ Spirit Ledger mis à jour : " + montantReel + " € sécurisés au séquestre.");
-        closeModals();
+        alert(`✅ Spirit Ledger : ${prixAnnonce} € sécurisés au séquestre.`);
         location.reload();
 
     } catch (err) {
-        console.error("Erreur de transaction:", err);
-        // Message d'erreur personnalisé que l'on voit sur ton écran
-        alert("Le market a planté. Vérifiez que la colonne 'payment_method' existe dans Supabase.");
+        console.error("Erreur SQL:", err);
+        alert("Le market a planté. Vérifiez la console F12.");
     }
 }
+
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1528,6 +1524,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
