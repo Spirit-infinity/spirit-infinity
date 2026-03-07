@@ -1331,34 +1331,39 @@ async function loadMyPurchases() {
             return;
         }
 
-        data.forEach(item => {
-            // Comparaison exacte avec ta base Supabase
-            const isActif = (item.status === 'SÉQUESTRE ACTIF');
-            
-            const card = document.createElement('div');
-            card.style.cssText = "background:#111; border:1px solid #FF4500; margin-bottom:10px; padding:15px; color:white; border-radius:4px;";
-            
-            card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <b style="font-size:1.1em; color:#FF4500;">${item.figurine_name || 'Figurine Spirit'}</b><br>
-                        <small>ID: #${item.id.substring(0,8)}</small><br>
-                        <span>Total: ${item.amount} €</span>
-                    </div>
-                    <div id="btn-area-${item.id}">
-                        ${isActif ? 
-                            `<button onclick="confirmReception('${item.id}')" style="background:#28a745; color:white; border:none; padding:8px 12px; cursor:pointer; font-weight:bold; border-radius:3px;">✅ REÇU</button>` 
-                            : `<span style="color:#00FF00; font-weight:bold;">${item.status}</span>`
-                        }
-                    </div>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    } catch (e) {
-        console.error("Erreur critique loadMyPurchases:", e.message);
+       data.forEach(purchase => {
+    const row = document.createElement('div');
+    row.style.borderBottom = "1px solid #444";
+    row.style.padding = "10px";
+
+    // Utilisation des noms de colonnes exacts de ta base
+    let actions = `<span style="color:#ffa500">Statut : ${purchase.status}</span>`;
+
+    // Vérification du statut pour afficher les boutons
+    if (purchase.status === 'SÉQUESTRE ACTIF') {
+        actions = `
+            <div style="display:flex; gap:10px; margin-top:5px;">
+                <button class="btn-recu-action" data-id="${purchase.id}">✅ REÇU</button>
+                <button class="btn-litige-action" data-id="${purchase.id}">⚠️ LITIGE</button>
+            </div>`;
     }
-}
+
+    row.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="color:white;">
+                <strong>ID: #${purchase.id.substring(0, 8)}</strong><br>
+                Prix Vente: ${purchase.amount || 0} €<br>
+                Com. Spirit (3%): ${purchase.user_profit || 0} €
+            </div>
+            <div>
+                ${actions}
+            </div>
+        </div>`;
+
+    listBody.appendChild(row);
+}); 
+// L'ERREUR ÉTAIT ICI : J'ai supprimé l'accolade en trop qui était à la ligne 1367.
+
 
 // 2. Fonction pour valider la réception
 async function confirmReception(tId) {
@@ -1590,6 +1595,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
