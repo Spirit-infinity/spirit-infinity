@@ -1311,7 +1311,14 @@ function calculateSpiritSplit(price) {
 
 async function loadMyPurchases() {
     try {
-        // 1. Récupération des données depuis Supabase
+        const listBody = document.getElementById('my-purchases-list');
+        
+        // SÉCURITÉ : Si l'élément n'existe pas sur la page actuelle, on arrête proprement
+        if (!listBody) {
+            console.warn("[SPIRIT] Conteneur 'my-purchases-list' non trouvé. Saut de l'étape.");
+            return;
+        }
+
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
@@ -1319,54 +1326,47 @@ async function loadMyPurchases() {
 
         if (error) throw error;
 
-        // 2. Ciblage du conteneur HTML
-        const listBody = document.getElementById('my-purchases-list'); 
-        if (!listBody) return;
         listBody.innerHTML = ''; 
 
-        // 3. Boucle d'affichage (Correction de la syntaxe ForEach)
+        if (!data || data.length === 0) {
+            listBody.innerHTML = '<p style="color:gray; text-align:center;">Aucun achat trouvé.</p>';
+            return;
+        }
+
         data.forEach(purchase => {
             const row = document.createElement('div');
-            row.style.borderBottom = "1px solid #444";
-            row.style.padding = "15px";
-            row.style.marginBottom = "10px";
-            row.style.background = "#1a1a1a";
+            row.style.cssText = "border: 1px solid #444; padding: 15px; margin-bottom: 10px; background: #1a1a1a; border-radius: 4px;";
 
-            // Gestion des boutons selon le statut exact en base
+            // Vérification exacte du statut en base
             let actions = `<span style="color:#ffa500; font-weight:bold;">Statut : ${purchase.status}</span>`;
 
             if (purchase.status === 'SÉQUESTRE ACTIF') {
                 actions = `
                     <div style="display:flex; gap:10px; margin-top:10px;">
                         <button onclick="confirmReception('${purchase.id}')" 
-                                style="background:#28a745; color:white; border:none; padding:8px 15px; cursor:pointer; border-radius:4px; font-weight:bold;">
+                                style="background:#28a745; color:white; border:none; padding:8px; cursor:pointer; font-weight:bold;">
                             ✅ REÇU
                         </button>
-                        <button style="background:#dc3545; color:white; border:none; padding:8px 15px; cursor:pointer; border-radius:4px; font-weight:bold;">
+                        <button style="background:#dc3545; color:white; border:none; padding:8px; cursor:pointer; font-weight:bold;">
                             ⚠️ LITIGE
                         </button>
                     </div>`;
             }
 
-            // Construction de la ligne avec tes colonnes réelles
             row.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div style="color:white;">
-                        <strong style="color:#FF4500;">ID: #${purchase.id.substring(0, 8)}</strong><br>
-                        <span style="font-size:1.1em;">${purchase.figurine_name || 'Figurine Spirit'}</span><br>
-                        <small>Total payé: <strong>${purchase.amount} €</strong></small><br>
-                        <small>Protection Spirit: ${purchase.user_profit} €</small>
+                        <strong style="color:#FF4500;">${purchase.figurine_name || 'Objet Spirit'}</strong><br>
+                        <small>Total: ${purchase.amount} €</small>
                     </div>
-                    <div style="text-align:right;">
-                        ${actions}
-                    </div>
+                    <div>${actions}</div>
                 </div>`;
             
             listBody.appendChild(row);
         });
 
     } catch (err) {
-        console.error("Erreur Ledger d'affichage :", err.message);
+        console.error("Erreur Ledger :", err.message);
     }
 }
 
@@ -1581,6 +1581,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
