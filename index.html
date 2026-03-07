@@ -415,7 +415,7 @@
     </div>
 </div>
 
-<div id="accountModal" class="overlay">
+<div id="my-purchase-list" class="overlay">
     <div class="modal-content" style="max-width:1100px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div class="dash-container">
@@ -1273,7 +1273,7 @@ async function confirmPayment() {
     }
    function openAccount() {
     updateUserAnnonces();
-    loadUserPurchases(); // <--- On appelle le chargement ici !
+    loadMyPurchases(); // <--- On appelle le chargement ici !
     document.getElementById('accountModal').style.display = 'flex';
 }
    
@@ -1641,6 +1641,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
