@@ -693,47 +693,31 @@ async function loadUserPurchases() {
         return;
     }
 
-   // (c) 2026 Spirit Infinity - Tous droits réservés
+    data.forEach(tr => {
+        // On cherche le nom du produit dans marketData ou via une jointure
+        const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
+        const dateStr = new Date(tr.created_at).toLocaleDateString();
+       
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${dateStr}</td>
+            <td><b style="color:var(--neon-orange)">${product.title}</b></td>
+            <td>${tr.amount} €</td>
+            <td><span style="color:${tr.status === 'completed' ? 'var(--spirit-green)' : 'orange'}">${tr.status.toUpperCase()}</span></td>
+            <td style="text-align:center;">
+               // (c) 2026 Spirit Infinity - Tous droits réservés
 
-data.forEach(purchase => {
-    const row = document.createElement('div');
-    row.className = "purchase-card"; 
-    row.style.border = "1px solid #444";
-    row.style.padding = "15px";
-    row.style.marginBottom = "10px";
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
-    // IMPORTANT : On vérifie la valeur EXACTE de ta capture d'écran
-    let actions = `<span style="color:#ffa500">Statut : ${purchase.status}</span>`;
-
-    // Comparaison stricte avec "SÉQUESTRE ACTIF" (vu sur ta photo)
-    if (purchase.status === 'SÉQUESTRE ACTIF') {
-        actions = `
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button onclick="confirmReception('${purchase.id}')" 
-                        style="background:#28a745; color:white; border:none; padding:10px; cursor:pointer; font-weight:bold;">
-                    ✅ REÇU
-                </button>
-                <button onclick="openDispute('${purchase.id}')" 
-                        style="background:#dc3545; color:white; border:none; padding:10px; cursor:pointer; font-weight:bold;">
-                    ⚠️ LITIGE
-                </button>
-            </div>`;
-    }
-
-    row.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <strong style="color:#FF4500;">FIGURINE : ${purchase.figurine_name || 'Spirit Item'}</strong><br>
-                <small>ID: #${purchase.id.substring(0, 8)}</small><br>
-                <strong>Total : ${purchase.amount} €</strong>
-            </div>
-            <div>
-                ${actions}
-            </div>
-        </div>`;
-    
-    listBody.appendChild(row);
-});
+${tr.status === 'escrow_active' ? `
+    <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
+    <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>
+` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+            </td>
+        `;
+        listBody.appendChild(row);
+    });
+}
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
@@ -1309,14 +1293,9 @@ function calculateSpiritSplit(price) {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// 1. Fonction pour charger les achats
 async function loadMyPurchases() {
-    console.log("[SPIRIT] Tentative de chargement des achats...");
-    
-    const container = document.getElementById('my-purchases-list');
-    if (!container) return; // Sécurité : ne fait rien si l'élément n'existe pas
-
     try {
+        // 1. Récupération des données depuis Supabase
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
@@ -1324,63 +1303,54 @@ async function loadMyPurchases() {
 
         if (error) throw error;
 
-        container.innerHTML = ""; // Nettoyage
+        // 2. Ciblage du conteneur HTML
+        const listBody = document.getElementById('my-purchases-list'); 
+        if (!listBody) return;
+        listBody.innerHTML = ''; 
 
-        if (!data || data.length === 0) {
-            container.innerHTML = "<p style='color:gray; padding:20px;'>Aucune transaction trouvée.</p>";
-            return;
-        }
+        // 3. Boucle d'affichage (Correction de la syntaxe ForEach)
+        data.forEach(purchase => {
+            const row = document.createElement('div');
+            row.style.borderBottom = "1px solid #444";
+            row.style.padding = "15px";
+            row.style.marginBottom = "10px";
+            row.style.background = "#1a1a1a";
 
-       data.forEach(purchase => {
-    const row = document.createElement('div');
-    row.style.borderBottom = "1px solid #444";
-    row.style.padding = "10px";
+            // Gestion des boutons selon le statut exact en base
+            let actions = `<span style="color:#ffa500; font-weight:bold;">Statut : ${purchase.status}</span>`;
 
-    // Utilisation des noms de colonnes exacts de ta base
-    let actions = `<span style="color:#ffa500">Statut : ${purchase.status}</span>`;
+            if (purchase.status === 'SÉQUESTRE ACTIF') {
+                actions = `
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button onclick="confirmReception('${purchase.id}')" 
+                                style="background:#28a745; color:white; border:none; padding:8px 15px; cursor:pointer; border-radius:4px; font-weight:bold;">
+                            ✅ REÇU
+                        </button>
+                        <button style="background:#dc3545; color:white; border:none; padding:8px 15px; cursor:pointer; border-radius:4px; font-weight:bold;">
+                            ⚠️ LITIGE
+                        </button>
+                    </div>`;
+            }
 
-    // Vérification du statut pour afficher les boutons
-    if (purchase.status === 'SÉQUESTRE ACTIF') {
-        actions = `
-            <div style="display:flex; gap:10px; margin-top:5px;">
-                <button class="btn-recu-action" data-id="${purchase.id}">✅ REÇU</button>
-                <button class="btn-litige-action" data-id="${purchase.id}">⚠️ LITIGE</button>
-            </div>`;
-    }
+            // Construction de la ligne avec tes colonnes réelles
+            row.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                    <div style="color:white;">
+                        <strong style="color:#FF4500;">ID: #${purchase.id.substring(0, 8)}</strong><br>
+                        <span style="font-size:1.1em;">${purchase.figurine_name || 'Figurine Spirit'}</span><br>
+                        <small>Total payé: <strong>${purchase.amount} €</strong></small><br>
+                        <small>Protection Spirit: ${purchase.user_profit} €</small>
+                    </div>
+                    <div style="text-align:right;">
+                        ${actions}
+                    </div>
+                </div>`;
+            
+            listBody.appendChild(row);
+        });
 
-    row.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="color:white;">
-                <strong>ID: #${purchase.id.substring(0, 8)}</strong><br>
-                Prix Vente: ${purchase.amount || 0} €<br>
-                Com. Spirit (3%): ${purchase.user_profit || 0} €
-            </div>
-            <div>
-                ${actions}
-            </div>
-        </div>`;
-
-    listBody.appendChild(row);
-}); 
-// L'ERREUR ÉTAIT ICI : J'ai supprimé l'accolade en trop qui était à la ligne 1367.
-
-
-// 2. Fonction pour valider la réception
-async function confirmReception(tId) {
-    if (!confirm("Confirmez-vous la réception ?")) return;
-
-    try {
-        const { error } = await _spirit
-            .from('transactions')
-            .update({ status: 'LIVRAISON VALIDÉE' }) // Statut final
-            .eq('id', tId);
-
-        if (error) throw error;
-        
-        alert("Transaction validée !");
-        loadMyPurchases(); // Actualisation
-    } catch (e) {
-        alert("Erreur : " + e.message);
+    } catch (err) {
+        console.error("Erreur Ledger d'affichage :", err.message);
     }
 }
 
@@ -1595,9 +1565,6 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
-
-
-
 
 
 
