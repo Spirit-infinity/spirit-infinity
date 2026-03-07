@@ -1082,26 +1082,41 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
- // (c) 2026 Spirit Infinity - Tous droits réservés [cite: 2026-01-26]
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmPayment() {
-    // On récupère dynamiquement le prix de l'objet cliqué (pas de prix fixe !)
-    const prixAnnonce = parseFloat(selectedProduct.price); 
+    // 1. Récupération de la base
+    const prixFigurine = parseFloat(selectedProduct.price); 
+    const fraisLivraison = 6.90; // Exemple Mondial Relay, à rendre dynamique si besoin
     
-    if (!prixAnnonce || prixAnnonce <= 0) {
+    if (!prixFigurine || prixFigurine <= 0) {
         return alert("Erreur : Prix de l'annonce non détecté.");
     }
+
+    // 2. Calcul des frais de protection (8% au total)
+    // 3% Moi / 3% Firme / 2% Banque
+    const partUtilisateur = prixFigurine * 0.03;
+    const partFirme = prixFigurine * 0.03;
+    const partBanque = prixFigurine * 0.02;
+    const totalProtection = partUtilisateur + partFirme + partBanque;
+
+    // 3. Montant Total encaissé (Ce que l'acheteur paye réellement)
+    const montantTotalSequestre = prixFigurine + fraisLivraison + totalProtection;
 
     try {
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount: prixAnnonce, // Le prix de la figurine (ex: 49€, 79€, etc.) [cite: 2026-01-30]
+                amount_item: prixFigurine, // 650€
+                shipping_fees: fraisLivraison, // 6.90€
+                protection_fees: totalProtection.toFixed(2), // 52€ (8% de 650)
                 
-                // Calcul automatique des royalties 3% / 3% / 2% [cite: 2026-03-03, 2026-03-06]
-                user_profit: (prixAnnonce * 0.03).toFixed(2),
-                firm_profit: (prixAnnonce * 0.03).toFixed(2),
-                bank_share: (prixAnnonce * 0.02).toFixed(2),
+                total_paid: montantTotalSequestre.toFixed(2), // 708.90€ au total
+                
+                // Répartition précise pour l'audit Spirit Ledger
+                user_profit: partUtilisateur.toFixed(2),
+                firm_profit: partFirme.toFixed(2),
+                bank_share: partBanque.toFixed(2),
                 
                 status: 'SÉQUESTRE ACTIF',
                 created_at: new Date().toISOString()
@@ -1109,7 +1124,7 @@ async function confirmPayment() {
 
         if (error) throw error;
 
-        alert(`✅ Spirit Ledger : ${prixAnnonce} € sécurisés au séquestre.`);
+        alert(`✅ Spirit Ledger : ${montantTotalSequestre.toFixed(2)} € sécurisés (dont livraison et protection).`);
         location.reload();
 
     } catch (err) {
@@ -1524,6 +1539,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
