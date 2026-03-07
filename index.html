@@ -1084,55 +1084,44 @@ function addToMySales(product, carrierName) {
 }
  // (c) 2026 Spirit Infinity - Tous droits réservés [cite: 2026-01-26]
 
-async function confirmPayment(method) {
-    const total = parseFloat(document.getElementById('sumTotal').innerText.replace(' €', ''));
-    if (isNaN(total) || total <= 0) return alert("Erreur de montant.");
-
-    // Calcul des commissions Spirit Infinity (3% / 3% / 2%) [cite: 2026-03-03, 2026-03-06]
-    const uProfit = (total * 0.03).toFixed(2); // Tes 3%
-    const fProfit = (total * 0.03).toFixed(2); // Firme 3%
-    const bShare = (total * 0.02).toFixed(2); // Banque 2%
+async function confirmPayment(paymentMethod) {
+    // On récupère le prix réel de la figurine affichée
+    const montantReel = parseFloat(document.getElementById('sumTotal').innerText.replace(' €', ''));
+    
+    if (isNaN(montantReel) || montantReel <= 0) {
+        return alert("Erreur : Montant invalide.");
+    }
 
     try {
-        // CORRECTION : Utilisation de _spirit au lieu de supabase
+        // Utilisation de _spirit (Partie 1) pour éviter le TypeError
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount: total,
-                method: method,
-                user_profit: uProfit,
-                firm_profit: fProfit,
-                bank_share: bShare,
-                status: 'SÉQUESTRE ACTIF',
-                created_at: new Date()
+                // On s'assure que les noms de colonnes correspondent à ta DB
+                amount: montantReel,
+                payment_method: paymentMethod, // Renommé pour éviter le conflit 'method'
+                
+                // Le split 3% / 3% / 2%
+                user_profit: (montantReel * 0.03).toFixed(2),
+                firm_profit: (montantReel * 0.03).toFixed(2),
+                bank_share: (montantReel * 0.02).toFixed(2),
+                
+                status: 'escrow_active',
+                created_at: new Date().toISOString()
             }]);
 
         if (error) throw error;
 
-        alert(`✅ PAIEMENT DE ${total} € ACCEPTÉ !\nLes fonds sont sécurisés au séquestre Spirit.\n\nSplit : Me(${uProfit}€) | Firm(${fProfit}€) | Bank(${bShare}€)`);
+        alert("✅ Spirit Ledger mis à jour : " + montantReel + " € sécurisés au séquestre.");
         closeModals();
-        location.reload(); // Rafraîchir pour voir l'achat dans le compte
+        location.reload();
 
     } catch (err) {
         console.error("Erreur de transaction:", err);
-        alert("⚠️ Le market a planté. Vérifiez la console (F12) ou votre connexion Supabase.");
+        // Message d'erreur personnalisé que l'on voit sur ton écran
+        alert("Le market a planté. Vérifiez que la colonne 'payment_method' existe dans Supabase.");
     }
 }
-
-// Fonction pour charger les annonces sans plantage
-async function loadMarket() {
-    try {
-        const { data, error } = await _spirit
-            .from('market_items')
-            .select('*');
-        
-        if (error) throw error;
-        // Ton code de rendu des cartes ici...
-    } catch (err) {
-        console.error("Erreur chargement market:", err);
-    }
-}   
-
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1539,6 +1528,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
