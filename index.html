@@ -1294,21 +1294,23 @@ function calculateSpiritSplit(price) {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 /**
- * CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
- * Récupère les transactions depuis Supabase et affiche les boutons d'action
+ * CHARGEMENT DES ACHATS DEPUIS LE SPIRIT LEDGER
+ * Cette fonction doit être appelée lors de l'ouverture du compte
  */
-
 async function loadMyPurchases() {
     const listBody = document.getElementById('my-purchases-list');
+    
+    // 1. Vérification de sécurité du conteneur
     if (!listBody) {
-        console.error("Erreur : Conteneur 'my-purchases-list' introuvable dans le HTML.");
+        console.error("ERREUR CRITIQUE : L'élément HTML 'my-purchases-list' est introuvable.");
         return;
     }
 
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">SYNCHRONISATION SPIRIT LEDGER...</div>';
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange); font-family:monospace;">🔄 CONNEXION AU LEDGER...</div>';
 
     try {
-        // Récupération des transactions (On filtre par l'utilisateur si currentUser est défini)
+        // 2. Appel à Supabase (Table: transactions)
+        // On récupère TOUTES les transactions pour le test, ou filtre par 'buyer' si currentUser est prêt.
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
@@ -1316,59 +1318,86 @@ async function loadMyPurchases() {
 
         if (error) throw error;
 
+        // 3. Gestion de l'affichage si vide
         if (!data || data.length === 0) {
-            listBody.innerHTML = '<div style="text-align:center; padding:20px; color:#555;">Aucun achat dans votre historique.</div>';
+            listBody.innerHTML = `
+                <div style="text-align:center; padding:30px; border:1px dashed #333; color:#555;">
+                    <i style="font-size:2rem;">📦</i><br>Aucune figurine acquise via Spirit Infinity.
+                </div>`;
             return;
         }
 
-        listBody.innerHTML = ''; // Vide le message de chargement
+        // 4. Construction de la liste
+        listBody.innerHTML = ''; // Nettoyage du loader
 
-        data.forEach(purchase => {
+        data.forEach(tr => {
             const card = document.createElement('div');
-            card.style = "background:#111; border:1px solid #333; padding:15px; margin-bottom:15px; border-left:4px solid var(--neon-orange); color:white;";
+            card.className = "spirit-purchase-item";
+            
+            // Design "Industrial Dark" conforme au Dossier Partenariat
+            card.style = `
+                background: #0d0d0d;
+                border: 1px solid #222;
+                border-left: 3px solid var(--neon-orange);
+                padding: 15px;
+                margin-bottom: 12px;
+                position: relative;
+                color: white;
+            `;
 
-            // Logique d'affichage des boutons selon le statut exact en base
-            let actionHtml = "";
-            if (purchase.status === 'SÉQUESTRE ACTIF') {
-                actionHtml = `
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button onclick="confirmReception('${purchase.id}')" 
-                                style="background:var(--spirit-green); color:black; border:none; padding:8px; flex:1; font-weight:bold; cursor:pointer;">
+            // Détermination du statut visuel
+            let statusLabel = `<span style="color:orange;">${tr.status}</span>`;
+            let actions = "";
+
+            if (tr.status === 'SÉQUESTRE ACTIF') {
+                statusLabel = `<span style="color:var(--neon-orange); font-weight:bold;">🛡️ SÉQUESTRE ACTIF</span>`;
+                actions = `
+                    <div style="display:flex; gap:10px; margin-top:12px;">
+                        <button onclick="confirmReception('${tr.id}')" 
+                                style="background:var(--spirit-green); color:black; border:none; padding:10px; flex:1; font-weight:bold; cursor:pointer; font-size:0.8rem;">
                             ✅ REÇU
                         </button>
-                        <button onclick="openDispute('${purchase.id}')" 
-                                style="background:var(--danger); color:white; border:none; padding:8px; flex:1; font-weight:bold; cursor:pointer;">
+                        <button onclick="openDispute('${tr.id}')" 
+                                style="background:var(--danger); color:white; border:none; padding:10px; flex:1; font-weight:bold; cursor:pointer; font-size:0.8rem;">
                             ⚠️ LITIGE
                         </button>
                     </div>`;
-            } else {
-                actionHtml = `<div style="margin-top:10px; font-size:0.75rem; color:#777; text-align:center; border-top:1px solid #222; padding-top:5px;">
-                                STATUT : ${purchase.status}
-                              </div>`;
+            } else if (tr.status === 'LIVRAISON VALIDÉE') {
+                statusLabel = `<span style="color:var(--spirit-green);">✅ TRANSACTION TERMINÉE</span>`;
             }
 
+            // Template de la carte (Colonnes exactes : figurine_name, amount, user_profit)
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                        <strong style="color:var(--neon-orange); font-size:1rem;">${purchase.figurine_name || 'Figurine Spirit'}</strong><br>
-                        <small style="color:#666;">ID: #${purchase.id.substring(0, 8)}</small>
+                    <div style="flex:1;">
+                        <div style="font-weight:bold; font-size:1rem; text-transform:uppercase;">${tr.figurine_name || 'FIGURINE SPIRIT'}</div>
+                        <div style="font-size:0.7rem; color:#555; margin-top:4px;">ID REF: #${tr.id.substring(0, 8)}</div>
                     </div>
                     <div style="text-align:right;">
-                        <span style="font-weight:bold; font-size:1.1rem;">${purchase.amount} €</span><br>
-                        <span style="font-size:0.7rem; color:orange;">${purchase.status}</span>
+                        <div style="font-size:1.1rem; font-weight:bold; color:var(--neon-orange);">${tr.amount} €</div>
+                        <div style="font-size:0.65rem;">${statusLabel}</div>
                     </div>
                 </div>
-                <div style="margin-top:8px; font-size:0.8rem; color:#bbb; background:#050505; padding:6px;">
-                    🛡️ Protection Spirit (3%): ${purchase.user_profit} € | 📦 Livraison: 6.90 €
+                
+                <div style="background:#050505; padding:8px; margin-top:10px; font-size:0.75rem; border:1px solid #1a1a1a;">
+                    <div style="display:flex; justify-content:space-between; color:#888;">
+                        <span>Protection (3%)</span>
+                        <span>${tr.user_profit} €</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:#888;">
+                        <span>Livraison</span>
+                        <span>6.90 €</span>
+                    </div>
                 </div>
-                ${actionHtml}
+                ${actions}
             `;
+            
             listBody.appendChild(card);
         });
 
     } catch (err) {
-        console.error("Erreur d'affichage :", err.message);
-        listBody.innerHTML = `<div style="color:red; padding:20px;">Erreur Ledger : ${err.message}</div>`;
+        console.error("ERREUR LEDGER :", err.message);
+        listBody.innerHTML = `<div style="color:red; font-family:monospace; font-size:0.8rem; padding:10px;">❌ ERREUR SYNC : ${err.message}</div>`;
     }
 }
 
@@ -1612,6 +1641,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
