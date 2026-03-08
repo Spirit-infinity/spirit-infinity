@@ -1640,86 +1640,39 @@ async function generateSpiritLabel(transactionId) {
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
 window.generateSpiritLabel = async function(transactionId) {
-    console.log("[LOGISTICS] Génération du bordereau haute définition...");
-
     try {
-        // 1. Récupération des données réelles sur Supabase
         const { data: tr, error } = await _spirit
             .from('transactions')
             .select('*')
             .eq('id', transactionId)
             .single();
 
-        if (error || !tr) throw new Error("Transaction introuvable dans le Ledger");
+        if (error || !tr) return alert("Erreur : Transaction introuvable.");
 
-        // 2. Création du contenu du nouvel onglet
-        const trackingNum = "SP-" + Math.random().toString(36).toUpperCase().substring(2, 12);
-        const printWindow = window.open('', '_blank');
+        // Ouverture immédiate pour éviter les bloqueurs de pub
+        const w = window.open('', '_blank');
         
-        const labelHtml = `
-            <!DOCTYPE html>
+        const html = `
             <html>
-            <head>
-                <title>BORDEREAU SPIRIT - ${tr.id.substring(0,8)}</title>
-                <style>
-                    body { font-family: 'Courier New', Courier, monospace; padding: 40px; color: #000; background: #fff; }
-                    .label-container { border: 4px solid #000; width: 500px; margin: 0 auto; padding: 20px; position: relative; }
-                    .header { border-bottom: 3px solid #000; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-                    .content { margin: 25px 0; font-size: 1.1rem; line-height: 1.6; }
-                    .barcode-box { background: #000; color: #fff; padding: 20px; text-align: center; margin-top: 30px; }
-                    .barcode-text { font-size: 1.8rem; letter-spacing: 5px; font-weight: bold; }
-                    .footer { margin-top: 20px; text-align: center; font-size: 0.8rem; border-top: 1px solid #ccc; padding-top: 10px; }
-                    @media print { .no-print { display: none; } }
-                </style>
-            </head>
-            <body>
-                <div class="no-print" style="text-align:center; margin-bottom:20px;">
-                    <button onclick="window.print()" style="padding:10px 20px; cursor:pointer; font-weight:bold;">🖨️ IMPRIMER MAINTENANT</button>
-                    <p>Une fois imprimé, fermez cet onglet pour revenir au Ledger.</p>
+            <body style="font-family:sans-serif; padding:50px;">
+                <div style="border:5px solid #000; padding:20px; width:400px; margin:auto;">
+                    <h1 style="border-bottom:2px solid #000;">SPIRIT LOGISTICS</h1>
+                    <p><b>OBJET :</b> ${tr.figurine_name}</p>
+                    <p><b>VALEUR :</b> ${tr.amount} €</p>
+                    <div style="background:#000; color:#fff; padding:20px; text-align:center; font-size:1.5rem; font-weight:bold;">
+                        REF-${transactionId.substring(0,8).toUpperCase()}
+                    </div>
+                    <p style="text-align:center; font-size:0.8rem; margin-top:20px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
                 </div>
-
-                <div class="label-container">
-                    <div class="header">
-                        <h1 style="margin:0;">SPIRIT LOGISTICS</h1>
-                        <span>EST. 2026</span>
-                    </div>
-                    
-                    <div class="content">
-                        <b>EXPÉDITEUR :</b> Spirit Infinity Market (Secured)<br>
-                        <b>DESTINATAIRE :</b> Porteur Spirit ID #${tr.id.substring(0,5)}<br><br>
-                        <b>PRODUIT :</b> ${tr.figurine_name || 'OBJET DE COLLECTION'}<br>
-                        <b>VALEUR DÉCLARÉE :</b> ${tr.amount} €<br>
-                        <b>ÉTAT :</b> SÉQUESTRE VALIDÉ
-                    </div>
-
-                    <div class="barcode-box">
-                        <span style="font-size:0.7rem;">TRACKING NUMBER (A SCANNER)</span><br>
-                        <div class="barcode-text">${trackingNum}</div>
-                    </div>
-
-                    <div class="footer">
-                        (c) 2026 Spirit Infinity - Tous droits réservés<br>
-                        Certifié conforme au Dossier Partenariat
-                    </div>
-                </div>
-
-                <script>
-                    // Optionnel : Lance l'impression automatiquement après 1 seconde
-                    // setTimeout(() => { window.print(); }, 1000);
-                </script>
+                <script>window.print();<\/script>
             </body>
-            </html>
-        `;
-
-        printWindow.document.write(labelHtml);
-        printWindow.document.close();
-
-    } catch (err) {
-        console.error("Erreur logistique :", err.message);
-        alert("Impossible d'ouvrir le bordereau : " + err.message);
-    }
+            </html>`;
+            
+        w.document.write(html);
+        w.document.close();
+    } catch (e) { alert("Erreur système"); }
 };
-   
+
 </script>
 
 <div id="labelPreview" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; background:rgba(0,0,0,0.95); padding:20px; border:2px solid #00ff96; border-radius: 8px; width: 360px; color:white;">
@@ -1736,6 +1689,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
