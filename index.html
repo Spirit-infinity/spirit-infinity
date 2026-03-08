@@ -1121,7 +1121,9 @@ async function confirmPayment() {
                 figurine_name: selectedProduct.title || "Figurine Spirit",
                 created_at: new Date().toISOString()
             }]);
-         if (transError) throw transError;
+
+        if (error) throw error;
+
         alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés avec succès.`);
         location.reload();
 
@@ -1612,6 +1614,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
