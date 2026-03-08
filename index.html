@@ -1101,41 +1101,34 @@ function addToMySales(product, carrierName) {
 async function confirmPayment() {
     const prixFigurine = parseFloat(selectedProduct.price);
     
-    // RÉCUPÉRATION DYNAMIQUE DU FRAIS DE PORT SÉLECTIONNÉ
-    const shippingElement = document.querySelector('input[name="shipping"]:checked');
-    const fraisLivraison = shippingElement ? parseFloat(shippingElement.dataset.price) : 0; 
+    // RÉCUPÉRATION DU PRIX SELON LE TRANSPORTEUR CHOISI
+    // On cherche l'option cochée dans ton interface de livraison
+    const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
+    const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; 
 
-    // Calcul du Split 8% (3/3/2) selon directives de mars 2026
-    const uProfit = (prixFigurine * 0.03).toFixed(2); // Tes 3%
-    const fProfit = (prixFigurine * 0.03).toFixed(2); // 3% Firme
-    const bShare = (prixFigurine * 0.02).toFixed(2); // 2% Banque
+    // Calcul du Split 8% (3/3/2) - Directives Mars 2026 [cite: 2026-03-06]
+    const uProfit = (prixFigurine * 0.03).toFixed(2); // Tes 3% [cite: 2026-03-06]
+    const fProfit = (prixFigurine * 0.03).toFixed(2); // 3% Firme [cite: 2026-03-06]
+    const bShare = (prixFigurine * 0.02).toFixed(2); // 2% Banque [cite: 2026-03-06]
     
-    // Le total inclut maintenant le vrai frais de port choisi
+    // Calcul du Total Réel
     const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
 
     try {
-        console.log("[SPIRIT LEDGER] Tentative d'écriture...");
-        
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount: total, 
-                user_profit: uProfit, 
-                firm_profit: fProfit, 
-                bank_share: bShare,
-                status: 'SÉQUESTRE ACTIF', // Texte exact validé en base
-                figurine_name: selectedProduct.title || "Figurine Spirit",
-                created_at: new Date().toISOString()
+                amount: total,
+                user_profit: uProfit,
+                shipping_cost: fraisLivraison, // Ajout pour ton suivi
+                status: 'SÉQUESTRE ACTIF',
+                figurine_name: selectedProduct.name
             }]);
-
+        
         if (error) throw error;
-
         alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés avec succès.`);
-        location.reload();
-
     } catch (err) {
-        console.error("Erreur détaillée :", err.message);
-        alert("ERREUR CRITIQUE : " + err.message);
+        console.error("Erreur Ledger:", err.message);
     }
 }
     
@@ -1621,6 +1614,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
