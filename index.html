@@ -1108,41 +1108,40 @@ async function confirmPayment() {
         const prixFigurine = parseFloat(selectedProduct.price);
         
         // 1. RÉCUPÉRATION DYNAMIQUE DES FRAIS DE PORT
-        // On vérifie si l'élément existe avant de lire la valeur
+        // On cherche l'input radio coché qui a le nom 'shipping-option'
         const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
+        
+        // Si rien n'est coché, on met 0 ou une valeur par défaut pour éviter le plantage
         const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; 
 
         // 2. CALCUL DU SPLIT 8% (3% MOI / 3% FIRME / 2% BANQUE) [cite: 2026-03-06]
-        const uProfit = (prixFigurine * 0.03).toFixed(2); // Tes 3% [cite: 2026-03-03, 2026-03-06]
-        const fProfit = (prixFigurine * 0.03).toFixed(2); // 3% Firme [cite: 2026-03-03, 2026-03-06]
-        const bShare = (prixFigurine * 0.02).toFixed(2); // 2% Banque [cite: 2026-03-06]
+        const uProfit = (prixFigurine * 0.03).toFixed(2); // [cite: 2026-03-03, 2026-03-06]
+        const fProfit = (prixFigurine * 0.03).toFixed(2); // [cite: 2026-03-03, 2026-03-06]
+        const bShare = (prixFigurine * 0.02).toFixed(2); // [cite: 2026-03-06]
         
-        // Calcul du Total Réel à prélever
+        // Calcul du Total Réel (Prix + Port + Frais)
         const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
 
-        console.log("[SPIRIT LEDGER] Tentative d'écriture sécurisée...");
-
-        // 3. INSERTION SUPABASE (Nettoyée des colonnes inexistantes)
+        // 3. INSERTION DANS LE SPIRIT LEDGER (SUPABASE)
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount: total, // Le prix total payé par l'acheteur
-                user_profit: uProfit, // Ta commission de 3%
-                status: 'SÉQUESTRE ACTIF', // État initial de la transaction [cite: 2026-02-09]
+                amount: total, // Le montant total calculé dynamiquement
+                user_profit: uProfit, // Ta commission
+                status: 'SÉQUESTRE ACTIF', // [cite: 2026-02-09]
                 figurine_name: selectedProduct.name
             }]);
         
         if (error) throw error;
 
-        // 4. CONFIRMATION VISUELLE [cite: 2026-02-20]
-        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés avec succès.`);
+        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés avec succès (dont ${fraisLivraison}€ de port).`);
         
-        // Fermer la modale et rafraîchir les achats
-        if(typeof closeModal === 'function') closeModal('paymentModal');
-        if(typeof loadMyPurchases === 'function') loadMyPurchases();
+        // Fermeture et rafraîchissement
+        closeModal('paymentModal');
+        loadMyPurchases();
 
     } catch (err) {
-        console.error("Erreur Ledger Spirit Infinity:", err.message);
+        console.error("Erreur Ledger:", err.message);
         alert("Erreur lors de la transaction : " + err.message);
     }
 }
@@ -1629,6 +1628,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
