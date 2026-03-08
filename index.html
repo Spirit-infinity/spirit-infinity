@@ -1122,10 +1122,6 @@ async function confirmPayment() {
                 created_at: new Date().toISOString()
             }]);
          if (transError) throw transError;
-
-        // MISE À JOUR DU STATUT "VENDU" SUR L'ANNONCE [cite: 2026-02-09]
-        await _spirit.from('annonces').update({ status: 'VENDU' }).eq('id', selectedProduct.id);
-
         alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés avec succès.`);
         location.reload();
 
@@ -1616,6 +1612,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
