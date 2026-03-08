@@ -1637,16 +1637,16 @@ async function generateSpiritLabel(transactionId) {
     }
 }
 
-
 </script>
-    <div id="labelPreview" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; background:rgba(0,0,0,0.9); padding:20px; border:2px solid var(--spirit-green); box-shadow: 0 0 20px rgba(0,255,150,0.3);">
+
+<div id="labelPreview" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; background:rgba(0,0,0,0.95); padding:20px; border:2px solid #00ff96; box-shadow: 0 0 30px rgba(0,255,150,0.4); border-radius: 8px; width: 360px; color:white;">
     <div style="text-align:right; margin-bottom:10px;">
-        <button onclick="document.getElementById('labelPreview').style.display='none'" style="background:red; color:white; border:none; cursor:pointer; font-weight:bold; padding:5px 10px;">X FERMER</button>
+        <button onclick="document.getElementById('labelPreview').style.display='none'" style="background:#ff4444; color:white; border:none; cursor:pointer; font-weight:bold; padding:8px 12px; border-radius:4px;">✕ FERMER</button>
     </div>
-    <div id="labelContent">
+    <div id="labelContent" style="background:white; padding:10px; border-radius:4px; color:black;">
         </div>
-    <div style="margin-top:15px; text-align:center;">
-        <button onclick="window.print()" style="background:white; color:black; padding:10px; border:none; font-weight:bold; cursor:pointer; width:100%;">🖨️ IMPRIMER LE BORDEREAU</button>
+    <div style="margin-top:20px; text-align:center;">
+        <button onclick="window.print()" style="background:white; color:black; padding:12px; border:none; font-weight:bold; cursor:pointer; width:100%; border-radius:4px; text-transform:uppercase;">🖨️ Imprimer le Bordereau</button>
     </div>
 </div>
 
@@ -1654,6 +1654,7 @@ async function generateSpiritLabel(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
