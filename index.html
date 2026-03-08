@@ -1373,7 +1373,7 @@ async function loadMyPurchases() {
                statusLabel = `
     <div style="display:flex; flex-direction:column; gap:5px;">
         <span style="color:var(--spirit-green);">✅ REÇU</span>
-        <button onclick="submitTransactionRating('${tr.id}')" style="background:var(--neon-orange); color:black; border:none; padding:5px; font-size:0.7rem; font-weight:bold; cursor:pointer;">⭐ NOTER LE VENDEUR</button>
+        <button onclick="submitTransactionRating('${tr.id}')" style="background:#ff6600; color:black; border:none; padding:5px; font-size:0.7rem; font-weight:bold; cursor:pointer; border-radius:3px;">⭐ NOTER LE VENDEUR</button>
     </div>`;
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between;">
@@ -1724,6 +1724,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
