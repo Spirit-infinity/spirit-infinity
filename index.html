@@ -1591,58 +1591,52 @@ document.addEventListener('click', function (e) {
         openDispute(e.target.getAttribute('data-id'));
     }
 });
+
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function generateSpiritLabel(transactionId) {
-    console.log("[LOGISTICS] Génération du bordereau pour #" + transactionId);
+    console.log("Appel du bordereau pour l'ID :", transactionId);
+    
+    const preview = document.getElementById('labelPreview');
+    const content = document.getElementById('labelContent');
 
-    // 1. Récupération des infos de la transaction sur Supabase
-    const { data: tr, error } = await _spirit
-        .from('transactions')
-        .select('*')
-        .eq('id', transactionId)
-        .single();
-
-    if (error || !tr) {
-        alert("ERREUR : Transaction introuvable pour le bordereau.");
+    if (!preview || !content) {
+        alert("Erreur critique : Le cadre du bordereau (HTML) est introuvable dans la page.");
         return;
     }
 
-    // 2. Création du design du bordereau (Industrial Dark Style)
-    const trackingNum = "SP-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-    
-    const labelHtml = `
-        <div style="padding:20px; border:3px solid #000; background:#fff; color:#000; font-family:Arial, sans-serif; width:350px; text-align:left;">
-            <div style="border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
-                <b>SPIRIT LOGISTICS</b>
-                <span>2026</span>
-            </div>
-            <div style="font-size:0.8rem; margin-bottom:15px;">
-                <b>OBJET :</b> ${tr.figurine_name}<br>
-                <b>VALEUR ASSURÉE :</b> ${tr.amount} €<br>
-                <b>EXPÉDITEUR :</b> Spirit Infinity Market
-            </div>
-            <div style="background:#000; color:#fff; padding:10px; text-align:center; margin-bottom:15px;">
-                <span style="font-size:0.7rem;">NUMÉRO DE SUIVI</span><br>
-                <b style="font-size:1.2rem;">${trackingNum}</b>
-            </div>
-            <div style="text-align:center;">
-                <small>Scannez pour confirmer la prise en charge</small><br>
-                <div style="margin-top:10px; font-size:1.5rem;">|| ||| | || ||| || |</div>
-            </div>
-        </div>
-    `;
+    try {
+        // Récupération des données réelles sur Supabase
+        const { data: tr, error } = await _spirit
+            .from('transactions')
+            .select('*')
+            .eq('id', transactionId)
+            .single();
 
-    // 3. Affichage dans ton modal "labelPreview" existant
-    const labelContent = document.getElementById('labelContent');
-    const labelPreview = document.getElementById('labelPreview');
-    
-    if(labelContent && labelPreview) {
-        labelContent.innerHTML = labelHtml;
-        labelPreview.style.display = 'block';
-        labelPreview.scrollIntoView({ behavior: 'smooth' });
+        if (error || !tr) throw new Error("Transaction introuvable");
+
+        // Injection du design dans le modal
+        content.innerHTML = `
+            <div style="color:black; font-family:monospace; padding:10px; border:2px solid black;">
+                <h2 style="margin:0; border-bottom:2px solid black;">SPIRIT LOGISTICS</h2>
+                <p><b>PRODUIT :</b> ${tr.figurine_name}</p>
+                <p><b>VALEUR :</b> ${tr.amount} €</p>
+                <div style="background:black; color:white; padding:10px; text-align:center; font-weight:bold; font-size:1.2rem;">
+                    SP-${Math.random().toString(36).toUpperCase().substring(2,10)}
+                </div>
+                <p style="font-size:10px; text-align:center; margin-top:10px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
+            </div>
+        `;
+
+        // Affichage du modal
+        preview.style.display = 'block';
+
+    } catch (err) {
+        console.error("Erreur de génération :", err);
+        alert("Impossible de générer le bordereau. Vérifie ta connexion Supabase.");
     }
 }
+
 
 </script>
     <div id="labelPreview" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; background:rgba(0,0,0,0.9); padding:20px; border:2px solid var(--spirit-green); box-shadow: 0 0 20px rgba(0,255,150,0.3);">
@@ -1660,6 +1654,7 @@ async function generateSpiritLabel(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
