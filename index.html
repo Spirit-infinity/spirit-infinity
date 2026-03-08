@@ -1395,40 +1395,40 @@ async function loadMyPurchases() {
                 statusLabel = `<span style="color:var(--spirit-green);">✅ TRANSACTION TERMINÉE</span>`;
             }
 
-           // (c) 2026 Spirit Infinity - Tous droits réservés
-// Template de la carte (Colonnes exactes : figurine_name, amount, user_profit)
+    // Template de la carte (Colonnes exactes : figurine_name, amount, user_profit)
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="flex:1;">
+                        <div style="font-weight:bold; font-size:1rem; text-transform:uppercase;">${tr.figurine_name || 'FIGURINE SPIRIT'}</div>
+                        <div style="font-size:0.7rem; color:#555; margin-top:4px;">ID REF: #${tr.id.substring(0, 8)}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:1.1rem; font-weight:bold; color:var(--neon-orange);">${tr.amount} €</div>
+                        <div style="font-size:0.65rem;">${statusLabel}</div>
+                    </div>
+                </div>
+                
+                <div style="background:#050505; padding:8px; margin-top:10px; font-size:0.75rem; border:1px solid #1a1a1a;">
+                    <div style="display:flex; justify-content:space-between; color:#888;">
+                        <span>Protection (8%)</span>
+                        <span>${tr.user_profit} €</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:#888;">
+                        <span>Livraison</span>
+                        <span>6.90 €</span>
+                    </div>
+                </div>
+                ${actions}
+            `;
+            
+            listBody.appendChild(card);
+        });
 
-const nomFigurine = tr.figurine_name || "Modèle Spirit Infinity"; // [cite: 2026-03-05]
-
-card.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-        <div style="flex:1;">
-            <div style="font-weight:bold; font-size:1rem; text-transform:uppercase; color:white;">${nomFigurine}</div>
-            <div style="font-size:0.7rem; color:#555; margin-top:4px;">ID REF: #${tr.id.substring(0, 8)}</div>
-        </div>
-        <div style="text-align:right;">
-            <div style="font-size:1.1rem; font-weight:bold; color:var(--neon-orange);">${tr.amount} €</div>
-            <div style="font-size:0.65rem;">${statusLabel}</div>
-        </div>
-    </div>
-
-    <div style="background:#050505; padding:8px; margin-top:10px; font-size:0.75rem; border:1px solid #111;">
-        <div style="display:flex; justify-content:space-between; color:#888;">
-            <span>Protection (8%)</span> <span>${tr.user_profit} €</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; color:#888; margin-top:4px;">
-            <span>Livraison</span>
-            <span>Incluse</span>
-        </div>
-    </div>
-    
-    <div style="display:flex; gap:10px; margin-top:12px;">
-        ${tr.status === 'SÉQUESTRE ACTIF' ? `
-            <button onclick="marquerRecu('${tr.id}')" style="flex:1; background:var(--spirit-green); color:black; border:none; padding:8px; font-weight:bold; cursor:pointer;">✅ REÇU</button>
-            <button onclick="openDispute('${tr.id}')" style="flex:1; background:#ff4444; color:white; border:none; padding:8px; font-weight:bold; cursor:pointer;">⚠️ LITIGE</button>
-        ` : ''}
-    </div>
-`;
+    } catch (err) {
+        console.error("ERREUR LEDGER :", err.message);
+        listBody.innerHTML = `<div style="color:red; font-family:monospace; font-size:0.8rem; padding:10px;">❌ ERREUR SYNC : ${err.message}</div>`;
+    }
+}
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -1628,6 +1628,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
