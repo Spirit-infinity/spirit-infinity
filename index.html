@@ -1370,9 +1370,11 @@ async function loadMyPurchases() {
                         </div>
                     </div>`;
             } else if (tr.status === 'LIVRAISON VALIDÉE') {
-                statusLabel = `<span style="color:var(--spirit-green);">✅ TRANSACTION TERMINÉE</span>`;
-            }
-
+               statusLabel = `
+    <div style="display:flex; flex-direction:column; gap:5px;">
+        <span style="color:var(--spirit-green);">✅ REÇU</span>
+        <button onclick="submitTransactionRating('${tr.id}')" style="background:var(--neon-orange); color:black; border:none; padding:5px; font-size:0.7rem; font-weight:bold; cursor:pointer;">⭐ NOTER LE VENDEUR</button>
+    </div>`;
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between;">
                     <div>
@@ -1499,6 +1501,39 @@ async function startAIAnalysis() {
         statusText.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA</span>";
     }
 }
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+/**
+ * ENREGISTRER LA NOTE ET L'AVIS SUR LA TRANSACTION
+ */
+async function submitTransactionRating(transactionId) {
+    const rating = prompt("Notez votre achat (de 1 à 5 étoiles) :");
+    const comment = prompt("Laissez un court commentaire sur l'objet :");
+
+    if (!rating || isNaN(rating) || rating < 1 || rating > 5) {
+        alert("Veuillez saisir une note valide entre 1 et 5.");
+        return;
+    }
+
+    try {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ 
+                rating: parseInt(rating),
+                buyer_comment: comment,
+                status: 'FINALISÉ AVEC AVIS'
+            })
+            .eq('id', transactionId);
+
+        if (error) throw error;
+
+        alert("⭐ Merci ! Votre avis a été enregistré dans le Spirit Ledger.");
+        loadMyPurchases(); 
+    } catch (err) {
+        console.error("Erreur de notation:", err.message);
+    }
+}
+    
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function startExpertScan() {
@@ -1689,6 +1724,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
