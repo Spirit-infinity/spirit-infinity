@@ -1099,45 +1099,47 @@ function addToMySales(product, carrierName) {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmPayment() {
-    // 1. On récupère le prix de base de la figurine
-    const prixFigurine = parseFloat(selectedProduct.price);
-    
-    // 2. RÉCUPÉRATION DYNAMIQUE (On remplace le 6.90 fixe par ton choix réel)
-    const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
-    const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; 
-
-    // 3. Calcul du Split 8% (3/3/2) - Directives Mars 2026 [cite: 2026-03-06]
-    const uProfit = (prixFigurine * 0.03).toFixed(2); // Tes 3% [cite: 2026-03-03, 2026-03-06]
-    const fProfit = (prixFigurine * 0.03).toFixed(2); // 3% Firme [cite: 2026-03-03, 2026-03-06]
-    const bShare = (prixFigurine * 0.02).toFixed(2); // 2% Banque [cite: 2026-03-06]
-    
-    // 4. Calcul du Total Réel (Somme de tous les éléments)
-    const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
-
     try {
-        console.log("[SPIRIT LEDGER] Tentative d'écriture...");
+        // 1. Récupération du prix de la figurine
+        const prixFigurine = parseFloat(selectedProduct.price);
+        
+        // 2. RÉCUPÉRATION DYNAMIQUE (On supprime le 6.90 fixe qui bloquait tout)
+        // On va chercher l'input radio que tu as coché dans ton HTML
+        const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
+        const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; 
 
-        // 5. INSERTION SUPABASE (Respect strict de tes colonnes [cite: 2026-03-05])
+        // 3. Calcul du Split 8% (3/3/2) - Directives Mars 2026 [cite: 2026-03-06]
+        const uProfit = (prixFigurine * 0.03).toFixed(2); // Tes 3% [cite: 2026-03-06]
+        const fProfit = (prixFigurine * 0.03).toFixed(2); // 3% Firme [cite: 2026-03-03, 2026-03-06]
+        const bShare = (prixFigurine * 0.02).toFixed(2); // 2% Banque [cite: 2026-03-06]
+        
+        // 4. Calcul du Total Réel (Somme de tous les éléments)
+        const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
+
+        console.log("[SPIRIT LEDGER] Écriture sécurisée en cours...");
+
+        // 5. INSERTION SUPABASE (Strictement tes colonnes de base [cite: 2026-03-05])
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
                 amount: total, // Le montant total (Figurine + Port + Frais)
                 user_profit: uProfit, // Ta commission de 3%
-                status: 'SÉQUESTRE ACTIF', // État sécurisé [cite: 2026-02-09]
+                status: 'SÉQUESTRE ACTIF', // Statut initial sécurisé [cite: 2026-02-09]
                 figurine_name: selectedProduct.name
             }]);
         
         if (error) throw error;
 
-        // 6. Confirmation avec le détail du port pour prouver que c'est dynamique
+        // 6. Confirmation visuelle avec le port utilisé
         alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés.\n(Dont ${fraisLivraison} € de frais de port)`);
         
-        closeModal('paymentModal');
-        loadMyPurchases(); [cite: 2026-03-05]
+        // 7. Nettoyage de l'interface
+        if(typeof closeModal === 'function') closeModal('paymentModal');
+        if(typeof loadMyPurchases === 'function') loadMyPurchases(); [cite: 2026-03-05]
 
     } catch (err) {
-        console.error("Erreur Ledger:", err.message);
-        alert("Erreur transaction : " + err.message);
+        console.error("Erreur Ledger Spirit:", err.message);
+        alert("Erreur de transaction : " + err.message);
     }
 }
 
@@ -1623,6 +1625,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
