@@ -1099,14 +1099,15 @@ function addToMySales(product, carrierName) {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmPayment() {
+    // 1. On récupère les données de base
     const prixFigurine = parseFloat(selectedProduct.price);
     
-    // RÉCUPÉRATION DU PRIX SELON LE TRANSPORTEUR CHOISI (Correction de la ligne fixe)
+    // 2. DÉBLOCAGE DES FRAIS DE LIVRAISON (On ne fixe plus à 6.90 !)
     const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
     const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; 
 
-    // Calcul du Split 8% (3/3/2) selon tes directives de mars 2026 [cite: 2026-03-06]
-    const uProfit = (prixFigurine * 0.03).toFixed(2); // Tes 3% [cite: 2026-02-09, 2026-03-06]
+    // 3. Calcul du Split 8% (3/3/2) - Directives Mars 2026 [cite: 2026-03-06]
+    const uProfit = (prixFigurine * 0.03).toFixed(2); // Tes 3% [cite: 2026-03-03, 2026-03-06]
     const fProfit = (prixFigurine * 0.03).toFixed(2); // 3% Firme [cite: 2026-03-03, 2026-03-06]
     const bShare = (prixFigurine * 0.02).toFixed(2); // 2% Banque [cite: 2026-03-06]
     
@@ -1116,23 +1117,27 @@ async function confirmPayment() {
     try {
         console.log("[SPIRIT LEDGER] Tentative d'écriture...");
 
-        // INSERTION STRICTE : Uniquement tes colonnes validées dans Supabase [cite: 2026-03-05]
+        // 4. INSERTION SUPABASE (Respect strict de TES colonnes [cite: 2026-03-05])
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount: total, // Montant total (Figurine + Port + Frais)
+                amount: total, // Le montant total dynamique
                 user_profit: uProfit, // Ta commission de 3%
-                status: 'SÉQUESTRE ACTIF', // Statut sécurisé [cite: 2026-02-09]
+                status: 'SÉQUESTRE ACTIF', // État initial [cite: 2026-02-09]
                 figurine_name: selectedProduct.name
             }]);
         
         if (error) throw error;
+
+        // 5. Confirmation visuelle (Vu sur ta photo 9)
+        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés avec succès (dont ${fraisLivraison}€ de port).`);
         
-        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés avec succès.`);
+        // 6. FERMETURE SÉCURISÉE (Correction de l'erreur "not defined")
+        const modal = document.getElementById('paymentModal');
+        if (modal) modal.style.display = 'none';
         
-        // Fermeture et rafraîchissement automatique [cite: 2026-03-05]
-        closeModal('paymentModal');
-        loadMyPurchases();
+        // Rafraîchir l'espace client [cite: 2026-03-05]
+        if (typeof loadMyPurchases === 'function') loadMyPurchases();
 
     } catch (err) {
         console.error("Erreur Ledger:", err.message);
@@ -1623,6 +1628,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
