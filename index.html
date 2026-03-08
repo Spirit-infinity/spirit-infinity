@@ -1637,6 +1637,59 @@ async function generateSpiritLabel(transactionId) {
     }
 }
 
+    // (c) 2026 Spirit Infinity - Tous droits réservés
+
+window.generateSpiritLabel = async function(transactionId) {
+    console.log("[LOGISTICS] Tentative d'affichage pour :", transactionId);
+    
+    const preview = document.getElementById('labelPreview');
+    const content = document.getElementById('labelContent');
+
+    if (!preview || !content) {
+        console.error("Éléments HTML manquants !");
+        alert("Erreur d'interface : Le cadre HTML du bordereau n'est pas détecté en bas de page.");
+        return;
+    }
+
+    try {
+        // Récupération via Supabase (Table : transactions)
+        const { data: tr, error } = await _spirit
+            .from('transactions')
+            .select('*')
+            .eq('id', transactionId)
+            .single();
+
+        if (error || !tr) throw new Error("Données introuvables");
+
+        // Design du bordereau
+        content.innerHTML = `
+            <div style="color:black; font-family:Arial, sans-serif; padding:15px; border:3px solid black;">
+                <div style="display:flex; justify-content:space-between; border-bottom:2px solid black; padding-bottom:5px; margin-bottom:10px;">
+                    <b style="font-size:1.2rem;">SPIRIT LOGISTICS</b>
+                    <span>2026</span>
+                </div>
+                <div style="font-size:0.9rem; line-height:1.4;">
+                    <b>FIGURINE :</b> ${tr.figurine_name || 'N/A'}<br>
+                    <b>VALEUR :</b> ${tr.amount} €<br>
+                    <b>RÉF :</b> #${tr.id.substring(0,8)}
+                </div>
+                <div style="background:black; color:white; padding:15px; text-align:center; margin:15px 0; font-weight:bold; letter-spacing:2px;">
+                    ${Math.random().toString(36).toUpperCase().substring(2,12)}
+                </div>
+                <div style="text-align:center; font-size:0.7rem;">(c) 2026 Spirit Infinity - Tous droits réservés</div>
+            </div>
+        `;
+
+        // FORCE L'AFFICHAGE
+        preview.style.display = 'block';
+        console.log("[LOGISTICS] Bordereau affiché avec succès.");
+
+    } catch (err) {
+        console.error("Erreur Supabase :", err.message);
+        alert("Erreur de liaison Supabase : " + err.message);
+    }
+};
+
 </script>
 
 <div id="labelPreview" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; background:rgba(0,0,0,0.95); padding:20px; border:2px solid #00ff96; border-radius: 8px; width: 360px; color:white;">
@@ -1653,6 +1706,7 @@ async function generateSpiritLabel(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
