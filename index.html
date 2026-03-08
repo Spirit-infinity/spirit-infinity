@@ -1099,49 +1099,47 @@ function addToMySales(product, carrierName) {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmPayment() {
-    // 1. On récupère le prix de la figurine
-    const prixFigurine = parseFloat(selectedProduct.price);
-    
-    // 2. DÉBLOCAGE DES FRAIS (On lit ton choix dans le Market)
-    const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
-    // On remplace ton "6.90" fixe par la valeur cochée
-    const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; 
-
-    // 3. Ton calcul du Split 8% (3/3/2) [cite: 2026-03-06]
-    const uProfit = (prixFigurine * 0.03).toFixed(2); 
-    const fProfit = (prixFigurine * 0.03).toFixed(2); 
-    const bShare = (prixFigurine * 0.02).toFixed(2);  
-    
-    // 4. Calcul du Total Réel (Figurine + Port + Frais)
-    const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
-
     try {
-        // 5. INSERTION STRICTE (Uniquement tes colonnes validées [cite: 2026-03-05])
+        const prixFigurine = parseFloat(selectedProduct.price);
+        
+        // RÉCUPÉRATION DYNAMIQUE DU PORT (On supprime le 6.90 fixe qui bloquait tout)
+        const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
+        const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; [cite: 2026-03-03]
+
+        // Calcul du Split 8% (3/3/2) [cite: 2026-03-06]
+        const uProfit = (prixFigurine * 0.03).toFixed(2); 
+        const fProfit = (prixFigurine * 0.03).toFixed(2); 
+        const bShare = (prixFigurine * 0.02).toFixed(2);  
+        
+        const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
+
+        // INSERTION SUPABASE : UNIQUEMENT TES 4 COLONNES [cite: 2026-03-05]
         const { error: transError } = await _spirit
             .from('transactions')
             .insert([{
-                amount: total,
-                user_profit: uProfit,
-                status: 'SÉQUESTRE ACTIF',
-                figurine_name: selectedProduct.name // Utilise le vrai nom
+                amount: total, // Montant total (Figurine + Port + Frais)
+                user_profit: uProfit, // Ta commission (3%)
+                status: 'SÉQUESTRE ACTIF', // [cite: 2026-02-09]
+                figurine_name: selectedProduct.name // Utilise le vrai nom de l'annonce
             }]);
         
         if (transError) throw transError;
 
-        // 6. MISE À JOUR DU STATUT EN "VENDU" [cite: 2026-02-09]
+        // MISE À JOUR DU STATUT DE L'ANNONCE [cite: 2026-02-09]
         await _spirit.from('annonces').update({ status: 'VENDU' }).eq('id', selectedProduct.id);
 
-        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés.\n(Prix: ${prixFigurine}€ + Port: ${fraisLivraison}€ + Frais: 8%)`);
+        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés.`);
         
-        // 7. FERMETURE MANUELLE (Évite l'erreur "closeModal is not defined")
+        // Fermeture manuelle (On n'utilise plus closeModal car il n'est pas défini)
         const modal = document.getElementById('paymentModal');
         if (modal) modal.style.display = 'none';
         
+        // Rafraîchissement des données [cite: 2026-03-05]
         if (typeof loadAnnonces === 'function') loadAnnonces();
-        if (typeof loadMyPurchases === 'function') loadMyPurchases(); [cite: 2026-03-05]
+        if (typeof loadMyPurchases === 'function') loadMyPurchases();
 
     } catch (err) {
-        console.error("Bug Spirit:", err.message);
+        console.error("Erreur Spirit:", err.message);
         alert("Erreur transaction : " + err.message);
     }
 }
@@ -1628,6 +1626,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
