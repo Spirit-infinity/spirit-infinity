@@ -1098,51 +1098,50 @@ function addToMySales(product, carrierName) {
     
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
 async function confirmPayment() {
+    // 1. On récupère le prix de l'annonce
     const prixFigurine = parseFloat(selectedProduct.price);
     
-    // RÉCUPÉRATION DYNAMIQUE DU PORT (On supprime ton 6.90 fixe) [cite: 2026-03-03]
+    // 2. DÉBLOCAGE : On récupère la valeur RÉELLE du bouton coché
     const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
+    // Si rien n'est coché, on met 6.90 par défaut, sinon on prend la valeur choisie
     const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; 
 
-    // Ton calcul du Split 8% (3/3/2) [cite: 2026-03-06]
-    const uProfit = (prixFigurine * 0.03).toFixed(2); 
-    const fProfit = (prixFigurine * 0.03).toFixed(2); 
-    const bShare = (prixFigurine * 0.02).toFixed(2);  
+    // 3. Calcul du Split 8% (3/3/2) - Directives Mars 2026 [cite: 2026-03-06]
+    const uProfit = (prixFigurine * 0.03).toFixed(2); // Part Marketplace [cite: 2026-03-03, 2026-03-06]
+    const fProfit = (prixFigurine * 0.03).toFixed(2); // Part Firme [cite: 2026-03-03, 2026-03-06]
+    const bShare = (prixFigurine * 0.02).toFixed(2); // Part Banque [cite: 2026-03-06]
     
+    // 4. Calcul du Total avec les frais de port DYNAMIQUES
     const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
 
     try {
-        console.log("[SPIRIT LEDGER] Écriture en cours...");
-
-        // INSERTION STRICTE DANS TES COLONNES [cite: 2026-03-05]
+        // 5. Insertion STRICTE (Uniquement tes colonnes [cite: 2026-03-05])
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount: total,
-                user_profit: uProfit,
+                amount: total, // Montant calculé avec le port choisi
+                user_profit: uProfit, // Ta commission
                 status: 'SÉQUESTRE ACTIF', // [cite: 2026-02-09]
-                figurine_name: selectedProduct.name // Pour que le nom s'affiche enfin
+                figurine_name: selectedProduct.name
             }]);
         
         if (error) throw error;
 
-        // MISE À JOUR DU STATUT "VENDU" SUR L'ANNONCE [cite: 2026-02-09]
+        // 6. Mise à jour de l'annonce en "VENDU" [cite: 2026-02-09]
         await _spirit.from('annonces').update({ status: 'VENDU' }).eq('id', selectedProduct.id);
 
-        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés.`);
+        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés (Port : ${fraisLivraison}€).`);
         
-        // Fermeture manuelle (Pas de closeModal pour éviter l'erreur)
+        // Fermeture manuelle de la modale pour éviter l'erreur "not defined"
         const modal = document.getElementById('paymentModal');
         if (modal) modal.style.display = 'none';
         
         if (typeof loadAnnonces === 'function') loadAnnonces();
-        if (typeof loadMyPurchases === 'function') loadMyPurchases();
+        if (typeof loadMyPurchases === 'function') loadMyPurchases(); [cite: 2026-03-05]
 
     } catch (err) {
-        alert("Erreur transaction : " + err.message);
+        alert("Erreur Ledger : " + err.message);
     }
 }
 
@@ -1628,6 +1627,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
