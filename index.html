@@ -1095,52 +1095,51 @@ function addToMySales(product, carrierName) {
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
 }
-    
-// (c) 2026 Spirit Infinity - Tous droits réservés
+    // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmPayment() {
     try {
         const prixFigurine = parseFloat(selectedProduct.price);
         
-        // RÉCUPÉRATION DYNAMIQUE DU PORT (On supprime le 6.90 fixe qui bloquait tout)
+        // DÉBLOCAGE DES FRAIS (Lecture réelle du bouton coché)
         const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
         const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; [cite: 2026-03-03]
 
-        // Calcul du Split 8% (3/3/2) [cite: 2026-03-06]
-        const uProfit = (prixFigurine * 0.03).toFixed(2); 
-        const fProfit = (prixFigurine * 0.03).toFixed(2); 
-        const bShare = (prixFigurine * 0.02).toFixed(2);  
+        // Calcul du Split 8% (3/3/2) - [cite: 2026-03-06]
+        const uProfit = (prixFigurine * 0.03).toFixed(2); // Ton profit
+        const fProfit = (prixFigurine * 0.03).toFixed(2); // Profit Firme
+        const bShare = (prixFigurine * 0.02).toFixed(2); // Part Banque
         
         const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
 
-        // INSERTION SUPABASE : UNIQUEMENT TES 4 COLONNES [cite: 2026-03-05]
+        // INSERTION STRICTE DANS TES COLONNES (Photo 10 & 11)
         const { error: transError } = await _spirit
             .from('transactions')
             .insert([{
-                amount: total, // Montant total (Figurine + Port + Frais)
-                user_profit: uProfit, // Ta commission (3%)
+                amount: total,
+                user_profit: uProfit,
+                firm_profit: fProfit, // Colonne vérifiée sur Photo 11
+                bank_share: bShare, // Colonne vérifiée sur Photo 11
                 status: 'SÉQUESTRE ACTIF', // [cite: 2026-02-09]
-                figurine_name: selectedProduct.name // Utilise le vrai nom de l'annonce
+                figurine_name: selectedProduct.name // Remplira le NULL de la Photo 10
             }]);
         
         if (transError) throw transError;
 
-        // MISE À JOUR DU STATUT DE L'ANNONCE [cite: 2026-02-09]
-        await _spirit.from('annonces').update({ status: 'VENDU' }).eq('id', selectedProduct.id);
+        // MARQUER COMME VENDU
+        await _spirit.from('annonces').update({ status: 'VENDU' }).eq('id', selectedProduct.id); [cite: 2026-02-09]
 
         alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés.`);
         
-        // Fermeture manuelle (On n'utilise plus closeModal car il n'est pas défini)
+        // Fermeture propre de la modale (Correction erreur Photo 7)
         const modal = document.getElementById('paymentModal');
         if (modal) modal.style.display = 'none';
         
-        // Rafraîchissement des données [cite: 2026-03-05]
-        if (typeof loadAnnonces === 'function') loadAnnonces();
-        if (typeof loadMyPurchases === 'function') loadMyPurchases();
+        loadAnnonces(); 
+        loadMyPurchases(); [cite: 2026-03-05]
 
     } catch (err) {
-        console.error("Erreur Spirit:", err.message);
-        alert("Erreur transaction : " + err.message);
+        alert("Erreur Ledger Spirit : " + err.message);
     }
 }
 
@@ -1626,6 +1625,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
