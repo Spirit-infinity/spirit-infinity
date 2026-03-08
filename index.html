@@ -1389,10 +1389,7 @@ async function loadMyPurchases() {
                 ${actions}
             `;
             listBody.appendChild(card);
-        });
-
-         }
-
+       
     } catch (err) {
         console.error("ERREUR LEDGER :", err.message);
         listBody.innerHTML = `<div style="color:red; padding:10px;">❌ ERREUR SYNC</div>`;
@@ -1726,6 +1723,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
