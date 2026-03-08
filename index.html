@@ -1094,62 +1094,54 @@ function addToMySales(product, carrierName) {
    
     if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
     shippingList.appendChild(saleItem);
-}
+
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmPayment() {
-    // 1. On récupère le prix de la figurine
-    const prixFigurine = parseFloat(selectedProduct.price);
-    
-    // 2. DÉBLOCAGE DES FRAIS (On lit ton choix dans le Market)
-    const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
-    // On remplace ton "6.90" fixe par la valeur cochée
-    const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; 
-       
-
-    // Calcul du Split 8% (3/3/2) selon tes directives de mars 2026 [cite: 2026-03-03, 2026-03-06]
-    const uProfit = (prixFigurine * 0.03).toFixed(2); 
-    const fProfit = (prixFigurine * 0.03).toFixed(2); 
-    const bShare = (prixFigurine * 0.02).toFixed(2); 
-    const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
-
     try {
-        console.log("[SPIRIT LEDGER] Tentative d'écriture...");
+        const prixFigurine = parseFloat(selectedProduct.price);
         
-        const { data, error } = await _spirit
+        // RÉCUPÉRATION DYNAMIQUE DU PORT (On débloque le prix !)
+        const selectedShipping = document.querySelector('input[name="shipping-option"]:checked');
+        const fraisLivraison = selectedShipping ? parseFloat(selectedShipping.value) : 6.90; [cite: 2026-03-03]
+
+        // Calcul du Split 8% (3% / 3% / 2%) [cite: 2026-03-06]
+        const uProfit = (prixFigurine * 0.03).toFixed(2); 
+        const fProfit = (prixFigurine * 0.03).toFixed(2); 
+        const bShare = (prixFigurine * 0.02).toFixed(2);  
+        
+        const total = (prixFigurine + fraisLivraison + parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare)).toFixed(2);
+
+        // INSERTION SUPABASE : Uniquement tes colonnes (Photos 10 & 11)
+        const { error: transError } = await _spirit
             .from('transactions')
             .insert([{
-                amount: total, 
-                user_profit: uProfit, 
-                firm_profit: fProfit, 
-                bank_share: bShare,
-                status: 'SÉQUESTRE ACTIF', // Texte exact validé en base
-                figurine_name: selectedProduct.title || "Figurine Spirit",
-                created_at: new Date().toISOString()
+                amount: total, // Montant total dynamique
+                user_profit: uProfit, // Ta commission
+                firm_profit: fProfit, // Colonne Photo 11
+                bank_share: bShare, // Colonne Photo 11
+                status: 'SÉQUESTRE ACTIF', // [cite: 2026-02-09]
+                figurine_name: selectedProduct.name // Remplit le NULL de la Photo 10
             }]);
+        
+        if (transError) throw transError;
 
-        if (error) throw error;
+        // Mise à jour de l'annonce en "VENDU" [cite: 2026-02-09]
+        await _spirit.from('annonces').update({ status: 'VENDU' }).eq('id', selectedProduct.id);
 
-        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés avec succès.`);
-        location.reload();
+        alert(`✅ SÉCURITÉ SPIRIT : ${total} € enregistrés.`);
+        
+        // Fermeture manuelle (Évite l'erreur "closeModal is not defined")
+        const modal = document.getElementById('paymentModal');
+        if (modal) modal.style.display = 'none';
+        
+        if (typeof loadAnnonces === 'function') loadAnnonces();
+        if (typeof loadMyPurchases === 'function') loadMyPurchases(); [cite: 2026-03-05]
 
     } catch (err) {
-        console.error("Erreur détaillée :", err.message);
-        alert("ERREUR CRITIQUE : " + err.message);
+        alert("Erreur Spirit : " + err.message);
     }
 }
-// --- FIN DU SYSTÈME ---
-    // --- LOGIQUE CHAT ---
-    function sendMessage() {
-        const input = document.getElementById('chatInput');
-        const text = filterMessage(input.value.trim());
-        if(!text || !selectedProduct) return;
-        if(!selectedProduct.chat) selectedProduct.chat = [];
-        selectedProduct.chat.push({ user: currentUser, text: text });
-        input.value = '';
-        renderChatMessages();
-    }
-
     function renderChatMessages() {
         const box = document.getElementById('chatMsgs');
         box.innerHTML = '';
@@ -1620,6 +1612,7 @@ document.addEventListener('click', function (e) {
 </script>
 </body>
 </html>
+
 
 
 
