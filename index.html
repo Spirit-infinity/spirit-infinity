@@ -1422,40 +1422,35 @@ async function acheterFigurine(btn) {
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// 1. FONCTION DES ACHATS (Ce que j'ai payé)
+// 1. Charger uniquement ce que J'AI ACHETÉ
 async function loadMyPurchases() {
     const listBody = document.getElementById('my-purchases-list');
     if (!listBody) return;
 
-    try {
-        const { data, error } = await _spirit
-            .from('transactions')
-            .select('*')
-            .eq('buyer_id', MY_TEST_ID) // FILTRE : Je suis l'acheteur
-            .order('created_at', { ascending: false });
+    const { data, error } = await _spirit
+        .from('transactions')
+        .select('*')
+        .eq('buyer_id', MY_TEST_ID) // FILTRE : Je suis l'acheteur
+        .order('created_at', { ascending: false });
 
-        renderTransactionList(listBody, data, error, 'ACHATS');
-    } catch (err) { console.error(err); }
+    // On envoie 'ACHAT' pour que le bouton "Valider" s'affiche
+    renderTransactionList(listBody, data, error, 'ACHAT');
 }
 
-// 2. FONCTION DES VENTES (Ce qu'on m'a payé)
+// 2. Charger uniquement ce que J'AI VENDU
 async function loadMySales() {
     const listBody = document.getElementById('my-sales-list');
     if (!listBody) return;
 
-    try {
-        const { data, error } = await _spirit
-            .from('transactions')
-            .select('*')
-            .eq('seller_id', MY_TEST_ID) // FILTRE : Je suis le vendeur
-            .order('created_at', { ascending: false });
+    const { data, error } = await _spirit
+        .from('transactions')
+        .select('*')
+        .eq('seller_id', MY_TEST_ID) // FILTRE : Je suis le vendeur
+        .order('created_at', { ascending: false });
 
-        renderTransactionList(listBody, data, error, 'VENTES');
-    } catch (err) { console.error(err); }
+    // On envoie 'VENTE' pour que le bouton "Valider" soit CACHÉ (seul l'acheteur valide)
+    renderTransactionList(listBody, data, error, 'VENTE');
 }
-
-
-
 // --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
 function renderTransactionList(container, data, error, type) {
     if (error) { container.innerHTML = "Erreur sync."; return; }
@@ -1781,6 +1776,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
