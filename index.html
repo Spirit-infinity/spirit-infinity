@@ -1422,44 +1422,39 @@ async function acheterFigurine(btn) {
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-/**
- * CHARGEMENT DES ACHATS DEPUIS LE SPIRIT LEDGER
- */
+// 1. FONCTION DES ACHATS (Ce que j'ai payé)
 async function loadMyPurchases() {
     const listBody = document.getElementById('my-purchases-list');
-    if (!listBody) return; // Ce return est maintenant bien à l'intérieur !
-
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE ACHATS...</div>';
+    if (!listBody) return;
 
     try {
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
-            .eq('buyer_id', MY_TEST_ID) 
+            .eq('buyer_id', MY_TEST_ID) // FILTRE : Je suis l'acheteur
             .order('created_at', { ascending: false });
 
         renderTransactionList(listBody, data, error, 'ACHATS');
-    } catch (err) { 
-        console.error(err);
-        listBody.innerHTML = "Erreur de connexion au Ledger.";
-    }
+    } catch (err) { console.error(err); }
 }
-// --- FONCTION POUR TES VENTES ---
+
+// 2. FONCTION DES VENTES (Ce qu'on m'a payé)
 async function loadMySales() {
-    const listBody = document.getElementById('my-sales-list'); // Assure-toi d'avoir cet ID dans ton HTML
+    const listBody = document.getElementById('my-sales-list');
     if (!listBody) return;
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE VENTES...</div>';
 
     try {
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
-            .eq('seller_id', MY_TEST_ID) // <--- FILTRE : Uniquement tes ventes
+            .eq('seller_id', MY_TEST_ID) // FILTRE : Je suis le vendeur
             .order('created_at', { ascending: false });
 
         renderTransactionList(listBody, data, error, 'VENTES');
     } catch (err) { console.error(err); }
 }
+
+
 
 // --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
 function renderTransactionList(container, data, error, type) {
@@ -1786,6 +1781,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
