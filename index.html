@@ -1372,28 +1372,30 @@ function calculateSpiritSplit(price) {
 // On utilise 'let' pour pouvoir changer d'utilisateur avec le simulateur
 let MY_TEST_ID = "12345"; 
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 /**
  * CHARGEMENT DES ACHATS DEPUIS LE SPIRIT LEDGER
  */
 async function loadMyPurchases() {
-    // ... le reste du code utilisera MY_TEST_ID automatiquement
-}
- 
     const listBody = document.getElementById('my-purchases-list');
-    if (!listBody) return;
+    if (!listBody) return; // Ce return est maintenant bien à l'intérieur !
+
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE ACHATS...</div>';
 
     try {
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
-            .eq('buyer_id', MY_TEST_ID) // <--- FILTRE : Uniquement tes achats
+            .eq('buyer_id', MY_TEST_ID) 
             .order('created_at', { ascending: false });
 
         renderTransactionList(listBody, data, error, 'ACHATS');
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+        console.error(err);
+        listBody.innerHTML = "Erreur de connexion au Ledger.";
+    }
 }
-
 // --- FONCTION POUR TES VENTES ---
 async function loadMySales() {
     const listBody = document.getElementById('my-sales-list'); // Assure-toi d'avoir cet ID dans ton HTML
@@ -1736,6 +1738,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
