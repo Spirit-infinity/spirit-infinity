@@ -424,6 +424,20 @@
     <div class="modal-content" style="max-width:1100px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div class="dash-container">
+            <div style="display:flex; gap:10px; padding:10px; background:#111; border-bottom:1px solid #222; justify-content:center;">
+    <span style="color:#555; font-size:0.8rem; align-self:center;">SIMULATEUR :</span>
+    
+    <button onclick="switchUser('12345', 'MOI')" id="btn-user-moi" 
+            style="background:var(--spirit-green); color:black; border:none; padding:5px 10px; cursor:pointer; font-weight:bold; border-radius:4px;">
+        COMPTE MOI
+    </button>
+    
+    <button onclick="switchUser('67890', 'INVITÉ')" id="btn-user-guest" 
+            style="background:#222; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:4px;">
+        COMPTE INVITÉ
+    </button>
+</div>
+
             <div class="dash-nav">
                 <button id="btn-dashboard" class="active" onclick="showAccountTab('dashboard')">DASHBOARD</button>
                 <button id="btn-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
@@ -1738,6 +1752,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
