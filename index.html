@@ -1452,39 +1452,56 @@ async function loadMySales() {
     renderTransactionList(listBody, data, error, 'VENTE');
 }
 
-// --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 function renderTransactionList(container, data, error, type) {
-    if (error) { container.innerHTML = "Erreur sync."; return; }
-    if (!data || data.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
+    container.innerHTML = ""; // On nettoie avant d'afficher
+
+    if (error) {
+        container.innerHTML = `<tr><td colspan="6">Erreur Spirit Ledger: ${error.message}</td></tr>`;
         return;
     }
 
-    container.innerHTML = data.map(tr => {
-        // Logique des boutons : Bordereau pour VENTES, Valider pour ACHATS
-        let actionBtn = "";
-        if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer;">📦 VOIR LE BORDEREAU</button>`;
-        } else if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px;">Valider</button>
-                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px;">Litige</button>
-                </div>`;
+    if (!data || data.length === 0) {
+        container.innerHTML = `<tr><td colspan="6">AUCUNE TRANSACTION (${type}S)</td></tr>`;
+        return;
+    }
+
+    data.forEach(t => {
+        const row = document.createElement("tr");
+        
+        // Gestion dynamique du symbole de devise
+        let symbole = "€";
+        if (t.currency === "USD") symbole = "$";
+        if (t.currency === "JPY") symbole = "¥";
+        if (t.currency === "GBP") symbole = "£";
+
+        // Sécurité : Seul l'acheteur voit le bouton "Valider"
+        // Le vendeur voit juste le statut
+        let actionsHtml = "";
+        if (type === "ACHAT" && t.status === "SÉQUESTRE ACTIF") {
+            actionsHtml = `
+                <button class="btn-valider" onclick="validerReception('${t.id}')">Valider</button>
+                <button class="btn-litige" onclick="ouvrirLitige('${t.id}')">Litige</button>
+            `;
+        } else if (type === "VENTE") {
+            actionsHtml = `<span class="status-info">En attente de l'acheteur</span>`;
+        } else {
+            actionsHtml = `<span class="status-done">Terminé</span>`;
         }
 
-        return `
-            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
-                <div style="display:flex; justify-content:space-between;">
-                    <span style="color:white; font-weight:bold;">${tr.figurine_name}</span>
-                    <span style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</span>
-                </div>
-                <div style="font-size:0.7rem; color:#555; margin-top:5px;">Statut: ${tr.status}</div>
-                ${actionBtn}
-            </div>
+        row.innerHTML = `
+            <td>${new Date(t.created_at).toLocaleDateString()}</td>
+            <td><strong>${t.figurine_name}</strong></td>
+            <td>${t.amount}${symbole}</td>
+            <td><span class="badge">${t.status}</span></td>
+            <td>${actionsHtml}</td>
+            <td><img src="shield-icon.png" width="20"></td>
         `;
-    }).join('');
+        container.appendChild(row);
+    });
 }
+
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 /**
@@ -1777,6 +1794,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
