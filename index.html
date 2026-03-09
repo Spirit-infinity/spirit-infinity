@@ -144,50 +144,6 @@
 .btn-shield-ok:hover { opacity: 0.8; }
 .btn-shield-bad:hover { background: var(--danger); color: white; }
 
-        /* (c) 2026 Spirit Infinity - Tous droits réservés */
-
-/* Style des tableaux Spirit Ledger */
-.account-list table {
-    width: 100%;
-    border-collapse: collapse;
-    color: white;
-}
-
-.account-list td {
-    padding: 15px;
-    border-bottom: 1px solid #333;
-    vertical-align: middle; /* Aligne le texte au centre */
-}
-
-/* Style des boutons dans le tableau */
-.account-list button {
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s;
-    margin-right: 10px;
-}
-
-.account-list button.btn-valider {
-    background-color: #0d8457; /* Vert Spirit Shield */
-    color: white;
-}
-
-.account-list button.btn-litige {
-    background-color: #8c0d0d; /* Rouge Litige */
-    color: white;
-}
-
-/* Badge de statut */
-.account-list .badge {
-    background: #444;
-    padding: 5px 10px;
-    border-radius: 20px;
-}
-
     </style>
 </head>
 <body>
@@ -468,20 +424,6 @@
     <div class="modal-content" style="max-width:1100px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div class="dash-container">
-            <div style="display:flex; gap:10px; padding:10px; background:#111; border-bottom:1px solid #222; justify-content:center;">
-    <span style="color:#555; font-size:0.8rem; align-self:center;">SIMULATEUR :</span>
-    
-    <button onclick="switchUser('12345', 'MOI')" id="btn-user-moi" 
-            style="background:var(--spirit-green); color:black; border:none; padding:5px 10px; cursor:pointer; font-weight:bold; border-radius:4px;">
-        COMPTE MOI
-    </button>
-    
-    <button onclick="switchUser('67890', 'INVITÉ')" id="btn-user-guest" 
-            style="background:#222; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:4px;">
-        COMPTE INVITÉ
-    </button>
-</div>
-
             <div class="dash-nav">
                 <button id="btn-dashboard" class="active" onclick="showAccountTab('dashboard')">DASHBOARD</button>
                 <button id="btn-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
@@ -1336,22 +1278,36 @@ async function confirmPayment() {
     function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
     function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
     function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
-function showAccountTab(tabName) {
-    // 1. On viderait d'abord l'interface actuelle !
-    document.getElementById('my-account-content').innerHTML = ""; // <--- C'est CETTE LIGNE QUI MANQUE
+  function showAccountTab(tab) {
+    // On cache toutes les pages pour repartir de zéro
+    document.querySelectorAll('.account-page').forEach(p => {
+        p.style.display = 'none';
+        p.classList.remove('active');
+    });
 
-    // 2. Puis on charge l'onglet spécifique
-    if (tabName === 'achats') loadMyPurchases();
-    if (tabName === 'ventes') loadMySales();
-    if (tabName === 'annonces') loadMyAds(); // Cette fonction devrait charger tes produits en vente, pas les transactions
+    // On éteint tous les boutons du menu
+    document.querySelectorAll('.dash-nav button').forEach(b => {
+        b.classList.remove('active');
+    });
+
+    // On affiche la page sur laquelle on a cliqué
+    const pageActive = document.getElementById('tab-' + tab);
+    if (pageActive) {
+        pageActive.style.display = 'block';
+        pageActive.classList.add('active');
+    }
+      
+if (tab === 'achats') {
+    loadMyPurchases();
+} else if (tab === 'ventes') { // Ajoute cette condition
+    loadMySales();
 }
-
     // On allume le bouton correspondant
     const boutonActif = document.getElementById('btn-' + tab);
     if (boutonActif) {
         boutonActif.classList.add('active');
     }
-
+}
 function switchUser(newId, label) {
     MY_TEST_ID = newId;
     console.log("Utilisateur simulé : " + label + " (ID: " + MY_TEST_ID + ")");
@@ -1410,128 +1366,86 @@ function calculateSpiritSplit(price) {
         sellerNet: (price - totalFee).toFixed(2)
     };
 }
-    
+
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// Ligne 1386 environ
 // On utilise 'let' pour pouvoir changer d'utilisateur avec le simulateur
 let MY_TEST_ID = "12345"; 
 
-// NOUVELLE FONCTION INTERNATIONALE (Ligne 1389)
-async function acheterFigurine(btn) {
-    const card = btn.closest('.product-card');
-    const nom = card.querySelector('.product-title').innerText;
-    const prixBrut = card.querySelector('.product-price').innerText;
-
-    let devise = "EUR"; 
-    if (prixBrut.includes('$')) devise = "USD";
-    if (prixBrut.includes('¥')) devise = "JPY";
-    if (prixBrut.includes('£')) devise = "GBP";
-
-    const prixNumerique = parseFloat(prixBrut.replace(/[^\d.,]/g, '').replace(',', '.'));
-
-    const { data, error } = await _spirit
-        .from('transactions')
-        .insert([
-            { 
-                figurine_name: nom, 
-                amount: prixNumerique, 
-                currency: devise, 
-                status: 'SÉQUESTRE ACTIF',
-                buyer_id: MY_TEST_ID,
-                seller_id: 'SYSTEM_MARKET'
-            }
-        ]);
-
-    if (!error) {
-        alert(`Achat validé : ${prixNumerique} ${devise}`);
-        // Ces fonctions doivent exister pour ouvrir ton interface de compte
-        openAccountModal(); 
-        showAccountTab('achats');
-    }
-}
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// 1. CHARGER MES ACHATS (Je suis l'acheteur)
+/**
+ * CHARGEMENT DES ACHATS DEPUIS LE SPIRIT LEDGER
+ */
 async function loadMyPurchases() {
     const listBody = document.getElementById('my-purchases-list');
-    if (!listBody) return;
+    if (!listBody) return; // Ce return est maintenant bien à l'intérieur !
 
-    const { data, error } = await _spirit
-        .from('transactions')
-        .select('*')
-        .eq('buyer_id', MY_TEST_ID) // FILTRE STRICT : Je suis l'acheteur
-        .order('created_at', { ascending: false });
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE ACHATS...</div>';
 
-    // On passe 'ACHAT' pour afficher le bouton "Valider"
-    renderTransactionList(listBody, data, error, 'ACHAT');
+    try {
+        const { data, error } = await _spirit
+            .from('transactions')
+            .select('*')
+            .eq('buyer_id', MY_TEST_ID) 
+            .order('created_at', { ascending: false });
+
+        renderTransactionList(listBody, data, error, 'ACHATS');
+    } catch (err) { 
+        console.error(err);
+        listBody.innerHTML = "Erreur de connexion au Ledger.";
+    }
 }
-
-// 2. CHARGER MES VENTES (Je suis le vendeur)
+// --- FONCTION POUR TES VENTES ---
 async function loadMySales() {
-    const listBody = document.getElementById('my-sales-list');
+    const listBody = document.getElementById('my-sales-list'); // Assure-toi d'avoir cet ID dans ton HTML
     if (!listBody) return;
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE VENTES...</div>';
 
-    const { data, error } = await _spirit
-        .from('transactions')
-        .select('*')
-        .eq('seller_id', MY_TEST_ID) // FILTRE STRICT : Je suis le vendeur
-        .order('created_at', { ascending: false });
+    try {
+        const { data, error } = await _spirit
+            .from('transactions')
+            .select('*')
+            .eq('seller_id', MY_TEST_ID) // <--- FILTRE : Uniquement tes ventes
+            .order('created_at', { ascending: false });
 
-    // On passe 'VENTE' pour CACHER le bouton "Valider" (le vendeur ne valide pas sa propre vente)
-    renderTransactionList(listBody, data, error, 'VENTE');
+        renderTransactionList(listBody, data, error, 'VENTES');
+    } catch (err) { console.error(err); }
 }
 
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
+// --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
 function renderTransactionList(container, data, error, type) {
-    container.innerHTML = ""; // On nettoie avant d'afficher
-
-    if (error) {
-        container.innerHTML = `<tr><td colspan="6">Erreur Spirit Ledger: ${error.message}</td></tr>`;
-        return;
-    }
-
+    if (error) { container.innerHTML = "Erreur sync."; return; }
     if (!data || data.length === 0) {
-        container.innerHTML = `<tr><td colspan="6">AUCUNE TRANSACTION (${type}S)</td></tr>`;
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
         return;
     }
 
-    data.forEach(t => {
-        const row = document.createElement("tr");
-        
-        // Gestion dynamique du symbole de devise
-        let symbole = "€";
-        if (t.currency === "USD") symbole = "$";
-        if (t.currency === "JPY") symbole = "¥";
-        if (t.currency === "GBP") symbole = "£";
-
-        // Sécurité : Seul l'acheteur voit le bouton "Valider"
-        // Le vendeur voit juste le statut
-        let actionsHtml = "";
-        if (type === "ACHAT" && t.status === "SÉQUESTRE ACTIF") {
-            actionsHtml = `
-                <button class="btn-valider" onclick="validerReception('${t.id}')">Valider</button>
-                <button class="btn-litige" onclick="ouvrirLitige('${t.id}')">Litige</button>
-            `;
-        } else if (type === "VENTE") {
-            actionsHtml = `<span class="status-info">En attente de l'acheteur</span>`;
-        } else {
-            actionsHtml = `<span class="status-done">Terminé</span>`;
+    container.innerHTML = data.map(tr => {
+        // Logique des boutons : Bordereau pour VENTES, Valider pour ACHATS
+        let actionBtn = "";
+        if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
+            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer;">📦 VOIR LE BORDEREAU</button>`;
+        } else if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
+            actionBtn = `
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px;">Valider</button>
+                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px;">Litige</button>
+                </div>`;
         }
 
-        row.innerHTML = `
-            <td>${new Date(t.created_at).toLocaleDateString()}</td>
-            <td><strong>${t.figurine_name}</strong></td>
-            <td>${t.amount}${symbole}</td>
-            <td><span class="badge">${t.status}</span></td>
-            <td>${actionsHtml}</td>
-            <td><img src="shield-icon.png" width="20"></td>
+        return `
+            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:white; font-weight:bold;">${tr.figurine_name}</span>
+                    <span style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</span>
+                </div>
+                <div style="font-size:0.7rem; color:#555; margin-top:5px;">Statut: ${tr.status}</div>
+                ${actionBtn}
+            </div>
         `;
-        container.appendChild(row);
-    });
+    }).join('');
 }
-
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 /**
@@ -1558,32 +1472,26 @@ async function openDispute(transactionId) {
 }
 
 /**
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
-async function validerReception(transactionId) {
-    // 1. On confirme l'action
-    if (!confirm("Confirmes-tu la réception ? Cela débloquera les fonds pour le vendeur.")) {
-        return;
-    }
+ * CONFIRMER LA RÉCEPTION
+ */
+async function confirmReception(transactionId) {
+    if (!confirm("✅ Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.")) return;
 
     try {
-        // 2. On met à jour le statut dans Supabase pour cette transaction
         const { error } = await _spirit
             .from('transactions')
-            .update({ status: 'TERMINÉ' })
-            .eq('id', transactionId); // On met à jour la ligne précise
+            .update({ status: 'LIVRAISON VALIDÉE' })
+            .eq('id', transactionId);
 
         if (error) throw error;
 
-        alert("Transaction terminée ! Ton Spirit Ledger est à jour.");
-        loadMyPurchases(); // On recharge les achats pour voir le changement
-        
+        alert("✅ TRANSACTION TERMINÉE : Merci de votre confiance.");
+        loadMyPurchases(); 
     } catch (err) {
-        console.error("Erreur de validation:", err);
-        alert("Erreur lors du déblocage des fonds.");
+        console.error("Erreur Ledger:", err.message);
+        alert("Erreur de validation : " + err.message);
     }
 }
-
 
     renderMarket();
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -1830,17 +1738,6 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
 
 
