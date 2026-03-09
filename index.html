@@ -1386,32 +1386,45 @@ function calculateSpiritSplit(price) {
 // On utilise 'let' pour pouvoir changer d'utilisateur avec le simulateur
 let MY_TEST_ID = "12345"; 
     
-    async function acheterFigurine(nom, prix) {
-    const acheteurActuel = MY_TEST_ID; 
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+// Ligne 1386 environ
+// On utilise 'let' pour pouvoir changer d'utilisateur avec le simulateur
+let MY_TEST_ID = "12345"; 
+
+// NOUVELLE FONCTION INTERNATIONALE (Ligne 1389)
+async function acheterFigurine(btn) {
+    const card = btn.closest('.product-card');
+    const nom = card.querySelector('.product-title').innerText;
+    const prixBrut = card.querySelector('.product-price').innerText;
+
+    let devise = "EUR"; 
+    if (prixBrut.includes('$')) devise = "USD";
+    if (prixBrut.includes('¥')) devise = "JPY";
+    if (prixBrut.includes('£')) devise = "GBP";
+
+    const prixNumerique = parseFloat(prixBrut.replace(/[^\d.,]/g, '').replace(',', '.'));
 
     const { data, error } = await _spirit
         .from('transactions')
         .insert([
             { 
                 figurine_name: nom, 
-                amount: prix, 
+                amount: prixNumerique, 
+                currency: devise, 
                 status: 'SÉQUESTRE ACTIF',
-                buyer_id: acheteurActuel,
-                seller_id: 'SYSTEM_MARKET' 
+                buyer_id: MY_TEST_ID,
+                seller_id: 'SYSTEM_MARKET'
             }
         ]);
 
     if (!error) {
-        alert("Transaction sécurisée dans le Spirit Ledger !");
-        // Ouvre la modale et l'onglet achat pour voir le résultat direct
+        alert(`Achat validé : ${prixNumerique} ${devise}`);
+        // Ces fonctions doivent exister pour ouvrir ton interface de compte
         openAccountModal(); 
-        showAccountTab('achats'); 
-    } else {
-        console.error("Erreur de sync:", error);
-        alert("Erreur Spirit Ledger : " + error.message);
+        showAccountTab('achats');
     }
 }
-
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 /**
@@ -1778,6 +1791,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
