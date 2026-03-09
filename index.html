@@ -428,22 +428,20 @@
             </div>
             <div class="dash-content">
                 <div id="tab-dashboard" class="account-page active">
-                    <div class="stat-banner">
-                        <div class="stat-box" style="border-left: 4px solid var(--spirit-green); text-align: center;">
-                            <p style="font-size:0.65rem; color:#777; margin:0; text-transform:uppercase;">Utilisateur</p>
-                            <div id="user-display" style="font-size:2rem; font-weight:900; color:var(--spirit-green);">INVITÉ</div>
-                        </div>
-                    </div>
-                    <h3>RÉSUMÉ DES VENTES EN COURS</h3>
-                    <div id="sales-summary" style="background:#111; padding:15px; border:1px solid #222;">
-                        <p style="font-size:0.8rem;">Veuillez vous connecter pour voir vos données.</p>
-                    </div>
-                </div>
-           <div id="tab-achats" class="account-page">
-    <h3 style="color:var(--neon-orange); border-bottom:1px solid #333; padding-bottom:10px; font-family: 'Orbitron', sans-serif; letter-spacing: 1px;">
-        🛡️ SPIRIT SHIELD - MES ACQUISITIONS
-    </h3>
-    
+    <h2>🏠 TABLEAU DE BORD</h2>
+    <p>C'est ici que s'affiche ton résumé.</p>
+</div>
+
+<div id="tab-achats" class="account-page" style="display:none;">
+    <h2>🛒 MES ACHATS</h2>
+    <p>Tes transactions Supabase apparaîtront ici bientôt.</p>
+</div>
+
+<div id="tab-ventes" class="account-page" style="display:none;">
+    <h2>💰 MES VENTES</h2>
+    <p>Ici, tu verras ce que tu as vendu.</p>
+</div>
+
     <div style="background:#0a0a0a; padding:10px; border:1px solid #222; margin-bottom:15px; font-size:0.75rem; color:#888;">
         <p style="margin:0;">
             Les fonds sont bloqués en <b>Séquestre Spirit</b>. 
@@ -1708,6 +1706,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
