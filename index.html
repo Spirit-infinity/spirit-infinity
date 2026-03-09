@@ -1343,8 +1343,18 @@ function calculateSpiritSplit(price) {
 // ID de test pour simuler TON compte (à remplacer plus tard par l'ID réel de session)
 const MY_TEST_ID = "ton-uuid-ici-ou-laisser-vide"; 
 
-// --- FONCTION POUR TES ACHATS ---
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+// 1. PLACE LE CODE ICI (Tout en haut)
+const MY_TEST_ID = "12345"; 
+
+/**
+ * CHARGEMENT DES ACHATS DEPUIS LE SPIRIT LEDGER
+ */
 async function loadMyPurchases() {
+    // ... le reste du code utilisera MY_TEST_ID automatiquement
+}
+ 
     const listBody = document.getElementById('my-purchases-list');
     if (!listBody) return;
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE ACHATS...</div>';
@@ -1702,6 +1712,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
