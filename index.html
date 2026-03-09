@@ -1291,7 +1291,12 @@ async function confirmPayment() {
         pageActive.style.display = 'block';
         pageActive.classList.add('active');
     }
-
+      
+if (tab === 'achats') {
+    loadMyPurchases();
+} else if (tab === 'ventes') { // Ajoute cette condition
+    loadMySales();
+}
     // On allume le bouton correspondant
     const boutonActif = document.getElementById('btn-' + tab);
     if (boutonActif) {
@@ -1335,72 +1340,76 @@ function calculateSpiritSplit(price) {
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
+// ID de test pour simuler TON compte (à remplacer plus tard par l'ID réel de session)
+const MY_TEST_ID = "ton-uuid-ici-ou-laisser-vide"; 
+
+// --- FONCTION POUR TES ACHATS ---
 async function loadMyPurchases() {
     const listBody = document.getElementById('my-purchases-list');
     if (!listBody) return;
-
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">SYNCHRONISATION LEDGER...</div>';
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE ACHATS...</div>';
 
     try {
-        // Correction ici : Utilisation de _spirit comme dans ton code original
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
+            .eq('buyer_id', MY_TEST_ID) // <--- FILTRE : Uniquement tes achats
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
-
-        if (!data || data.length === 0) {
-            listBody.innerHTML = '<div style="text-align:center; padding:30px; color:#555;">AUCUNE TRANSACTION TROUVÉE</div>';
-            return;
-        }
-
-        listBody.innerHTML = ''; 
-
-        data.forEach(tr => {
-            const card = document.createElement('div');
-            card.className = 'transaction-card';
-            card.style = "background:#0d0d0d; border:1px solid #222; border-left:3px solid var(--spirit-green); padding:15px; margin-bottom:12px; border-radius:4px;";
-
-            let statusLabel = `<span style="color:var(--neon-orange);">${tr.status}</span>`;
-            let actions = "";
-
-            if (tr.status === 'SÉQUESTRE ACTIF') {
-                actions = `
-                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-                        <button onclick="generateSpiritLabel('${tr.id}')" style="background:var(--spirit-green); color:black; font-weight:bold; padding:8px; border:none; border-radius:2px; cursor:pointer;">📦 VOIR LE BORDEREAU</button>
-                        <div style="display:flex; gap:10px;">
-                            <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px; cursor:pointer;">Valider</button>
-                            <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px; cursor:pointer;">Litige</button>
-                        </div>
-                    </div>`;
-            } else if (tr.status === 'LIVRAISON VALIDÉE') {
-                statusLabel = `<span style="color:var(--spirit-green);">✅ TRANSACTION TERMINÉE</span>`;
-            }
-
-            card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                        <div style="font-weight:bold; text-transform:uppercase; color:white; font-size:0.9rem;">${tr.figurine_name}</div>
-                        <div style="font-size:0.65rem; color:#555; margin-top:4px;">ID: #${tr.id.substring(0,8)}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-weight:bold; color:var(--neon-orange); font-size:1.1rem;">${tr.amount}€</div>
-                        <div style="font-size:0.6rem; margin-top:2px;">${statusLabel}</div>
-                    </div>
-                </div>
-                ${actions}
-            `;
-            listBody.appendChild(card);
-        });
-
-    } catch (err) {
-        console.error("ERREUR LEDGER :", err.message);
-        listBody.innerHTML = `<div style="color:red; padding:10px;">❌ ERREUR SYNC : ${err.message}</div>`;
-    }
+        renderTransactionList(listBody, data, error, 'ACHATS');
+    } catch (err) { console.error(err); }
 }
 
+// --- FONCTION POUR TES VENTES ---
+async function loadMySales() {
+    const listBody = document.getElementById('my-sales-list'); // Assure-toi d'avoir cet ID dans ton HTML
+    if (!listBody) return;
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE VENTES...</div>';
 
+    try {
+        const { data, error } = await _spirit
+            .from('transactions')
+            .select('*')
+            .eq('seller_id', MY_TEST_ID) // <--- FILTRE : Uniquement tes ventes
+            .order('created_at', { ascending: false });
+
+        renderTransactionList(listBody, data, error, 'VENTES');
+    } catch (err) { console.error(err); }
+}
+
+// --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
+function renderTransactionList(container, data, error, type) {
+    if (error) { container.innerHTML = "Erreur sync."; return; }
+    if (!data || data.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
+        return;
+    }
+
+    container.innerHTML = data.map(tr => {
+        // Logique des boutons : Bordereau pour VENTES, Valider pour ACHATS
+        let actionBtn = "";
+        if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
+            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer;">📦 VOIR LE BORDEREAU</button>`;
+        } else if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
+            actionBtn = `
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px;">Valider</button>
+                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px;">Litige</button>
+                </div>`;
+        }
+
+        return `
+            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:white; font-weight:bold;">${tr.figurine_name}</span>
+                    <span style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</span>
+                </div>
+                <div style="font-size:0.7rem; color:#555; margin-top:5px;">Statut: ${tr.status}</div>
+                ${actionBtn}
+            </div>
+        `;
+    }).join('');
+}
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 /**
@@ -1693,6 +1702,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
