@@ -144,6 +144,50 @@
 .btn-shield-ok:hover { opacity: 0.8; }
 .btn-shield-bad:hover { background: var(--danger); color: white; }
 
+        /* (c) 2026 Spirit Infinity - Tous droits réservés */
+
+/* Style des tableaux Spirit Ledger */
+.account-list table {
+    width: 100%;
+    border-collapse: collapse;
+    color: white;
+}
+
+.account-list td {
+    padding: 15px;
+    border-bottom: 1px solid #333;
+    vertical-align: middle; /* Aligne le texte au centre */
+}
+
+/* Style des boutons dans le tableau */
+.account-list button {
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-right: 10px;
+}
+
+.account-list button.btn-valider {
+    background-color: #0d8457; /* Vert Spirit Shield */
+    color: white;
+}
+
+.account-list button.btn-litige {
+    background-color: #8c0d0d; /* Rouge Litige */
+    color: white;
+}
+
+/* Badge de statut */
+.account-list .badge {
+    background: #444;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
     </style>
 </head>
 <body>
@@ -1292,30 +1336,16 @@ async function confirmPayment() {
     function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
     function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
     function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
-  function showAccountTab(tab) {
-    // On cache toutes les pages pour repartir de zéro
-    document.querySelectorAll('.account-page').forEach(p => {
-        p.style.display = 'none';
-        p.classList.remove('active');
-    });
+function showAccountTab(tabName) {
+    // 1. On viderait d'abord l'interface actuelle !
+    document.getElementById('my-account-content').innerHTML = ""; // <--- C'est CETTE LIGNE QUI MANQUE
 
-    // On éteint tous les boutons du menu
-    document.querySelectorAll('.dash-nav button').forEach(b => {
-        b.classList.remove('active');
-    });
-
-    // On affiche la page sur laquelle on a cliqué
-    const pageActive = document.getElementById('tab-' + tab);
-    if (pageActive) {
-        pageActive.style.display = 'block';
-        pageActive.classList.add('active');
-    }
-      
-if (tab === 'achats') {
-    loadMyPurchases();
-} else if (tab === 'ventes') { // Ajoute cette condition
-    loadMySales();
+    // 2. Puis on charge l'onglet spécifique
+    if (tabName === 'achats') loadMyPurchases();
+    if (tabName === 'ventes') loadMySales();
+    if (tabName === 'annonces') loadMyAds(); // Cette fonction devrait charger tes produits en vente, pas les transactions
 }
+
     // On allume le bouton correspondant
     const boutonActif = document.getElementById('btn-' + tab);
     if (boutonActif) {
@@ -1528,26 +1558,32 @@ async function openDispute(transactionId) {
 }
 
 /**
- * CONFIRMER LA RÉCEPTION
- */
-async function confirmReception(transactionId) {
-    if (!confirm("✅ Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.")) return;
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+async function validerReception(transactionId) {
+    // 1. On confirme l'action
+    if (!confirm("Confirmes-tu la réception ? Cela débloquera les fonds pour le vendeur.")) {
+        return;
+    }
 
     try {
+        // 2. On met à jour le statut dans Supabase pour cette transaction
         const { error } = await _spirit
             .from('transactions')
-            .update({ status: 'LIVRAISON VALIDÉE' })
-            .eq('id', transactionId);
+            .update({ status: 'TERMINÉ' })
+            .eq('id', transactionId); // On met à jour la ligne précise
 
         if (error) throw error;
 
-        alert("✅ TRANSACTION TERMINÉE : Merci de votre confiance.");
-        loadMyPurchases(); 
+        alert("Transaction terminée ! Ton Spirit Ledger est à jour.");
+        loadMyPurchases(); // On recharge les achats pour voir le changement
+        
     } catch (err) {
-        console.error("Erreur Ledger:", err.message);
-        alert("Erreur de validation : " + err.message);
+        console.error("Erreur de validation:", err);
+        alert("Erreur lors du déblocage des fonds.");
     }
 }
+
 
     renderMarket();
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -1794,6 +1830,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
