@@ -1342,7 +1342,8 @@ async function loadMyPurchases() {
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">SYNCHRONISATION LEDGER...</div>';
 
     try {
-        const { data, error } = await _supabase
+        // Correction ici : Utilisation de _spirit comme dans ton code original
+        const { data, error } = await _spirit
             .from('transactions')
             .select('*')
             .order('created_at', { ascending: false });
@@ -1354,7 +1355,7 @@ async function loadMyPurchases() {
             return;
         }
 
-        listBody.innerHTML = ''; // On vide le message de chargement
+        listBody.innerHTML = ''; 
 
         data.forEach(tr => {
             const card = document.createElement('div');
@@ -1364,7 +1365,6 @@ async function loadMyPurchases() {
             let statusLabel = `<span style="color:var(--neon-orange);">${tr.status}</span>`;
             let actions = "";
 
-            // Gestion des boutons selon le statut
             if (tr.status === 'SÉQUESTRE ACTIF') {
                 actions = `
                     <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
@@ -1693,6 +1693,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
