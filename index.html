@@ -1333,25 +1333,16 @@ function calculateSpiritSplit(price) {
         sellerNet: (price - totalFee).toFixed(2)
     };
 }
-
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-/**
- * CHARGEMENT DES ACHATS DEPUIS LE SPIRIT LEDGER
- * Remplace l'ancienne fonction par celle-ci
- */
 async function loadMyPurchases() {
     const listBody = document.getElementById('my-purchases-list');
-    
-    if (!listBody) {
-        console.error("ERREUR : L'élément HTML 'my-purchases-list' est introuvable.");
-        return;
-    }
+    if (!listBody) return;
 
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">🔄 CONNEXION AU LEDGER...</div>';
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">SYNCHRONISATION LEDGER...</div>';
 
     try {
-        const { data, error } = await _spirit
+        const { data, error } = await _supabase
             .from('transactions')
             .select('*')
             .order('created_at', { ascending: false });
@@ -1359,31 +1350,28 @@ async function loadMyPurchases() {
         if (error) throw error;
 
         if (!data || data.length === 0) {
-            listBody.innerHTML = '<div style="text-align:center; padding:30px; color:#555;">Aucun achat enregistré.</div>';
+            listBody.innerHTML = '<div style="text-align:center; padding:30px; color:#555;">AUCUNE TRANSACTION TROUVÉE</div>';
             return;
         }
 
-        listBody.innerHTML = ''; 
+        listBody.innerHTML = ''; // On vide le message de chargement
 
         data.forEach(tr => {
             const card = document.createElement('div');
-            card.style = "background:#0d0d0d; border:1px solid #222; border-left:3px solid var(--neon-orange); padding:15px; margin-bottom:12px; color:white;";
+            card.className = 'transaction-card';
+            card.style = "background:#0d0d0d; border:1px solid #222; border-left:3px solid var(--spirit-green); padding:15px; margin-bottom:12px; border-radius:4px;";
 
-            let statusLabel = `<span style="color:orange;">${tr.status}</span>`;
+            let statusLabel = `<span style="color:var(--neon-orange);">${tr.status}</span>`;
             let actions = "";
 
-            // --- C'EST ICI QUE LE BOUTON EST INJECTÉ ---
+            // Gestion des boutons selon le statut
             if (tr.status === 'SÉQUESTRE ACTIF') {
-                statusLabel = `<span style="color:var(--neon-orange); font-weight:bold;">🛡️ SÉQUESTRE ACTIF</span>`;
                 actions = `
-                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
-                        <button onclick="generateSpiritLabel('${tr.id}')" 
-                                style="background:var(--spirit-green); color:black; border:none; padding:10px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
-                            📦 VOIR LE BORDEREAU
-                        </button>
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+                        <button onclick="generateSpiritLabel('${tr.id}')" style="background:var(--spirit-green); color:black; font-weight:bold; padding:8px; border:none; border-radius:2px; cursor:pointer;">📦 VOIR LE BORDEREAU</button>
                         <div style="display:flex; gap:10px;">
-                            <button onclick="confirmReception('${tr.id}')" style="background:#333; color:white; border:none; padding:10px; flex:1; font-weight:bold; cursor:pointer;">✅ REÇU</button>
-                            <button onclick="openDispute('${tr.id}')" style="background:var(--danger); color:white; border:none; padding:10px; flex:1; font-weight:bold; cursor:pointer;">⚠️ LITIGE</button>
+                            <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px; cursor:pointer;">Valider</button>
+                            <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px; cursor:pointer;">Litige</button>
                         </div>
                     </div>`;
             } else if (tr.status === 'LIVRAISON VALIDÉE') {
@@ -1391,14 +1379,14 @@ async function loadMyPurchases() {
             }
 
             card.innerHTML = `
-                <div style="display:flex; justify-content:space-between;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div>
-                        <div style="font-weight:bold; text-transform:uppercase;">${tr.figurine_name || 'FIGURINE SPIRIT'}</div>
-                        <div style="font-size:0.7rem; color:#555;">ID: #${tr.id.substring(0, 8)}</div>
+                        <div style="font-weight:bold; text-transform:uppercase; color:white; font-size:0.9rem;">${tr.figurine_name}</div>
+                        <div style="font-size:0.65rem; color:#555; margin-top:4px;">ID: #${tr.id.substring(0,8)}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-weight:bold; color:var(--neon-orange);">${tr.amount} €</div>
-                        <div style="font-size:0.65rem;">${statusLabel}</div>
+                        <div style="font-weight:bold; color:var(--neon-orange); font-size:1.1rem;">${tr.amount}€</div>
+                        <div style="font-size:0.6rem; margin-top:2px;">${statusLabel}</div>
                     </div>
                 </div>
                 ${actions}
@@ -1408,10 +1396,9 @@ async function loadMyPurchases() {
 
     } catch (err) {
         console.error("ERREUR LEDGER :", err.message);
-        listBody.innerHTML = `<div style="color:red; padding:10px;">❌ ERREUR SYNC</div>`;
+        listBody.innerHTML = `<div style="color:red; padding:10px;">❌ ERREUR SYNC : ${err.message}</div>`;
     }
 }
-
 
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -1706,6 +1693,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
