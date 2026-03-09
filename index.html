@@ -54,6 +54,11 @@
         input, select, textarea { width: 100%; background: #111; border: 1px solid #333; color: white; padding: 12px; margin: 10px 0; border-radius: 4px; box-sizing: border-box; }
         /* DASHBOARD XL STYLE */
         .dash-container { display: grid; grid-template-columns: 250px 1fr; gap: 30px; min-height: 70vh; }
+<div style="display:flex; gap:10px; padding:10px; background:#111; border-bottom:1px solid #222; justify-content:center;">
+    <span style="color:#555; font-size:0.8rem; align-self:center;">SIMULATEUR :</span>
+    <button onclick="switchUser('12345', 'MOI')" id="btn-user-moi" style="background:var(--spirit-green); color:black; border:none; padding:5px 10px; cursor:pointer; font-weight:bold;">COMPTE MOI</button>
+    <button onclick="switchUser('67890', 'INVITÉ')" id="btn-user-guest" style="background:#222; color:white; border:none; padding:5px 10px; cursor:pointer;">COMPTE INVITÉ</button>
+</div>     
         .dash-nav { border-right: 1px solid #222; padding-right: 20px; }
         .dash-nav button { width: 100%; text-align: left; padding: 15px; background: none; border: 1px solid transparent; color: #777; cursor: pointer; margin-bottom: 10px; transition: 0.3s; font-weight: bold; }
         .dash-nav button.active { border-color: var(--neon-orange); color: white; background: rgba(255,102,0,0.05); }
@@ -1303,6 +1308,29 @@ if (tab === 'achats') {
         boutonActif.classList.add('active');
     }
 }
+function switchUser(newId, label) {
+    MY_TEST_ID = newId;
+    console.log("Utilisateur simulé : " + label + " (ID: " + MY_TEST_ID + ")");
+    
+    // Mise à jour visuelle des boutons de switch
+    if(document.getElementById('btn-user-moi')) {
+        document.getElementById('btn-user-moi').style.background = (newId === '12345') ? 'var(--spirit-green)' : '#222';
+    }
+    if(document.getElementById('btn-user-guest')) {
+        document.getElementById('btn-user-guest').style.background = (newId === '67890') ? 'var(--spirit-green)' : '#222';
+    }
+    
+    // Rafraîchissement automatique de l'affichage
+    const activeBtn = document.querySelector('.dash-nav button.active');
+    if (activeBtn) {
+        const activeTab = activeBtn.id.replace('btn-', '');
+        showAccountTab(activeTab);
+    }
+    
+    alert("Session simulée : " + label);
+}
+    
+    
     function zoomImg(src) {
         document.getElementById('lightbox-img').src = src;
         document.getElementById('lightbox').style.display = 'flex';
@@ -1345,8 +1373,8 @@ const MY_TEST_ID = "ton-uuid-ici-ou-laisser-vide";
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// 1. PLACE LE CODE ICI (Tout en haut)
-const MY_TEST_ID = "12345"; 
+// On utilise 'let' pour pouvoir changer d'utilisateur avec le simulateur
+let MY_TEST_ID = "12345"; 
 
 /**
  * CHARGEMENT DES ACHATS DEPUIS LE SPIRIT LEDGER
@@ -1712,6 +1740,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
