@@ -688,55 +688,50 @@ function calculateSpiritSplit(price) {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function loadUserPurchases() {
-    // A. CIBLAGE DES ONGLETS (Basé sur ton HTML photo d7add9a0)
-    const ongletAchats = document.getElementById('tab-achats');
-    const tousLesOnglets = document.querySelectorAll('.account-page');
-    const tableBody = document.getElementById('list-achats');
+    // 1. GESTION DES ONGLETS (On cache tout avant de charger)
+    const sections = ['tab-dashboard', 'tab-achats', 'tab-ventes'];
+    sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
 
-    // B. NETTOYAGE VISUEL : On cache tout, on montre uniquement les achats
-    if (tousLesOnglets) {
-        tousLesOnglets.forEach(tab => tab.style.display = 'none');
-    }
-    if (ongletAchats) {
-        ongletAchats.style.display = 'block';
-    }
+    // 2. AFFICHER UNIQUEMENT LES ACHATS
+    const tabAchats = document.getElementById('tab-achats');
+    if (tabAchats) tabAchats.style.display = 'block';
 
-    // C. SECURITÉ : Si le tableau n'existe pas encore dans le HTML
-    if (!tableBody) {
-        console.error("Le <tbody> 'list-achats' est introuvable.");
-        return;
-    }
-    tableBody.innerHTML = ""; // On vide pour éviter les doublons
+    const listBody = document.getElementById('list-achats');
+    if (!listBody) return;
+    listBody.innerHTML = ""; 
 
-    // D. RÉCUPÉRATION SUPABASE
+    // 3. RÉCUPÉRATION SUPABASE
     const { data: achats, error } = await _spirit
         .from('transactions')
         .select('*')
         .eq('buyer_id', '12345');
 
     if (error) {
-        console.error("Erreur Spirit Ledger:", error.message);
+        console.error("Erreur Ledger:", error.message);
         return;
     }
 
-    // E. REMPLISSAGE DU TABLEAU
+    // 4. REMPLISSAGE
     if (achats && achats.length > 0) {
         achats.forEach(tr => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${new Date(tr.created_at).toLocaleDateString()}</td>
-                <td><b style="color:var(--neon-orange)">Figurine #${tr.product_id}</b></td>
+                <td><b style="color:orange">Figurine #${tr.product_id}</b></td>
                 <td>${tr.amount} €</td>
                 <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
                 <td style="text-align:center;">
-                    <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
-                    <button class="btn-litige-action" data-id="${tr.id}" style="border:1px solid #ff4444; color:#ff4444; background:none; margin-left:5px;">⚠️ LITIGE</button>
+                    <button class="btn-recu-action" style="cursor:pointer;">✅ REÇU</button>
+                    <button class="btn-litige-action" style="color:red; border:1px solid red; background:none; margin-left:5px; cursor:pointer;">⚠️ LITIGE</button>
                 </td>
             `;
-            tableBody.appendChild(row);
+            listBody.appendChild(row);
         });
     } else {
-        tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>AUCUN ACHAT TROUVÉ</td></tr>";
+        listBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>AUCUN ACHAT</td></tr>";
     }
 }
 
@@ -1747,6 +1742,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
