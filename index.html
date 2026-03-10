@@ -692,12 +692,19 @@ async function loadUserPurchases() {
     if(!listBody) return;
     listBody.innerHTML = '';
 
-    // On récupère les transactions où l'utilisateur est l'acheteur
-    const { data, error } = await _spirit
-        .from('transactions')
-        .select('*')
-        .eq('buyer', currentUser)
-        .order('created_at', { ascending: false });
+   // (c) 2026 Spirit Infinity - Tous droits réservés
+
+// 1. Appel pour remplir ton onglet ACHATS
+const { data: achats, error: errA } = await _spirit
+    .from('transactions')
+    .select('*')
+    .eq('buyer_id', '12345'); 
+
+// 2. Appel pour remplir ton onglet VENTES
+const { data: ventes, error: errV } = await _spirit
+    .from('transactions')
+    .select('*')
+    .eq('seller_id', '12345');
 
     if (error) {
         console.error("Erreur de chargement des achats:", error);
@@ -1740,6 +1747,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
