@@ -720,8 +720,8 @@ async function loadUserPurchases() {
                 </td>
                 <td style="text-align:center;">
                     ${tr.status === 'SÉQUESTRE ACTIF' ? 
-                        '<button class="btn-recu-action"data-id="${tr.id}">✅ REÇU</button>' : 
-                        <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>\` :
+                        '<button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>' : 
+                        '<button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>\` :
          ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
                   }
                 </td>
@@ -1742,6 +1742,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
