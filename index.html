@@ -716,8 +716,9 @@ if (errA || errV) {
 console.log("Achats récupérés :", achats);
 console.log("Ventes récupérées :", ventes);
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
+achats.forEach(tr => { 
 
-    data.forEach(tr => {
         // On cherche le nom du produit dans marketData ou via une jointure
         const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
         const dateStr = new Date(tr.created_at).toLocaleDateString();
@@ -733,7 +734,8 @@ console.log("Ventes récupérées :", ventes);
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-${tr.status === 'escrow_active' ? `
+${tr.status === 'SÉQUESTRE ACTIF' ? `
+
     <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
     <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>
 ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
@@ -1748,6 +1750,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
