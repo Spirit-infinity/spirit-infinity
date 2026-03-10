@@ -688,29 +688,34 @@ function calculateSpiritSplit(price) {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function loadUserPurchases() {
-    const tableElement = document.getElementById('list-achats'); 
-    if (!tableElement) return;
-    tableElement.innerHTML = ''; 
+    console.log("Tentative de chargement du Ledger...");
+    
+    const tableAchats = document.getElementById('list-achats');
+    if (!tableAchats) {
+        console.error("Tableau introuvable ! Vérifie l'ID dans ton HTML.");
+        return;
+    }
+    tableAchats.innerHTML = ''; 
 
-    const { data: achats, error } = await _spirit
+    // On récupère tout d'un coup
+    const { data: transactions, error } = await _spirit
         .from('transactions')
         .select('*')
         .eq('buyer_id', '12345');
 
     if (error) {
-        console.error("Erreur Supabase:", error);
+        console.error("Erreur Supabase:", error.message);
         return;
     }
 
-    if (achats && achats.length > 0) {
-        achats.forEach(tr => {
+    if (transactions && transactions.length > 0) {
+        transactions.forEach(tr => {
             const row = document.createElement('tr');
             const dateStr = new Date(tr.created_at).toLocaleDateString();
             
-            // On affiche juste l'ID du produit pour ne plus dépendre de marketData
             row.innerHTML = `
                 <td>${dateStr}</td>
-                <td><b style="color:orange">Figurine #${tr.product_id}</b></td>
+                <td><b style="color:var(--neon-orange)">Figurine #${tr.product_id}</b></td>
                 <td>${tr.amount} €</td>
                 <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
                 <td style="text-align:center;">
@@ -718,10 +723,11 @@ async function loadUserPurchases() {
                     <button class="btn-litige-action" style="color:#ff4444; border:1px solid #ff4444; background:none; margin-left:5px; padding:4px 8px; cursor:pointer;">⚠️ LITIGE</button>
                 </td>
             `;
-            tableElement.appendChild(row);
+            tableAchats.appendChild(row);
         });
+        console.log("Affichage réussi :", transactions.length, "lignes.");
     } else {
-        tableElement.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">AUCUNE TRANSACTION TROUVÉE</td></tr>';
+        tableAchats.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">AUCUNE TRANSACTION TROUVÉE</td></tr>';
     }
 }
     // LA LIGNE CRUCIALE : on ajoute la ligne au tableau
@@ -1733,6 +1739,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
