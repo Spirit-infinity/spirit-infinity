@@ -706,10 +706,16 @@ const { data: ventes, error: errV } = await _spirit
     .select('*')
     .eq('seller_id', '12345');
 
-    if (error) {
-        console.error("Erreur de chargement des achats:", error);
-        return;
-    }
+// --- VERIFICATION CRUCIALE ---
+if (errA || errV) {
+    console.error("Erreur Spirit Ledger:", errA || errV);
+    return;
+}
+
+// Vérification dans ta console (F12) pour voir si les 5 records arrivent
+console.log("Achats récupérés :", achats);
+console.log("Ventes récupérées :", ventes);
+
 
     if (!data || data.length === 0) {
         listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
@@ -1747,6 +1753,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
