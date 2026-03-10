@@ -303,16 +303,6 @@ const SpiritEngine = {
     }
 };
 
-// Initialisation au chargement
-document.addEventListener('DOMContentLoaded', () => SpiritEngine.init());
-
-        // FILTRE ANTI-OBJETS NON CONFORMES
-        const forbidden = ['frigo', 'voiture', 'moto', 'meuble', 'cuisine'];
-        if(forbidden.some(word => title.toLowerCase().includes(word))) {
-            feedback.innerHTML = "❌ OBJET NON CONFORME - VENTE ANNULÉE";
-            feedback.style.color = "#ff4d4d";
-            return;
-        }
 
         // INSERTION LEDGER
         const { error } = await _supabase.from('transactions').insert([{
@@ -427,6 +417,7 @@ document.addEventListener('DOMContentLoaded', () => SpiritEngine.init());
     </script>
 </body>
 </html>
+
 
 
 
