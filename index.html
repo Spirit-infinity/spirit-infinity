@@ -433,30 +433,29 @@
             </div>
         
 <div id="tab-dashboard" class="account-page">
-    <h2>🏠 TABLEAU DE BORD</h2>
-    
-    <div class="grid-figurines">
-        <div class="card-figurine">...</div> 
+    <h2>🏠 MON COMPTE</h2>
+    <div class="grid-annonces">
         </div>
 </div>
 
-    <div id="tab-achats" class="account-page" style="display:none;">
-        <h2>🛒 MES ACHATS</h2>
-        <table class="spirit-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Produit</th>
-                    <th>Montant</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="list-achats"></tbody>
-        </table>
-    </div>
 
+   <div id="tab-achats" class="account-page" style="display:none;">
+    <h2>🛒 MES ACHATS</h2>
+    <table class="spirit-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Produit</th>
+                <th>Prix</th>
+                <th>Statut</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="list-achats"></tbody>
+    </table>
 </div>
+
+
 
     <div style="background:#0a0a0a; padding:10px; border:1px solid #222; margin-bottom:15px; font-size:0.75rem; color:#888;">
         <p style="margin:0;">
@@ -697,51 +696,40 @@ function calculateSpiritSplit(price) {
     };
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
-
 async function loadUserPurchases() {
-    // A. On cache TOUT ce qui appartient aux onglets
-    const onglets = document.querySelectorAll('.account-page');
-    onglets.forEach(div => div.style.display = 'none');
+    // 1. On cache TOUT (Dashboard + Ventes)
+    document.querySelectorAll('.account-page').forEach(p => p.style.display = 'none');
 
-    // B. On affiche l'onglet Achats et on cible le tableau
-    const tabAchats = document.getElementById('tab-achats');
-    if (tabAchats) tabAchats.style.display = 'block';
+    // 2. On montre les Achats
+    const tab = document.getElementById('tab-achats');
+    if (tab) tab.style.display = 'block';
 
-    const listBody = document.getElementById('list-achats');
-    if (!listBody) return;
-    listBody.innerHTML = ""; 
+    const list = document.getElementById('list-achats');
+    if (!list) return;
+    list.innerHTML = "";
 
-    // C. Récupération Supabase
-    const { data: achats, error } = await _spirit
-        .from('transactions')
-        .select('*')
-        .eq('buyer_id', '12345');
+    // 3. Récupération Supabase
+    const { data, error } = await _spirit.from('transactions').select('*').eq('buyer_id', '12345');
 
-    if (error) {
-        console.error("Erreur Spirit Ledger:", error.message);
-        return;
-    }
+    if (error) return;
 
-    // D. Remplissage avec le bouton LITIGE
-    if (achats && achats.length > 0) {
-        achats.forEach(tr => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${new Date(tr.created_at).toLocaleDateString()}</td>
-                <td><b style="color:var(--neon-orange)">Figurine #${tr.product_id}</b></td>
-                <td>${tr.amount} €</td>
-                <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
-                <td style="text-align:center;">
-                    <button class="btn-recu-action" style="padding:4px 8px; cursor:pointer;">✅ REÇU</button>
-                    <button class="btn-litige-action" style="color:#ff4444; border:1px solid #ff4444; background:none; margin-left:5px; padding:4px 8px; cursor:pointer;">⚠️ LITIGE</button>
-                </td>
-            `;
-            listBody.appendChild(row);
-        });
-    } else {
-        listBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>AUCUN ACHAT TROUVÉ</td></tr>";
-    }
+    // 4. Remplissage
+    data.forEach(tr => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${new Date(tr.created_at).toLocaleDateString()}</td>
+            <td><b style="color:orange">#${tr.product_id}</b></td>
+            <td>${tr.amount} €</td>
+            <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
+            <td>
+                <button class="btn-recu">✅ REÇU</button>
+                <button class="btn-litige" style="color:red; border:1px solid red; background:none; margin-left:5px;">⚠️ LITIGE</button>
+            </td>
+        `;
+        list.appendChild(row);
+    });
 }
+
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
@@ -1748,6 +1736,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
