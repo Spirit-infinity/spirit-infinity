@@ -53,26 +53,24 @@
         .card-spirit:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-color: var(--orange); }
 
         /* SCAN IA UI */
-        .scan-container { max-width: 800px; margin: auto; background: #0a0a0a; border: 1px solid #222; padding: 30px; border-radius: 12px; }
-        .scan-window { 
-            width: 100%; height: 350px; background: #000; border: 2px dashed var(--cyan); 
-            position: relative; margin-bottom: 30px; display: flex; align-items: center; justify-content: center;
-        }
-        .scan-bar { position: absolute; width: 100%; height: 2px; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); animation: scanLine 3s infinite linear; }
-        @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
+        .scan-card { background: #0a0a0a; border: 1px solid #222; padding: 30px; border-radius: 12px; }
+        .photo-grid-7 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+        .mini-upload { background: #000; border: 1px dashed #444; height: 100px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; text-align: center; color: #888; }
+        .mini-upload:hover { border-color: var(--orange); color: #fff; }
 
         /* BOUTONS */
-        .btn-spirit { 
+        .btn-scan-launch { 
             background: linear-gradient(45deg, var(--orange), #ff9900); color: #000; border: none; 
-            padding: 14px 28px; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase;
+            padding: 16px; width: 100%; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; margin-top: 20px;
         }
-        .btn-spirit:hover { box-shadow: 0 0 20px rgba(255, 102, 0, 0.4); transform: scale(1.02); }
+
+        /* INPUTS */
+        .spirit-input { background: #111; border: 1px solid #333; color: #fff; padding: 12px; width: 100%; border-radius: 4px; margin-bottom: 15px; }
+        .switches-container { display: flex; gap: 20px; margin: 20px 0; background: #000; padding: 15px; border-radius: 4px; }
 
         /* BADGES */
         .badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 3px; font-weight: bold; text-transform: uppercase; }
         .badge-native { border: 1px solid var(--orange); color: var(--orange); }
-        .badge-shame { border: 1px solid var(--shame); color: var(--shame); animation: blink 1.5s infinite; }
-        @keyframes blink { 50% { opacity: 0.4; } }
 
     </style>
 </head>
@@ -92,117 +90,56 @@
     <main class="viewport">
         <section id="page-market" class="page active">
             <h1>🛒 Marketplace Mondial</h1>
-            <div class="grid-master" id="market-list">
-                </div>
+            <div class="grid-master" id="market-list"></div>
         </section>
-<section id="page-scan" class="page">
-    <h1 style="text-align:center; color: var(--orange-neon); letter-spacing: 2px;">🔍 AUDIT SPIRIT EYES</h1>
-    
-    <div class="scan-card">
-        <div class="photo-main-zone" onclick="document.getElementById('file-tete1').click()">
-            <div id="preview-tete1" class="preview-box">
-                <p>📸 CLIQUEZ POUR SCANNER LA TÊTE (N°1)</p>
-                <small>Watermark "Spirit Guard" automatique</small>
-            </div>
-            <input type="file" id="file-tete1" hidden onchange="previewImage(this, 'preview-tete1')">
-        </div>
 
-      <div class="photo-grid-7">
-    <div class="mini-upload" onclick="document.getElementById('f1').click()">
-        <div id="p1">TÊTE 1 (FACE)</div>
-        <input type="file" id="f1" hidden onchange="previewImage(this, 'p1')">
-    </div>
-    <div class="mini-upload" onclick="document.getElementById('f2').click()">
-        <div id="p2">TÊTE 2 (PROFIL)</div>
-        <input type="file" id="f2" hidden onchange="previewImage(this, 'p2')">
-    </div>
-    <div class="mini-upload" onclick="document.getElementById('f3').click()">
-        <div id="p3">CORPS (FACE)</div>
-        <input type="file" id="f3" hidden onchange="previewImage(this, 'p3')">
-    </div>
-    <div class="mini-upload" onclick="document.getElementById('f4').click()">
-        <div id="p4">CORPS (DOS)</div>
-        <input type="file" id="f4" hidden onchange="previewImage(this, 'p4')">
-    </div>
-    <div class="mini-upload" onclick="document.getElementById('f5').click()">
-        <div id="p5">ACCESSOIRES</div>
-        <input type="file" id="f5" hidden onchange="previewImage(this, 'p5')">
-    </div>
-    <div class="mini-upload" onclick="document.getElementById('f6').click()">
-        <div id="p6">CARTON</div>
-        <input type="file" id="f6" hidden onchange="previewImage(this, 'p6')">
-    </div>
-    <div class="mini-upload" onclick="document.getElementById('f7').click()">
-        <div id="p7">CARTON BRUN</div>
-        <input type="file" id="f7" hidden onchange="previewImage(this, 'p7')">
-    </div>
-</div>
-
-
-        <div class="form-grid-industrial">
-            <div class="input-group">
-                <label>NOM DE LA PIÈCE</label>
-                <input type="text" id="item-title" placeholder="Ex: Batman Queen Studios" class="spirit-input">
-            </div>
+        <section id="page-scan" class="page">
+            <h1 style="text-align:center; color: var(--orange); letter-spacing: 2px; margin-bottom: 20px;">🔍 AUDIT SPIRIT EYES</h1>
             
-            <div class="input-group">
-                <label>ÉCHELLE</label>
-                <select id="item-scale" class="spirit-input">
-                    <option value="1/6">1/6 Collectible Figure</option>
-                    <option value="1/4">1/4 Premium Format</option>
-                    <option value="1/1">1/1 Life Size</option>
-                </select>
-            </div>
-
-            <div class="full-width">
-                <label>DESCRIPTIF TECHNIQUE</label>
-                <textarea id="item-desc" class="spirit-input" placeholder="État des articulations, peintures..."></textarea>
-            </div>
-
-            <div class="switches-container">
-                <div class="sw-box">
-                    <span>🚭 Non-Fumeur</span>
-                    <input type="checkbox" id="check-smoke">
+            <div class="scan-card">
+                <div class="photo-grid-7">
+                    <div class="mini-upload" onclick="document.getElementById('f1').click()"><div id="p1">TÊTE 1 (FACE)</div><input type="file" id="f1" hidden onchange="previewImage(this, 'p1')"></div>
+                    <div class="mini-upload" onclick="document.getElementById('f2').click()"><div id="p2">TÊTE 2 (PROFIL)</div><input type="file" id="f2" hidden onchange="previewImage(this, 'p2')"></div>
+                    <div class="mini-upload" onclick="document.getElementById('f3').click()"><div id="p3">CORPS (FACE)</div><input type="file" id="f3" hidden onchange="previewImage(this, 'p3')"></div>
+                    <div class="mini-upload" onclick="document.getElementById('f4').click()"><div id="p4">CORPS (DOS)</div><input type="file" id="f4" hidden onchange="previewImage(this, 'p4')"></div>
+                    <div class="mini-upload" onclick="document.getElementById('f5').click()"><div id="p5">ACCESSOIRES</div><input type="file" id="f5" hidden onchange="previewImage(this, 'p5')"></div>
+                    <div class="mini-upload" onclick="document.getElementById('f6').click()"><div id="p6">CARTON</div><input type="file" id="f6" hidden onchange="previewImage(this, 'p6')"></div>
+                    <div class="mini-upload" onclick="document.getElementById('f7').click()"><div id="p7">CARTON BRUN</div><input type="file" id="f7" hidden onchange="previewImage(this, 'p7')"></div>
                 </div>
-                <div class="sw-box">
-                    <span>☀️ Abri Lumière</span>
-                    <input type="checkbox" id="check-light">
+
+                <div class="form-grid-industrial">
+                    <input type="text" id="item-title" placeholder="NOM DE LA PIÈCE" class="spirit-input">
+                    <select id="item-scale" class="spirit-input">
+                        <option value="1/6">1/6 Collectible Figure</option>
+                        <option value="1/4">1/4 Premium Format</option>
+                        <option value="1/1">1/1 Life Size</option>
+                    </select>
+                    <textarea id="item-desc" class="spirit-input" placeholder="DESCRIPTIF TECHNIQUE (État, défauts...)"></textarea>
+
+                    <div class="switches-container">
+                        <label>🚭 <input type="checkbox" id="check-smoke"></label>
+                        <label>☀️ <input type="checkbox" id="check-light"></label>
+                        <label>💎 <input type="checkbox" id="check-hand"></label>
+                    </div>
+
+                    <div class="price-box-industrial">
+                        <input type="number" id="item-price" placeholder="PRIX DE VENTE NET (€)" class="spirit-input">
+                        <small style="color: var(--orange)">(c) Protection Acheteur 8% incluse</small>
+                    </div>
                 </div>
-                <div class="sw-box">
-                    <span>💎 1ère Main</span>
-                    <input type="checkbox" id="check-hand">
-                </div>
+
+                <button class="btn-scan-launch" onclick="SpiritEngine.processSale()">
+                    LANCER L'AUDIT & PUBLIER
+                </button>
             </div>
-
-            <div class="price-box-industrial">
-                <label>PRIX DE VENTE NET</label>
-                <input type="number" id="item-price" placeholder="0.00" class="spirit-input price-in">
-                <div class="fee-badge">Protection Acheteur (8%) incluse</div>
-            </div>
-        </div>
-
-        <button class="btn-scan-launch" onclick="SpiritEngine.processSale()">
-            <span class="pulse"></span> LANCER L'AUDIT & PUBLIER
-        </button>
-    </div>
-</section>
-
+        </section>
 
         <section id="page-account" class="page">
             <h1>🏠 Mon Ledger Personnel</h1>
-            <div class="user-dashboard">
-                <div class="user-profile">
-                    <h3 id="display-name">Chargement...</h3>
-                    <div id="user-badges-area"></div>
-                </div>
-                </div>
+            <div id="display-name">Chargement...</div>
         </section>
 
-        <section id="page-forum" class="page">
-            <h1>💬 Spirit Community</h1>
-            <div class="forum-grid">
-                </div>
-        </section>
+        <section id="page-forum" class="page"><h1>💬 Spirit Community</h1></section>
 
         <section id="page-musee" class="page">
             <h1>🏛️ Galerie d'Exposition</h1>
@@ -211,196 +148,89 @@
     </main>
 
     <script>
-     // CONFIGURATION SUPABASE FINALE
-const _supabase = supabase.createClient(
-    'https://eagmxrbtcajqlhivvpww.supabase.co', 
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78' 
-);
-
+        const _supabase = supabase.createClient(
+            'https://eagmxrbtcajqlhivvpww.supabase.co', 
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78' 
+        );
 
         function showTab(tabId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + tabId).classList.add('active');
+            const target = document.getElementById('page-' + tabId);
+            if(target) target.classList.add('active');
             
             document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if(event) event.currentTarget.classList.add('active');
         }
 
-        function updateFees() {
-            const price = document.getElementById('item-price').value;
-            const fee = (price * 0.08).toFixed(2);
-            document.getElementById('fee-info').innerHTML = `Protection acheteur (8%) : <b>${fee} €</b>`;
-        }
-
-
-        
-       // (c) 2026 Spirit Infinity - Moteur synchronisé sur la table "transactions"
-
-// FONCTION DE PREVIEW (Doit être en dehors de SpiritEngine)
-function previewImage(input, previewId) {
-    const preview = document.getElementById(previewId);
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
-            preview.parentElement.classList.add('has-image');
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-const SpiritEngine = {
-    user: { id: "12345" },
-
-    async init() {
-        console.log("Spirit Infinity Online");
-        await this.loadMarketplace();
-    } }
-SpiritEngine.init();
-    async loadMarketplace() {
-        const grid = document.getElementById('market-list');
-        if(!grid) return;
-        const { data, error } = await _supabase.from('transactions').select('*').order('created_at', { ascending: false });
-        if(error) return;
-
-        grid.innerHTML = data.map(item => `
-            <div class="card-spirit">
-                <div style="font-size: 10px; color: #ff6600;">AUTHENTIFIÉ SPIRIT</div>
-                <h3>${item.figurine_name}</h3>
-                <p class="price">${item.amount} €</p>
-                <div class="badge">${item.status}</div>
-            </div>
-        `).join('');
-    },
-
-    async processSale() {
-        const title = document.getElementById('item-title').value;
-        const price = parseFloat(document.getElementById('item-price').value);
-        
-        // Anti-Frigo / Anti-Voiture
-        const forbidden = ['frigo', 'voiture', 'cuisine', 'moto'];
-        if(forbidden.some(w => title.toLowerCase().includes(w))) {
-            alert("⚠️ OBJET NON CONFORME : Seules les figurines sont acceptées.");
-            return;
-        }
-
-        const { error } = await _supabase.from('transactions').insert([{
-            figurine_name: title,
-            amount: price,
-            scale: document.getElementById('item-scale').value,
-            status: 'SÉQUESTRE ACTIF',
-            user_profit: (price * 0.03),
-            firm_profit: (price * 0.03),
-            bank_share: (price * 0.02),
-            seller_id: this.user.id
-        }]);
-
-        if(!error) {
-            alert("✅ Pièce scellée sur le Ledger !");
-            await this.loadMarketplace();
-            showTab('market');
-        }
-    }
-};
-
-        // 3. CODE 3 : SPIRIT SECURITY
-        const SpiritSecurity = {
-            async submitReview(vendeurId, score, comment) {
-                console.log("Analyse de la note par Spirit Guard...");
-                const { error } = await _supabase.from('reviews').insert([{
-                    target_id: vendeurId,
-                    rating: score,
-                    comment: comment,
-                    reviewer_id: SpiritEngine.user.id
-                }]);
-                if (score <= 2) { this.triggerInvestigation(vendeurId); }
-            },
-            triggerInvestigation(userId) {
-                alert("ALERTE SPIRIT EYES : Note faible détectée. Analyse du Ledger de l'utilisateur...");
-                this.applyShameBadge(userId);
-            },
-            async applyShameBadge(userId) {
-                const { error } = await _supabase.from('users').update({ status: 'SHAME' }).eq('id', userId);
-                if(!error) { console.warn("BADGE DE HONTE APPLIQUÉ. Visibilité réduite à zéro."); }
-            },
-            renderUserBadges(status) {
-                if (status === 'SHAME') { return '<span class="badge badge-shame">⚠️ PROFIL FRAUDULEUX</span>'; }
-                else if (status === 'TRUSTED') { return '<span class="badge badge-native">💎 MEMBRE CERTIFIÉ</span>'; }
-                return '';
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
+                };
+                reader.readAsDataURL(input.files[0]);
             }
-        };
+        }
 
-        // 4. CODE 4 : SPIRIT MESSENGER
-        const SpiritMessenger = {
-            forbiddenPatterns: [/paypal/i, /virement/i, /0[1-9][0-9]{8}/, /@/, /whatsapp/i],
-            async sendMessage(text, transactionId) {
-                const isSuspect = this.forbiddenPatterns.some(pattern => pattern.test(text));
-                if (isSuspect) {
-                    alert("SÉCURITÉ SPIRIT : L'échange de coordonnées directes est bloqué pour garantir votre protection acheteur.");
-                    this.logSecurityAlert(transactionId, "Tentative de contournement");
+        const SpiritEngine = {
+            user: { id: "12345" },
+
+            async init() {
+                console.log("Spirit Infinity Online");
+                await this.loadMarketplace();
+            },
+
+            async loadMarketplace() {
+                const grid = document.getElementById('market-list');
+                if(!grid) return;
+                const { data, error } = await _supabase.from('transactions').select('*').order('created_at', { ascending: false });
+                if(error) { console.error(error); return; }
+
+                grid.innerHTML = data.map(item => `
+                    <div class="card-spirit">
+                        <div style="font-size: 10px; color: #ff6600;">AUTHENTIFIÉ SPIRIT</div>
+                        <h3>${item.figurine_name || 'Sans Nom'}</h3>
+                        <p class="price">${item.amount || 0} €</p>
+                        <div class="badge badge-native">${item.status || 'VALIDE'}</div>
+                    </div>
+                `).join('');
+            },
+
+            async processSale() {
+                const title = document.getElementById('item-title').value;
+                const price = parseFloat(document.getElementById('item-price').value);
+                
+                if(!title || !price) { alert("Veuillez remplir le nom et le prix."); return; }
+
+                const forbidden = ['frigo', 'voiture', 'cuisine', 'moto'];
+                if(forbidden.some(w => title.toLowerCase().includes(w))) {
+                    alert("⚠️ OBJET NON CONFORME.");
                     return;
                 }
-                const { error } = await _supabase.from('messages').insert([{
-                    transaction_id: transactionId,
-                    sender_id: SpiritEngine.user.id,
-                    content: text,
-                    created_at: new Date()
+
+                const { error } = await _supabase.from('transactions').insert([{
+                    figurine_name: title,
+                    amount: price,
+                    scale: document.getElementById('item-scale').value,
+                    status: 'SÉQUESTRE ACTIF',
+                    user_profit: (price * 0.03),
+                    firm_profit: (price * 0.03),
+                    bank_share: (price * 0.02),
+                    seller_id: this.user.id
                 }]);
+
                 if(!error) {
-                    console.log("Message envoyé et scellé sur le Ledger.");
+                    alert("✅ Pièce scellée sur le Ledger !");
+                    await this.loadMarketplace();
+                    showTab('market');
+                } else {
+                    console.error(error);
                 }
-            },
-            async logSecurityAlert(tId, reason) {
-                await _supabase.from('security_logs').insert([{
-                    user_id: SpiritEngine.user.id,
-                    transaction_id: tId,
-                    alert_type: reason
-                }]);
             }
         };
 
-        // 5. CODE 5 : SPIRIT GLOBAL (i18n)
-        const SpiritGlobal = {
-            currentLang: 'fr',
-            locales: {
-                fr: { market: "Marketplace", sell: "Vendre", prot: "Protection Acheteur", currency: "€" },
-                en: { market: "Marketplace", sell: "Sell", prot: "Buyer Protection", currency: "$" },
-                es: { market: "Mercado", sell: "Vender", prot: "Protección Comprador", currency: "€" },
-                zh: { market: "市场", sell: "卖", prot: "买家保护", currency: "¥" }
-            },
-            switchLang(lang) {
-                this.currentLang = lang;
-                const dict = this.locales[lang];
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if (dict[key]) el.innerText = dict[key];
-                });
-                document.querySelectorAll('.currency-symbol').forEach(el => {
-                    el.innerText = dict.currency;
-                });
-                console.log(`Spirit Infinity basculé en : ${lang.toUpperCase()}`);
-            }
-        };
-
-        // INITIALISATION AUTOMATIQUE (Code 6 Logic)
         window.onload = () => SpiritEngine.init();
-
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
