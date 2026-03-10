@@ -95,21 +95,49 @@
             <div class="grid-master" id="market-list">
                 </div>
         </section>
+<section id="page-scan" class="page">
+    <h1>🔍 Certification Spirit Eyes</h1>
+    <div class="scan-container">
+        <div class="scan-window">
+            <div class="scan-bar"></div>
+            <p id="scan-feedback">RADAR LD2410 : PRÊT POUR ANALYSE...</p>
+        </div>
 
-        <section id="page-scan" class="page">
-            <h1>🔍 Certification Spirit Eyes</h1>
-            <div class="scan-container">
-                <div class="scan-window">
-                    <div class="scan-bar"></div>
-                    <p id="scan-feedback">RADAR LD2410 : PRÊT POUR ANALYSE...</p>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="item-title" placeholder="Marque / Modèle" class="spirit-input">
-                    <input type="number" id="item-price" placeholder="Prix de vente (€)" oninput="updateFees()">
-                    <div id="fee-info" style="margin: 15px 0; color: var(--cyan);">Protection acheteur (8%) : 0.00 €</div>
-                    <button class="btn-spirit" onclick="SpiritEngine.processSale()">PUBLIER AVEC BOOST 🚀</button>
-                </div>
-            </section>
+        <div class="form-group">
+            <input type="text" id="item-title" placeholder="Marque / Modèle (ex: Iron Man Mark 85)" class="spirit-input">
+            <textarea id="item-desc" placeholder="Descriptif détaillé de la pièce..." class="spirit-input" style="height:100px; margin-top:10px;"></textarea>
+
+            <select id="item-scale" class="spirit-input" style="margin-top:10px;">
+                <option value="1/6">Taille 1/6</option>
+                <option value="1/4">Taille 1/4</option>
+                <option value="1/12">Taille 1/12</option>
+                <option value="Autre">Autre</option>
+            </select>
+
+            <div class="switches-grid" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin:20px 0;">
+                <label><input type="checkbox" id="check-smoke"> Non-Fumeur</label>
+                <label><input type="checkbox" id="check-light"> Abri Lumière</label>
+                <label><input type="checkbox" id="check-hand"> 1ère Main</label>
+            </div>
+
+            <div class="photo-upload-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:5px; margin-bottom:20px;">
+                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Tête 1</div>
+                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Tête 2</div>
+                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Corps 1</div>
+                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Corps 2</div>
+                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Access.</div>
+                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Carton</div>
+                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Brun</div>
+            </div>
+
+            <input type="number" id="item-price" placeholder="Prix de vente (€)" oninput="updateFees()" class="spirit-input">
+            <div id="fee-info" style="margin: 15px 0; color: var(--cyan);">Protection acheteur (8%) : 0.00 €</div>
+            
+            <button class="btn-spirit" onclick="SpiritEngine.processSale()">PUBLIER AVEC BOOST 🚀</button>
+        </div>
+    </div>
+</section>
+
 
         <section id="page-account" class="page">
             <h1>🏠 Mon Ledger Personnel</h1>
@@ -198,45 +226,53 @@ const SpiritEngine = {
     },
 
     // PUBLICATION : Envoi vers ta table "transactions"
-    async processSale() {
-        const feedback = document.getElementById('scan-feedback');
-        const title = document.getElementById('item-title').value;
-        const price = parseFloat(document.getElementById('item-price').value);
+   async processSale() {
+    const feedback = document.getElementById('scan-feedback');
+    const title = document.getElementById('item-title').value;
+    const price = parseFloat(document.getElementById('item-price').value);
 
-        if(!title || !price) return alert("Veuillez remplir le nom et le prix.");
+    if(!title || !price) return alert("Veuillez remplir le nom et le prix.");
 
-        feedback.innerHTML = "ANALYSE IA SPIRIT EYES...";
+    feedback.innerHTML = "ANALYSE SPIRIT EYES : DÉTECTION D'OBJET...";
+    feedback.style.color = "var(--cyan)";
+
+    // SIMULATION DU FILTRE ANTI-FRIGO / ANTI-AUTO
+    setTimeout(async () => {
+        const forbiddenWords = ['frigo', 'voiture', 'moto', 'chien', 'chat', 'meuble'];
+        const isForbidden = forbiddenWords.some(word => title.toLowerCase().includes(word));
+
+        if(isForbidden) {
+            feedback.innerHTML = "❌ ERREUR : OBJET NON CONFORME. Spirit Infinity n'autorise que les figurines.";
+            feedback.style.color = "var(--shame)";
+            return;
+        }
+
+        feedback.innerHTML = "✅ FIGURINE DÉTECTÉE. APPLICATION DU WATERMARK SPIRIT GUARD...";
         
-        setTimeout(async () => {
-            // Calcul automatique des parts pour ta table (3% / 3% / 2%)
-            const userP = price * 0.03;
-            const firmP = price * 0.03;
-            const bankP = price * 0.02;
+        // Simulation insertion Supabase avec les nouveaux champs
+        const { error } = await _supabase.from('transactions').insert([{
+            figurine_name: title,
+            amount: price,
+            status: 'À VENDRE', // On met À VENDRE pour qu'il soit visible sur le market
+            user_profit: price * 0.03,
+            firm_profit: price * 0.03,
+            bank_share: price * 0.02,
+            currency: 'EUR',
+            seller_id: this.user.id
+            // Note : Tu devras rajouter les colonnes 'description', 'taille', 'fumeur' dans Supabase plus tard
+        }]);
 
-            const { error } = await _supabase.from('transactions').insert([{
-                figurine_name: title,
-                amount: price,
-                user_profit: userP,
-                firm_profit: firmP,
-                bank_share: bankP,
-                status: 'SÉQUESTRE ACTIF',
-                buyer_id: this.user.id,
-                seller_id: 'SYSTEM',
-                currency: 'EUR'
-            }]);
-
-            if(!error) {
-                feedback.innerHTML = "✅ TRANSACTION SCELLÉE SUR LE LEDGER";
-                showTab('market');
-                this.loadMarketplace();
-            } else {
-                console.error(error);
-                feedback.innerHTML = "❌ ERREUR D'INSCRIPTION";
-            }
-        }, 2000);
-    }
-};
-
+        if(!error) {
+            feedback.innerHTML = "✅ TRANSACTION SCELLÉE ET WATERMARKÉE.";
+            // FORCE LE CHARGEMENT POUR AFFICHER LA NOUVELLE FIGURINE
+            await this.loadMarketplace(); 
+            setTimeout(() => showTab('market'), 1500);
+        } else {
+            console.error(error);
+            feedback.innerHTML = "❌ ERREUR LEDGER : " + error.message;
+        }
+    }, 2500);
+}
         // 3. CODE 3 : SPIRIT SECURITY
         const SpiritSecurity = {
             async submitReview(vendeurId, score, comment) {
@@ -322,6 +358,7 @@ const SpiritEngine = {
     </script>
 </body>
 </html>
+
 
 
 
