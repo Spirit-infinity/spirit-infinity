@@ -1372,79 +1372,115 @@ function calculateSpiritSplit(price) {
 // On utilise 'let' pour pouvoir changer d'utilisateur avec le simulateur
 let MY_TEST_ID = "12345"; 
 
-// (c) 2026 Spirit Infinity - Tous droits réservés
+/* (c) 2026 Spirit Infinity - Tous droits réservés */
 
 /**
  * CHARGEMENT DES ACHATS DEPUIS LE SPIRIT LEDGER
  */
 async function loadMyPurchases() {
     const listBody = document.getElementById('my-purchases-list');
-    if (!listBody) return; // Ce return est maintenant bien à l'intérieur !
+    if (!listBody) return;
 
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE ACHATS...</div>';
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">Chargement des achats...</div>';
 
     try {
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
-            .eq('buyer_id', MY_TEST_ID) 
+            .eq('buyer_id', MY_TEST_ID) // Filtre strict : Je suis l'acheteur
             .order('created_at', { ascending: false });
 
+        // Appelle ta fonction de rendu avec le flag 'ACHATS'
         renderTransactionList(listBody, data, error, 'ACHATS');
-    } catch (err) { 
+    } catch (err) {
         console.error(err);
-        listBody.innerHTML = "Erreur de connexion au Ledger.";
+        listBody.innerHTML = "Erreur de connexion au ledger.";
     }
 }
-// --- FONCTION POUR TES VENTES ---
+
+/**
+ * CHARGEMENT DES VENTES DEPUIS LE SPIRIT LEDGER
+ */
 async function loadMySales() {
-    const listBody = document.getElementById('my-sales-list'); // Assure-toi d'avoir cet ID dans ton HTML
+    const listBody = document.getElementById('my-sales-list');
     if (!listBody) return;
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE VENTES...</div>';
+
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">Chargement des ventes...</div>';
 
     try {
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
-            .eq('seller_id', MY_TEST_ID) // <--- FILTRE : Uniquement tes ventes
+            .eq('seller_id', MY_TEST_ID) // Filtre strict : Je suis le vendeur
             .order('created_at', { ascending: false });
 
+        // Appelle ta fonction de rendu avec le flag 'VENTES'
         renderTransactionList(listBody, data, error, 'VENTES');
-    } catch (err) { console.error(err); }
+    } catch (err) {
+        console.error(err);
+        listBody.innerHTML = "Erreur de connexion au ledger.";
+    }
 }
 
-// --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
-function renderTransactionList(container, data, error, type) {
-    if (error) { container.innerHTML = "Erreur sync."; return; }
-    if (!data || data.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
+/**
+ * FONCTION DE RENDU (Mise à jour pour inclure le Bordereau)
+ * Je respecte tes boutons validerReception et ouvrirLitige
+ */
+function renderTransactionList(container, data, error, mode) {
+    if (error) {
+        container.innerHTML = "Erreur lors du rendu des transactions.";
         return;
     }
 
-    container.innerHTML = data.map(tr => {
-        // Logique des boutons : Bordereau pour VENTES, Valider pour ACHATS
-        let actionBtn = "";
-        if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer;">📦 VOIR LE BORDEREAU</button>`;
-        } else if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px;">Valider</button>
-                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px;">Litige</button>
-                </div>`;
+    if (!data || data.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px;">Aucune transaction trouvée.</div>';
+        return;
+    }
+
+    let html = '<table class="spirit-table"><thead><tr><th>Date</th><th>Produit</th><th>Montant</th><th>Statut</th><th>Actions</th><th>Spirit Shield</th></tr></thead><tbody>';
+
+    data.forEach(t => {
+        let actions = "";
+
+        if (mode === 'ACHATS') {
+            // Logique Acheteur : Garde tes boutons qui fonctionnent
+            if (t.status === "SÉQUESTRE ACTIF") {
+                actions = `
+                    <button class="btn-action btn-valider" onclick="validerReception('${t.id}')">Valider</button>
+                    <button class="btn-action btn-litige" onclick="ouvrirLitige('${t.id}')">Litige</button>
+                `;
+            } else {
+                actions = `<span class="status-confirmed">${t.status}</span>`;
+            }
+        } else if (mode === 'VENTES') {
+            // Logique Vendeur : Ajout du Bordereau, pas de bouton Valider
+            if (t.status === "SÉQUESTRE ACTIF") {
+                actions = `<button class="btn-action btn-bordereau" onclick="genererBordereau('${t.id}')">📦 Bordereau</button>`;
+            } else {
+                actions = `<span class="status-waiting">En attente de l'acheteur</span>`;
+            }
         }
 
-        return `
-            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
-                <div style="display:flex; justify-content:space-between;">
-                    <span style="color:white; font-weight:bold;">${tr.figurine_name}</span>
-                    <span style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</span>
-                </div>
-                <div style="font-size:0.7rem; color:#555; margin-top:5px;">Statut: ${tr.status}</div>
-                ${actionBtn}
-            </div>
+        html += `
+            <tr>
+                <td>${new Date(t.created_at).toLocaleDateString()}</td>
+                <td>${t.figurine_name}</td>
+                <td>${t.amount} €</td>
+                <td><span class="badge-status">${t.status}</span></td>
+                <td>${actions}</td>
+                <td><img src="shield-icon.png" style="width:20px; filter: drop-shadow(0 0 5px #00f2ff);"></td>
+            </tr>
         `;
-    }).join('');
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+// Fonction utilitaire pour le bordereau (côté vendeur)
+function genererBordereau(id) {
+    alert("Génération du bordereau Spirit Shield pour la transaction : " + id);
+    // Ici tu pourras ajouter ta logique PDF ou impression
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -1738,6 +1774,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
