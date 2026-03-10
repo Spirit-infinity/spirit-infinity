@@ -96,45 +96,73 @@
                 </div>
         </section>
 <section id="page-scan" class="page">
-    <h1>🔍 Certification Spirit Eyes</h1>
-    <div class="scan-container">
-        <div class="scan-window">
-            <div class="scan-bar"></div>
-            <p id="scan-feedback">RADAR LD2410 : PRÊT POUR ANALYSE...</p>
+    <h1 style="text-align:center; color: var(--orange-neon); letter-spacing: 2px;">🔍 AUDIT SPIRIT EYES</h1>
+    
+    <div class="scan-card">
+        <div class="photo-main-zone" onclick="document.getElementById('file-tete1').click()">
+            <div id="preview-tete1" class="preview-box">
+                <p>📸 CLIQUEZ POUR SCANNER LA TÊTE (N°1)</p>
+                <small>Watermark "Spirit Guard" automatique</small>
+            </div>
+            <input type="file" id="file-tete1" hidden onchange="previewImage(this, 'preview-tete1')">
         </div>
 
-        <div class="form-group">
-            <input type="text" id="item-title" placeholder="Marque / Modèle (ex: Iron Man Mark 85)" class="spirit-input">
-            <textarea id="item-desc" placeholder="Descriptif détaillé de la pièce..." class="spirit-input" style="height:100px; margin-top:10px;"></textarea>
-
-            <select id="item-scale" class="spirit-input" style="margin-top:10px;">
-                <option value="1/6">Taille 1/6</option>
-                <option value="1/4">Taille 1/4</option>
-                <option value="1/12">Taille 1/12</option>
-                <option value="Autre">Autre</option>
-            </select>
-
-            <div class="switches-grid" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin:20px 0;">
-                <label><input type="checkbox" id="check-smoke"> Non-Fumeur</label>
-                <label><input type="checkbox" id="check-light"> Abri Lumière</label>
-                <label><input type="checkbox" id="check-hand"> 1ère Main</label>
+        <div class="photo-grid-7">
+            <div class="mini-upload" onclick="document.getElementById('file-tete2').click()">
+                <div id="preview-tete2">Tête 2</div>
+                <input type="file" id="file-tete2" hidden onchange="previewImage(this, 'preview-tete2')">
+            </div>
+            <div class="mini-upload" onclick="document.getElementById('file-corps1').click()">
+                <div id="preview-corps1">Corps 1</div>
+                <input type="file" id="file-corps1" hidden onchange="previewImage(this, 'preview-corps1')">
+            </div>
             </div>
 
-            <div class="photo-upload-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:5px; margin-bottom:20px;">
-                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Tête 1</div>
-                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Tête 2</div>
-                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Corps 1</div>
-                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Corps 2</div>
-                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Access.</div>
-                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Carton</div>
-                <div style="border:1px dashed #444; height:60px; font-size:10px; text-align:center;">Brun</div>
+        <div class="form-grid-industrial">
+            <div class="input-group">
+                <label>NOM DE LA PIÈCE</label>
+                <input type="text" id="item-title" placeholder="Ex: Batman Queen Studios" class="spirit-input">
             </div>
-
-            <input type="number" id="item-price" placeholder="Prix de vente (€)" oninput="updateFees()" class="spirit-input">
-            <div id="fee-info" style="margin: 15px 0; color: var(--cyan);">Protection acheteur (8%) : 0.00 €</div>
             
-            <button class="btn-spirit" onclick="SpiritEngine.processSale()">PUBLIER AVEC BOOST 🚀</button>
+            <div class="input-group">
+                <label>ÉCHELLE</label>
+                <select id="item-scale" class="spirit-input">
+                    <option value="1/6">1/6 Collectible Figure</option>
+                    <option value="1/4">1/4 Premium Format</option>
+                    <option value="1/1">1/1 Life Size</option>
+                </select>
+            </div>
+
+            <div class="full-width">
+                <label>DESCRIPTIF TECHNIQUE</label>
+                <textarea id="item-desc" class="spirit-input" placeholder="État des articulations, peintures..."></textarea>
+            </div>
+
+            <div class="switches-container">
+                <div class="sw-box">
+                    <span>🚭 Non-Fumeur</span>
+                    <input type="checkbox" id="check-smoke">
+                </div>
+                <div class="sw-box">
+                    <span>☀️ Abri Lumière</span>
+                    <input type="checkbox" id="check-light">
+                </div>
+                <div class="sw-box">
+                    <span>💎 1ère Main</span>
+                    <input type="checkbox" id="check-hand">
+                </div>
+            </div>
+
+            <div class="price-box-industrial">
+                <label>PRIX DE VENTE NET</label>
+                <input type="number" id="item-price" placeholder="0.00" class="spirit-input price-in">
+                <div class="fee-badge">Protection Acheteur (8%) incluse</div>
+            </div>
         </div>
+
+        <button class="btn-scan-launch" onclick="SpiritEngine.processSale()">
+            <span class="pulse"></span> LANCER L'AUDIT & PUBLIER
+        </button>
     </div>
 </section>
 
@@ -183,6 +211,8 @@ const _supabase = supabase.createClient(
             document.getElementById('fee-info').innerHTML = `Protection acheteur (8%) : <b>${fee} €</b>`;
         }
 
+
+        
        // (c) 2026 Spirit Infinity - Moteur synchronisé sur la table "transactions"
 
 // (c) 2026 Spirit Infinity - Moteur Spirit Eyes V2
@@ -227,6 +257,18 @@ const SpiritEngine = {
             `;
         });
     },
+
+    function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover; border-radius:4px;">`;
+            preview.classList.add('has-image');
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
 
     async processSale() {
         const feedback = document.getElementById('scan-feedback');
@@ -365,6 +407,7 @@ const SpiritEngine = {
     </script>
 </body>
 </html>
+
 
 
 
