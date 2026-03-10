@@ -431,20 +431,35 @@
                 <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
                 <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
-            <div class="dash-content">
-                <div id="tab-dashboard" class="account-page active">
-    <h2>🏠 TABLEAU DE BORD</h2>
-    <p>C'est ici que s'affiche ton résumé.</p>
-</div>
+          <div class="dash-content">
+    <div id="tab-dashboard" class="account-page active">
+        <h2>🏠 TABLEAU DE BORD</h2>
+        <p>C'est ici que s'affiche ton résumé.</p>
+        <div class="vos-figurines-test">
+            <p>Batman, Captain America, etc...</p> 
+        </div>
+    </div>
 
-<div id="tab-achats" class="account-page" style="display:none;">
-    <h2>🛒 MES ACHATS</h2>
-    <p>Tes transactions Supabase apparaîtront ici bientôt.</p>
-</div>
+    <div id="tab-achats" class="account-page" style="display:none;">
+        <h2>🛒 MES ACHATS</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Produit</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="list-achats"></tbody>
+        </table>
+    </div>
 
-<div id="tab-ventes" class="account-page" style="display:none;">
-    <h2>💰 MES VENTES</h2>
-    <p>Ici, tu verras ce que tu as vendu.</p>
+    <div id="tab-ventes" class="account-page" style="display:none;">
+        <h2>💰 MES VENTES</h2>
+        <p>Ici, tu verras ce que tu as vendu.</p>
+    </div>
 </div>
 
     <div style="background:#0a0a0a; padding:10px; border:1px solid #222; margin-bottom:15px; font-size:0.75rem; color:#888;">
@@ -687,55 +702,63 @@ function calculateSpiritSplit(price) {
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function loadUserPurchases() {
-    // 1. GESTION DES ONGLETS (On cache tout avant de charger)
-    const sections = ['tab-dashboard', 'tab-achats', 'tab-ventes'];
-    sections.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
+    // 1. On cache TOUTES les sections
+    document.querySelectorAll('.account-page').forEach(page => {
+        page.style.display = 'none';
+        page.classList.remove('active');
     });
 
-    // 2. AFFICHER UNIQUEMENT LES ACHATS
-    const tabAchats = document.getElementById('tab-achats');
-    if (tabAchats) tabAchats.style.display = 'block';
+    // 2. On affiche l'onglet achats
+    const targetTab = document.getElementById('tab-achats');
+    if (targetTab) {
+        targetTab.style.display = 'block';
+        targetTab.classList.add('active');
+    }
 
     const listBody = document.getElementById('list-achats');
     if (!listBody) return;
-    listBody.innerHTML = ""; 
+    listBody.innerHTML = "<tr><td colspan='5'>Chargement du Ledger...</td></tr>";
 
-    // 3. RÉCUPÉRATION SUPABASE
-    const { data: achats, error } = await _spirit
+    // 3. Récupération Supabase
+    const { data: transactions, error } = await _spirit
         .from('transactions')
         .select('*')
         .eq('buyer_id', '12345');
 
     if (error) {
-        console.error("Erreur Ledger:", error.message);
+        listBody.innerHTML = "<tr><td colspan='5'>Erreur de connexion.</td></tr>";
         return;
     }
 
-    // 4. REMPLISSAGE
-    if (achats && achats.length > 0) {
-        achats.forEach(tr => {
+    listBody.innerHTML = ""; 
+
+    if (transactions && transactions.length > 0) {
+        transactions.forEach(tr => {
             const row = document.createElement('tr');
+            
+            // On vérifie si le statut permet encore d'agir (ex: SÉQUESTRE ACTIF)
+            const showButtons = (tr.status === 'SÉQUESTRE ACTIF');
+
             row.innerHTML = `
                 <td>${new Date(tr.created_at).toLocaleDateString()}</td>
-                <td><b style="color:orange">Figurine #${tr.product_id}</b></td>
+                <td><b style="color:var(--neon-orange)">#${tr.product_id}</b></td>
                 <td>${tr.amount} €</td>
                 <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
                 <td style="text-align:center;">
-                    <button class="btn-recu-action" style="cursor:pointer;">✅ REÇU</button>
-                    <button class="btn-litige-action" style="color:red; border:1px solid red; background:none; margin-left:5px; cursor:pointer;">⚠️ LITIGE</button>
+                    ${showButtons ? `
+                        <button class="btn-recu-action" data-id="${tr.id}" style="cursor:pointer;">✅ REÇU</button>
+                        <button class="btn-litige-action" data-id="${tr.id}" style="cursor:pointer; background:none; border:1px solid #ff4444; color:#ff4444; margin-left:8px; padding:2px 5px; border-radius:4px;">⚠️ LITIGE</button>
+                    ` : `<span style="font-size:0.8rem; color:#777;">TERMINÉ</span>`}
                 </td>
             `;
             listBody.appendChild(row);
         });
     } else {
-        listBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>AUCUN ACHAT</td></tr>";
+        listBody.innerHTML = "<tr><td colspan='5' style='text-align:center; padding:20px;'>AUCUNE TRANSACTION TROUVÉE</td></tr>";
     }
 }
-
-
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
@@ -1742,6 +1765,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
