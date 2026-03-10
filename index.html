@@ -106,3 +106,61 @@
     <script src="app.js"></script>
 </body>
 </html>
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+// NAVIGATION ENTRE LES ONGLETS (Sans bug de disparition)
+function spiritTab(tabId) {
+    document.querySelectorAll('.spirit-page').forEach(page => {
+        page.style.display = 'none';
+        page.classList.remove('active');
+    });
+    
+    const target = document.getElementById('tab-' + tabId);
+    if(target) {
+        target.style.display = 'block';
+        setTimeout(() => target.classList.add('active'), 10);
+    }
+
+    if(tabId === 'achats') renderMarketplace();
+}
+
+// LOGIQUE DU MARKETPLACE (Frais et Litiges)
+async function renderMarketplace() {
+    const list = document.getElementById('purchase-list');
+    list.innerHTML = "Chargement du Ledger...";
+
+    // Récupération réelle de tes colonnes
+    const { data: transacs, error } = await _spirit.from('transactions').select('*');
+
+    if(error) return;
+
+    list.innerHTML = "";
+    transacs.forEach(t => {
+        // CALCUL DES FRAIS (8% répartis 3/3/2)
+        const protection = (t.amount * 0.08).toFixed(2);
+        const total = (parseFloat(t.amount) + parseFloat(protection)).toFixed(2);
+
+        list.innerHTML += `
+            <tr>
+                <td>#${t.product_id}</td>
+                <td>${t.amount} €</td>
+                <td style="color: #00f2ff;">${protection} €</td>
+                <td><b>${total} €</b></td>
+                <td><span class="badge-status">${t.status}</span></td>
+                <td>
+                    <button onclick="ouvrirLitige('${t.id}')" class="btn-warn">⚠️ LITIGE</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+// FONCTION LITIGE (Blocage des fonds)
+function ouvrirLitige(id) {
+    if(confirm("Confirmer l'ouverture du litige ? (Frais de protection de 8% inclus)")) {
+        _spirit.from('transactions').update({ status: 'LITIGE' }).eq('id', id);
+        alert("ALERTE SPIRIT EYES : Fonds gelés. Analyse de la preuve d'envoi en cours.");
+    }
+}
+
+
