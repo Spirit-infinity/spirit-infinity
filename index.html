@@ -185,94 +185,101 @@ const _supabase = supabase.createClient(
 
        // (c) 2026 Spirit Infinity - Moteur synchronisé sur la table "transactions"
 
+// (c) 2026 Spirit Infinity - Moteur Spirit Eyes V2
 const SpiritEngine = {
     user: { id: "12345", status: "TRUSTED" },
 
     async init() {
-        console.log("Spirit Infinity Engine: Online (Sync Transactions)");
-        this.loadMarketplace();
+        console.log("Spirit Infinity Engine: Online");
+        await this.loadMarketplace();
     },
 
-    // CHARGEMENT DEPUIS TA TABLE REELLE : public.transactions
     async loadMarketplace() {
         const grid = document.getElementById('market-list');
-        grid.innerHTML = "<p>Lecture du Ledger Spirit Infinity...</p>";
+        if(!grid) return;
+        
+        grid.innerHTML = "<p class='loading-text'>Synchronisation Ledger...</p>";
 
-        // Connexion à TA table "transactions"
-        const { data, error } = await _supabase.from('transactions').select('*');
+        const { data, error } = await _supabase.from('transactions')
+            .select('*')
+            .order('created_at', { ascending: false });
 
         if (error) {
-            console.error("Erreur Ledger:", error);
-            grid.innerHTML = "<p style='color:red;'>Erreur de liaison Ledger</p>";
+            grid.innerHTML = "<p>Erreur de liaison</p>";
             return;
         }
 
         grid.innerHTML = "";
         data.forEach(item => {
-            // Calcul des parts selon tes colonnes (user_profit, firm_profit, bank_share)
-            const totalFees = (item.user_profit + item.firm_profit + item.bank_share).toFixed(2);
-            
             grid.innerHTML += `
                 <div class="card-spirit">
-                    <span class="badge ${item.status === 'LIVRAISON VALIDÉE' ? 'badge-native' : ''}">${item.status}</span>
+                    <div class="watermark-overlay">CERTIFIED BY SPIRIT</div>
+                    <span class="badge">${item.status || 'À VENDRE'}</span>
                     <h3>${item.figurine_name}</h3>
-                    <p class="price">${item.amount} ${item.currency || 'EUR'}</p>
-                    <p style="font-size: 0.8rem; color: var(--cyan);">Frais totaux : ${totalFees} €</p>
-                    <p style="font-size: 0.7rem; color: #888;">Vendeur: ${item.seller_id} | Acheteur: ${item.buyer_id}</p>
-                    <button class="btn-spirit" style="width:100%; margin-top:10px;">VOIR LA TRANSACTION</button>
+                    <p class="scale-tag">Échelle : ${item.scale || '1/6'}</p>
+                    <p class="price">${item.amount} €</p>
+                    <div class="tags-mini">
+                        ${item.is_smoke_free ? '<span>🚭</span>' : ''}
+                        ${item.is_light_protected ? '<span>☀️</span>' : ''}
+                    </div>
+                    <button class="btn-spirit" style="width:100%; margin-top:10px;">DÉTAILS TRANSACTION</button>
                 </div>
             `;
         });
     },
 
-    // PUBLICATION : Envoi vers ta table "transactions"
-   async processSale() {
-    const feedback = document.getElementById('scan-feedback');
-    const title = document.getElementById('item-title').value;
-    const price = parseFloat(document.getElementById('item-price').value);
+    async processSale() {
+        const feedback = document.getElementById('scan-feedback');
+        const title = document.getElementById('item-title').value;
+        const price = parseFloat(document.getElementById('item-price').value);
+        
+        // Récupération des nouveaux champs
+        const scale = document.getElementById('item-scale').value;
+        const desc = document.getElementById('item-desc').value;
+        const smoke = document.getElementById('check-smoke').checked;
+        const light = document.getElementById('check-light').checked;
+        const hand = document.getElementById('check-hand').checked;
 
-    if(!title || !price) return alert("Veuillez remplir le nom et le prix.");
+        if(!title || !price) return alert("Données manquantes pour l'audit.");
 
-    feedback.innerHTML = "ANALYSE SPIRIT EYES : DÉTECTION D'OBJET...";
-    feedback.style.color = "var(--cyan)";
-
-    // SIMULATION DU FILTRE ANTI-FRIGO / ANTI-AUTO
-    setTimeout(async () => {
-        const forbiddenWords = ['frigo', 'voiture', 'moto', 'chien', 'chat', 'meuble'];
-        const isForbidden = forbiddenWords.some(word => title.toLowerCase().includes(word));
-
-        if(isForbidden) {
-            feedback.innerHTML = "❌ ERREUR : OBJET NON CONFORME. Spirit Infinity n'autorise que les figurines.";
-            feedback.style.color = "var(--shame)";
+        feedback.innerHTML = "ANALYSE SPIRIT EYES EN COURS...";
+        
+        // FILTRE ANTI-OBJETS NON CONFORMES
+        const forbidden = ['frigo', 'voiture', 'moto', 'meuble', 'cuisine'];
+        if(forbidden.some(word => title.toLowerCase().includes(word))) {
+            feedback.innerHTML = "❌ OBJET NON CONFORME - VENTE ANNULÉE";
+            feedback.style.color = "#ff4d4d";
             return;
         }
 
-        feedback.innerHTML = "✅ FIGURINE DÉTECTÉE. APPLICATION DU WATERMARK SPIRIT GUARD...";
-        
-        // Simulation insertion Supabase avec les nouveaux champs
+        // INSERTION LEDGER
         const { error } = await _supabase.from('transactions').insert([{
             figurine_name: title,
             amount: price,
-            status: 'À VENDRE', // On met À VENDRE pour qu'il soit visible sur le market
-            user_profit: price * 0.03,
-            firm_profit: price * 0.03,
-            bank_share: price * 0.02,
-            currency: 'EUR',
-            seller_id: this.user.id
-            // Note : Tu devras rajouter les colonnes 'description', 'taille', 'fumeur' dans Supabase plus tard
+            description: desc,
+            scale: scale,
+            is_smoke_free: smoke,
+            is_light_protected: light,
+            is_first_hand: hand,
+            status: 'À VENDRE',
+            user_profit: (price * 0.03),
+            firm_profit: (price * 0.03),
+            bank_share: (price * 0.02),
+            seller_id: this.user.id,
+            currency: 'EUR'
         }]);
 
         if(!error) {
-            feedback.innerHTML = "✅ TRANSACTION SCELLÉE ET WATERMARKÉE.";
-            // FORCE LE CHARGEMENT POUR AFFICHER LA NOUVELLE FIGURINE
-            await this.loadMarketplace(); 
-            setTimeout(() => showTab('market'), 1500);
+            feedback.innerHTML = "✅ ANALYSE RÉUSSIE : TRANSACTION SCELLÉE";
+            // On recharge le market AVANT de changer d'onglet
+            await this.loadMarketplace();
+            setTimeout(() => { showTab('market'); }, 1500);
         } else {
-            console.error(error);
-            feedback.innerHTML = "❌ ERREUR LEDGER : " + error.message;
+            feedback.innerHTML = "❌ ERREUR SUPABASE : " + error.message;
         }
-    }, 2500);
-}
+    }
+};
+
         // 3. CODE 3 : SPIRIT SECURITY
         const SpiritSecurity = {
             async submitReview(vendeurId, score, comment) {
@@ -358,6 +365,7 @@ const SpiritEngine = {
     </script>
 </body>
 </html>
+
 
 
 
