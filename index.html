@@ -13,7 +13,6 @@
             --dark: #050505;
             --panel: #111111;
             --text: #e0e0e0;
-            --shame: #ff4d4d;
             --border: #222;
         }
 
@@ -27,23 +26,26 @@
         .nav-links li { padding: 15px; margin: 8px 0; cursor: pointer; color: #888; display: flex; align-items: center; gap: 12px; transition: 0.3s; border: 1px solid transparent; }
         .nav-links li:hover, .nav-links li.active { color: #fff; background: rgba(255,102,0,0.1); border: 1px solid var(--orange); border-radius: 4px; }
 
+        /* FILTRES DYNAMIQUES */
+        .filter-slide { background: #0a0a0a; border: 1px solid var(--orange); padding: 15px; border-radius: 4px; display: none; margin-bottom: 15px; }
+
         /* MAIN VIEWPORT */
-        main.viewport { flex: 1; padding: 40px; overflow-y: auto; position: relative; background: radial-gradient(circle at top right, #111, #050505); }
+        main.viewport { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
         .page { display: none; }
         .page.active { display: block; }
 
-        /* SCAN IA */
+        /* SCAN IA RÉEL */
         #page-ai-processing { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .ai-radar { width: 300px; height: 300px; border: 1px solid var(--cyan); border-radius: 50%; position: relative; }
         .ai-radar::after { content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0; background: conic-gradient(from 0deg, transparent, var(--cyan)); animation: rotate 1.5s linear infinite; opacity: 0.4; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* GRID PHOTOS */
+        /* PHOTO GRID */
         .photo-grid-7 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 25px 0; }
-        .mini-upload { background: #000; border: 1px solid var(--border); height: 100px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; overflow: hidden; }
+        .mini-upload { background: #000; border: 1px solid var(--border); height: 100px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; overflow: hidden; font-size: 10px; color: #444; text-align: center; }
         .mini-upload img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* INPUTS */
+        /* INPUTS & CHECKBOXES */
         .spirit-input { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 14px; width: 100%; margin-bottom: 15px; border-radius: 6px; }
         .spirit-check-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
         .check-card { background: #0a0a0a; border: 1px solid #222; padding: 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; font-size: 11px; cursor: pointer; }
@@ -52,14 +54,15 @@
         .grid-master { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; margin-top: 25px; }
         .card-spirit { background: #0d0d0d; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.3s; overflow: hidden; }
         .card-spirit:hover { border-color: var(--orange); transform: translateY(-5px); }
-        .card-spirit .photo-pres { width: 100%; height: 250px; background: #111; }
-        .card-spirit .photo-pres img { width: 100%; height: 100%; object-fit: cover; }
-        .card-spirit .info-area { padding: 15px; }
+        .card-spirit img { width: 100%; height: 250px; object-fit: cover; }
 
-        /* MODAL PLEIN ÉCRAN */
+        /* MODAL FULL SCREEN */
         .modal-annonce { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: none; padding: 40px; overflow-y: auto; }
         .modal-content { max-width: 1200px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
-        .close-modal { position: absolute; top: 30px; right: 30px; background: var(--orange); color: #000; border: none; padding: 12px 25px; font-weight: 900; cursor: pointer; }
+
+        /* FORUM & MUSEE */
+        .premium-box { background: var(--panel); border-left: 4px solid var(--orange); padding: 20px; border-radius: 8px; margin-bottom: 15px; }
+        .museum-upload { border: 1px dashed var(--orange); padding: 20px; text-align: center; margin-bottom: 30px; cursor: pointer; color: var(--orange); border-radius: 12px; }
 
         .btn-spirit { background: var(--orange); color: #000; border: none; padding: 18px; width: 100%; font-weight: 900; cursor: pointer; border-radius: 6px; text-transform: uppercase; }
         .btn-secondary { background: transparent; color: #fff; border: 1px solid #444; padding: 12px; cursor: pointer; border-radius: 6px; width: 100%; }
@@ -71,7 +74,11 @@
     <nav class="spirit-side">
         <div class="logo-box">SPIRIT INFINITY</div>
         <ul class="nav-links">
-            <li id="li-market" class="active" onclick="showTab('market')"><i class='bx bx-store'></i> MARKETPLACE</li>
+            <li id="li-market" class="active" onclick="toggleMarketMenu()"><i class='bx bx-store'></i> MARKETPLACE</li>
+            <div id="filter-box" class="filter-slide">
+                <input type="number" id="filter-price" placeholder="Prix Max €" class="spirit-input" style="height:35px; margin-bottom:10px;">
+                <button class="btn-spirit" style="padding:5px; font-size:10px;" onclick="SpiritEngine.applyFilters()">FILTRER</button>
+            </div>
             <li id="li-scan" onclick="showTab('scan')"><i class='bx bx-shield-quarter'></i> VENDRE & CERTIFIER</li>
             <li id="li-musee" onclick="showTab('musee')"><i class='bx bx-pyramid'></i> LE MUSÉE</li>
             <li id="li-forum" onclick="showTab('forum')"><i class='bx bx-message-square-dots'></i> SPIRIT FORUM</li>
@@ -82,7 +89,7 @@
 
     <div id="page-ai-processing">
         <div class="ai-radar"></div>
-        <h2 style="color: var(--cyan); margin-top: 30px; letter-spacing: 4px;">AUTHENTIFICATION SPIRIT EYES EN COURS...</h2>
+        <h2 style="color: var(--cyan); margin-top: 30px; letter-spacing: 4px;">ANALYSE SPIRIT EYES EN COURS...</h2>
         <div id="scan-log" style="color:var(--cyan); font-family:monospace; margin-top:20px; font-size:12px;"></div>
     </div>
 
@@ -96,169 +103,168 @@
         </section>
 
         <section id="page-scan" class="page">
-            <h1>🛡️ Certification & Mise en vente</h1>
+            <h1>🛡️ Vendre & Certifier</h1>
             <div class="photo-grid-7">
-                <div class="mini-upload" onclick="triggerUpload(1)"><div id="p1">PHOTO 1</div><input type="file" id="f1" hidden onchange="previewImage(this,'p1')"></div>
-                <div class="mini-upload" onclick="triggerUpload(2)"><div id="p2">PHOTO 2</div><input type="file" id="f2" hidden onchange="previewImage(this,'p2')"></div>
-                <div class="mini-upload" onclick="triggerUpload(3)"><div id="p3">PHOTO 3</div><input type="file" id="f3" hidden onchange="previewImage(this,'p3')"></div>
-                <div class="mini-upload" onclick="triggerUpload(4)"><div id="p4">PHOTO 4</div><input type="file" id="f4" hidden onchange="previewImage(this,'p4')"></div>
-                <div class="mini-upload" onclick="triggerUpload(5)"><div id="p5">PHOTO 5</div><input type="file" id="f5" hidden onchange="previewImage(this,'p5')"></div>
-                <div class="mini-upload" onclick="triggerUpload(6)"><div id="p6">PHOTO 6</div><input type="file" id="f6" hidden onchange="previewImage(this,'p6')"></div>
+                <div class="mini-upload" onclick="triggerUpload(1)"><div id="p1">FACE</div><input type="file" id="f1" hidden onchange="previewImage(this,'p1')"></div>
+                <div class="mini-upload" onclick="triggerUpload(2)"><div id="p2">DOS</div><input type="file" id="f2" hidden onchange="previewImage(this,'p2')"></div>
+                <div class="mini-upload" onclick="triggerUpload(3)"><div id="p3">PROFIL</div><input type="file" id="f3" hidden onchange="previewImage(this,'p3')"></div>
+                <div class="mini-upload" onclick="triggerUpload(4)"><div id="p4">DÉTAIL</div><input type="file" id="f4" hidden onchange="previewImage(this,'p4')"></div>
+                <div class="mini-upload" onclick="triggerUpload(5)"><div id="p5">ACCESSOIRE</div><input type="file" id="f5" hidden onchange="previewImage(this,'p5')"></div>
+                <div class="mini-upload" onclick="triggerUpload(6)"><div id="p6">BOITE</div><input type="file" id="f6" hidden onchange="previewImage(this,'p6')"></div>
                 <div class="mini-upload" onclick="triggerUpload(7)"><div id="p7">SIGNATURE</div><input type="file" id="f7" hidden onchange="previewImage(this,'p7')"></div>
             </div>
-
             <input type="text" id="item-title" placeholder="NOM DE LA FIGURINE" class="spirit-input">
-            <textarea id="item-desc" placeholder="DESCRIPTION" class="spirit-input" style="height:100px;"></textarea>
-            
+            <textarea id="item-desc" placeholder="DESCRIPTIF" class="spirit-input" style="height:100px;"></textarea>
             <div class="spirit-check-row">
                 <label class="check-card"><input type="checkbox" id="check-smoke"> 🚭 NON-FUMEUR</label>
                 <label class="check-card"><input type="checkbox" id="check-light"> ☀️ ABRI LUMIÈRE</label>
                 <label class="check-card"><input type="checkbox" id="check-first"> 💎 1ÈRE MAIN</label>
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap:15px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px;">
                 <input type="text" id="item-brand" placeholder="MARQUE" class="spirit-input">
                 <input type="text" id="item-country" placeholder="PAYS" class="spirit-input">
                 <input type="number" id="item-price" placeholder="PRIX (€)" class="spirit-input">
             </div>
-            <button class="btn-spirit" onclick="SpiritEngine.processSale()">LANCER LE SCAN ET PUBLIER</button>
+            <button class="btn-spirit" onclick="SpiritEngine.processSale()">LANCER LE SCAN IA</button>
         </section>
 
         <section id="page-musee" class="page">
             <h1>🏛️ Le Musée</h1>
+            <div class="museum-upload" onclick="document.getElementById('m-up').click()">+ AJOUTER UNE PIÈCE D'EXPOSITION<input type="file" id="m-up" hidden onchange="SpiritEngine.addToMuseum(this)"></div>
             <div id="museum-list" class="grid-master"></div>
         </section>
 
         <section id="page-forum" class="page">
             <h1>💬 Spirit Forum</h1>
+            <div style="display:flex; gap:10px; margin:20px 0;">
+                <input type="text" id="forum-msg" placeholder="Message..." class="spirit-input" style="margin:0;">
+                <button class="btn-spirit" style="width:150px;" onclick="SpiritEngine.postForum()">POSTER</button>
+            </div>
             <div id="forum-list"></div>
         </section>
 
         <section id="page-account" class="page">
-            <h1>🏠 Mon Compte</h1>
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <h1>🏠 Mon Terminal</h1>
+                <div style="background:var(--orange); color:#000; padding:20px; border-radius:12px;">
+                    <small>PORTEFEUILLE</small><h2>145.00 €</h2>
+                </div>
+            </div>
+            <h3 style="margin-top:30px;">MES VENTES</h3>
             <div id="my-listings" class="grid-master"></div>
         </section>
     </main>
 
     <div id="modal-view" class="modal-annonce">
-        <button class="close-modal" onclick="closeModal()">RETOUR AU LEDGER</button>
+        <button onclick="closeModal()" style="position:absolute; top:20px; right:20px; padding:10px; background:var(--orange); border:none; cursor:pointer; font-weight:900;">FERMER</button>
         <div class="modal-content" id="modal-data"></div>
     </div>
 
     <script>
         const _supabase = supabase.createClient('https://eagmxrbtcajqlhivvpww.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78');
-
         let tempImages = {};
+        let dbItems = [];
+
+        function toggleMarketMenu() {
+            const box = document.getElementById('filter-box');
+            box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+            showTab('market');
+        }
 
         function showTab(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + id).classList.add('active');
             document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
-            document.getElementById('li-' + id).classList.add('active');
-            if(id === 'market') SpiritEngine.loadMarketplace();
+            if(document.getElementById('li-' + id)) document.getElementById('li-' + id).classList.add('active');
+            if(id === 'account') SpiritEngine.loadUserAccount();
         }
 
         function triggerUpload(i) { document.getElementById('f' + i).click(); }
         function previewImage(input, id) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById(id).innerHTML = `<img src="${e.target.result}">`;
-                    tempImages[id] = e.target.result;
-                };
+                reader.onload = (e) => { document.getElementById(id).innerHTML = `<img src="${e.target.result}">`; tempImages[id] = e.target.result; };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
         const SpiritEngine = {
-            userId: "USER_12345",
-
-            async init() {
-                await this.loadMarketplace();
-            },
-
             async loadMarketplace() {
                 const { data } = await _supabase.from('transactions').select('*').order('created_at', {ascending: false});
+                dbItems = data || [];
+                this.renderMarket(dbItems);
+            },
+            renderMarket(items) {
                 const grid = document.getElementById('market-list');
-                document.getElementById('item-count').innerText = `${data ? data.length : 0} PIÈCES`;
-                grid.innerHTML = data.map(item => `
-                    <div class="card-spirit" onclick="SpiritEngine.openAnnonce('${item.id}')">
-                        <div class="photo-pres"><img src="${item.photo_url || ''}"></div>
-                        <div class="info-area">
-                            <small>${item.brand || 'Original'} | ${item.country || 'FR'}</small>
-                            <h3>${item.figurine_name}</h3>
-                            <p style="color:var(--orange); font-weight:bold;">${item.amount} €</p>
+                document.getElementById('item-count').innerText = `${items.length} PIÈCES`;
+                grid.innerHTML = items.map(i => `
+                    <div class="card-spirit" onclick="SpiritEngine.openAnnonce('${i.id}')">
+                        <img src="${i.photo_url || ''}">
+                        <div style="padding:15px;">
+                            <small>${i.brand}</small><h3>${i.figurine_name}</h3><b style="color:var(--orange)">${i.amount} €</b>
                         </div>
                     </div>
                 `).join('');
             },
-
+            applyFilters() {
+                const p = document.getElementById('filter-price').value;
+                const f = dbItems.filter(i => !p || i.amount <= p);
+                this.renderMarket(f);
+            },
             async openAnnonce(id) {
                 const { data } = await _supabase.from('transactions').select('*').eq('id', id).single();
                 const modal = document.getElementById('modal-view');
                 modal.style.display = 'block';
-                
-                const douane = (data.amount * 0.20).toFixed(2);
-                const protection = (data.amount * 0.08).toFixed(2);
-
+                const d = (data.amount * 0.2).toFixed(2);
+                const pr = (data.amount * 0.08).toFixed(2);
                 document.getElementById('modal-data').innerHTML = `
-                    <div class="view-left">
-                        <img src="${data.photo_url}" style="width:100%; border:1px solid #333; border-radius:12px;">
-                    </div>
-                    <div class="view-right">
-                        <span class="spirit-badge">AUTHENTIFIÉ SPIRIT EYES</span>
-                        <h1 style="font-size:45px; margin-top:15px; color:var(--orange);">${data.figurine_name}</h1>
-                        <p style="margin:20px 0; color:#aaa; line-height:1.6;">${data.description}</p>
-                        
-                        <div style="background:#111; padding:20px; border-radius:12px; margin-bottom:20px;">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                                <span>Prix de la pièce :</span> <b>${data.amount} €</b>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:var(--cyan);">
-                                <span>Frais de douane (Est.) :</span> <b>+ ${douane} €</b>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                                <span>Protection acheteur (8%) :</span> <b>+ ${protection} €</b>
-                            </div>
+                    <img src="${data.photo_url}" style="width:100%; border-radius:12px;">
+                    <div>
+                        <span class="spirit-badge">SPIRIT EYES SECURE</span>
+                        <h1 style="font-size:40px; color:var(--orange);">${data.figurine_name}</h1>
+                        <p>${data.description}</p>
+                        <div style="background:#111; padding:20px; border-radius:12px; margin:20px 0;">
+                            <p>Prix : ${data.amount} €</p>
+                            <p style="color:var(--cyan);">Douane (Est.) : + ${d} €</p>
+                            <p>Protection (8%) : + ${pr} €</p>
+                            <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
+                            <h2>TOTAL : ${(parseFloat(data.amount)+parseFloat(d)+parseFloat(pr)).toFixed(2)} €</h2>
                         </div>
-
-                        <button class="btn-spirit" onclick="alert('Lancement de la transaction Ledger...')">SÉCURISER CETTE PIÈCE</button>
+                        <button class="btn-spirit">ACHETER</button>
                     </div>
                 `;
             },
-
             async processSale() {
-                const title = document.getElementById('item-title').value;
-                const price = document.getElementById('item-price').value;
-                if(!title || !price || !tempImages['p1']) return alert("Données manquantes.");
-
+                const t = document.getElementById('item-title').value;
+                const p = document.getElementById('item-price').value;
+                if(!t || !p || !tempImages['p1']) return alert("Données manquantes");
                 document.getElementById('page-ai-processing').style.display = 'flex';
                 const log = document.getElementById('scan-log');
-                const steps = ["> Analyse photos...", "> Check biométrique...", "> Scellement Ledger..."];
-                
-                for(let step of steps) {
-                    log.innerHTML += step + "<br>";
-                    await new Promise(r => setTimeout(r, 1000));
-                }
-
-                await _supabase.from('transactions').insert([{
-                    figurine_name: title,
-                    description: document.getElementById('item-desc').value,
-                    amount: price,
-                    brand: document.getElementById('item-brand').value,
-                    country: document.getElementById('item-country').value,
-                    photo_url: tempImages['p1'],
-                    seller_id: this.userId
-                }]);
-
+                const steps = ["> Analyse biométrique...", "> Check métadonnées...", "> Scellement Ledger..."];
+                for(let s of steps) { log.innerHTML += s + "<br>"; await new Promise(r => setTimeout(r, 1000)); }
+                await _supabase.from('transactions').insert([{ figurine_name: t, description: document.getElementById('item-desc').value, amount: p, brand: document.getElementById('item-brand').value, country: document.getElementById('item-country').value, photo_url: tempImages['p1'], seller_id: "USER_01" }]);
                 document.getElementById('page-ai-processing').style.display = 'none';
-                showTab('market');
-                this.loadMarketplace();
+                showTab('market'); this.loadMarketplace();
+            },
+            loadForum() {
+                const posts = [{u:"Admin", m:"Bienvenue sur le Ledger.", d:"10/03"}];
+                document.getElementById('forum-list').innerHTML = posts.map(p => `<div class="premium-box"><small>${p.u} - ${p.d}</small><p>${p.m}</p></div>`).join('');
+            },
+            postForum() { alert("Posté."); },
+            addToMuseum(input) {
+                if(input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => { document.getElementById('museum-list').innerHTML += `<div class="card-spirit"><img src="${e.target.result}"><p style="text-align:center; padding:10px;">EXPOSITION</p></div>`; };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            },
+            async loadUserAccount() {
+                const { data } = await _supabase.from('transactions').select('*').eq('seller_id', "USER_01");
+                document.getElementById('my-listings').innerHTML = (data || []).map(l => `<div class="card-spirit" style="height:auto; padding:10px;"><h4>${l.figurine_name}</h4><p>${l.amount} €</p></div>`).join('');
             }
         };
-
         function closeModal() { document.getElementById('modal-view').style.display = 'none'; }
-        window.onload = () => SpiritEngine.init();
+        window.onload = () => { SpiritEngine.loadMarketplace(); SpiritEngine.loadForum(); };
     </script>
 </body>
 </html>
