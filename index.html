@@ -687,26 +687,23 @@ function calculateSpiritSplit(price) {
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-// (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function loadUserPurchases() {
     const tableElement = document.getElementById('list-achats'); 
     if (!tableElement) return;
     tableElement.innerHTML = ''; 
 
-    // On récupère les données Supabase (ID 12345)
-    const { data: achats, error: errA } = await _spirit.from('transactions').select('*').eq('buyer_id', '12345');
-    
+    const { data: achats, error: errA } = await _spirit
+        .from('transactions')
+        .select('*')
+        .eq('buyer_id', '12345');
+
     if (errA) {
         console.error("Erreur Spirit Ledger:", errA);
         return;
     }
-// (c) 2026 Spirit Infinity - Tous droits réservés
-    console.log("Données reçues :", achats);
 
-    const listBody = document.getElementById('list-achats'); 
-    if (listBody) {
-        listBody.innerHTML = ''; 
-
+    if (achats && achats.length > 0) {
         achats.forEach(tr => {
             const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
             const dateStr = new Date(tr.created_at).toLocaleDateString();
@@ -723,16 +720,18 @@ async function loadUserPurchases() {
                 </td>
                 <td style="text-align:center;">
                     ${tr.status === 'SÉQUESTRE ACTIF' ? 
-                        \`<button class="btn-recu-action" data-id="\${tr.id}">✅ REÇU</button>\` :
+                        '<button class="btn-recu-action"data-id="${tr.id}">✅ REÇU</button>' : 
                         <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>\` :
          ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
-                }
+                  }
                 </td>
             `;
-            listBody.appendChild(row);
+            tableElement.appendChild(row);
         });
+    } else {
+        tableElement.innerHTML = '<tr><td colspan="5" style="text-align:center;">AUCUNE TRANSACTION</td></tr>';
     }
-} // <--- CETTE ACCOLADE FERME LA FONCTION loadUserPurchases
+}
 
     // LA LIGNE CRUCIALE : on ajoute la ligne au tableau
     if (tableAchats) tableAchats.appendChild(row);
@@ -1743,6 +1742,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
