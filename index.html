@@ -134,11 +134,11 @@
     </main>
 
     <script>
-        // CONFIGURATION SUPABASE (À REMPLIR AVEC TES CLÉS)
-        const _supabase = supabase.createClient(sb_publishable_odOpcSeKYD3XB6wfFbaDPw_3cxYwRWB' 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78');
-
-        // (c) 2026 Spirit Infinity - Tous droits réservés
-        // 1. LOGIQUE DE NAVIGATION (Ton Code 1 original)
+       // CONFIGURATION SUPABASE
+const _supabase = supabase.createClient(
+  'https://sb_publishable_odOpcSeKYD3XB6wffBaDPw_3cxYwRWB.supabase.co', 
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiX3B1Ymxpc2hhYmxlX29kT3BjU2VLU0QzWEI2d2ZmQmFEUHdfM2N4WXJXQiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzEwMTY0OTM1LCJleHAiOjIwMjU3NDA5MzV9.TAsImV4cCI6MjA2Njg4OTM1fQ.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78'
+);
         function showTab(tabId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + tabId).classList.add('active');
@@ -314,4 +314,5 @@
     </script>
 </body>
 </html>
+
 
