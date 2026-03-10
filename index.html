@@ -701,11 +701,13 @@ async function loadUserPurchases() {
         console.error("Erreur Spirit Ledger:", errA || errV);
         return;
     }
+// (c) 2026 Spirit Infinity - Tous droits réservés
+    console.log("Données reçues :", achats);
 
-    console.log("Achats récupérés :", achats);
+    const listBody = document.getElementById('list-achats'); 
+    if (listBody) {
+        listBody.innerHTML = ''; 
 
-    // 3. On remplit le tableau des achats
-    if (achats && achats.length > 0) {
         achats.forEach(tr => {
             const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
             const dateStr = new Date(tr.created_at).toLocaleDateString();
@@ -721,23 +723,22 @@ async function loadUserPurchases() {
                     </span>
                 </td>
                 <td style="text-align:center;">
-                    ${tr.status === 'SÉQUESTRE ACTIF' ? `
-                        <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
-                        <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>
+                    ${tr.status === 'SÉQUESTRE ACTIF' ? 
+                        \`<button class="btn-recu-action" data-id="\${tr.id}">✅ REÇU</button>\` :
+                        <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>\` :
          ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+                }
                 </td>
             `;
             listBody.appendChild(row);
         });
-    } else {
-        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">AUCUNE TRANSACTION TROUVÉE</td></tr>';
     }
-}
+} // <--- CETTE ACCOLADE FERME LA FONCTION loadUserPurchases
 
     // LA LIGNE CRUCIALE : on ajoute la ligne au tableau
     if (tableAchats) tableAchats.appendChild(row);
 });
-   
+    }
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
    
@@ -1743,6 +1744,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
