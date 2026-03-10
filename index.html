@@ -153,81 +153,87 @@ const _supabase = supabase.createClient(
             document.getElementById('fee-info').innerHTML = `Protection acheteur (8%) : <b>${fee} €</b>`;
         }
 
-        // 2. CODE 2 : SPIRIT ENGINE
-        const SpiritEngine = {
-            user: { id: "USR-001", status: "TRUSTED" },
+       // (c) 2026 Spirit Infinity - Moteur synchronisé sur la table "transactions"
 
-            async init() {
-                console.log("Spirit Infinity Engine: Online");
+const SpiritEngine = {
+    user: { id: "12345", status: "TRUSTED" },
+
+    async init() {
+        console.log("Spirit Infinity Engine: Online (Sync Transactions)");
+        this.loadMarketplace();
+    },
+
+    // CHARGEMENT DEPUIS TA TABLE REELLE : public.transactions
+    async loadMarketplace() {
+        const grid = document.getElementById('market-list');
+        grid.innerHTML = "<p>Lecture du Ledger Spirit Infinity...</p>";
+
+        // Connexion à TA table "transactions"
+        const { data, error } = await _supabase.from('transactions').select('*');
+
+        if (error) {
+            console.error("Erreur Ledger:", error);
+            grid.innerHTML = "<p style='color:red;'>Erreur de liaison Ledger</p>";
+            return;
+        }
+
+        grid.innerHTML = "";
+        data.forEach(item => {
+            // Calcul des parts selon tes colonnes (user_profit, firm_profit, bank_share)
+            const totalFees = (item.user_profit + item.firm_profit + item.bank_share).toFixed(2);
+            
+            grid.innerHTML += `
+                <div class="card-spirit">
+                    <span class="badge ${item.status === 'LIVRAISON VALIDÉE' ? 'badge-native' : ''}">${item.status}</span>
+                    <h3>${item.figurine_name}</h3>
+                    <p class="price">${item.amount} ${item.currency || 'EUR'}</p>
+                    <p style="font-size: 0.8rem; color: var(--cyan);">Frais totaux : ${totalFees} €</p>
+                    <p style="font-size: 0.7rem; color: #888;">Vendeur: ${item.seller_id} | Acheteur: ${item.buyer_id}</p>
+                    <button class="btn-spirit" style="width:100%; margin-top:10px;">VOIR LA TRANSACTION</button>
+                </div>
+            `;
+        });
+    },
+
+    // PUBLICATION : Envoi vers ta table "transactions"
+    async processSale() {
+        const feedback = document.getElementById('scan-feedback');
+        const title = document.getElementById('item-title').value;
+        const price = parseFloat(document.getElementById('item-price').value);
+
+        if(!title || !price) return alert("Veuillez remplir le nom et le prix.");
+
+        feedback.innerHTML = "ANALYSE IA SPIRIT EYES...";
+        
+        setTimeout(async () => {
+            // Calcul automatique des parts pour ta table (3% / 3% / 2%)
+            const userP = price * 0.03;
+            const firmP = price * 0.03;
+            const bankP = price * 0.02;
+
+            const { error } = await _supabase.from('transactions').insert([{
+                figurine_name: title,
+                amount: price,
+                user_profit: userP,
+                firm_profit: firmP,
+                bank_share: bankP,
+                status: 'SÉQUESTRE ACTIF',
+                buyer_id: this.user.id,
+                seller_id: 'SYSTEM',
+                currency: 'EUR'
+            }]);
+
+            if(!error) {
+                feedback.innerHTML = "✅ TRANSACTION SCELLÉE SUR LE LEDGER";
+                showTab('market');
                 this.loadMarketplace();
-            },
-
-            async loadMarketplace() {
-                const grid = document.getElementById('market-list');
-                grid.innerHTML = "<p>Synchronisation avec le Ledger...</p>";
-
-                const { data, error } = await _supabase.from('marketData').select('*');
-
-                if (error) return console.error("Erreur de liaison Ledger");
-
-                grid.innerHTML = "";
-                data.forEach(item => {
-                    const fees = (item.price * 0.08).toFixed(2);
-                    grid.innerHTML += `
-                        <div class="card-spirit">
-                            <span class="badge ${item.type === 'NATIVE' ? 'badge-native' : ''}">${item.type}</span>
-                            <h3>${item.name}</h3>
-                            <p class="price">${item.price} €</p>
-                            <p style="font-size: 0.8rem; color: #888;">+ ${fees} € Protection Spirit Guard</p>
-                            <p style="font-size: 0.7rem;">${item.location} | Auto-Diag: ${item.auto_diag}</p>
-                            <button class="btn-spirit" style="width:100%; margin-top:10px;">ACHETER</button>
-                        </div>
-                    `;
-                });
-            },
-
-            async processSale() {
-                const feedback = document.getElementById('scan-feedback');
-                const title = document.getElementById('item-title').value;
-
-                if(!title) return alert("Veuillez nommer la pièce.");
-
-                feedback.innerHTML = "ANALYSE IA EN COURS... (SCAN SPIRIT EYES)";
-                feedback.style.color = "var(--cyan)";
-
-                setTimeout(async () => {
-                    const isFigure = true; 
-
-                    if(isFigure) {
-                        feedback.innerHTML = "PIÈCE CERTIFIÉE : FIGURINE DÉTECTÉE";
-                        this.publishToSupabase();
-                    } else {
-                        feedback.innerHTML = "ERREUR : OBJET NON RECONNU (FRIGO/AUTRE)";
-                        feedback.style.color = "var(--shame)";
-                    }
-                }, 2500);
-            },
-
-            async publishToSupabase() {
-                const title = document.getElementById('item-title').value;
-                const price = document.getElementById('item-price').value;
-
-                const { error } = await _supabase.from('marketData').insert([{
-                    name: title,
-                    price: parseFloat(price),
-                    type: 'IA CERTIFIED',
-                    location: 'France',
-                    auto_diag: 'OK',
-                    owner_id: this.user.id
-                }]);
-
-                if(!error) {
-                    alert("L'annonce est en ligne sur le Ledger Mondial !");
-                    showTab('market');
-                    this.loadMarketplace();
-                }
+            } else {
+                console.error(error);
+                feedback.innerHTML = "❌ ERREUR D'INSCRIPTION";
             }
-        };
+        }, 2000);
+    }
+};
 
         // 3. CODE 3 : SPIRIT SECURITY
         const SpiritSecurity = {
@@ -314,6 +320,7 @@ const _supabase = supabase.createClient(
     </script>
 </body>
 </html>
+
 
 
 
