@@ -107,16 +107,37 @@
             <input type="file" id="file-tete1" hidden onchange="previewImage(this, 'preview-tete1')">
         </div>
 
-        <div class="photo-grid-7">
-            <div class="mini-upload" onclick="document.getElementById('file-tete2').click()">
-                <div id="preview-tete2">Tête 2</div>
-                <input type="file" id="file-tete2" hidden onchange="previewImage(this, 'preview-tete2')">
-            </div>
-            <div class="mini-upload" onclick="document.getElementById('file-corps1').click()">
-                <div id="preview-corps1">Corps 1</div>
-                <input type="file" id="file-corps1" hidden onchange="previewImage(this, 'preview-corps1')">
-            </div>
-            </div>
+      <div class="photo-grid-7">
+    <div class="mini-upload" onclick="document.getElementById('f1').click()">
+        <div id="p1">TÊTE 1 (FACE)</div>
+        <input type="file" id="f1" hidden onchange="previewImage(this, 'p1')">
+    </div>
+    <div class="mini-upload" onclick="document.getElementById('f2').click()">
+        <div id="p2">TÊTE 2 (PROFIL)</div>
+        <input type="file" id="f2" hidden onchange="previewImage(this, 'p2')">
+    </div>
+    <div class="mini-upload" onclick="document.getElementById('f3').click()">
+        <div id="p3">CORPS (FACE)</div>
+        <input type="file" id="f3" hidden onchange="previewImage(this, 'p3')">
+    </div>
+    <div class="mini-upload" onclick="document.getElementById('f4').click()">
+        <div id="p4">CORPS (DOS)</div>
+        <input type="file" id="f4" hidden onchange="previewImage(this, 'p4')">
+    </div>
+    <div class="mini-upload" onclick="document.getElementById('f5').click()">
+        <div id="p5">ACCESSOIRES</div>
+        <input type="file" id="f5" hidden onchange="previewImage(this, 'p5')">
+    </div>
+    <div class="mini-upload" onclick="document.getElementById('f6').click()">
+        <div id="p6">CARTON</div>
+        <input type="file" id="f6" hidden onchange="previewImage(this, 'p6')">
+    </div>
+    <div class="mini-upload" onclick="document.getElementById('f7').click()">
+        <div id="p7">CARTON BRUN</div>
+        <input type="file" id="f7" hidden onchange="previewImage(this, 'p7')">
+    </div>
+</div>
+
 
         <div class="form-grid-industrial">
             <div class="input-group">
@@ -215,77 +236,76 @@ const _supabase = supabase.createClient(
         
        // (c) 2026 Spirit Infinity - Moteur synchronisé sur la table "transactions"
 
-// (c) 2026 Spirit Infinity - Moteur Spirit Eyes V2
+// FONCTION DE PREVIEW (Doit être en dehors de SpiritEngine)
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
+            preview.parentElement.classList.add('has-image');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 const SpiritEngine = {
-    user: { id: "12345", status: "TRUSTED" },
+    user: { id: "12345" },
 
     async init() {
-        console.log("Spirit Infinity Engine: Online");
+        console.log("Spirit Infinity Online");
         await this.loadMarketplace();
     },
 
     async loadMarketplace() {
         const grid = document.getElementById('market-list');
         if(!grid) return;
-        
-        grid.innerHTML = "<p class='loading-text'>Synchronisation Ledger...</p>";
+        const { data, error } = await _supabase.from('transactions').select('*').order('created_at', { ascending: false });
+        if(error) return;
 
-        const { data, error } = await _supabase.from('transactions')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            grid.innerHTML = "<p>Erreur de liaison</p>";
-            return;
-        }
-
-        grid.innerHTML = "";
-        data.forEach(item => {
-            grid.innerHTML += `
-                <div class="card-spirit">
-                    <div class="watermark-overlay">CERTIFIED BY SPIRIT</div>
-                    <span class="badge">${item.status || 'À VENDRE'}</span>
-                    <h3>${item.figurine_name}</h3>
-                    <p class="scale-tag">Échelle : ${item.scale || '1/6'}</p>
-                    <p class="price">${item.amount} €</p>
-                    <div class="tags-mini">
-                        ${item.is_smoke_free ? '<span>🚭</span>' : ''}
-                        ${item.is_light_protected ? '<span>☀️</span>' : ''}
-                    </div>
-                    <button class="btn-spirit" style="width:100%; margin-top:10px;">DÉTAILS TRANSACTION</button>
-                </div>
-            `;
-        });
+        grid.innerHTML = data.map(item => `
+            <div class="card-spirit">
+                <div style="font-size: 10px; color: #ff6600;">AUTHENTIFIÉ SPIRIT</div>
+                <h3>${item.figurine_name}</h3>
+                <p class="price">${item.amount} €</p>
+                <div class="badge">${item.status}</div>
+            </div>
+        `).join('');
     },
 
-    function previewImage(input, previewId) {
-    const preview = document.getElementById(previewId);
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover; border-radius:4px;">`;
-            preview.classList.add('has-image');
-        }
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
     async processSale() {
-        const feedback = document.getElementById('scan-feedback');
         const title = document.getElementById('item-title').value;
         const price = parseFloat(document.getElementById('item-price').value);
         
-        // Récupération des nouveaux champs
-        const scale = document.getElementById('item-scale').value;
-        const desc = document.getElementById('item-desc').value;
-        const smoke = document.getElementById('check-smoke').checked;
-        const light = document.getElementById('check-light').checked;
-        const hand = document.getElementById('check-hand').checked;
+        // Anti-Frigo / Anti-Voiture
+        const forbidden = ['frigo', 'voiture', 'cuisine', 'moto'];
+        if(forbidden.some(w => title.toLowerCase().includes(w))) {
+            alert("⚠️ OBJET NON CONFORME : Seules les figurines sont acceptées.");
+            return;
+        }
 
-        if(!title || !price) return alert("Données manquantes pour l'audit.");
+        const { error } = await _supabase.from('transactions').insert([{
+            figurine_name: title,
+            amount: price,
+            scale: document.getElementById('item-scale').value,
+            status: 'SÉQUESTRE ACTIF',
+            user_profit: (price * 0.03),
+            firm_profit: (price * 0.03),
+            bank_share: (price * 0.02),
+            seller_id: this.user.id
+        }]);
 
-        feedback.innerHTML = "ANALYSE SPIRIT EYES EN COURS...";
-        
+        if(!error) {
+            alert("✅ Pièce scellée sur le Ledger !");
+            await this.loadMarketplace();
+            showTab('market');
+        }
+    }
+};
+
+// Initialisation au chargement
+document.addEventListener('DOMContentLoaded', () => SpiritEngine.init());
+
         // FILTRE ANTI-OBJETS NON CONFORMES
         const forbidden = ['frigo', 'voiture', 'moto', 'meuble', 'cuisine'];
         if(forbidden.some(word => title.toLowerCase().includes(word))) {
@@ -407,6 +427,7 @@ const SpiritEngine = {
     </script>
 </body>
 </html>
+
 
 
 
