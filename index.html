@@ -1104,48 +1104,50 @@ function addToMySales(product, carrierName) {
 async function confirmPayment() {
     if (!selectedProduct) return;
 
-    // 1. Récupération des prix
+    // 1. Récupération de la base (Le prix de la figurine + port)
     const prixFigurine = parseFloat(selectedProduct.price);
     const fraisLivraison = parseFloat(document.getElementById('sumShip').innerText) || 0;
     
-    // 2. Calcul du Split 3/3/2 (8%)
-    const uProfit = (prixFigurine * 0.03).toFixed(2);  
-    const fProfit = (prixFigurine * 0.03).toFixed(2);  
-    const bShare = (prixFigurine * 0.02).toFixed(2);   
+    // 2. CALCUL STRICT DU SPLIT 8% (3/3/2) - VERROUILLÉ
+    // On calcule ici pour éviter toute modification manuelle
+    const uProfit = (prixFigurine * 0.03); // 3% pour Toi
+    const fProfit = (prixFigurine * 0.03); // 3% pour la Firme
+    const bShare = (prixFigurine * 0.02); // 2% pour la Banque
     
-    // Protection totale pour le calcul du montant final
-    const protectionTotale = parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare);
+    // Protection totale (le surplus de 8% payé par l'acheteur)
+    const protectionTotale = uProfit + fProfit + bShare;
 
-    // 3. Montant total (amount) = Objet + Port + Protection
+    // 3. Montant total final (Figurine + Port + Protection 8%)
     const totalAcheteur = (prixFigurine + fraisLivraison + protectionTotale).toFixed(2);
 
     try {
-        console.log("[SPIRIT LEDGER] Écriture dans les colonnes Supabase...");
+        console.log("[SPIRIT LEDGER] Sécurisation de la transaction...");
         
-        // INSERTION STRICTE SELON TES COLONNES PHOTO
+        // INSERTION DANS TES COLONNES SUPABASE (Respect strict de tes photos)
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
                 amount: totalAcheteur, // Colonne 1
-                user_profit: uProfit, // Colonne 2
-                firm_profit: fProfit, // Colonne 3
-                bank_share: bShare, // Colonne 4
+                user_profit: uProfit.toFixed(2), // Colonne 2
+                firm_profit: fProfit.toFixed(2), // Colonne 3 (Nouvelle)
+                bank_share: bShare.toFixed(2), // Colonne 4
                 status: 'SÉQUESTRE ACTIF', // Colonne 5
-                figurine_name: selectedProduct.title // Colonne 6
-                // 'created_at' est géré automatiquement par Supabase
+                figurine_name: selectedProduct.title, // Colonne 6
+                buyer_id: MY_TEST_ID, // Ton ID acheteur
+                seller_id: selectedProduct.owner || '67890', // ID vendeur
+                currency: 'EUR' // Ta colonne Currency
             }]);
 
         if (error) throw error;
 
-        alert(`✅ SPIRIT SECURE : ${totalAcheteur} € enregistrés.`);
+        alert(`✅ SPIRIT SECURE : ${totalAcheteur} € enregistrés dans le Ledger.`);
         location.reload();
 
     } catch (err) {
-        console.error("ERREUR COLONNE :", err.message);
+        console.error("ERREUR CRITIQUE LEDGER :", err.message);
         alert("ERREUR SUPABASE : " + err.message);
     }
 }
-
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1738,6 +1740,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
