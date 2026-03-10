@@ -431,11 +431,12 @@
                 <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
                 <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
-          <div class="dash-content">
-    <div id="tab-dashboard" class="account-page active">
-        <h2>🏠 TABLEAU DE BORD</h2>
-        <div id="mes-figurines-container">
-            </div>
+         <div class="dash-content">
+    
+    <div id="tab-dashboard" class="account-page">
+        <h2>🏠 MON COMPTE</h2>
+        <div class="grid-figurines">
+             </div>
     </div>
 
     <div id="tab-achats" class="account-page" style="display:none;">
@@ -447,13 +448,15 @@
                     <th>Produit</th>
                     <th>Montant</th>
                     <th>Statut</th>
-                    <th>Action</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="list-achats"></tbody>
         </table>
     </div>
+
 </div>
+
     <div style="background:#0a0a0a; padding:10px; border:1px solid #222; margin-bottom:15px; font-size:0.75rem; color:#888;">
         <p style="margin:0;">
             Les fonds sont bloqués en <b>Séquestre Spirit</b>. 
@@ -695,58 +698,51 @@ function calculateSpiritSplit(price) {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function loadUserPurchases() {
-    // 1. On force TOUTES les pages à se cacher
-    const pages = document.querySelectorAll('.account-page');
-    pages.forEach(p => p.style.display = 'none');
+    console.log("Nettoyage des onglets...");
 
-    // 2. On affiche l'onglet Achats
-    const target = document.getElementById('tab-achats');
-    if (target) target.style.display = 'block';
+    // 1. ON CACHE ABSOLUMENT TOUT
+    const toutesLesPages = document.querySelectorAll('.account-page');
+    toutesLesPages.forEach(page => {
+        page.style.setProperty('display', 'none', 'important');
+    });
 
-    const listBody = document.getElementById('list-achats');
-    if (!listBody) return;
-    listBody.innerHTML = "<tr><td colspan='5'>Chargement du Ledger...</td></tr>";
+    // 2. ON AFFICHE SEULEMENT LES ACHATS
+    const ongletAchats = document.getElementById('tab-achats');
+    if (ongletAchats) {
+        ongletAchats.style.setProperty('display', 'block', 'important');
+    }
 
-    // 3. Appel Supabase
-    const { data: transactions, error } = await _spirit
+    // 3. ON REMPLIT LE TABLEAU
+    const cibleTableau = document.getElementById('list-achats');
+    if (!cibleTableau) return;
+    cibleTableau.innerHTML = "";
+
+    const { data: achats, error } = await _spirit
         .from('transactions')
         .select('*')
         .eq('buyer_id', '12345');
 
-    if (error) {
-        listBody.innerHTML = "<tr><td colspan='5'>Erreur de connexion Ledger.</td></tr>";
-        return;
-    }
+    if (error) return;
 
-    listBody.innerHTML = ""; // On vide
-
-    if (transactions && transactions.length > 0) {
-        transactions.forEach(tr => {
+    if (achats && achats.length > 0) {
+        achats.forEach(tr => {
             const row = document.createElement('tr');
-            
-            // On affiche les boutons seulement si le séquestre est actif
-            const isActif = (tr.status === 'SÉQUESTRE ACTIF');
-
             row.innerHTML = `
                 <td>${new Date(tr.created_at).toLocaleDateString()}</td>
                 <td><b style="color:var(--neon-orange)">#${tr.product_id}</b></td>
                 <td>${tr.amount} €</td>
                 <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
-                <td>
-                    ${isActif ? `
-                        <button class="btn-recu-action" style="cursor:pointer;">✅ REÇU</button>
-                        <button class="btn-litige-action" style="cursor:pointer; background:none; border:1px solid #ff4444; color:#ff4444; margin-left:5px; padding:2px 5px;">⚠️ LITIGE</button>
-                    ` : `<span style="color:#777; font-size:0.8rem;">LOGS ARCHIVÉS</span>`}
+                <td style="text-align:center;">
+                    <button class="btn-recu-action">✅ REÇU</button>
+                    <button class="btn-litige-action" style="color:#ff4444; border:1px solid #ff4444; background:none; margin-left:8px; padding:2px 5px; border-radius:4px;">⚠️ LITIGE</button>
                 </td>
             `;
-            listBody.appendChild(row);
+            cibleTableau.appendChild(row);
         });
     } else {
-        listBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>AUCUNE TRANSACTION</td></tr>";
+        cibleTableau.innerHTML = "<tr><td colspan='5' style='text-align:center;'>AUCUNE TRANSACTION</td></tr>";
     }
 }
-
-
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
@@ -1753,6 +1749,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
