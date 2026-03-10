@@ -717,36 +717,37 @@ console.log("Achats récupérés :", achats);
 console.log("Ventes récupérées :", ventes);
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-const tableAchats = document.getElementById('liste-achats'); // Cible ton tableau
-tableAchats.innerHTML = ''; // Vide le message "Aucune transaction"
+
+const tableAchats = document.getElementById('list-achats'); // On cible ton tableau
+if (tableAchats) tableAchats.innerHTML = ''; // On vide le message "Aucune transaction"
 
 achats.forEach(tr => {
+    // On cherche le nom du produit
+    const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
+    const dateStr = new Date(tr.created_at).toLocaleDateString();
 
-       // On cherche le nom du produit dans marketData ou via une jointure
-        const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
-        const dateStr = new Date(tr.created_at).toLocaleDateString();
-       
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${dateStr}</td>
-            <td><b style="color:var(--neon-orange)">${product.title}</b></td>
-            <td>${tr.amount} €</td>
-            <td><span style="color:${tr.status === 'completed' ? 'var(--spirit-green)' : 'orange'}">${tr.status.toUpperCase()}</span></td>
-            <td style="text-align:center;">
-               // (c) 2026 Spirit Infinity - Tous droits réservés
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${dateStr}</td>
+        <td><b style="color:var(--neon-orange)">${product.title}</b></td>
+        <td>${tr.amount} €</td>
+        <td>
+            <span style="color:${tr.status === 'SÉQUESTRE ACTIF' ? 'var(--spirit-green)' : 'orange'}">
+                ${tr.status}
+            </span>
+        </td>
+        <td style="text-align:center;">
+            ${tr.status === 'SÉQUESTRE ACTIF' ? `
+                <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
+                <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>
+            ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+        </td>
+    `;
 
-// (c) 2026 Spirit Infinity - Tous droits réservés
+    // LA LIGNE CRUCIALE : on ajoute la ligne au tableau
+    if (tableAchats) tableAchats.appendChild(row);
+});
 
-${tr.status === 'SÉQUESTRE ACTIF' ? `
-
-    <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
-    <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>
-` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
-            </td>
-        `;
-        listBody.appendChild(row);
-    });
-}
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
@@ -1753,6 +1754,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
