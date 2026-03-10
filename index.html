@@ -717,9 +717,12 @@ console.log("Achats récupérés :", achats);
 console.log("Ventes récupérées :", ventes);
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-achats.forEach(tr => { 
+const tableAchats = document.getElementById('liste-achats'); // Cible ton tableau
+tableAchats.innerHTML = ''; // Vide le message "Aucune transaction"
 
-        // On cherche le nom du produit dans marketData ou via une jointure
+achats.forEach(tr => {
+
+       // On cherche le nom du produit dans marketData ou via une jointure
         const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
         const dateStr = new Date(tr.created_at).toLocaleDateString();
        
@@ -1750,6 +1753,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
