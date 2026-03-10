@@ -687,49 +687,68 @@ function calculateSpiritSplit(price) {
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
+
+/**
+ * Fonction : loadUserPurchases
+ * Rôle : Récupère les transactions depuis Supabase et les affiche dans le tableau HTML
+ */
 async function loadUserPurchases() {
-    console.log("Tentative de chargement du Ledger...");
+    // 1. Identification de la cible HTML
+    const baliseTableau = document.getElementById('list-achats');
     
-    const tableAchats = document.getElementById('list-achats');
-    if (!tableAchats) {
-        console.error("Tableau introuvable ! Vérifie l'ID dans ton HTML.");
+    // Sécurité : Si la balise n'existe pas, on arrête tout proprement
+    if (!baliseTableau) {
+        console.error("ERREUR CRITIQUE : L'ID 'list-achats' n'existe pas dans le HTML.");
         return;
     }
-    tableAchats.innerHTML = ''; 
 
-    // On récupère tout d'un coup
-    const { data: transactions, error } = await _spirit
+    // 2. Nettoyage du tableau (On vide le "Aucune transaction" par défaut)
+    baliseTableau.innerHTML = "";
+
+    // 3. Appel à la base de données Supabase
+    // On cible la table 'transactions' pour l'utilisateur '12345'
+    const { data: listeTransactions, error: erreurSupabase } = await _spirit
         .from('transactions')
         .select('*')
         .eq('buyer_id', '12345');
 
-    if (error) {
-        console.error("Erreur Supabase:", error.message);
+    // Gestion d'erreur de connexion
+    if (erreurSupabase) {
+        console.error("ERREUR SUPABASE :", erreurSupabase.message);
+        baliseTableau.innerHTML = "<tr><td colspan='5'>Erreur de connexion au Ledger.</td></tr>";
         return;
     }
 
-    if (transactions && transactions.length > 0) {
-        transactions.forEach(tr => {
-            const row = document.createElement('tr');
-            const dateStr = new Date(tr.created_at).toLocaleDateString();
+    // 4. Boucle de génération des lignes (Rendering)
+    if (listeTransactions && listeTransactions.length > 0) {
+        listeTransactions.forEach(transaction => {
+            // Préparation des données de la ligne
+            const dateAchat = new Date(transaction.created_at).toLocaleDateString();
+            const ligneHtml = document.createElement('tr');
             
-            row.innerHTML = `
-                <td>${dateStr}</td>
-                <td><b style="color:var(--neon-orange)">Figurine #${tr.product_id}</b></td>
-                <td>${tr.amount} €</td>
-                <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
+            // Construction de la structure de la ligne (Template)
+            ligneHtml.innerHTML = `
+                <td>${dateAchat}</td>
+                <td><b style="color:var(--neon-orange)">ID Produc: ${transaction.product_id}</b></td>
+                <td>${transaction.amount} €</td>
+                <td><span style="color:var(--spirit-green)">${transaction.status}</span></td>
                 <td style="text-align:center;">
-                    <button class="btn-recu-action" style="padding:4px 8px; cursor:pointer;">✅ REÇU</button>
-                    <button class="btn-litige-action" style="color:#ff4444; border:1px solid #ff4444; background:none; margin-left:5px; padding:4px 8px; cursor:pointer;">⚠️ LITIGE</button>
+                    <button class="btn-recu-action" data-id="${transaction.id}">✅ REÇU</button>
+                    <button class="btn-litige-action" data-id="${transaction.id}" style="border:1px solid #ff4444; color:#ff4444; background:none; margin-left:5px;">⚠️ LITIGE</button>
                 </td>
             `;
-            tableAchats.appendChild(row);
+
+            // Injection de la ligne dans le tableau
+            baliseTableau.appendChild(ligneHtml);
         });
-        console.log("Affichage réussi :", transactions.length, "lignes.");
+        console.log("Spirit Infinity : " + listeTransactions.length + " transactions chargées.");
     } else {
-        tableAchats.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">AUCUNE TRANSACTION TROUVÉE</td></tr>';
+        // Cas où la table est vide
+        baliseTableau.innerHTML = "<tr><td colspan='5' style='text-align:center; padding:20px;'>AUCUNE TRANSACTION DANS LE LEDGER</td></tr>";
     }
 }
+
+
     // LA LIGNE CRUCIALE : on ajoute la ligne au tableau
     if (tableAchats) tableAchats.appendChild(row);
 });
@@ -1739,6 +1758,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
