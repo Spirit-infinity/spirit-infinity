@@ -303,18 +303,6 @@ SpiritEngine.init();
     }
 };
 
-
-       
-            feedback.innerHTML = "✅ ANALYSE RÉUSSIE : TRANSACTION SCELLÉE";
-            // On recharge le market AVANT de changer d'onglet
-            await this.loadMarketplace();
-            setTimeout(() => { showTab('market'); }, 1500);
-        } else {
-            feedback.innerHTML = "❌ ERREUR SUPABASE : " + error.message;
-        }
-    }
-};
-
         // 3. CODE 3 : SPIRIT SECURITY
         const SpiritSecurity = {
             async submitReview(vendeurId, score, comment) {
@@ -400,6 +388,7 @@ SpiritEngine.init();
     </script>
 </body>
 </html>
+
 
 
 
