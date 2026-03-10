@@ -717,11 +717,6 @@ console.log("Achats récupérés :", achats);
 console.log("Ventes récupérées :", ventes);
 
 
-    if (!data || data.length === 0) {
-        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
-        return;
-    }
-
     data.forEach(tr => {
         // On cherche le nom du produit dans marketData ou via une jointure
         const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
@@ -1753,6 +1748,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
