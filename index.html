@@ -704,33 +704,26 @@ async function loadUserPurchases() {
 
     if (achats && achats.length > 0) {
         achats.forEach(tr => {
-            const dateStr = new Date(tr.created_at).toLocaleDateString();
             const row = document.createElement('tr');
+            const dateStr = new Date(tr.created_at).toLocaleDateString();
             
-            // On définit le nom du produit (ou ID si non trouvé)
-            const productName = (typeof marketData !== 'undefined') ? 
-                (marketData.find(m => m.id === tr.product_id)?.title || "Figurine #" + tr.product_id) : 
-                "Figurine #" + tr.product_id;
-
+            // On crée le contenu simplement
             row.innerHTML = `
                 <td>${dateStr}</td>
-                <td><b style="color:var(--neon-orange)">${productName}</b></td>
+                <td><b style="color:orange">Figurine #${tr.product_id}</b></td>
                 <td>${tr.amount} €</td>
-                <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
+                <td><span style="color:green">${tr.status}</span></td>
                 <td style="text-align:center;">
-                    ${tr.status === 'SÉQUESTRE ACTIF' ? `
-                        <button class="btn-recu-action" data-id="${tr.id}" style="margin-right:5px; cursor:pointer;">✅ REÇU</button>
-                        <button class="btn-litige-action" data-id="${tr.id}" style="cursor:pointer; background:none; border:1px solid #ff4444; color:#ff4444; padding:2px 5px; border-radius:4px;">⚠️ LITIGE</button>
-                    ` : `<span style="font-size:0.8rem; color:#777;">TERMINÉ</span>`}
+                    <button class="btn-recu-action">✅ REÇU</button>
+                    <button class="btn-litige-action" style="color:red; border:1px solid red; background:none; margin-left:5px;">⚠️ LITIGE</button>
                 </td>
             `;
             listBody.appendChild(row);
         });
     } else {
-        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION</td></tr>';
+        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">AUCUNE TRANSACTION</td></tr>';
     }
 }
-
 
     // LA LIGNE CRUCIALE : on ajoute la ligne au tableau
     if (tableAchats) tableAchats.appendChild(row);
@@ -1741,6 +1734,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
