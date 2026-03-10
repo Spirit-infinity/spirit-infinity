@@ -688,9 +688,9 @@ function calculateSpiritSplit(price) {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function loadUserPurchases() {
-    const listBody = document.getElementById('list-achats'); 
-    if (!listBody) return;
-    listBody.innerHTML = ''; 
+    const tableElement = document.getElementById('list-achats'); 
+    if (!tableElement) return;
+    tableElement.innerHTML = ''; 
 
     const { data: achats, error } = await _spirit
         .from('transactions')
@@ -707,24 +707,23 @@ async function loadUserPurchases() {
             const row = document.createElement('tr');
             const dateStr = new Date(tr.created_at).toLocaleDateString();
             
-            // On crée le contenu simplement
+            // On affiche juste l'ID du produit pour ne plus dépendre de marketData
             row.innerHTML = `
                 <td>${dateStr}</td>
                 <td><b style="color:orange">Figurine #${tr.product_id}</b></td>
                 <td>${tr.amount} €</td>
-                <td><span style="color:green">${tr.status}</span></td>
+                <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
                 <td style="text-align:center;">
-                    <button class="btn-recu-action">✅ REÇU</button>
-                    <button class="btn-litige-action" style="color:red; border:1px solid red; background:none; margin-left:5px;">⚠️ LITIGE</button>
+                    <button class="btn-recu-action" style="padding:4px 8px; cursor:pointer;">✅ REÇU</button>
+                    <button class="btn-litige-action" style="color:#ff4444; border:1px solid #ff4444; background:none; margin-left:5px; padding:4px 8px; cursor:pointer;">⚠️ LITIGE</button>
                 </td>
             `;
-            listBody.appendChild(row);
+            tableElement.appendChild(row);
         });
     } else {
-        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">AUCUNE TRANSACTION</td></tr>';
+        tableElement.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">AUCUNE TRANSACTION TROUVÉE</td></tr>';
     }
 }
-
     // LA LIGNE CRUCIALE : on ajoute la ligne au tableau
     if (tableAchats) tableAchats.appendChild(row);
 });
@@ -1734,6 +1733,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
