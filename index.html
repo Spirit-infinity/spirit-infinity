@@ -431,13 +431,18 @@
                 <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
                 <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
-         <div class="dash-content">
+        
+    <div class="dash-content">
     
     <div id="tab-dashboard" class="account-page">
-        <h2>🏠 MON COMPTE</h2>
-        <div class="grid-figurines">
+        <div class="user-figurines">
              </div>
     </div>
+
+    <div id="tab-achats" class="account-page" style="display:none;">
+        </div>
+
+</div>
 
     <div id="tab-achats" class="account-page" style="display:none;">
         <h2>🛒 MES ACHATS</h2>
@@ -698,25 +703,20 @@ function calculateSpiritSplit(price) {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function loadUserPurchases() {
-    console.log("Nettoyage des onglets...");
-
-    // 1. ON CACHE ABSOLUMENT TOUT
-    const toutesLesPages = document.querySelectorAll('.account-page');
-    toutesLesPages.forEach(page => {
-        page.style.setProperty('display', 'none', 'important');
+    // 1. CACHE TOUT (Force le masquage des figurines rangées dans tab-dashboard)
+    document.querySelectorAll('.account-page').forEach(page => {
+        page.style.display = 'none';
     });
 
-    // 2. ON AFFICHE SEULEMENT LES ACHATS
+    // 2. AFFICHE LES ACHATS
     const ongletAchats = document.getElementById('tab-achats');
-    if (ongletAchats) {
-        ongletAchats.style.setProperty('display', 'block', 'important');
-    }
+    if (ongletAchats) ongletAchats.style.display = 'block';
 
-    // 3. ON REMPLIT LE TABLEAU
-    const cibleTableau = document.getElementById('list-achats');
-    if (!cibleTableau) return;
-    cibleTableau.innerHTML = "";
+    const listBody = document.getElementById('list-achats');
+    if (!listBody) return;
+    listBody.innerHTML = ""; 
 
+    // 3. SUPABASE
     const { data: achats, error } = await _spirit
         .from('transactions')
         .select('*')
@@ -729,20 +729,21 @@ async function loadUserPurchases() {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${new Date(tr.created_at).toLocaleDateString()}</td>
-                <td><b style="color:var(--neon-orange)">#${tr.product_id}</b></td>
+                <td><b style="color:orange">#${tr.product_id}</b></td>
                 <td>${tr.amount} €</td>
                 <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
-                <td style="text-align:center;">
+                <td>
                     <button class="btn-recu-action">✅ REÇU</button>
-                    <button class="btn-litige-action" style="color:#ff4444; border:1px solid #ff4444; background:none; margin-left:8px; padding:2px 5px; border-radius:4px;">⚠️ LITIGE</button>
+                    <button class="btn-litige-action" style="color:red; border:1px solid red; background:none; margin-left:5px; padding:2px 5px; cursor:pointer;">⚠️ LITIGE</button>
                 </td>
             `;
-            cibleTableau.appendChild(row);
+            listBody.appendChild(row);
         });
     } else {
-        cibleTableau.innerHTML = "<tr><td colspan='5' style='text-align:center;'>AUCUNE TRANSACTION</td></tr>";
+        listBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>AUCUN ACHAT</td></tr>";
     }
 }
+
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
@@ -1749,6 +1750,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
