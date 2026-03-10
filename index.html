@@ -687,66 +687,60 @@ function calculateSpiritSplit(price) {
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-
-/**
- * Fonction : loadUserPurchases
- * Rôle : Récupère les transactions depuis Supabase et les affiche dans le tableau HTML
- */
 async function loadUserPurchases() {
-    // 1. Identification de la cible HTML
-    const baliseTableau = document.getElementById('list-achats');
-    
-    // Sécurité : Si la balise n'existe pas, on arrête tout proprement
-    if (!baliseTableau) {
-        console.error("ERREUR CRITIQUE : L'ID 'list-achats' n'existe pas dans le HTML.");
-        return;
+    // A. CIBLAGE DES ONGLETS (Basé sur ton HTML photo d7add9a0)
+    const ongletAchats = document.getElementById('tab-achats');
+    const tousLesOnglets = document.querySelectorAll('.account-page');
+    const tableBody = document.getElementById('list-achats');
+
+    // B. NETTOYAGE VISUEL : On cache tout, on montre uniquement les achats
+    if (tousLesOnglets) {
+        tousLesOnglets.forEach(tab => tab.style.display = 'none');
+    }
+    if (ongletAchats) {
+        ongletAchats.style.display = 'block';
     }
 
-    // 2. Nettoyage du tableau (On vide le "Aucune transaction" par défaut)
-    baliseTableau.innerHTML = "";
+    // C. SECURITÉ : Si le tableau n'existe pas encore dans le HTML
+    if (!tableBody) {
+        console.error("Le <tbody> 'list-achats' est introuvable.");
+        return;
+    }
+    tableBody.innerHTML = ""; // On vide pour éviter les doublons
 
-    // 3. Appel à la base de données Supabase
-    // On cible la table 'transactions' pour l'utilisateur '12345'
-    const { data: listeTransactions, error: erreurSupabase } = await _spirit
+    // D. RÉCUPÉRATION SUPABASE
+    const { data: achats, error } = await _spirit
         .from('transactions')
         .select('*')
         .eq('buyer_id', '12345');
 
-    // Gestion d'erreur de connexion
-    if (erreurSupabase) {
-        console.error("ERREUR SUPABASE :", erreurSupabase.message);
-        baliseTableau.innerHTML = "<tr><td colspan='5'>Erreur de connexion au Ledger.</td></tr>";
+    if (error) {
+        console.error("Erreur Spirit Ledger:", error.message);
         return;
     }
 
-    // 4. Boucle de génération des lignes (Rendering)
-    if (listeTransactions && listeTransactions.length > 0) {
-        listeTransactions.forEach(transaction => {
-            // Préparation des données de la ligne
-            const dateAchat = new Date(transaction.created_at).toLocaleDateString();
-            const ligneHtml = document.createElement('tr');
-            
-            // Construction de la structure de la ligne (Template)
-            ligneHtml.innerHTML = `
-                <td>${dateAchat}</td>
-                <td><b style="color:var(--neon-orange)">ID Produc: ${transaction.product_id}</b></td>
-                <td>${transaction.amount} €</td>
-                <td><span style="color:var(--spirit-green)">${transaction.status}</span></td>
+    // E. REMPLISSAGE DU TABLEAU
+    if (achats && achats.length > 0) {
+        achats.forEach(tr => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${new Date(tr.created_at).toLocaleDateString()}</td>
+                <td><b style="color:var(--neon-orange)">Figurine #${tr.product_id}</b></td>
+                <td>${tr.amount} €</td>
+                <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
                 <td style="text-align:center;">
-                    <button class="btn-recu-action" data-id="${transaction.id}">✅ REÇU</button>
-                    <button class="btn-litige-action" data-id="${transaction.id}" style="border:1px solid #ff4444; color:#ff4444; background:none; margin-left:5px;">⚠️ LITIGE</button>
+                    <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
+                    <button class="btn-litige-action" data-id="${tr.id}" style="border:1px solid #ff4444; color:#ff4444; background:none; margin-left:5px;">⚠️ LITIGE</button>
                 </td>
             `;
-
-            // Injection de la ligne dans le tableau
-            baliseTableau.appendChild(ligneHtml);
+            tableBody.appendChild(row);
         });
-        console.log("Spirit Infinity : " + listeTransactions.length + " transactions chargées.");
     } else {
-        // Cas où la table est vide
-        baliseTableau.innerHTML = "<tr><td colspan='5' style='text-align:center; padding:20px;'>AUCUNE TRANSACTION DANS LE LEDGER</td></tr>";
+        tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>AUCUN ACHAT TROUVÉ</td></tr>";
     }
 }
+
+
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
@@ -1753,6 +1747,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
