@@ -432,28 +432,96 @@
                 <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
         
-<div id="tab-dashboard" class="account-page">
-    <h2>🏠 MON COMPTE</h2>
-    <div class="grid-annonces">
+<div class="dash-content">
+
+    <div id="tab-dashboard" class="account-page active">
+        <h2 style="color: #fff; margin-bottom: 20px;">🏠 MON COMPTE</h2>
+
+        <div class="form-ajout-annonce" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #ff6600;">
+            <h3 style="color:#ff6600; margin-top:0;">🚀 AJOUTER UNE PIÈCE AU LEDGER</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                <input type="text" id="add-name" placeholder="Nom de la figurine" style="flex: 2; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;">
+                <input type="number" id="add-price" placeholder="Prix €" style="flex: 1; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px;">
+                <button onclick="publierAnnonce()" style="background: #ff6600; color: #000; border: none; padding: 10px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: 0.3s;">PUBLIER</button>
+            </div>
         </div>
+
+        <div class="user-annonces">
+            <div id="annonces-fixes" class="grid-annonces" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+                
+                <div class="card-spirit" style="background: #1a1a1a; border: 1px solid #333; padding: 15px; border-radius: 8px; border-bottom: 3px solid #ff6600;">
+                    <div style="color: #00f2ff; font-size: 0.7rem; margin-bottom: 5px;">SPIRIT NATIVE</div>
+                    <h4 style="margin: 5px 0; color: #fff;">Iron Man MK85</h4>
+                    <p style="color: #ff6600; font-size: 1.2rem; font-weight: bold; margin: 5px 0;">650 €</p>
+                    <div style="font-size: 0.7rem; color: #888;">France | Auto-Diag: OK</div>
+                </div>
+
+                <div class="card-spirit" style="background: #1a1a1a; border: 1px solid #333; padding: 15px; border-radius: 8px; border-bottom: 3px solid #ff6600;">
+                    <div style="color: #00f2ff; font-size: 0.7rem; margin-bottom: 5px;">SPIRIT NATIVE</div>
+                    <h4 style="margin: 5px 0; color: #fff;">Spider-Man No Way Home</h4>
+                    <p style="color: #ff6600; font-size: 1.2rem; font-weight: bold; margin: 5px 0;">320 €</p>
+                    <div style="font-size: 0.7rem; color: #888;">France | Auto-Diag: OK</div>
+                </div>
+
+                <div class="card-spirit" style="background: #1a1a1a; border: 1px solid #333; padding: 15px; border-radius: 8px; border-bottom: 3px solid #ff6600;">
+                    <div style="color: #00f2ff; font-size: 0.7rem; margin-bottom: 5px;">SPIRIT NATIVE</div>
+                    <h4 style="margin: 5px 0; color: #fff;">Captain America Endgame</h4>
+                    <p style="color: #ff6600; font-size: 1.2rem; font-weight: bold; margin: 5px 0;">280 €</p>
+                    <div style="font-size: 0.7rem; color: #888;">France | Auto-Diag: OK</div>
+                </div>
+
+                <div class="card-spirit" style="background: #1a1a1a; border: 1px solid #333; padding: 15px; border-radius: 8px; border-bottom: 3px solid #ff6600;">
+                    <div style="color: #00f2ff; font-size: 0.7rem; margin-bottom: 5px;">SPIRIT NATIVE</div>
+                    <h4 style="margin: 5px 0; color: #fff;">Darth Vader OBW</h4>
+                    <p style="color: #ff6600; font-size: 1.2rem; font-weight: bold; margin: 5px 0;">450 €</p>
+                    <div style="font-size: 0.7rem; color: #888;">Europe | Auto-Diag: OK</div>
+                </div>
+
+                <div class="card-spirit" style="background: #1a1a1a; border: 1px solid #333; padding: 15px; border-radius: 8px; border-bottom: 3px solid #00f2ff;">
+                    <div style="color: #ff6600; font-size: 0.7rem; margin-bottom: 5px;">IA CERTIFIED</div>
+                    <h4 style="margin: 5px 0; color: #fff;">Batman The Dark Knight</h4>
+                    <p style="color: #ff6600; font-size: 1.2rem; font-weight: bold; margin: 5px 0;">890 €</p>
+                    <div style="font-size: 0.7rem; color: #888;">USA | IA: Validé</div>
+                </div>
+
+                <div class="card-spirit" style="background: #1a1a1a; border: 1px solid #333; padding: 15px; border-radius: 8px; border-bottom: 3px solid #00f2ff;">
+                    <div style="color: #ff6600; font-size: 0.7rem; margin-bottom: 5px;">IA CERTIFIED</div>
+                    <h4 style="margin: 5px 0; color: #fff;">The Joker Rooted Hair</h4>
+                    <p style="color: #ff6600; font-size: 1.2rem; font-weight: bold; margin: 5px 0;">1200 €</p>
+                    <div style="font-size: 0.7rem; color: #888;">Hong Kong | IA: Validé</div>
+                </div>
+
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #333; margin: 40px 0;">
+
+            <h3 style="font-size: 0.9rem; opacity: 0.5; color: #ff6600;">FLUX TEMPS RÉEL (SUPABASE)</h3>
+            <div id="container-annonces-reelles" class="grid-annonces"></div>
+        </div>
+    </div>
+
+    <div id="tab-achats" class="account-page" style="display:none;">
+        <h2 style="color: #fff;"><i class="fas fa-shopping-cart"></i> MES ACHATS</h2>
+        <div style="overflow-x: auto;">
+            <table class="spirit-table" style="width:100%; border-collapse: collapse; margin-top: 20px; background: #111;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #333; text-align: left; color: #888;">
+                        <th style="padding: 15px;">Date</th>
+                        <th style="padding: 15px;">Produit</th>
+                        <th style="padding: 15px;">Prix</th>
+                        <th style="padding: 15px;">Statut</th>
+                        <th style="padding: 15px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="list-achats" style="color: #fff;">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 
-   <div id="tab-achats" class="account-page" style="display:none;">
-    <h2>🛒 MES ACHATS</h2>
-    <table class="spirit-table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Produit</th>
-                <th>Prix</th>
-                <th>Statut</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="list-achats"></tbody>
-    </table>
-</div>
 
 
 
@@ -1736,6 +1804,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
