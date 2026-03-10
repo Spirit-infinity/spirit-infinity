@@ -687,51 +687,50 @@ function calculateSpiritSplit(price) {
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-
 async function loadUserPurchases() {
-    const tableElement = document.getElementById('list-achats'); 
-    if (!tableElement) return;
-    tableElement.innerHTML = ''; 
+    const listBody = document.getElementById('list-achats'); 
+    if (!listBody) return;
+    listBody.innerHTML = ''; 
 
-    const { data: achats, error: errA } = await _spirit
+    const { data: achats, error } = await _spirit
         .from('transactions')
         .select('*')
         .eq('buyer_id', '12345');
 
-    if (errA) {
-        console.error("Erreur Spirit Ledger:", errA);
+    if (error) {
+        console.error("Erreur Supabase:", error);
         return;
     }
 
     if (achats && achats.length > 0) {
         achats.forEach(tr => {
-            const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
             const dateStr = new Date(tr.created_at).toLocaleDateString();
             const row = document.createElement('tr');
+            
+            // On définit le nom du produit (ou ID si non trouvé)
+            const productName = (typeof marketData !== 'undefined') ? 
+                (marketData.find(m => m.id === tr.product_id)?.title || "Figurine #" + tr.product_id) : 
+                "Figurine #" + tr.product_id;
 
             row.innerHTML = `
                 <td>${dateStr}</td>
-                <td><b style="color:var(--neon-orange)">${product.title}</b></td>
+                <td><b style="color:var(--neon-orange)">${productName}</b></td>
                 <td>${tr.amount} €</td>
-                <td>
-                    <span style="color:${tr.status === 'SÉQUESTRE ACTIF' ? 'var(--spirit-green)' : 'orange'}">
-                        ${tr.status}
-                    </span>
-                </td>
+                <td><span style="color:var(--spirit-green)">${tr.status}</span></td>
                 <td style="text-align:center;">
-                    ${tr.status === 'SÉQUESTRE ACTIF' ? 
-                        '<button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>' : 
-                        '<button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>\` :
-         ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
-                  }
+                    ${tr.status === 'SÉQUESTRE ACTIF' ? `
+                        <button class="btn-recu-action" data-id="${tr.id}" style="margin-right:5px; cursor:pointer;">✅ REÇU</button>
+                        <button class="btn-litige-action" data-id="${tr.id}" style="cursor:pointer; background:none; border:1px solid #ff4444; color:#ff4444; padding:2px 5px; border-radius:4px;">⚠️ LITIGE</button>
+                    ` : `<span style="font-size:0.8rem; color:#777;">TERMINÉ</span>`}
                 </td>
             `;
-            tableElement.appendChild(row);
+            listBody.appendChild(row);
         });
     } else {
-        tableElement.innerHTML = '<tr><td colspan="5" style="text-align:center;">AUCUNE TRANSACTION</td></tr>';
+        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION</td></tr>';
     }
 }
+
 
     // LA LIGNE CRUCIALE : on ajoute la ligne au tableau
     if (tableAchats) tableAchats.appendChild(row);
@@ -1742,6 +1741,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
