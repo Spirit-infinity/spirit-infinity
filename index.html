@@ -654,8 +654,6 @@ async function loadUserPurchases() {
         .eq('buyer_id', '12345')
         .order('created_at', { ascending: false });
 
-    console.log("DEBUG LEDGER :", data); // <--- À COLLER ICI (LIGNE 657)
-
     if (error) {
         console.error("Erreur de chargement des achats:", error);
         listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erreur de connexion Supabase.</td></tr>';
@@ -1251,7 +1249,7 @@ async function confirmPayment() {
 function showAccountTab(tab) {
    
     if(tab === 'achats') loadUserPurchases();
- 
+    if (tab === 'ventes') loadMySales();
     // 1. On nettoie l'interface (Boutons et Pages)
     document.querySelectorAll('.dash-nav button').forEach(b => {
         b.classList.remove('active');
@@ -1407,6 +1405,7 @@ async function loadMyPurchases() {
 }
 
 /**
+ * (c) 2026 Spirit Infinity - Tous droits réservés
  * FONCTION POUR TES VENTES
  */
 async function loadMySales() {
@@ -1415,18 +1414,75 @@ async function loadMySales() {
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE VENTES...</div>';
 
     try {
+        // CORRECTION : On s'assure que MY_TEST_ID est bien envoyé en String pour correspondre à la colonne 'text' de Supabase
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
-            .eq('seller_id', MY_TEST_ID) 
+            .eq('seller_id', String(MY_TEST_ID)) 
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        renderTransactionList(listBody, data || [], error, 'VENTES');
+
+        // On vide le message de chargement
+        listBody.innerHTML = '';
+
+        if (data && data.length > 0) {
+            data.forEach(tr => {
+                const productTitle = tr.figurine_name || "Produit #" + tr.id;
+                const dateStr = new Date(tr.created_at).toLocaleDateString('fr-FR');
+                
+                // CRÉATION DU BLOC VENTE
+                const saleDiv = document.createElement('div');
+                saleDiv.className = 'sale-item-card'; // Utilise ta classe de design Industrial Dark
+                saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.5);";
+                
+                saleDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <small style="color: #888;">${dateStr} - ID: ${tr.id}</small>
+                            <h3 style="margin: 5px 0; color: white;">${productTitle}</h3>
+                            <p style="margin: 0;">Montant : <b>${tr.amount} €</b></p>
+                            <p style="margin: 0;">Statut : <span style="color:orange;">${tr.status}</span></p>
+                        </div>
+                        <div style="text-align: right;">
+                            ${tr.status === 'SÉQUESTRE' ? `
+                                <button class="btn-action-spirit" 
+                                        onclick="generateShippingLabel('${tr.id}', '${tr.shipping_method || 'Standard'}')"
+                                        style="background: var(--neon-orange); color: black; border: none; padding: 8px 12px; cursor: pointer; font-weight: bold;">
+                                    📦 GÉNÉRER BORDEREAU (${tr.shipping_method || 'COLISSIMO'})
+                                </button>
+                            ` : `<span style="color: var(--spirit-green);">PRÊT POUR EXPÉDITION</span>`}
+                        </div>
+                    </div>
+                `;
+                listBody.appendChild(saleDiv);
+            });
+        } else {
+            listBody.innerHTML = '<div style="text-align:center; padding:20px;">Aucune vente trouvée.</div>';
+        }
+
+        // Garde la compatibilité avec ton ancienne fonction de rendu si tu l'utilises ailleurs
+        // renderTransactionList(listBody, data || [], error, 'VENTES');
+
     } catch (err) { 
         console.error(err); 
         listBody.innerHTML = "Erreur de connexion aux ventes.";
     }
+}
+
+/**
+ * FONCTION POUR LE BORDEREAU DE LIVRAISON
+ */
+function generateShippingLabel(transactionId, carrier) {
+    console.log("Génération du bordereau pour la transaction : " + transactionId);
+    
+    // On simule l'ouverture du bordereau officiel Spirit Infinity
+    const labelUrl = `https://spirit-infinity.github.io/shipping-labels/${carrier.toLowerCase()}-${transactionId}.pdf`;
+    
+    alert("📦 SPIRIT LOGISTIC : Préparation du bordereau " + carrier.toUpperCase() + ".\nLe fichier va s'ouvrir dans un nouvel onglet.");
+    
+    // Ouvre une fenêtre simulant le bordereau
+    window.open(labelUrl, '_blank');
 }
 
 /**
@@ -1867,6 +1923,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
