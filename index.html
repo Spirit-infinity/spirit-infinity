@@ -681,7 +681,7 @@
             `;
         });
     }
-<script>
+
     data.forEach(tr => {
         // On cherche le nom du produit dans marketData ou via une jointure
         const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
@@ -1729,3 +1729,4 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
