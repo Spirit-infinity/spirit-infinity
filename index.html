@@ -1264,12 +1264,32 @@ async function confirmPayment() {
     function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
     function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
   
-  function showAccountTab(tab) {
-    // On cache toutes les pages pour repartir de zéro
+ // (c) 2026 Spirit Infinity - Tous droits réservés
+
+function showAccountTab(tab) {
+    // 1. On cache toutes les pages pour repartir de zéro
     document.querySelectorAll('.account-page').forEach(p => {
         p.style.display = 'none';
         p.classList.remove('active');
     });
+
+    // 2. On affiche la page demandée
+    const activePage = document.getElementById(tab);
+    if (activePage) {
+        activePage.style.display = 'block';
+        activePage.classList.add('active');
+        
+        console.log("[SPIRIT NAV] Navigation vers :", tab);
+    }
+
+    // 3. TRIGGER : Si on ouvre l'onglet achats ou ventes, on lance la sync avec Supabase
+    if (tab === 'page-achats') {
+        loadMyPurchases();
+    } 
+    else if (tab === 'page-ventes') {
+        loadMySales();
+    }
+}
 
     // On éteint tous les boutons du menu
     document.querySelectorAll('.dash-nav button').forEach(b => {
@@ -1869,6 +1889,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
