@@ -1539,29 +1539,6 @@ async function generateSpiritLabel(id) {
     w.document.close();
 }
 
-/**
- * AJOUT : GESTION DE LA NAVIGATION DES ONGLETS
- * Correction pour déclencher le chargement lors du clic menu
- */
-function showAccountTab(tab) {
-    document.querySelectorAll('.dash-nav button').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.account-page').forEach(p => p.style.display = 'none');
-
-    const pageActive = document.getElementById('tab-' + tab);
-    if (pageActive) {
-        pageActive.style.display = 'block';
-        pageActive.classList.add('active');
-    }
-
-    // Déclenchement automatique des chargements selon l'onglet
-    if (tab === 'achats') loadMyPurchases();
-    if (tab === 'ventes') loadMySales();
-
-    const boutonActif = document.getElementById('btn-' + tab);
-    if (boutonActif) boutonActif.classList.add('active');
-}
-
-
 // --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
 function renderTransactionList(container, data, error, type) {
     if (error) { container.innerHTML = "Erreur sync."; return; }
@@ -1890,6 +1867,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
