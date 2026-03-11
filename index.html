@@ -642,16 +642,19 @@
 
   // (c) 2026 Spirit Infinity - Tous droits réservés
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 // CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
 async function loadUserPurchases() {
     const listBody = document.getElementById('list-achats');
     if(!listBody) return;
     listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Chargement du Ledger...</td></tr>';
 
+    // CORRECTION 1 : On utilise 'buyer_id' (vu sur Supabase) et 'MY_TEST_ID'
     const { data, error } = await _spirit
         .from('transactions')
         .select('*')
-        .eq('buyer_id', String(MY_TEST_ID)) // CORRECTION : buyer_id et MY_TEST_ID
+        .eq('buyer_id', String(MY_TEST_ID)) 
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -668,30 +671,32 @@ async function loadUserPurchases() {
     // Rendu des lignes
     listBody.innerHTML = '';
     
-    // Ton bloc de rendu intégré (Vérifie si "data" existe avant de lancer la boucle)
+    // CORRECTION 2 : Utilisation des colonnes réelles de Supabase (figurine_name, amount)
     if (typeof data !== 'undefined' && data !== null) {
         data.forEach(tr => {
-            // Utilisation de figurine_name venant de Supabase ou fallback
+            // On utilise 'figurine_name' car 'product_name' n'existe pas dans ta base
             const productTitle = tr.figurine_name || "Produit #" + tr.id; 
             const dateStr = new Date(tr.created_at).toLocaleDateString('fr-FR');
             
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${dateStr}</td>
-                <td><b style="color:var(--neon-orange)">${productTitle}</b></td>
-                <td>${tr.amount} €</td>
-                <td><span style="color:${tr.status === 'SÉQUESTRE' ? 'orange' : 'var(--spirit-green)'}">${tr.status.toUpperCase()}</span></td>
-                <td style="text-align:center;">
-                    ${tr.status === 'SÉQUESTRE' ? `
-                        <button class="btn-recu-action" data-id="${tr.id}" onclick="confirmReceipt('${tr.id}')">✅ REÇU</button>
-                        <button class="btn-litige-action" data-id="${tr.id}" onclick="openSupport()">⚠️ LITIGE</button>
-                    ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
-                </td>
+                <tr>
+                    <td>${dateStr}</td>
+                    <td><b style="color:var(--neon-orange)">${productTitle}</b></td>
+                    <td>${tr.amount} €</td>
+                    <td><span style="color:${tr.status === 'SÉQUESTRE' ? 'orange' : 'var(--spirit-green)'}">${tr.status.toUpperCase()}</span></td>
+                    <td style="text-align:center;">
+                        ${tr.status === 'SÉQUESTRE' ? `
+                            <button class="btn-recu-action" data-id="${tr.id}" onclick="confirmReceipt('${tr.id}')">✅ REÇU</button>
+                            <button class="btn-litige-action" data-id="${tr.id}" onclick="openSupport()">⚠️ LITIGE</button>
+                        ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+                    </td>
+                </tr>
             `;
             listBody.appendChild(row);
         });
     } else {
-        // Message d'erreur ligne 709 corrigé
+        // Message ligne 709
         console.warn("Spirit Ledger : La variable 'data' est vide ou non définie.");
     }
 }
@@ -1894,6 +1899,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
