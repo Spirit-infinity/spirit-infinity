@@ -650,11 +650,10 @@ async function loadUserPurchases() {
     if(!listBody) return;
     listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Chargement du Ledger...</td></tr>';
 
-    // CORRECTION 1 : On utilise 'buyer_id' (vu sur Supabase) et 'MY_TEST_ID'
     const { data, error } = await _spirit
         .from('transactions')
         .select('*')
-        .eq('buyer_id', String(MY_TEST_ID)) 
+        .eq('buyer_id', String(MY_TEST_ID)) // Utilise l'ID test (12345 ou 67890)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -663,44 +662,35 @@ async function loadUserPurchases() {
         return;
     }
 
-    if (!data || data.length === 0) {
-        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
-        return;
-    }
-    
-    // Rendu des lignes
-    listBody.innerHTML = '';
-    
-    // CORRECTION 2 : Utilisation des colonnes réelles de Supabase (figurine_name, amount)
-    if (typeof data !== 'undefined' && data !== null) {
+    // Vérifie si "data" existe avant de lancer le rendu
+    if (data && data.length > 0) {
+        listBody.innerHTML = ''; // On vide le message de chargement
+        
         data.forEach(tr => {
-            // On utilise 'figurine_name' car 'product_name' n'existe pas dans ta base
-            const productTitle = tr.figurine_name || "Produit #" + tr.id; 
+            const productTitle = tr.figurine_name || "Produit #" + tr.id;
             const dateStr = new Date(tr.created_at).toLocaleDateString('fr-FR');
             
             const row = document.createElement('tr');
             row.innerHTML = `
-                <tr>
-                    <td>${dateStr}</td>
-                    <td><b style="color:var(--neon-orange)">${productTitle}</b></td>
-                    <td>${tr.amount} €</td>
-                    <td><span style="color:${tr.status === 'SÉQUESTRE' ? 'orange' : 'var(--spirit-green)'}">${tr.status.toUpperCase()}</span></td>
-                    <td style="text-align:center;">
-                        ${tr.status === 'SÉQUESTRE' ? `
-                            <button class="btn-recu-action" data-id="${tr.id}" onclick="confirmReceipt('${tr.id}')">✅ REÇU</button>
-                            <button class="btn-litige-action" data-id="${tr.id}" onclick="openSupport()">⚠️ LITIGE</button>
-                        ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
-                    </td>
-                </tr>
+                <td>${dateStr}</td>
+                <td><b style="color:var(--neon-orange)">${productTitle}</b></td>
+                <td>${tr.amount} €</td>
+                <td><span style="color:${tr.status === 'SÉQUESTRE' ? 'orange' : 'var(--spirit-green)'}">${tr.status.toUpperCase()}</span></td>
+                <td style="text-align:center;">
+                    ${tr.status === 'SÉQUESTRE' ? `
+                        <button class="btn-recu-action" data-id="${tr.id}" onclick="confirmReceipt('${tr.id}')">✅ REÇU</button>
+                        <button class="btn-litige-action" data-id="${tr.id}" onclick="openSupport()">⚠️ LITIGE</button>
+                    ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+                </td>
             `;
             listBody.appendChild(row);
         });
     } else {
-        // Message ligne 709
-        console.warn("Spirit Ledger : La variable 'data' est vide ou non définie.");
+        // Correction ligne 709 : s'affiche si vraiment aucun achat n'est trouvé en base
+        console.warn("Spirit Ledger : Aucun achat trouvé pour l'ID : " + MY_TEST_ID);
+        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
     }
 }
-
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
     const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
@@ -1899,6 +1889,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
