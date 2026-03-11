@@ -682,8 +682,11 @@
         });
     }
 
+  // (c) 2026 Spirit Infinity - Tous droits réservés
+
+// Vérifie si "data" existe avant de lancer la boucle
+if (typeof data !== 'undefined' && data !== null) {
     data.forEach(tr => {
-        // On cherche le nom du produit dans marketData ou via une jointure
         const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
         const dateStr = new Date(tr.created_at).toLocaleDateString();
         
@@ -694,17 +697,17 @@
             <td>${tr.amount} €</td>
             <td><span style="color:${tr.status === 'completed' ? 'var(--spirit-green)' : 'orange'}">${tr.status.toUpperCase()}</span></td>
             <td style="text-align:center;">
-               // (c) 2026 Spirit Infinity - Tous droits réservés
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
-${tr.status === 'escrow_active' ? `
-    <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
-    <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>
-` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+                ${tr.status === 'escrow_active' ? `
+                    <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
+                    <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>
+                ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
             </td>
         `;
         listBody.appendChild(row);
     });
+} else {
+    console.warn("Spirit Ledger : La variable 'data' est vide ou non définie.");
+}
 
 
     // --- SYSTEME DE SECURITE CHAT & FORUM ---
@@ -1728,5 +1731,6 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
