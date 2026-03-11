@@ -640,73 +640,60 @@
         };
     }
 
-    // CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
-    async function loadUserPurchases() {
-        const listBody = document.getElementById('list-achats');
-        if(!listBody) return;
-        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Chargement du Ledger...</td></tr>';
-
-        const { data, error } = await _spirit
-            .from('transactions')
-            .select('*')
-            .eq('buyer', currentUser)
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error("Erreur de chargement des achats:", error);
-            listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erreur de connexion Supabase.</td></tr>';
-            return;
-        }
-
-        if (!data || data.length === 0) {
-            listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
-            return;
-        }
-        
-        // Rendu des lignes
-        listBody.innerHTML = '';
-        data.forEach(t => {
-            const date = new Date(t.created_at).toLocaleDateString('fr-FR');
-            listBody.innerHTML += `
-                <tr>
-                    <td>${date}</td>
-                    <td><b>${t.product_name}</b></td>
-                    <td>${t.total_paid} €</td>
-                    <td><span style="color:var(--spirit-green)">${t.status}</span></td>
-                    <td style="text-align:center;">
-                        <button class="btn-shield-ok" onclick="confirmReceipt('${t.id}')">REÇU ✓</button>
-                        <button class="btn-shield-bad" onclick="openSupport()">LITIGE !</button>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-
   // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// Vérifie si "data" existe avant de lancer la boucle
-if (typeof data !== 'undefined' && data !== null) {
-    data.forEach(tr => {
-        const product = marketData.find(m => m.id === tr.product_id) || { title: "Produit #" + tr.product_id };
-        const dateStr = new Date(tr.created_at).toLocaleDateString();
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${dateStr}</td>
-            <td><b style="color:var(--neon-orange)">${product.title}</b></td>
-            <td>${tr.amount} €</td>
-            <td><span style="color:${tr.status === 'completed' ? 'var(--spirit-green)' : 'orange'}">${tr.status.toUpperCase()}</span></td>
-            <td style="text-align:center;">
-                ${tr.status === 'escrow_active' ? `
-                    <button class="btn-recu-action" data-id="${tr.id}">✅ REÇU</button>
-                    <button class="btn-litige-action" data-id="${tr.id}">⚠️ LITIGE</button>
-                ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
-            </td>
-        `;
-        listBody.appendChild(row);
-    });
-} else {
-    console.warn("Spirit Ledger : La variable 'data' est vide ou non définie.");
+// CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
+async function loadUserPurchases() {
+    const listBody = document.getElementById('list-achats');
+    if(!listBody) return;
+    listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Chargement du Ledger...</td></tr>';
+
+    const { data, error } = await _spirit
+        .from('transactions')
+        .select('*')
+        .eq('buyer_id', String(MY_TEST_ID)) // CORRECTION : buyer_id et MY_TEST_ID
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Erreur de chargement des achats:", error);
+        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erreur de connexion Supabase.</td></tr>';
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
+        return;
+    }
+    
+    // Rendu des lignes
+    listBody.innerHTML = '';
+    
+    // Ton bloc de rendu intégré (Vérifie si "data" existe avant de lancer la boucle)
+    if (typeof data !== 'undefined' && data !== null) {
+        data.forEach(tr => {
+            // Utilisation de figurine_name venant de Supabase ou fallback
+            const productTitle = tr.figurine_name || "Produit #" + tr.id; 
+            const dateStr = new Date(tr.created_at).toLocaleDateString('fr-FR');
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${dateStr}</td>
+                <td><b style="color:var(--neon-orange)">${productTitle}</b></td>
+                <td>${tr.amount} €</td>
+                <td><span style="color:${tr.status === 'SÉQUESTRE' ? 'orange' : 'var(--spirit-green)'}">${tr.status.toUpperCase()}</span></td>
+                <td style="text-align:center;">
+                    ${tr.status === 'SÉQUESTRE' ? `
+                        <button class="btn-recu-action" data-id="${tr.id}" onclick="confirmReceipt('${tr.id}')">✅ REÇU</button>
+                        <button class="btn-litige-action" data-id="${tr.id}" onclick="openSupport()">⚠️ LITIGE</button>
+                    ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
+                </td>
+            `;
+            listBody.appendChild(row);
+        });
+    } else {
+        // Message d'erreur ligne 709 corrigé
+        console.warn("Spirit Ledger : La variable 'data' est vide ou non définie.");
+    }
 }
 
 
@@ -1907,6 +1894,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
