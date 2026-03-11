@@ -1266,6 +1266,8 @@ async function confirmPayment() {
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 function showAccountTab(tab) {
     // 1. On nettoie l'interface (Boutons et Pages)
     document.querySelectorAll('.dash-nav button').forEach(b => {
@@ -1301,7 +1303,6 @@ function showAccountTab(tab) {
     }
 }
 
-
 function switchUser(newId, label) {
     MY_TEST_ID = newId;
     console.log("Utilisateur simulé : " + label + " (ID: " + MY_TEST_ID + ")");
@@ -1319,27 +1320,55 @@ function switchUser(newId, label) {
     if (activeBtn) {
         const activeTab = activeBtn.id.replace('btn-', '');
         showAccountTab(activeTab);
+    } else {
+        // Si aucun onglet n'est actif, on force le rafraîchissement des données en arrière-plan
+        loadMyPurchases();
+        loadMySales();
     }
     
     alert("Session simulée : " + label);
 }
 
-    function zoomImg(src) {
-        document.getElementById('lightbox-img').src = src;
-        document.getElementById('lightbox').style.display = 'flex';
+function zoomImg(src) {
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightbox = document.getElementById('lightbox');
+    if(lightboxImg && lightbox) {
+        lightboxImg.src = src;
+        lightbox.style.display = 'flex';
     }
-    function showTopicEditor() {
-        document.getElementById('forumList').style.display = 'none';
-        document.getElementById('topicEditor').style.display = 'block';
+}
+
+function showTopicEditor() {
+    const forumList = document.getElementById('forumList');
+    const topicEditor = document.getElementById('topicEditor');
+    if(forumList && topicEditor) {
+        forumList.style.display = 'none';
+        topicEditor.style.display = 'block';
     }
-    function hideTopicEditor() {
-        document.getElementById('forumList').style.display = 'block';
-        document.getElementById('topicEditor').style.display = 'none';
+}
+
+function hideTopicEditor() {
+    const forumList = document.getElementById('forumList');
+    const topicEditor = document.getElementById('topicEditor');
+    if(forumList && topicEditor) {
+        forumList.style.display = 'block';
+        topicEditor.style.display = 'none';
     }
-   function openAccount() {
-    updateUserAnnonces();
-    loadMyPurchases(); // <--- On appelle le chargement ici !
-    document.getElementById('accountModal').style.display = 'flex';
+}
+
+function openAccount() {
+    // On s'assure que les données sont fraîches à l'ouverture
+    if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
+    loadMyPurchases(); 
+    loadMySales();
+    
+    const accountModal = document.getElementById('accountModal');
+    if (accountModal) {
+        accountModal.style.display = 'flex';
+    }
+    
+    // Par défaut, on affiche l'onglet achats à l'ouverture
+    showAccountTab('achats');
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -1878,6 +1907,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
