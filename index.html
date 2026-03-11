@@ -653,7 +653,7 @@ async function loadUserPurchases() {
     const { data, error } = await _spirit
         .from('transactions')
         .select('*')
-        .eq('buyer_id', '12345')
+        .eq('buyer_id', String(MY_TEST_ID)) 
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -1248,9 +1248,10 @@ async function confirmPayment() {
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
 function showAccountTab(tab) {
+   
+    if(tab === 'achats') loadUserPurchases();
+ 
     // 1. On nettoie l'interface (Boutons et Pages)
     document.querySelectorAll('.dash-nav button').forEach(b => {
         b.classList.remove('active');
@@ -1889,6 +1890,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
