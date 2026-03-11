@@ -1106,17 +1106,18 @@ async function confirmPayment() {
     try {
         console.log("[SPIRIT LEDGER] Écriture dans les colonnes Supabase...");
         
-        // INSERTION STRICTE SELON TES COLONNES PHOTO
+        // INSERTION STRICTE AVEC IDENTIFICATION UTILISATEUR
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount: totalAcheteur, // Colonne 1
-                user_profit: uProfit, // Colonne 2
-                firm_profit: fProfit, // Colonne 3
-                bank_share: bShare, // Colonne 4
-                status: 'SÉQUESTRE ACTIF', // Colonne 5
-                figurine_name: selectedProduct.title // Colonne 6
-                // 'created_at' est géré automatiquement par Supabase
+                amount: totalAcheteur, 
+                buyer_id: MY_TEST_ID, // <-- AJOUTÉ : L'ID de celui qui achète (Simulateur)
+                seller_id: selectedProduct.owner || "SYSTEM", // <-- AJOUTÉ : L'ID du vendeur de l'annonce
+                user_profit: uProfit, 
+                firm_profit: fProfit, 
+                bank_share: bShare, 
+                status: 'SÉQUESTRE ACTIF', 
+                figurine_name: selectedProduct.title 
             }]);
 
         if (error) throw error;
@@ -1731,6 +1732,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
