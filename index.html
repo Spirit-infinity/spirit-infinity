@@ -642,7 +642,6 @@
 
   // (c) 2026 Spirit Infinity - Tous droits réservés
 
-
 // CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
 async function loadUserPurchases() {
     const listBody = document.getElementById('list-achats');
@@ -654,6 +653,8 @@ async function loadUserPurchases() {
         .select('*')
         .eq('buyer_id', '12345')
         .order('created_at', { ascending: false });
+
+    console.log("DEBUG LEDGER :", data); // <--- À COLLER ICI (LIGNE 657)
 
     if (error) {
         console.error("Erreur de chargement des achats:", error);
@@ -1889,6 +1890,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
