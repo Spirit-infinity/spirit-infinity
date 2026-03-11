@@ -651,7 +651,7 @@ async function loadUserPurchases() {
     const { data, error } = await _spirit
         .from('transactions')
         .select('*')
-        ..eq('buyer_id', String(MY_TEST_ID)) // Remplace '12345' par String(MY_TEST_ID)
+        .eq('buyer_id', String(MY_TEST_ID)) // Remplace '12345' par String(MY_TEST_ID)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -1909,6 +1909,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
