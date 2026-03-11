@@ -1267,56 +1267,40 @@ async function confirmPayment() {
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
 function showAccountTab(tab) {
-    // 1. On cache toutes les pages pour repartir de zéro
+    // 1. On nettoie l'interface (Boutons et Pages)
+    document.querySelectorAll('.dash-nav button').forEach(b => {
+        b.classList.remove('active');
+    });
+    
     document.querySelectorAll('.account-page').forEach(p => {
         p.style.display = 'none';
         p.classList.remove('active');
     });
 
-    // 2. On affiche la page demandée
-    const activePage = document.getElementById(tab);
-    if (activePage) {
-        activePage.style.display = 'block';
-        activePage.classList.add('active');
-        
-        console.log("[SPIRIT NAV] Navigation vers :", tab);
-    }
-
-    // 3. TRIGGER : Si on ouvre l'onglet achats ou ventes, on lance la sync avec Supabase
-    if (tab === 'page-achats') {
-        loadMyPurchases();
-    } 
-    else if (tab === 'page-ventes') {
-        loadMySales();
-    }
-}
-
-    // On éteint tous les boutons du menu
-    document.querySelectorAll('.dash-nav button').forEach(b => {
-        b.classList.remove('active');
-    });
-
-    // On affiche la page sur laquelle on a cliqué
+    // 2. On affiche la page correspondante (ID: tab-achats, tab-ventes, etc.)
     const pageActive = document.getElementById('tab-' + tab);
     if (pageActive) {
         pageActive.style.display = 'block';
         pageActive.classList.add('active');
+        console.log("[SPIRIT NAV] Navigation vers :", tab);
     }
-      
-    // CORRECTION : Appels directs aux fonctions de filtrage Ledger/Market
+
+    // 3. TRIGGER : Synchronisation Ledger avec Supabase selon l'onglet
     if (tab === 'achats') {
         loadMyPurchases();
     } else if (tab === 'ventes') {
         loadMySales();
     } else if (tab === 'annonces') {
-        updateUserAnnonces();
+        if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
     }
 
-    // On allume le bouton correspondant
+    // 4. On allume le bouton du menu correspondant (ID: btn-achats, etc.)
     const boutonActif = document.getElementById('btn-' + tab);
     if (boutonActif) {
         boutonActif.classList.add('active');
     }
+}
+
 
 function switchUser(newId, label) {
     MY_TEST_ID = newId;
@@ -1888,6 +1872,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
