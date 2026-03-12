@@ -920,8 +920,6 @@ async function saveSpiritAudit(title, detected, score, status) {
     }
 }
 
-
-// (c) 2026 Spirit Infinity - Tous droits réservés
 /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
@@ -943,47 +941,67 @@ async function publishFinal() {
 
     const listingUUID = "SPIRIT-" + Date.now();
 
-    // Objet aligné sur tes colonnes Supabase (Photos 4, 5, 6)
+    // Objet aligné strictement sur tes colonnes Supabase (Photos 4, 5, 6, 7, 8)
     const newItem = {
         uuid: listingUUID,
-        figurine_name: title, // Ta colonne 'figurine_name'
-        amount: price, // Ta colonne 'amount'
-        description: desc, // Ta colonne 'description'
-        currency: "EUR", // Ta colonne 'currency'
-        status: "available", // Ta colonne 'status'
-        buyer_id: null, // Vide à la publication
-        seller_id: String(MY_TEST_ID), // Ton ID (12345 ou 67890)
-        ia_score: scoreIA, // La colonne que tu crées
-        user_profit: 0, // Sera calculé à la vente (3%)
-        firm_profit: 0, // Sera calculé à la vente (3%)
-        bank_share: 0, // Sera calculé à la vente (2%)
-        is_first_hand: true, // Ta colonne booléenne
-        is_smoke_free: true, // Ta colonne booléenne
-        is_light_protect: true // Ta colonne booléenne
+        figurine_name: title, // Photo 1
+        amount: price, // Photo 2
+        description: desc, // Photo 4
+        currency: "EUR", // Photo 4
+        status: "available", // Photo 3
+        buyer_id: null, // Photo 3
+        seller_id: String(MY_TEST_ID), // Photo 3 (12345 ou 67890)
+        ia_score: scoreIA, // La colonne que tu as créée (Photo 6)
+        user_profit: 0,              
+        firm_profit: 0,              
+        bank_share: 0,               
+        is_first_hand: true, // Photo 5
+        is_smoke_free: true, // Photo 5
+        is_light_protect: true, // Photo 5
+        // On garde les infos pour l'affichage local (Marketplace)
+        cat: cat,
+        shipSize: ship,
+        img: previewPhotos[0],
+        photos: previewPhotos.filter(p => p !== null)
     };
 
     try {
-        console.log("[SPIRIT LEDGER] Publication avec colonnes réelles...");
+        console.log("[SPIRIT LEDGER] Publication en cours...");
 
         const { error } = await _spirit
             .from('annonces') 
-            .insert([newItem]);
+            .insert([{
+                uuid: newItem.uuid,
+                figurine_name: newItem.figurine_name,
+                amount: newItem.amount,
+                description: newItem.description,
+                currency: newItem.currency,
+                status: newItem.status,
+                buyer_id: newItem.buyer_id,
+                seller_id: newItem.seller_id,
+                ia_score: newItem.ia_score,
+                is_first_hand: newItem.is_first_hand,
+                is_smoke_free: newItem.is_smoke_free,
+                is_light_protect: newItem.is_light_protect
+            }]);
 
         if (error) throw error;
 
         // Mise à jour de l'interface locale
-        marketData.unshift(newItem);
+        if (typeof marketData !== 'undefined') marketData.unshift(newItem);
+        
         renderMarket();
         updateUserAnnonces();
         closeModals();
 
-        alert("ANNONCE CERTIFIÉE : Produit ajouté avec succès !");
+        alert("ANNONCE CERTIFIÉE : Produit ajouté au Spirit Ledger !");
 
     } catch (err) {
         console.error("ERREUR SQL :", err.message);
-        alert("ERREUR : Assure-toi d'avoir créé la colonne 'ia_score' (type text ou numeric) dans Supabase.");
+        alert("ERREUR : Assure-toi que la colonne 'ia_score' est bien créée sur Supabase.");
     }
 }
+
 
 
     function updateUserAnnonces() {
@@ -1960,6 +1978,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
