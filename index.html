@@ -1649,55 +1649,6 @@ function renderTransactionList(container, data, error, type) {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-/**
- * OUVRIR UN LITIGE
- * On met à jour uniquement le statut pour éviter l'erreur de colonne manquante
- */
-async function openDispute(transactionId) {
-    if (!confirm("⚠️ Voulez-vous ouvrir un litige sur cette figurine ? Les fonds seront gelés.")) return;
-
-    try {
-        const { error } = await _spirit
-            .from('transactions')
-            .update({ status: 'LITIGE OUVERT' }) // On ne change que le status ici
-            .eq('id', transactionId);
-
-        if (error) throw error;
-
-        alert("⚖️ LITIGE OUVERT : Le séquestre est bloqué. L'équipe Spirit Infinity va analyser les preuves.");
-        loadMyPurchases(); // Rafraîchit l'affichage
-    } catch (err) {
-        console.error("Erreur Ledger:", err.message);
-        alert("Erreur lors de l'ouverture : " + err.message);
-    }
-}
-
-/**
- * CONFIRMER LA RÉCEPTION
- */
-async function confirmReception(transactionId) {
-    if (!confirm("✅ Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.")) return;
-
-    try {
-        const { error } = await _spirit
-            .from('transactions')
-            .update({ status: 'LIVRAISON VALIDÉE' })
-            .eq('id', transactionId);
-
-        if (error) throw error;
-
-        alert("✅ TRANSACTION TERMINÉE : Merci de votre confiance.");
-        loadMyPurchases();
-    } catch (err) {
-        console.error("Erreur Ledger:", err.message);
-        alert("Erreur de validation : " + err.message);
-    }
-}
-
-    renderMarket();
-
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
 async function startAIAnalysis() {
     const statusText = document.getElementById('scanStatus');
     const img = document.getElementById('preview-img');
@@ -1834,60 +1785,6 @@ msg.innerHTML = `
     }
 }
 
-// (c) 2026 Spirit Infinity - Tous droits réservés
-document.addEventListener('click', function (e) {
-    if (e.target.classList.contains('btn-recu-action')) {
-        confirmReceipt(e.target.getAttribute('data-id'));
-    }
-    if (e.target.classList.contains('btn-litige-action')) {
-        openDispute(e.target.getAttribute('data-id'));
-    }
-});
-
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
-async function generateSpiritLabel(transactionId) {
-    console.log("Appel du bordereau pour l'ID :", transactionId);
-    
-    const preview = document.getElementById('labelPreview');
-    const content = document.getElementById('labelContent');
-
-    if (!preview || !content) {
-        alert("Erreur critique : Le cadre du bordereau (HTML) est introuvable dans la page.");
-        return;
-    }
-
-    try {
-        // Récupération des données réelles sur Supabase
-        const { data: tr, error } = await _spirit
-            .from('transactions')
-            .select('*')
-            .eq('id', transactionId)
-            .single();
-
-        if (error || !tr) throw new Error("Transaction introuvable");
-
-        // Injection du design dans le modal
-        content.innerHTML = `
-            <div style="color:black; font-family:monospace; padding:10px; border:2px solid black;">
-                <h2 style="margin:0; border-bottom:2px solid black;">SPIRIT LOGISTICS</h2>
-                <p><b>PRODUIT :</b> ${tr.figurine_name}</p>
-                <p><b>VALEUR :</b> ${tr.amount} €</p>
-                <div style="background:black; color:white; padding:10px; text-align:center; font-weight:bold; font-size:1.2rem;">
-                    SP-${Math.random().toString(36).toUpperCase().substring(2,10)}
-                </div>
-                <p style="font-size:10px; text-align:center; margin-top:10px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
-            </div>
-        `;
-
-        // Affichage du modal
-        preview.style.display = 'block';
-
-    } catch (err) {
-        console.error("Erreur de génération :", err);
-        alert("Impossible de générer le bordereau. Vérifie ta connexion Supabase.");
-    }
-}
 
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -1941,6 +1838,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
