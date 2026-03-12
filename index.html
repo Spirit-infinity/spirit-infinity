@@ -924,53 +924,66 @@ async function saveSpiritAudit(title, detected, score, status) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function publishFinal() {
-    // 1. Récupération des données du formulaire
     const title = document.getElementById('inputTitle').value;
     const price = parseFloat(document.getElementById('inputPrice').value);
     const desc = document.getElementById('inputDesc').value;
-    
-    // 2. Récupération du score Spirit Eyes
-    const scoreIA = document.getElementById('stepFinish').dataset.lastScore;
+    const cat = document.getElementById('saleCat').value;
+    const ship = document.getElementById('saleShip').value;
 
-    // 3. Préparation de l'objet pour "products_live"
+    // Récupération du score IA
+    const rawScore = document.getElementById('stepFinish').dataset.lastScore;
+    
+    // CRITIQUE : Conversion en nombre entier pour correspondre au type 'int4' de ta table
+    const scoreNum = parseInt(rawScore);
+
+    if (isNaN(scoreNum)) {
+        alert("ERREUR : Score IA invalide. Veuillez recommencer le scan.");
+        return;
+    }
+
+    const listingUUID = "SPIRIT-" + Date.now();
+
+    // Objet aligné sur tes colonnes réelles (Photo 13)
     const newItem = {
-        uuid: "SPIRIT-" + Date.now(),
-        figurine_name: title, //
-        amount: price, //
-        description: desc, //
-        currency: "EUR", //
-        status: "available", //
-        seller_id: String(MY_TEST_ID),//
-        owner_id: String(MY_TEST_ID), // Ta colonne liée à ton compte
-        ia_score: String(scoreIA), // Ta colonne déjà existante
-        is_first_hand: true, //
-        is_smoke_free: true, //
-        is_light_protect: true //
+        uuid: listingUUID,
+        figurine_name: title,
+        amount: price,
+        description: desc,
+        currency: "EUR",
+        status: "available",
+        seller_id: String(MY_TEST_ID),
+        owner_id: String(MY_TEST_ID), 
+        ia_score: scoreNum, // Envoi en tant que nombre (int4)
+        category: cat,
+        is_first_hand: true,
+        is_smoke_free: true,
+        is_light_protect: true
     };
 
     try {
-        console.log("[SPIRIT LEDGER] Publication dans products_live...");
+        console.log("[SPIRIT LEDGER] Envoi vers products_live...");
 
-        // Envoi vers la table products_live
         const { error } = await _spirit
             .from('products_live') 
             .insert([newItem]);
 
-        if (error) throw error;
+        if (error) {
+            console.error("Détails SQL :", error);
+            throw error;
+        }
 
-        // 4. Succès et mise à jour interface
-        alert("ANNONCE CERTIFIÉE : Ton objet est maintenant sur le marché mondial !");
-        
+        // Succès : Mise à jour locale
         if (typeof marketData !== 'undefined') marketData.unshift(newItem);
         renderMarket();
+        updateUserAnnonces();
         closeModals();
 
+        alert("ANNONCE CERTIFIÉE : Produit ajouté avec succès !");
+
     } catch (err) {
-        console.error("Détail Erreur SQL:", err.message);
-        alert("ERREUR : Vérifie que la colonne 'owner_id' est bien présente dans products_live.");
+        alert("ERREUR : " + err.message);
     }
 }
-
 
     function updateUserAnnonces() {
         const container = document.getElementById('user-annonces-list');
@@ -1946,6 +1959,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
