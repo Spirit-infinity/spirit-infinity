@@ -940,56 +940,40 @@ async function saveSpiritAudit(title, detected, score, status) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function publishFinal() {
-    const titleInput = document.getElementById('inputTitle');
-    const priceInput = document.getElementById('inputPrice');
-    const descInput = document.getElementById('inputDesc');
-    const scoreElement = document.getElementById('stepFinish');
+    const title = document.getElementById('inputTitle').value;
+    const price = parseFloat(document.getElementById('inputPrice').value);
+    const desc = document.getElementById('inputDesc').value;
+    const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore);
 
-    if (!titleInput || !priceInput || !scoreElement) {
-        alert("Erreur interne : Éléments du formulaire manquants.");
-        return;
-    }
-
-    const title = titleInput.value;
-    const priceVal = parseFloat(priceInput.value);
-    const desc = descInput.value;
-    const scoreIA = parseInt(scoreElement.dataset.lastScore);
-
-    // Objet aligné sur la table products_live
     const newItem = {
         uuid: "SPIRIT-" + Date.now(),
-        title: title, 
-        price: priceVal, 
-        description: desc, 
-        ia_score: scoreIA, 
-        owner_id: String(MY_TEST_ID),
-        status: "available", 
-        currency: "EUR", 
-        is_native: true 
+        title: title, //
+        price: price, //
+        description: desc, //
+        ia_score: scoreIA, //
+        owner_id: String(MY_TEST_ID),//
+        status: "available", //
+        currency: "EUR", //
+        is_native: true //
     };
 
     try {
-        console.log("[SPIRIT LEDGER] Publication dans products_live...");
-
         const { error } = await _spirit
             .from('products_live') 
             .insert([newItem]);
 
-        if (error) {
-            console.error("Détails SQL:", error);
-            throw error;
-        }
+        if (error) throw error;
 
-        alert("ANNONCE CERTIFIÉE : Ton produit est en ligne !");
+        alert("ANNONCE PUBLIÉE !");
         
-        // Mise à jour de l'affichage
-        if (typeof renderMarket === 'function') renderMarket();
-        if (typeof closeModals === 'function') closeModals();
+        // On force le rechargement pour voir l'annonce immédiatement
+        location.reload(); 
 
     } catch (err) {
-        alert("ERREUR : " + err.message + ". Rafraîchis ta page (F5) si la colonne vient d'être créée.");
+        alert("ERREUR : " + err.message + " (Appuie sur CTRL+F5)");
     }
 }
+
     function updateUserAnnonces() {
         const container = document.getElementById('user-annonces-list');
         if (!container) return;
@@ -1964,6 +1948,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
