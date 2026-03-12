@@ -1503,88 +1503,6 @@ function generateShippingLabel(transactionId, carrier) {
     window.open(`https://spirit-infinity.github.io/labels/${transactionId}`, '_blank');
 }
 
-/**
- * RENDU VISUEL DES TRANSACTIONS (ACHATS / VENTES)
- */
-function renderTransactionList(container, data, error, type) {
-    if (error) { container.innerHTML = "Erreur sync."; return; }
-    
-    // Correction : Gestion explicite du cas vide pour éviter l'écran noir
-    if (!data || data.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
-        return;
-    }
-
-    container.innerHTML = data.map(tr => {
-        let actionBtn = "";
-
-        if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:var(--spirit-green); color:black; font-weight:bold; border:none; padding:8px; border-radius:4px; cursor:pointer;">✅ REÇU</button>
-                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:#ff4444; border:1px solid #ff4444; padding:8px; border-radius:4px; cursor:pointer;">⚠️ LITIGE</button>
-                </div>`;
-        } 
-        else if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer; border-radius:4px;">📦 BORDEREAU D'ENVOI</button>`;
-        }
-        else {
-            actionBtn = `<div style="margin-top:10px; font-size:0.7rem; color:#444; text-align:center; border-top:1px solid #111; padding-top:5px;">${tr.status}</div>`;
-        }
-
-        return `
-            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
-                <div style="display:flex; justify-content:space-between; align-items:start;">
-                    <div>
-                        <div style="color:white; font-weight:bold; font-size:0.9rem;">${tr.figurine_name || 'Produit Spirit'}</div>
-                        <div style="font-size:0.6rem; color:#555; margin-top:3px;">ID: ${tr.id}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</div>
-                        <div style="font-size:0.6rem; color:#888;">${new Date(tr.created_at).toLocaleDateString()}</div>
-                    </div>
-                </div>
-                ${actionBtn}
-            </div>
-        `;
-    }).join('');
-}
-
-/**
- * ACTION : CONFIRMER RÉCEPTION (DÉBLOQUE LES FONDS)
- */
-async function confirmReception(id) {
-    if(!confirm("Valider la réception ? Cette action débloque le paiement vers le vendeur.")) return;
-    
-    const { error } = await _spirit
-        .from('transactions')
-        .update({ status: 'LIVRAISON VALIDÉE' })
-        .eq('id', id);
-
-    if (error) alert("Erreur : " + error.message);
-    else {
-        alert("✅ Réception confirmée. Transaction terminée.");
-        loadMyPurchases();
-    }
-}
-
-/**
- * ACTION : OUVRIR UN LITIGE
- */
-async function openDispute(id) {
-    if(!confirm("⚠️ Attention : Ouvrir un litige gèle les fonds et lance une analyse Spirit Guard. Confirmer ?")) return;
-
-    const { error } = await _spirit
-        .from('transactions')
-        .update({ status: 'LITIGE OUVERT' })
-        .eq('id', id);
-
-    if (error) alert("Erreur : " + error.message);
-    else {
-        alert("⚖️ Litige ouvert. Nos experts vérifient les photos d'expédition.");
-        loadMyPurchases();
-    }
-}
 
 /**
  * ACTION : GÉNÉRATION BORDEREAU D'ENVOI
@@ -1646,6 +1564,31 @@ function renderTransactionList(container, data, error, type) {
         `;
     }).join('');
 }
+
+
+/**
+ * CONFIRMER LA RÉCEPTION
+ */
+async function confirmReception(transactionId) {
+    if (!confirm("✅ Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.")) return;
+
+    try {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ status: 'LIVRAISON VALIDÉE' })
+            .eq('id', transactionId);
+
+        if (error) throw error;
+
+        alert("✅ TRANSACTION TERMINÉE : Merci de votre confiance.");
+        loadMyPurchases();
+    } catch (err) {
+        console.error("Erreur Ledger:", err.message);
+        alert("Erreur de validation : " + err.message);
+    }
+}
+
+    renderMarket();
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -1785,6 +1728,38 @@ msg.innerHTML = `
     }
 }
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('btn-recu-action')) {
+        confirmReceipt(e.target.getAttribute('data-id'));
+    }
+    if (e.target.classList.contains('btn-litige-action')) {
+        openDispute(e.target.getAttribute('data-id'));
+    }
+});
+
+
+        // Injection du design dans le modal
+        content.innerHTML = `
+            <div style="color:black; font-family:monospace; padding:10px; border:2px solid black;">
+                <h2 style="margin:0; border-bottom:2px solid black;">SPIRIT LOGISTICS</h2>
+                <p><b>PRODUIT :</b> ${tr.figurine_name}</p>
+                <p><b>VALEUR :</b> ${tr.amount} €</p>
+                <div style="background:black; color:white; padding:10px; text-align:center; font-weight:bold; font-size:1.2rem;">
+                    SP-${Math.random().toString(36).toUpperCase().substring(2,10)}
+                </div>
+                <p style="font-size:10px; text-align:center; margin-top:10px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
+            </div>
+        `;
+
+        // Affichage du modal
+        preview.style.display = 'block';
+
+    } catch (err) {
+        console.error("Erreur de génération :", err);
+        alert("Impossible de générer le bordereau. Vérifie ta connexion Supabase.");
+    }
+}
 
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
