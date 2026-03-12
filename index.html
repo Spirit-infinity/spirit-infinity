@@ -1554,32 +1554,6 @@ async function openDispute(id) {
     }
 }
 
-/**
- * ACTION : GÉNÉRATION BORDEREAU D'ENVOI
- */
-async function generateSpiritLabel(id) {
-    const { data: tr, error } = await _spirit.from('transactions').select('*').eq('id', id).single();
-    if(error || !tr) return alert("Impossible de trouver la transaction.");
-
-    const w = window.open('', '_blank');
-    const labelHtml = `
-        <div style="width:380px; padding:20px; border:4px solid black; font-family:sans-serif; text-align:center;">
-            <h1 style="margin:0; border-bottom:2px solid black; padding-bottom:10px;">SPIRIT LOGISTICS</h1>
-            <div style="text-align:left; margin-top:20px; font-size:14px;">
-                <p><b>ARTICLE :</b> ${tr.figurine_name}</p>
-                <p><b>VALEUR :</b> ${tr.amount} €</p>
-                <p><b>DESTINATAIRE :</b> ACHETEUR #${tr.buyer_id}</p>
-            </div>
-            <div style="background:black; color:white; padding:15px; margin-top:20px; font-size:1.2rem; font-weight:bold; letter-spacing:3px;">
-                TRK-${id.toString().substring(0,8).toUpperCase()}
-            </div>
-            <p style="font-size:10px; margin-top:15px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
-        </div>
-        <script>window.print();<\/script>
-    `;
-    w.document.write(labelHtml);
-    w.document.close();
-}
 
 // --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
 function renderTransactionList(container, data, error, type) {
@@ -1909,6 +1883,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
