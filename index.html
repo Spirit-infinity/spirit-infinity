@@ -944,21 +944,20 @@ async function publishFinal() {
     // Objet aligné strictement sur tes colonnes Supabase (Photos 4, 5, 6, 7, 8)
     const newItem = {
         uuid: listingUUID,
-        figurine_name: title, // Photo 1
-        amount: price, // Photo 2
-        description: desc, // Photo 4
-        currency: "EUR", // Photo 4
-        status: "available", // Photo 3
-        buyer_id: null, // Photo 3
-        seller_id: String(MY_TEST_ID), // Photo 3 (12345 ou 67890)
-        ia_score: scoreIA, // La colonne que tu as créée (Photo 6)
-        user_profit: 0,              
-        firm_profit: 0,              
-        bank_share: 0,               
-        is_first_hand: true, // Photo 5
-        is_smoke_free: true, // Photo 5
-        is_light_protect: true, // Photo 5
-        // On garde les infos pour l'affichage local (Marketplace)
+        figurine_name: title,
+        amount: price,
+        description: desc,
+        currency: "EUR",
+        status: "available",
+        buyer_id: null,
+        seller_id: String(MY_TEST_ID), // Pour la table transactions
+        owner_id: String(MY_TEST_ID), // <-- AJOUTÉ : Pour la table annonces
+        ia_score: String(scoreIA),
+        is_first_hand: true,
+        is_smoke_free: true,
+        is_light_protect: true,
+        // Données pour l'affichage local
+        owner: currentUser,
         cat: cat,
         shipSize: ship,
         img: previewPhotos[0],
@@ -966,7 +965,7 @@ async function publishFinal() {
     };
 
     try {
-        console.log("[SPIRIT LEDGER] Publication en cours...");
+        console.log("[SPIRIT LEDGER] Publication avec owner_id...");
 
         const { error } = await _spirit
             .from('annonces') 
@@ -979,6 +978,7 @@ async function publishFinal() {
                 status: newItem.status,
                 buyer_id: newItem.buyer_id,
                 seller_id: newItem.seller_id,
+                owner_id: newItem.owner_id, // <-- CRITIQUE
                 ia_score: newItem.ia_score,
                 is_first_hand: newItem.is_first_hand,
                 is_smoke_free: newItem.is_smoke_free,
@@ -994,13 +994,14 @@ async function publishFinal() {
         updateUserAnnonces();
         closeModals();
 
-        alert("ANNONCE CERTIFIÉE : Produit ajouté au Spirit Ledger !");
+        alert("ANNONCE CERTIFIÉE : Produit ajouté avec owner_id !");
 
     } catch (err) {
         console.error("ERREUR SQL :", err.message);
-        alert("ERREUR : Assure-toi que la colonne 'ia_score' est bien créée sur Supabase.");
+        alert("ERREUR : Vérifie que 'ia_score' ET 'owner_id' existent dans la table 'annonces'.");
     }
 }
+
 
 
 
@@ -1978,6 +1979,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
