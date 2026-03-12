@@ -924,41 +924,60 @@ async function saveSpiritAudit(title, detected, score, status) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function publishFinal() {
-    const title = document.getElementById('inputTitle').value;
-    const priceVal = parseFloat(document.getElementById('inputPrice').value);
-    const desc = document.getElementById('inputDesc').value;
-    const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore);
+    // 1. Récupération des éléments du DOM
+    const titleInput = document.getElementById('inputTitle');
+    const priceInput = document.getElementById('inputPrice');
+    const descInput = document.getElementById('inputDesc');
+    const scoreElement = document.getElementById('stepFinish');
 
+    // Vérification de sécurité
+    if (!titleInput || !priceInput || !scoreElement) {
+        alert("Erreur interne : Éléments du formulaire manquants.");
+        return;
+    }
+
+    const title = titleInput.value;
+    const priceVal = parseFloat(priceInput.value);
+    const desc = descInput.value;
+    const scoreIA = parseInt(scoreElement.dataset.lastScore);
+
+    // 2. Objet construit EXACTEMENT selon tes colonnes Supabase (Photo 16 & 23)
     const newItem = {
         uuid: "SPIRIT-" + Date.now(),
-        title: title, // Nom exact en DB (Photo 15)
-        price: priceVal, // Correction : 'price' au lieu de 'amount' (Photo 16)
-        description: desc, // Nom exact en DB (Photo 22)
-        ia_score: scoreIA, // Ton score validé (Photo 16)
-        owner_id: String(MY_TEST_ID),// Identifiant propriétaire (Photo 16)
-        status: "available", // Status pour la Marketplace (Photo 23)
-        currency: "EUR",
-        is_native: true // Champ spécifique (Photo 23)
+        title: title, // Nom de colonne vérifié
+        price: priceVal, // Changé 'amount' par 'price' (Photo 16)
+        description: desc, // Nom de colonne vérifié
+        ia_score: scoreIA, // Type int4 (Photo 13)
+        owner_id: String(MY_TEST_ID),// Identifiant requis (Photo 13)
+        status: "available", // Status Marketplace
+        currency: "EUR", // Devise par défaut
+        is_native: true // Champ spécifique Spirit (Photo 23)
     };
 
     try {
+        console.log("[SPIRIT LEDGER] Publication en cours dans products_live...");
+
         const { error } = await _spirit
             .from('products_live') 
             .insert([newItem]);
 
-        if (error) throw error;
+        if (error) {
+            // Affiche l'erreur précise dans la console si ça échoue encore
+            console.error("Détails SQL:", error);
+            throw error;
+        }
 
-        alert("SPIRIT INFINITY : Annonce publiée sur le Marché Mondial !");
-        closeModals();
-        renderMarket(); // Pour afficher l'objet dans ta page miroir
+        alert("ANNONCE CERTIFIÉE : Ton produit est en ligne !");
+        
+        // Nettoyage et mise à jour
+        if (typeof renderMarket === 'function') renderMarket();
+        if (typeof closeModals === 'function') closeModals();
 
     } catch (err) {
-        alert("ERREUR CRITIQUE : " + err.message);
-        console.error("Détails:", err);
+        // Si l'erreur "schema cache" persiste, il faut rafraîchir la page
+        alert("ERREUR : " + err.message + ". Si la colonne existe, rafraîchis ta page (F5).");
     }
 }
-
-
     function updateUserAnnonces() {
         const container = document.getElementById('user-annonces-list');
         if (!container) return;
@@ -1933,6 +1952,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
