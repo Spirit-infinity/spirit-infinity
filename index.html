@@ -1471,8 +1471,198 @@ function generateShippingLabel(transactionId, carrier) {
     window.open(`https://spirit-infinity.github.io/labels/${transactionId}`, '_blank');
 }
 
+/**
+ * RENDU VISUEL DES TRANSACTIONS (ACHATS / VENTES)
+ */
+function renderTransactionList(container, data, error, type) {
+    if (error) { container.innerHTML = "Erreur sync."; return; }
+    
+    // Correction : Gestion explicite du cas vide pour éviter l'écran noir
+    if (!data || data.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
+        return;
+    }
 
+    container.innerHTML = data.map(tr => {
+        let actionBtn = "";
 
+        if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
+            actionBtn = `
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:var(--spirit-green); color:black; font-weight:bold; border:none; padding:8px; border-radius:4px; cursor:pointer;">✅ REÇU</button>
+                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:#ff4444; border:1px solid #ff4444; padding:8px; border-radius:4px; cursor:pointer;">⚠️ LITIGE</button>
+                </div>`;
+        } 
+        else if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
+            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer; border-radius:4px;">📦 BORDEREAU D'ENVOI</button>`;
+        }
+        else {
+            actionBtn = `<div style="margin-top:10px; font-size:0.7rem; color:#444; text-align:center; border-top:1px solid #111; padding-top:5px;">${tr.status}</div>`;
+        }
+
+        return `
+            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div>
+                        <div style="color:white; font-weight:bold; font-size:0.9rem;">${tr.figurine_name || 'Produit Spirit'}</div>
+                        <div style="font-size:0.6rem; color:#555; margin-top:3px;">ID: ${tr.id}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</div>
+                        <div style="font-size:0.6rem; color:#888;">${new Date(tr.created_at).toLocaleDateString()}</div>
+                    </div>
+                </div>
+                ${actionBtn}
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * ACTION : CONFIRMER RÉCEPTION (DÉBLOQUE LES FONDS)
+ */
+async function confirmReception(id) {
+    if(!confirm("Valider la réception ? Cette action débloque le paiement vers le vendeur.")) return;
+    
+    const { error } = await _spirit
+        .from('transactions')
+        .update({ status: 'LIVRAISON VALIDÉE' })
+        .eq('id', id);
+
+    if (error) alert("Erreur : " + error.message);
+    else {
+        alert("✅ Réception confirmée. Transaction terminée.");
+        loadMyPurchases();
+    }
+}
+
+/**
+ * ACTION : OUVRIR UN LITIGE
+ */
+async function openDispute(id) {
+    if(!confirm("⚠️ Attention : Ouvrir un litige gèle les fonds et lance une analyse Spirit Guard. Confirmer ?")) return;
+
+    const { error } = await _spirit
+        .from('transactions')
+        .update({ status: 'LITIGE OUVERT' })
+        .eq('id', id);
+
+    if (error) alert("Erreur : " + error.message);
+    else {
+        alert("⚖️ Litige ouvert. Nos experts vérifient les photos d'expédition.");
+        loadMyPurchases();
+    }
+}
+
+/**
+ * ACTION : GÉNÉRATION BORDEREAU D'ENVOI
+ */
+async function generateSpiritLabel(id) {
+    const { data: tr, error } = await _spirit.from('transactions').select('*').eq('id', id).single();
+    if(error || !tr) return alert("Impossible de trouver la transaction.");
+
+    const w = window.open('', '_blank');
+    const labelHtml = `
+        <div style="width:380px; padding:20px; border:4px solid black; font-family:sans-serif; text-align:center;">
+            <h1 style="margin:0; border-bottom:2px solid black; padding-bottom:10px;">SPIRIT LOGISTICS</h1>
+            <div style="text-align:left; margin-top:20px; font-size:14px;">
+                <p><b>ARTICLE :</b> ${tr.figurine_name}</p>
+                <p><b>VALEUR :</b> ${tr.amount} €</p>
+                <p><b>DESTINATAIRE :</b> ACHETEUR #${tr.buyer_id}</p>
+            </div>
+            <div style="background:black; color:white; padding:15px; margin-top:20px; font-size:1.2rem; font-weight:bold; letter-spacing:3px;">
+                TRK-${id.toString().substring(0,8).toUpperCase()}
+            </div>
+            <p style="font-size:10px; margin-top:15px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
+        </div>
+        <script>window.print();<\/script>
+    `;
+    w.document.write(labelHtml);
+    w.document.close();
+}
+
+// --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
+function renderTransactionList(container, data, error, type) {
+    if (error) { container.innerHTML = "Erreur sync."; return; }
+    if (!data || data.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
+        return;
+    }
+
+    container.innerHTML = data.map(tr => {
+        // Logique des boutons : Bordereau pour VENTES, Valider pour ACHATS
+        let actionBtn = "";
+        if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
+            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer;">📦 VOIR LE BORDEREAU</button>`;
+        } else if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
+            actionBtn = `
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px;">Valider</button>
+                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px;">Litige</button>
+                </div>`;
+        }
+
+        return `
+            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:white; font-weight:bold;">${tr.figurine_name}</span>
+                    <span style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</span>
+                </div>
+                <div style="font-size:0.7rem; color:#555; margin-top:5px;">Statut: ${tr.status}</div>
+                ${actionBtn}
+            </div>
+        `;
+    }).join('');
+}
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+/**
+ * OUVRIR UN LITIGE
+ * On met à jour uniquement le statut pour éviter l'erreur de colonne manquante
+ */
+async function openDispute(transactionId) {
+    if (!confirm("⚠️ Voulez-vous ouvrir un litige sur cette figurine ? Les fonds seront gelés.")) return;
+
+    try {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ status: 'LITIGE OUVERT' }) // On ne change que le status ici
+            .eq('id', transactionId);
+
+        if (error) throw error;
+
+        alert("⚖️ LITIGE OUVERT : Le séquestre est bloqué. L'équipe Spirit Infinity va analyser les preuves.");
+        loadMyPurchases(); // Rafraîchit l'affichage
+    } catch (err) {
+        console.error("Erreur Ledger:", err.message);
+        alert("Erreur lors de l'ouverture : " + err.message);
+    }
+}
+
+/**
+ * CONFIRMER LA RÉCEPTION
+ */
+async function confirmReception(transactionId) {
+    if (!confirm("✅ Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.")) return;
+
+    try {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ status: 'LIVRAISON VALIDÉE' })
+            .eq('id', transactionId);
+
+        if (error) throw error;
+
+        alert("✅ TRANSACTION TERMINÉE : Merci de votre confiance.");
+        loadMyPurchases();
+    } catch (err) {
+        console.error("Erreur Ledger:", err.message);
+        alert("Erreur de validation : " + err.message);
+    }
+}
+
+    renderMarket();
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -1667,15 +1857,58 @@ async function generateSpiritLabel(transactionId) {
     }
 }
 
+ // (c) 2026 Spirit Infinity - Tous droits réservés
+
+window.generateSpiritLabel = async function(transactionId) {
+    try {
+        const { data: tr, error } = await _spirit
+            .from('transactions')
+            .select('*')
+            .eq('id', transactionId)
+            .single();
+
+        if (error || !tr) return alert("Erreur : Transaction introuvable.");
+
+        // Ouverture immédiate pour éviter les bloqueurs de pub
+        const w = window.open('', '_blank');
+        
+        const html = `
+            <html>
+            <body style="font-family:sans-serif; padding:50px;">
+                <div style="border:5px solid #000; padding:20px; width:400px; margin:auto;">
+                    <h1 style="border-bottom:2px solid #000;">SPIRIT LOGISTICS</h1>
+                    <p><b>OBJET :</b> ${tr.figurine_name}</p>
+                    <p><b>VALEUR :</b> ${tr.amount} €</p>
+                    <div style="background:#000; color:#fff; padding:20px; text-align:center; font-size:1.5rem; font-weight:bold;">
+                        REF-${transactionId.substring(0,8).toUpperCase()}
+                    </div>
+                    <p style="text-align:center; font-size:0.8rem; margin-top:20px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
+                </div>
+                <script>window.print();<\/script>
+            </body>
+            </html>`;
+            
+        w.document.write(html);
+        w.document.close();
+    } catch (e) { alert("Erreur système"); }
+};
+
+</script>
+
+<div id="labelPreview" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; background:rgba(0,0,0,0.95); padding:20px; border:2px solid #00ff96; border-radius: 8px; width: 360px; color:white;">
+    <div style="text-align:right; margin-bottom:10px;">
+        <button onclick="document.getElementById('labelPreview').style.display='none'" style="background:#ff4444; color:white; border:none; cursor:pointer; font-weight:bold; padding:8px 12px; border-radius:4px;">✕ FERMER</button>
+    </div>
+    <div id="labelContent" style="background:white; padding:10px; border-radius:4px; color:black;"></div>
+    <div style="margin-top:20px; text-align:center;">
+        <button onclick="window.print()" style="background:white; color:black; padding:12px; border:none; font-weight:bold; cursor:pointer; width:100%; border-radius:4px; text-transform:uppercase;">🖨️ Imprimer</button>
+    </div>
+</div>
 
 </body>
 </html>
 </body>
 </html>
-
-
-
-
 
 
 
