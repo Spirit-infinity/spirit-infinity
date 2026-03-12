@@ -1418,17 +1418,22 @@ async function loadMyPurchases() {
     }
 }
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 /**
- * (c) 2026 Spirit Infinity - Tous droits réservés
  * FONCTION POUR TES VENTES (DYNAMIQUE)
  */
 async function loadMySales() {
     const listBody = document.getElementById('my-sales-list'); 
     if (!listBody) return;
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE VENTES...</div>';
+    
+    // Message d'attente
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">CONSULTATION DU LEDGER SPIRIT...</div>';
 
     try {
-        // CORRECTION : On cherche les ventes où TU es le vendeur via ton ID
+        console.log("[SPIRIT LEDGER] Récupération des ventes pour ID:", MY_TEST_ID);
+        
+        // REQUÊTE : On cherche les transactions où l'ID actuel est le VENDEUR
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
@@ -1437,7 +1442,8 @@ async function loadMySales() {
 
         if (error) throw error;
 
-        listBody.innerHTML = ''; // On nettoie le message de chargement
+        // Reset de l'interface
+        listBody.innerHTML = ''; 
 
         if (data && data.length > 0) {
             data.forEach(tr => {
@@ -1452,7 +1458,7 @@ async function loadMySales() {
                         <div>
                             <small style="color: #888;">${dateStr} | Réf: ${tr.id}</small>
                             <h3 style="margin: 5px 0; color: white; text-transform: uppercase;">${productTitle}</h3>
-                            <p style="margin: 0;">Prix de vente : <b>${tr.amount} €</b></p>
+                            <p style="margin: 0;">Montant Transaction : <b>${tr.amount} €</b></p>
                             <p style="margin: 0;">Statut : <span style="color:orange; font-weight:bold;">${tr.status}</span></p>
                         </div>
                         <div style="text-align: right;">
@@ -1460,7 +1466,7 @@ async function loadMySales() {
                                 <button class="btn-action-spirit" 
                                         onclick="generateShippingLabel('${tr.id}', '${tr.shipping_method || 'Colissimo'}')"
                                         style="background: var(--neon-orange); color: black; border: none; padding: 10px; cursor: pointer; font-weight: bold; border-radius: 2px;">
-                                    📦 BORDEREAU ${tr.shipping_method || 'LIVRAISON'}
+                                    📦 BORDEREAU
                                 </button>
                             ` : `<span style="color: var(--spirit-green); font-weight:bold;">✅ TRANSACTION VALIDÉE</span>`}
                         </div>
@@ -1469,14 +1475,19 @@ async function loadMySales() {
                 listBody.appendChild(saleDiv);
             });
         } else {
-            listBody.innerHTML = '<div style="text-align:center; padding:20px; color:#777;">Aucune vente enregistrée pour ce compte.</div>';
+            // AJOUT : Message plus clair si la base est vide pour cet ID
+            listBody.innerHTML = `
+                <div style="text-align:center; padding:20px; color:#777;">
+                    <p>AUCUNE VENTE TROUVÉE POUR L'ID : ${MY_TEST_ID}</p>
+                    <small>Réalisez une vente avec un autre compte pour voir le Ledger s'actualiser.</small>
+                </div>`;
         }
 
     } catch (err) { 
-        console.error("Erreur Ventes:", err); 
-        listBody.innerHTML = "<div style='color:red; text-align:center;'>Erreur de connexion aux ventes.</div>";
+        console.error("ERREUR LEDGER VENTES:", err); 
+        listBody.innerHTML = "<div style='color:red; text-align:center;'>ERREUR DE SYNCHRONISATION LEDGER.</div>";
     }
-}
+
 
 // LOGIQUE DU BORDEREAU
 function generateShippingLabel(transactionId, carrier) {
@@ -1923,6 +1934,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
