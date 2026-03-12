@@ -1287,8 +1287,12 @@ function showAccountTab(tab) {
     }
 }
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
 function switchUser(newId, label) {
     MY_TEST_ID = newId;
+    // AJOUT : Synchronisation du nom d'utilisateur pour l'affichage et les annonces
+    currentUser = label; 
+    
     console.log("Utilisateur simulé : " + label + " (ID: " + MY_TEST_ID + ")");
     
     // Mise à jour visuelle des boutons de switch
@@ -1308,11 +1312,12 @@ function switchUser(newId, label) {
         // Si aucun onglet n'est actif, on force le rafraîchissement des données en arrière-plan
         loadMyPurchases();
         loadMySales();
+        // AJOUT : Mise à jour des annonces en cours du vendeur
+        updateUserAnnonces(); 
     }
     
     alert("Session simulée : " + label);
 }
-
 function zoomImg(src) {
     const lightboxImg = document.getElementById('lightbox-img');
     const lightbox = document.getElementById('lightbox');
@@ -1912,6 +1917,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
