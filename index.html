@@ -920,6 +920,7 @@ async function saveSpiritAudit(title, detected, score, status) {
     }
 }
 
+
 // (c) 2026 Spirit Infinity - Tous droits réservés
 function publishFinal() {
     const title = document.getElementById('inputTitle').value;
@@ -927,7 +928,7 @@ function publishFinal() {
     const desc = document.getElementById('inputDesc').value;
     const cat = document.getElementById('saleCat').value;
     const ship = document.getElementById('saleShip').value;
-    
+
     // --- LE VERROU DE SÉCURITÉ SPIRIT EYES ---
     const scoreIA = document.getElementById('stepFinish').dataset.lastScore;
     const publishBtn = document.getElementById('btn-publish-final');
@@ -954,9 +955,10 @@ function publishFinal() {
         desc: desc,
         status: 'available',
         chat: [],
-        owner: currentUser
+        owner: currentUser,
+        owner_id: String(MY_TEST_ID) // <-- AJOUTÉ : Lie automatiquement l'ID du vendeur à l'annonce
     };
-    
+   
     marketData.unshift(newItem);
     saveSpiritAudit(listingUUID, title, scoreIA);
     renderMarket();
@@ -1066,6 +1068,7 @@ function addToMySales(product, carrierName) {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmPayment() {
+
     if (!selectedProduct) return;
 
     // 1. Récupération des prix
@@ -1087,12 +1090,13 @@ async function confirmPayment() {
         console.log("[SPIRIT LEDGER] Écriture dans les colonnes Supabase...");
         
         // INSERTION STRICTE AVEC IDENTIFICATION UTILISATEUR
+        // Correction : seller_id utilise maintenant owner_id (automatique) ou owner (manuel)
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
                 amount: totalAcheteur, 
-                buyer_id: MY_TEST_ID, // <-- AJOUTÉ : L'ID de celui qui achète (Simulateur)
-                seller_id: selectedProduct.owner || "SYSTEM", // <-- AJOUTÉ : L'ID du vendeur de l'annonce
+                buyer_id: String(MY_TEST_ID), // <-- ID de l'acheteur actuel
+                seller_id: String(selectedProduct.owner_id || selectedProduct.owner || "SYSTEM"), // <-- ID automatique du vendeur
                 user_profit: uProfit, 
                 firm_profit: fProfit, 
                 bank_share: bShare, 
@@ -1110,7 +1114,6 @@ async function confirmPayment() {
         alert("ERREUR SUPABASE : " + err.message);
     }
 }
-
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1414,7 +1417,7 @@ async function loadMySales() {
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE VENTES...</div>';
 
     try {
-        // CORRECTION : On cherche les ventes où TU es le vendeur
+        // CORRECTION : On cherche les ventes où TU es le vendeur via ton ID
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
@@ -1442,7 +1445,7 @@ async function loadMySales() {
                             <p style="margin: 0;">Statut : <span style="color:orange; font-weight:bold;">${tr.status}</span></p>
                         </div>
                         <div style="text-align: right;">
-                            ${tr.status === 'SÉQUESTRE' ? `
+                            ${(tr.status === 'SÉQUESTRE' || tr.status === 'SÉQUESTRE ACTIF') ? `
                                 <button class="btn-action-spirit" 
                                         onclick="generateShippingLabel('${tr.id}', '${tr.shipping_method || 'Colissimo'}')"
                                         style="background: var(--neon-orange); color: black; border: none; padding: 10px; cursor: pointer; font-weight: bold; border-radius: 2px;">
@@ -1909,6 +1912,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
