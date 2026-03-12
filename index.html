@@ -714,32 +714,32 @@ async function loadUserPurchases() {
         });
     }
 
-   /**
+/**
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 function renderMarket(filteredData = null) {
     const gn = document.getElementById('marketGridNative');
     const gl = document.getElementById('marketGridLegacy');
     gn.innerHTML = ''; gl.innerHTML = '';
-    const dataToRender = filteredData || marketData;
     
+    const dataToRender = filteredData || marketData;
+
     dataToRender.forEach(item => {
         const card = document.createElement('div');
         card.className = 'card' + (item.status === 'sold' ? ' sold' : '');
         card.onclick = () => openProduct(item);
         
-        // Correction : Utilisation de is_native (booléen) selon ta base
+        // On utilise is_native au lieu de type
         const isNative = item.is_native === true;
         const badgeClass = isNative ? 'native' : 'legacy';
         const badgeText = isNative ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
         
-        const soldBadge = item.status === 'sold' ? '<div class="badge-sold">VENDU</div>' : '';
-        
-        // Correction : Utilisation de image_url et title
-        const imgContent = item.image_url ? `<img src="${item.image_url}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}`;
-        
+        // On utilise image_url au lieu de img
+        const imgContent = item.image_url ? 
+            `<img src="${item.image_url}" style="width:100%;height:100%;object-fit:cover;">` : 
+            `PHOTO ${item.title}`;
+
         card.innerHTML = `
-            ${soldBadge}
             <div class="badge ${badgeClass}">${badgeText}</div>
             <div class="img-placeholder">${imgContent}</div>
             <div class="card-info">
@@ -752,7 +752,6 @@ function renderMarket(filteredData = null) {
             </div>
         `;
         
-        // Tri dans les grilles
         if(isNative) gn.appendChild(card);
         else gl.appendChild(card);
     });
@@ -1948,6 +1947,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
