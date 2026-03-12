@@ -924,85 +924,52 @@ async function saveSpiritAudit(title, detected, score, status) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function publishFinal() {
+    // 1. Récupération des données du formulaire
     const title = document.getElementById('inputTitle').value;
     const price = parseFloat(document.getElementById('inputPrice').value);
     const desc = document.getElementById('inputDesc').value;
-    const cat = document.getElementById('saleCat').value;
-    const ship = document.getElementById('saleShip').value;
-
-    // Récupération du score IA (Verrou Spirit Eyes)
+    
+    // 2. Récupération du score Spirit Eyes
     const scoreIA = document.getElementById('stepFinish').dataset.lastScore;
-    const publishBtn = document.getElementById('btn-publish-final');
 
-    if (!scoreIA || (publishBtn && publishBtn.style.display === 'none')) {
-        alert("ALERTE SÉCURITÉ : Tentative de publication sans certification Spirit Eyes.");
-        return;
-    }
-
-    const listingUUID = "SPIRIT-" + Date.now();
-
-    // Objet aligné strictement sur tes colonnes Supabase (Photos 4, 5, 6, 7, 8)
+    // 3. Préparation de l'objet pour "products_live"
     const newItem = {
-        uuid: listingUUID,
-        figurine_name: title,
-        amount: price,
-        description: desc,
-        currency: "EUR",
-        status: "available",
-        buyer_id: null,
-        seller_id: String(MY_TEST_ID), // Pour la table transactions
-        owner_id: String(MY_TEST_ID), // <-- AJOUTÉ : Pour la table annonces
-        ia_score: String(scoreIA),
-        is_first_hand: true,
-        is_smoke_free: true,
-        is_light_protect: true,
-        // Données pour l'affichage local
-        owner: currentUser,
-        cat: cat,
-        shipSize: ship,
-        img: previewPhotos[0],
-        photos: previewPhotos.filter(p => p !== null)
+        uuid: "SPIRIT-" + Date.now(),
+        figurine_name: title, //
+        amount: price, //
+        description: desc, //
+        currency: "EUR", //
+        status: "available", //
+        seller_id: String(MY_TEST_ID),//
+        owner_id: String(MY_TEST_ID), // Ta colonne liée à ton compte
+        ia_score: String(scoreIA), // Ta colonne déjà existante
+        is_first_hand: true, //
+        is_smoke_free: true, //
+        is_light_protect: true //
     };
 
     try {
-        console.log("[SPIRIT LEDGER] Publication avec owner_id...");
+        console.log("[SPIRIT LEDGER] Publication dans products_live...");
 
+        // Envoi vers la table products_live
         const { error } = await _spirit
-            .from('annonces') 
-            .insert([{
-                uuid: newItem.uuid,
-                figurine_name: newItem.figurine_name,
-                amount: newItem.amount,
-                description: newItem.description,
-                currency: newItem.currency,
-                status: newItem.status,
-                buyer_id: newItem.buyer_id,
-                seller_id: newItem.seller_id,
-                owner_id: newItem.owner_id, // <-- CRITIQUE
-                ia_score: newItem.ia_score,
-                is_first_hand: newItem.is_first_hand,
-                is_smoke_free: newItem.is_smoke_free,
-                is_light_protect: newItem.is_light_protect
-            }]);
+            .from('products_live') 
+            .insert([newItem]);
 
         if (error) throw error;
 
-        // Mise à jour de l'interface locale
-        if (typeof marketData !== 'undefined') marketData.unshift(newItem);
+        // 4. Succès et mise à jour interface
+        alert("ANNONCE CERTIFIÉE : Ton objet est maintenant sur le marché mondial !");
         
+        if (typeof marketData !== 'undefined') marketData.unshift(newItem);
         renderMarket();
-        updateUserAnnonces();
         closeModals();
 
-        alert("ANNONCE CERTIFIÉE : Produit ajouté avec owner_id !");
-
     } catch (err) {
-        console.error("ERREUR SQL :", err.message);
-        alert("ERREUR : Vérifie que 'ia_score' ET 'owner_id' existent dans la table 'annonces'.");
+        console.error("Détail Erreur SQL:", err.message);
+        alert("ERREUR : Vérifie que la colonne 'owner_id' est bien présente dans products_live.");
     }
 }
-
-
 
 
     function updateUserAnnonces() {
@@ -1979,6 +1946,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
