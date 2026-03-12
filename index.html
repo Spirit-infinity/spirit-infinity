@@ -714,33 +714,49 @@ async function loadUserPurchases() {
         });
     }
 
-    function renderMarket(filteredData = null) {
-        const gn = document.getElementById('marketGridNative');
-        const gl = document.getElementById('marketGridLegacy');
-        gn.innerHTML = ''; gl.innerHTML = '';
-        const dataToRender = filteredData || marketData;
-        dataToRender.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'card' + (item.status === 'sold' ? ' sold' : '');
-            card.onclick = () => openProduct(item);
-            const badgeClass = item.type === 'native' ? 'native' : 'legacy';
-            const badgeText = item.type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
-            const soldBadge = item.status === 'sold' ? '<div class="badge-sold">VENDU</div>' : '';
-            const imgContent = item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}`;
-            card.innerHTML = `
-                ${soldBadge}
-                <div class="badge ${badgeClass}">${badgeText}</div>
-                <div class="img-placeholder">${imgContent}</div>
-                <div class="card-info">
-                    <div class="price">${item.price} €</div>
-                    <div class="title">${item.title}</div>
-                    <div class="legende"><span>${item.country}</span><span>${item.type==='native'?'Auto-Diag: OK':'IA: Validé'}</span></div>
+   /**
+ * (c) 2026 Spirit Infinity - Tous droits réservés
+ */
+function renderMarket(filteredData = null) {
+    const gn = document.getElementById('marketGridNative');
+    const gl = document.getElementById('marketGridLegacy');
+    gn.innerHTML = ''; gl.innerHTML = '';
+    const dataToRender = filteredData || marketData;
+    
+    dataToRender.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card' + (item.status === 'sold' ? ' sold' : '');
+        card.onclick = () => openProduct(item);
+        
+        // Correction : Utilisation de is_native (booléen) selon ta base
+        const isNative = item.is_native === true;
+        const badgeClass = isNative ? 'native' : 'legacy';
+        const badgeText = isNative ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
+        
+        const soldBadge = item.status === 'sold' ? '<div class="badge-sold">VENDU</div>' : '';
+        
+        // Correction : Utilisation de image_url et title
+        const imgContent = item.image_url ? `<img src="${item.image_url}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}`;
+        
+        card.innerHTML = `
+            ${soldBadge}
+            <div class="badge ${badgeClass}">${badgeText}</div>
+            <div class="img-placeholder">${imgContent}</div>
+            <div class="card-info">
+                <div class="price">${item.price} €</div>
+                <div class="title">${item.title}</div>
+                <div class="legende">
+                    <span>${item.brand || 'Spirit'}</span>
+                    <span>${isNative ? 'Auto-Diag: OK' : 'IA: Validé'}</span>
                 </div>
-            `;
-            if(item.type === 'native') gn.appendChild(card);
-            else gl.appendChild(card);
-        });
-    }
+            </div>
+        `;
+        
+        // Tri dans les grilles
+        if(isNative) gn.appendChild(card);
+        else gl.appendChild(card);
+    });
+}
 
     function resetSellForm() {
         editingId = null;
@@ -924,13 +940,11 @@ async function saveSpiritAudit(title, detected, score, status) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function publishFinal() {
-    // 1. Récupération des éléments du DOM
     const titleInput = document.getElementById('inputTitle');
     const priceInput = document.getElementById('inputPrice');
     const descInput = document.getElementById('inputDesc');
     const scoreElement = document.getElementById('stepFinish');
 
-    // Vérification de sécurité
     if (!titleInput || !priceInput || !scoreElement) {
         alert("Erreur interne : Éléments du formulaire manquants.");
         return;
@@ -941,41 +955,39 @@ async function publishFinal() {
     const desc = descInput.value;
     const scoreIA = parseInt(scoreElement.dataset.lastScore);
 
-    // 2. Objet construit EXACTEMENT selon tes colonnes Supabase (Photo 16 & 23)
+    // Objet aligné sur la table products_live
     const newItem = {
         uuid: "SPIRIT-" + Date.now(),
-        title: title, // Nom de colonne vérifié
-        price: priceVal, // Changé 'amount' par 'price' (Photo 16)
-        description: desc, // Nom de colonne vérifié
-        ia_score: scoreIA, // Type int4 (Photo 13)
-        owner_id: String(MY_TEST_ID),// Identifiant requis (Photo 13)
-        status: "available", // Status Marketplace
-        currency: "EUR", // Devise par défaut
-        is_native: true // Champ spécifique Spirit (Photo 23)
+        title: title, 
+        price: priceVal, 
+        description: desc, 
+        ia_score: scoreIA, 
+        owner_id: String(MY_TEST_ID),
+        status: "available", 
+        currency: "EUR", 
+        is_native: true 
     };
 
     try {
-        console.log("[SPIRIT LEDGER] Publication en cours dans products_live...");
+        console.log("[SPIRIT LEDGER] Publication dans products_live...");
 
         const { error } = await _spirit
             .from('products_live') 
             .insert([newItem]);
 
         if (error) {
-            // Affiche l'erreur précise dans la console si ça échoue encore
             console.error("Détails SQL:", error);
             throw error;
         }
 
         alert("ANNONCE CERTIFIÉE : Ton produit est en ligne !");
         
-        // Nettoyage et mise à jour
+        // Mise à jour de l'affichage
         if (typeof renderMarket === 'function') renderMarket();
         if (typeof closeModals === 'function') closeModals();
 
     } catch (err) {
-        // Si l'erreur "schema cache" persiste, il faut rafraîchir la page
-        alert("ERREUR : " + err.message + ". Si la colonne existe, rafraîchis ta page (F5).");
+        alert("ERREUR : " + err.message + ". Rafraîchis ta page (F5) si la colonne vient d'être créée.");
     }
 }
     function updateUserAnnonces() {
@@ -1952,6 +1964,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
