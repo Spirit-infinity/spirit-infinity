@@ -1272,18 +1272,25 @@ function showAccountTab(tab) {
         console.log("[SPIRIT NAV] Navigation vers :", tab);
     }
 
-    // 3. TRIGGER : Synchronisation Ledger avec Supabase selon l'onglet
+      // 3. TRIGGER : Synchronisation Ledger avec Supabase selon l'onglet
+    // On ne garde qu'un seul appel par onglet pour éviter les doublons de requêtes
     if (tab === 'achats') {
-        // Ajout : On s'assure que les deux variantes de fonctions sont couvertes
-        if (typeof loadMyPurchases === 'function') loadMyPurchases();
-        if (typeof loadUserPurchases === 'function') loadUserPurchases();
+        if (typeof loadMyPurchases === 'function') {
+            loadMyPurchases();
+        } else if (typeof loadUserPurchases === 'function') {
+            loadUserPurchases();
+        }
     } else if (tab === 'ventes') {
-        // Ajout : Déclenchement automatique de la récupération des ventes
-        if (typeof loadMySales === 'function') loadMySales();
+        // Un seul appel ici vers la fonction dynamique
+        if (typeof loadMySales === 'function') {
+            loadMySales();
+        }
     } else if (tab === 'annonces') {
-        // Ajout : Mise à jour des stocks/annonces en cours
-        if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
+        if (typeof updateUserAnnonces === 'function') {
+            updateUserAnnonces();
+        }
     }
+
 
     // 4. On allume le bouton du menu correspondant (ID: btn-achats, etc.)
     const boutonActif = document.getElementById('btn-' + tab);
@@ -1934,6 +1941,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
