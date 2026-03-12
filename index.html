@@ -714,48 +714,33 @@ async function loadUserPurchases() {
         });
     }
 
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- */
-function renderMarket(filteredData = null) {
-    const gn = document.getElementById('marketGridNative');
-    const gl = document.getElementById('marketGridLegacy');
-    gn.innerHTML = ''; gl.innerHTML = '';
-    
-    const dataToRender = filteredData || marketData;
-
-    dataToRender.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'card' + (item.status === 'sold' ? ' sold' : '');
-        card.onclick = () => openProduct(item);
-        
-        // On utilise is_native au lieu de type
-        const isNative = item.is_native === true;
-        const badgeClass = isNative ? 'native' : 'legacy';
-        const badgeText = isNative ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
-        
-        // On utilise image_url au lieu de img
-        const imgContent = item.image_url ? 
-            `<img src="${item.image_url}" style="width:100%;height:100%;object-fit:cover;">` : 
-            `PHOTO ${item.title}`;
-
-        card.innerHTML = `
-            <div class="badge ${badgeClass}">${badgeText}</div>
-            <div class="img-placeholder">${imgContent}</div>
-            <div class="card-info">
-                <div class="price">${item.price} €</div>
-                <div class="title">${item.title}</div>
-                <div class="legende">
-                    <span>${item.brand || 'Spirit'}</span>
-                    <span>${isNative ? 'Auto-Diag: OK' : 'IA: Validé'}</span>
+ function renderMarket(filteredData = null) {
+        const gn = document.getElementById('marketGridNative');
+        const gl = document.getElementById('marketGridLegacy');
+        gn.innerHTML = ''; gl.innerHTML = '';
+        const dataToRender = filteredData || marketData;
+        dataToRender.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card' + (item.status === 'sold' ? ' sold' : '');
+            card.onclick = () => openProduct(item);
+            const badgeClass = item.type === 'native' ? 'native' : 'legacy';
+            const badgeText = item.type === 'native' ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
+            const soldBadge = item.status === 'sold' ? '<div class="badge-sold">VENDU</div>' : '';
+            const imgContent = item.img ? `<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}`;
+            card.innerHTML = `
+                ${soldBadge}
+                <div class="badge ${badgeClass}">${badgeText}</div>
+                <div class="img-placeholder">${imgContent}</div>
+                <div class="card-info">
+                    <div class="price">${item.price} €</div>
+                    <div class="title">${item.title}</div>
+                    <div class="legende"><span>${item.country}</span><span>${item.type==='native'?'Auto-Diag: OK':'IA: Validé'}</span></div>
                 </div>
-            </div>
-        `;
-        
-        if(isNative) gn.appendChild(card);
-        else gl.appendChild(card);
-    });
-}
+            `;
+            if(item.type === 'native') gn.appendChild(card);
+            else gl.appendChild(card);
+        });
+    }
 
     function resetSellForm() {
         editingId = null;
@@ -1947,6 +1932,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
