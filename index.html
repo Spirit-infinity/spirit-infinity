@@ -1471,52 +1471,6 @@ function generateShippingLabel(transactionId, carrier) {
     window.open(`https://spirit-infinity.github.io/labels/${transactionId}`, '_blank');
 }
 
-/**
- * RENDU VISUEL DES TRANSACTIONS (ACHATS / VENTES)
- */
-function renderTransactionList(container, data, error, type) {
-    if (error) { container.innerHTML = "Erreur sync."; return; }
-    
-    // Correction : Gestion explicite du cas vide pour éviter l'écran noir
-    if (!data || data.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
-        return;
-    }
-
-    container.innerHTML = data.map(tr => {
-        let actionBtn = "";
-
-        if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:var(--spirit-green); color:black; font-weight:bold; border:none; padding:8px; border-radius:4px; cursor:pointer;">✅ REÇU</button>
-                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:#ff4444; border:1px solid #ff4444; padding:8px; border-radius:4px; cursor:pointer;">⚠️ LITIGE</button>
-                </div>`;
-        } 
-        else if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer; border-radius:4px;">📦 BORDEREAU D'ENVOI</button>`;
-        }
-        else {
-            actionBtn = `<div style="margin-top:10px; font-size:0.7rem; color:#444; text-align:center; border-top:1px solid #111; padding-top:5px;">${tr.status}</div>`;
-        }
-
-        return `
-            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
-                <div style="display:flex; justify-content:space-between; align-items:start;">
-                    <div>
-                        <div style="color:white; font-weight:bold; font-size:0.9rem;">${tr.figurine_name || 'Produit Spirit'}</div>
-                        <div style="font-size:0.6rem; color:#555; margin-top:3px;">ID: ${tr.id}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</div>
-                        <div style="font-size:0.6rem; color:#888;">${new Date(tr.created_at).toLocaleDateString()}</div>
-                    </div>
-                </div>
-                ${actionBtn}
-            </div>
-        `;
-    }).join('');
-}
 
 /**
  * ACTION : CONFIRMER RÉCEPTION (DÉBLOQUE LES FONDS)
@@ -1883,6 +1837,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
