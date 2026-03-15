@@ -772,55 +772,58 @@ function renderMarket(filteredData = null) {
         });
 }
 
-// AJOUT : Correction de loadMySales avec log forcé pour comprendre pourquoi c'est vide
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function loadMySales() {
     const listBody = document.getElementById('my-sales-list'); 
     if (!listBody) return;
     
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">VÉRIFICATION LEDGER...</div>';
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">CONSULTATION DU LEDGER...</div>';
 
     try {
-        const checkID = String(MY_TEST_ID);
-        console.log("[SPIRIT LEDGER] Recherche des ventes pour seller_id strict :", checkID);
+        // CORRECTION CRITIQUE : On force l'ID en String pour matcher le type 'text' de Supabase
+        const targetID = String(MY_TEST_ID).trim();
         
+        console.log("[SPIRIT LEDGER] Recherche des ventes pour :", targetID);
+
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
-            .eq('seller_id', checkID) 
+            .eq('seller_id', targetID) // Comparaison Texte à Texte
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-
-        console.log("[SPIRIT LEDGER] Résultat Supabase pour " + checkID + " :", data);
 
         listBody.innerHTML = ''; 
 
         if (data && data.length > 0) {
             data.forEach(tr => {
-                const productTitle = tr.figurine_name || "Produit #" + tr.id;
                 const saleDiv = document.createElement('div');
-                saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.8); border-radius: 4px;";
+                saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.9); border-radius: 4px;";
                 saleDiv.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <small style="color: #888;">Réf: ${tr.id}</small>
-                            <h3 style="margin: 5px 0; color: white;">${productTitle}</h3>
+                            <small style="color: #888;">${new Date(tr.created_at).toLocaleDateString()}</small>
+                            <h3 style="margin: 5px 0; color: white;">${tr.figurine_name || 'OBJET SPIRIT'}</h3>
                             <p style="margin: 0;">Total : <b>${tr.amount} €</b></p>
-                            <p style="margin: 0; color:orange;">Statut : ${tr.status}</p>
+                            <span style="color:var(--neon-orange); font-size:0.8rem;">Statut : ${tr.status}</span>
                         </div>
-                        <button onclick="generateSpiritLabel('${tr.id}')" style="background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px; border-radius:2px;">📦 BORDEREAU</button>
+                        <button onclick="generateSpiritLabel('${tr.id}')" style="background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px; cursor:pointer;">📦 BORDEREAU</button>
                     </div>
                 `;
                 listBody.appendChild(saleDiv);
             });
         } else {
-            listBody.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE VENTE DÉTECTÉE (ID: ${checkID})</div>`;
+            listBody.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE VENTE TROUVÉE DANS LE LEDGER POUR L'ID : ${targetID}</div>`;
         }
+
     } catch (err) { 
         console.error("ERREUR :", err); 
-        listBody.innerHTML = "<div style='color:red;'>ERREUR SYNC.</div>";
+        listBody.innerHTML = "<div style='color:red; text-align:center;'>ERREUR SYNC LEDGER</div>";
     }
 }
+
+
     function resetSellForm() {
         editingId = null;
         diagActive = false;
@@ -2018,6 +2021,7 @@ document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
 </html>
 </body>
 </html>
+
 
 
 
