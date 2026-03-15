@@ -1432,6 +1432,11 @@ async function confirmPayment() {
 
 function showAccountTab(tab) {
    
+    // AJOUT : Sécurité ID avant chargement
+    if (typeof MY_TEST_ID !== 'undefined') {
+        window.MY_TEST_ID = String(MY_TEST_ID).trim();
+    }
+
     if(tab === 'achats') loadUserPurchases();
     if (tab === 'ventes') loadMySales();
     
@@ -1451,6 +1456,12 @@ function showAccountTab(tab) {
         pageActive.style.display = 'block';
         pageActive.classList.add('active');
         console.log("[SPIRIT NAV] Navigation vers :", tab);
+        
+        // AJOUT : Nettoyage du message statique "Ici tu verras..." pour laisser place au Ledger
+        const staticMsg = pageActive.querySelector('p');
+        if (staticMsg && staticMsg.innerText.includes("Ici, tu verras")) {
+            staticMsg.innerHTML = '<span style="color:var(--neon-orange);">INITIALISATION DU LEDGER...</span>';
+        }
     }
 
       // 3. TRIGGER : Synchronisation Ledger avec Supabase selon l'onglet
@@ -1470,6 +1481,11 @@ function showAccountTab(tab) {
         if (typeof updateUserAnnonces === 'function') {
             updateUserAnnonces();
         }
+    }
+
+    // AJOUT : Support pour l'onglet Dashboard/Paramètres si nécessaire
+    if (tab === 'dashboard' || tab === 'parametres') {
+        console.log("[SPIRIT SYSTEM] Accès zone :", tab);
     }
 
 
@@ -2094,6 +2110,7 @@ document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
 </html>
 </body>
 </html>
+
 
 
 
