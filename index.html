@@ -738,7 +738,7 @@ function renderMarket(filteredData = null) {
             
             // CORRECTION : Priorité à image_url (Supabase) puis img (Local)
             const displayImg = item.image_url || item.img;
-            const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%;height:100%;object-fit:cover;">` : `PHOTO ${item.title}`;
+            const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `PHOTO ${item.title}`;
             
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
             const displayCountry = item.country || "France";
@@ -2034,6 +2034,7 @@ document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
 </html>
 </body>
 </html>
+
 
 
 
