@@ -779,6 +779,7 @@ function renderMarket(filteredData = null) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function loadMySales() {
+  
     const listBody = document.getElementById('my-sales-list'); 
     if (!listBody) {
         console.error("[SPIRIT ERROR] Conteneur 'my-sales-list' absent du DOM"); // AJOUT : Alerte console si le HTML est mal structuré
@@ -2079,28 +2080,37 @@ window.generateSpiritLabel = async function(transactionId) {
    
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function fetchMarketplaceFromSupabase() {
+    console.log("[SPIRIT MARKET] Initialisation du flux Ledger...");
+    
     try {
+        // CORRECTION : On s'assure que la requête n'est pas bloquée par un filtre ID trop restrictif
         const { data, error } = await _spirit
             .from('products_live')
             .select('*')
-            .eq('status', 'available');
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        if (data) {
-            marketData = data; 
-            console.log("Spirit Ledger : " + data.length + " annonces récupérées.");
-            renderMarket(); 
+        // AJOUT : Vérification de sécurité pour ne pas écraser si vide
+        if (!data || data.length === 0) {
+            console.warn("[SPIRIT MARKET] Aucune annonce trouvée dans products_live");
+            return;
         }
+
+        marketData = data; 
+        console.log("[SPIRIT MARKET] Flux synchronisé :", marketData.length, "annonces.");
+        
+        // DÉCLENCHEUR : On relance le rendu visuel
+        if (typeof renderMarket === 'function') {
+            renderMarket();
+        }
+
     } catch (err) {
-        console.error("Erreur de synchronisation Marketplace :", err.message);
+        console.error("[SPIRIT ERROR] Échec du flux Marketplace :", err);
     }
 }
-
-// On lance la récupération au chargement
-document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
-
 
 </script>
 
@@ -2118,6 +2128,7 @@ document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
 </html>
 </body>
 </html>
+
 
 
 
