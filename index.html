@@ -778,50 +778,80 @@ function renderMarket(filteredData = null) {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
+/**
+ * (c) 2026 Spirit Infinity - Tous droits réservés
+ */
 async function loadMySales() {
     const listBody = document.getElementById('my-sales-list'); 
     if (!listBody) return;
     
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">SYNCHRONISATION LEDGER...</div>';
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">LECTURE DU LEDGER SPIRIT...</div>';
 
     try {
-        // Correction : On s'assure que l'ID est bien une String sans espaces
-        const currentID = String(MY_TEST_ID).trim();
-        console.log("[SPIRIT LEDGER] Recherche des Ventes pour l'ID :", currentID);
+        // STABILISATION : On force la récupération de la valeur globale la plus récente
+        // et on s'assure qu'elle est traitée comme du texte pur pour Supabase
+        const currentID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+        
+        console.log("[SPIRIT LEDGER] Synchronisation des Ventes pour l'ID :", currentID);
 
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
-            .eq('seller_id', currentID) // On cherche là où l'ID est VENDEUR
+            .eq('seller_id', currentID) 
             .order('created_at', { ascending: false });
 
         if (error) throw error;
+
+        // AJOUT : Log de confirmation visuelle dans la console
+        console.log(`[SPIRIT LEDGER] ${data.length} vente(s) trouvée(s) pour ${currentID}`);
 
         listBody.innerHTML = ''; 
 
         if (data && data.length > 0) {
             data.forEach(tr => {
                 const saleDiv = document.createElement('div');
-                saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.9); border-radius: 4px; border-left: 4px solid var(--neon-orange);";
+                // AJOUT : Design Industrial Dark avec bordure néon orange
+                saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 15px; background: rgba(0,0,0,0.9); border-radius: 4px; box-shadow: 0 4px 15px rgba(255,102,0,0.1);";
+                
+                // AJOUT : Récupération de la photo si disponible dans la transaction
+                const saleImg = tr.image_url ? `<img src="${tr.image_url}" style="width:60px; height:60px; object-fit:cover; border:1px solid #333; margin-right:15px;">` : `<div style="width:60px; height:60px; background:#222; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#555;">NO IMG</div>`;
+
                 saleDiv.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <small style="color: #888;">${new Date(tr.created_at).toLocaleDateString()}</small>
-                            <h3 style="margin: 5px 0; color: white; text-transform: uppercase;">${tr.figurine_name}</h3>
-                            <p style="margin: 0; color: var(--spirit-green); font-weight: bold;">${tr.amount} €</p>
-                            <span style="font-size: 0.8rem; color: orange;">Statut : ${tr.status}</span>
+                    <div style="display: flex; align-items: center;">
+                        ${saleImg}
+                        <div style="flex:1;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <small style="color: #666; font-family: monospace;">LEDGER-ID: ${tr.id}</small>
+                                    <h3 style="margin: 2px 0; color: white; text-transform: uppercase; letter-spacing:1px;">${tr.figurine_name || 'OBJET SPIRIT'}</h3>
+                                    <p style="margin: 0; color: var(--spirit-green); font-weight: bold; font-size:1.1rem;">${tr.amount} €</p>
+                                </div>
+                                <div style="text-align:right;">
+                                    <span style="display:block; font-size: 0.7rem; color: #888;">${new Date(tr.created_at).toLocaleString()}</span>
+                                    <span style="display:inline-block; margin-top:5px; padding:2px 8px; background:rgba(255,165,0,0.1); color: orange; font-size:0.7rem; font-weight:bold; border:1px solid orange;">${tr.status}</span>
+                                </div>
+                            </div>
+                            <div style="margin-top:15px; display:flex; gap:10px;">
+                                <button onclick="generateSpiritLabel('${tr.id}')" style="flex:1; background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px; cursor:pointer; text-transform:uppercase; font-size:0.7rem;">📦 Générer Bordereau</button>
+                                <button onclick="openDispute('${tr.id}')" style="background:transparent; color:#555; border:1px solid #333; padding:10px; cursor:pointer; font-size:0.7rem;">LITIGE</button>
+                            </div>
                         </div>
-                        <button onclick="generateSpiritLabel('${tr.id}')" style="background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px 15px; cursor:pointer; border-radius:2px;">📦 BORDEREAU</button>
                     </div>
                 `;
                 listBody.appendChild(saleDiv);
             });
         } else {
-            listBody.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE VENTE TROUVÉE POUR L'ID : ${currentID}</div>`;
+            // AJOUT : Feedback clair si aucune vente
+            listBody.innerHTML = `
+                <div style="text-align:center; padding:40px; border: 1px dashed #333; color:#555;">
+                    <i class="fas fa-box-open" style="font-size:2rem; margin-bottom:10px;"></i>
+                    <p>AUCUNE VENTE DÉTECTÉE DANS LE LEDGER</p>
+                    <small>ID Actuel : ${currentID}</small>
+                </div>`;
         }
     } catch (err) { 
-        console.error("ERREUR :", err); 
-        listBody.innerHTML = "<div style='color:red; text-align:center;'>ERREUR LEDGER</div>";
+        console.error("[SPIRIT ERROR] Échec loadMySales:", err); 
+        listBody.innerHTML = "<div style='color:var(--danger); text-align:center; padding:20px; border:1px solid var(--danger);'>ERREUR DE SYNCHRONISATION LEDGER</div>";
     }
 }
 
@@ -1450,38 +1480,56 @@ function showAccountTab(tab) {
     }
 }
 
-
-// (c) 2026 Spirit Infinity - Tous droits réservés
+/**
+ * (c) 2026 Spirit Infinity - Tous droits réservés
+ */
 function switchUser(newId, label) {
-    MY_TEST_ID = newId;
+    // STABILISATION : On force le type String pour garantir la correspondance Supabase
+    MY_TEST_ID = String(newId).trim();
     // AJOUT : Synchronisation du nom d'utilisateur pour l'affichage et les annonces
     currentUser = label; 
     
-    console.log("Utilisateur simulé : " + label + " (ID: " + MY_TEST_ID + ")");
+    console.log("[SPIRIT SYSTEM] Switch Session : " + label + " (ID: " + MY_TEST_ID + ")");
     
     // Mise à jour visuelle des boutons de switch
     if(document.getElementById('btn-user-moi')) {
         document.getElementById('btn-user-moi').style.background = (newId === '12345') ? 'var(--spirit-green)' : '#222';
+        document.getElementById('btn-user-moi').style.color = (newId === '12345') ? 'black' : '#888';
     }
     if(document.getElementById('btn-user-guest')) {
         document.getElementById('btn-user-guest').style.background = (newId === '67890') ? 'var(--spirit-green)' : '#222';
+        document.getElementById('btn-user-guest').style.color = (newId === '67890') ? 'black' : '#888';
     }
     
-    // Rafraîchissement automatique de l'affichage
+    // AJOUT : Mise à jour du nom affiché dans l'interface Compte
+    const userNameDisplay = document.getElementById('display-user-name');
+    if(userNameDisplay) userNameDisplay.innerText = label.toUpperCase();
+
+    // Rafraîchissement automatique et forcé de l'affichage
     const activeBtn = document.querySelector('.dash-nav button.active');
+    
+    // STABILISATION : On vide les listes avant de recharger pour éviter les résidus de l'ancien utilisateur
+    if(document.getElementById('my-sales-list')) document.getElementById('my-sales-list').innerHTML = '';
+    if(document.getElementById('my-purchases-list')) document.getElementById('my-purchases-list').innerHTML = '';
+    if(document.getElementById('user-annonces-list')) document.getElementById('user-annonces-list').innerHTML = '';
+
     if (activeBtn) {
+        // Si un onglet est déjà ouvert, on le relance avec le nouvel ID
         const activeTab = activeBtn.id.replace('btn-', '');
         showAccountTab(activeTab);
     } else {
-        // Si aucun onglet n'est actif, on force le rafraîchissement des données en arrière-plan
+        // AJOUT : On force le rechargement synchrone des 3 piliers du compte
         loadMyPurchases();
         loadMySales();
-        // AJOUT : Mise à jour des annonces en cours du vendeur
         updateUserAnnonces(); 
     }
     
-    alert("Session simulée : " + label);
+    // AJOUT : Relance le rendu du Marketplace pour mettre à jour les badges "Propriétaire" si nécessaire
+    if (typeof renderMarket === 'function') renderMarket();
+
+    console.log("[SPIRIT LEDGER] Synchronisation terminée pour " + label);
 }
+
 function zoomImg(src) {
     const lightboxImg = document.getElementById('lightbox-img');
     const lightbox = document.getElementById('lightbox');
@@ -2046,6 +2094,7 @@ document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
 </html>
 </body>
 </html>
+
 
 
 
