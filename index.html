@@ -43,8 +43,8 @@
         .title { font-size: 0.85rem; color: #ccc; margin-bottom: 12px; height: 35px; overflow: hidden; }
         .legende { font-size: 0.7rem; color: var(--text-gray); border-top: 1px solid #222; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
         .badge { position: absolute; top: 10px; left: 10px; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; }
-        .annonces { background: var(--spirit-green); color: black; }
-       
+        .native { background: var(--spirit-green); color: black; }
+        .legacy { background: #0066ff; color: white; }
         /* NOUVEAU STATUT VENDU */
         .card.sold { opacity: 0.5; filter: grayscale(1); }
         .badge-sold { background: var(--danger); color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); padding: 10px 20px; font-weight: 900; font-size: 1.2rem; border: 3px solid white; z-index: 20; text-transform: uppercase; pointer-events: none; }
@@ -228,9 +228,10 @@
     </div>
 
     <div class="grid">
-        <div class="cat-title" data-key="cat_native_title">Annonces</div>
+        <div class="cat-title" data-key="cat_native_title">1. Équipées Spirit (Hardware Ledger)</div>
         <div class="grid-layout" id="marketGridNative"></div>
-       
+        <div class="cat-title" data-key="cat_legacy_title">2. Anciennes Collections & Multimarques (IA Scan)</div>
+        <div class="grid-layout" id="marketGridLegacy"></div>
     </div>
 </div>
 
@@ -1552,84 +1553,6 @@ async function loadMyPurchases() {
 /**
  * FONCTION POUR TES VENTES (DYNAMIQUE)
  */
-async function loadMySales() {
-    const listBody = document.getElementById('my-sales-list'); 
-    if (!listBody) return;
-    
-    // Message d'attente
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">CONSULTATION DU LEDGER SPIRIT...</div>';
-
-    try {
-        console.log("[SPIRIT LEDGER] Récupération des ventes pour ID:", MY_TEST_ID);
-        
-        // REQUÊTE : On cherche les transactions où l'ID actuel est le VENDEUR
-        const { data, error } = await _spirit
-            .from('transactions')
-            .select('*')
-            .eq('seller_id', String(MY_TEST_ID)) 
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        // AJOUT : Log pour vérifier ce que la base renvoie réellement dans la console
-        console.log("[SPIRIT LEDGER] Données reçues :", data);
-
-        // Reset de l'interface
-        listBody.innerHTML = ''; 
-
-        if (data && data.length > 0) {
-            data.forEach(tr => {
-                const productTitle = tr.figurine_name || "Produit #" + tr.id;
-                const dateStr = new Date(tr.created_at).toLocaleDateString('fr-FR');
-                
-                // AJOUT : Calcul des gains nets pour affichage vendeur (Prix - Protection)
-                const netGain = (tr.amount - (tr.user_profit || 0) - (tr.firm_profit || 0) - (tr.bank_share || 0)).toFixed(2);
-
-                const saleDiv = document.createElement('div');
-                saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.8); border-radius: 4px;";
-                
-                saleDiv.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <small style="color: #888;">${dateStr} | Réf: ${tr.id}</small>
-                            <h3 style="margin: 5px 0; color: white; text-transform: uppercase;">${productTitle}</h3>
-                            <p style="margin: 0;">Montant Transaction : <b>${tr.amount} €</b></p>
-                            <p style="margin: 0; font-size: 0.8rem; color: var(--spirit-green);">Votre gain net (après split) : <b>${netGain} €</b></p>
-                            <p style="margin: 0;">Statut : <span style="color:orange; font-weight:bold;">${tr.status}</span></p>
-                        </div>
-                        <div style="text-align: right;">
-                            ${(tr.status === 'SÉQUESTRE' || tr.status === 'SÉQUESTRE ACTIF') ? `
-                                <button class="btn-action-spirit" 
-                                        onclick="generateSpiritLabel('${tr.id}')"
-                                        style="background: var(--neon-orange); color: black; border: none; padding: 10px; cursor: pointer; font-weight: bold; border-radius: 2px;">
-                                    📦 BORDEREAU
-                                </button>
-                            ` : `<span style="color: var(--spirit-green); font-weight:bold;">✅ TRANSACTION VALIDÉE</span>`}
-                        </div>
-                    </div>
-                `;
-                listBody.appendChild(saleDiv);
-            });
-        } else {
-            // AJOUT : Message plus clair si la base est vide pour cet ID
-            listBody.innerHTML = `
-                <div style="text-align:center; padding:20px; color:#777;">
-                    <p>AUCUNE VENTE TROUVÉE POUR L'ID : ${MY_TEST_ID}</p>
-                    <small>Vérifiez que la colonne 'seller_id' dans Supabase correspond bien à cet ID.</small>
-                </div>`;
-        }
-
-    } catch (err) { 
-        console.error("ERREUR LEDGER VENTES:", err); 
-        listBody.innerHTML = "<div style='color:red; text-align:center;'>ERREUR DE SYNCHRONISATION LEDGER.</div>";
-    }
-}
-// LOGIQUE DU BORDEREAU
-function generateShippingLabel(transactionId, carrier) {
-    alert("📦 SPIRIT LOGISTIC\n\nGénération du bordereau " + carrier.toUpperCase() + " pour la transaction " + transactionId);
-    // Simulation d'ouverture du document
-    window.open(`https://spirit-infinity.github.io/labels/${transactionId}`, '_blank');
-}
 
 /**
  * RENDU VISUEL DES TRANSACTIONS (ACHATS / VENTES)
@@ -2095,9 +2018,6 @@ document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
 </html>
 </body>
 </html>
-
-
-
 
 
 
