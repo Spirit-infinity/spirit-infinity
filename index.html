@@ -929,16 +929,27 @@ async function publishFinal() {
     const desc = document.getElementById('inputDesc').value;
     const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore);
 
+    // CORRECTION : On récupère les valeurs des menus pour remplir les colonnes NULL de Supabase
+    const category = document.getElementById('saleCat')?.value || "Collection";
+    const shipSize = document.getElementById('saleShip')?.value || "Moyen";
+    // On récupère la première photo du tableau previewPhotos pour la colonne image_url
+    const photoUrl = (typeof previewPhotos !== 'undefined' && previewPhotos.length > 0) ? previewPhotos[0] : null;
+
     const newItem = {
         uuid: "SPIRIT-" + Date.now(),
-        title: title, //
-        price: price, //
-        description: desc, //
-        ia_score: scoreIA, //
-        owner_id: String(MY_TEST_ID),//
-        status: "available", //
-        currency: "EUR", //
-        is_native: true //
+        title: title, 
+        price: price, 
+        description: desc, 
+        ia_score: scoreIA, 
+        owner_id: String(MY_TEST_ID),
+        status: "available", 
+        currency: "EUR", 
+        is_native: true,
+        // AJOUTS POUR CORRIGER LES COLONNES NULL ET L'AFFICHAGE PHOTO
+        category: category,
+        ship_size: shipSize,
+        image_url: photoUrl,
+        brand: "Spirit Infinity"
     };
 
     try {
@@ -950,7 +961,6 @@ async function publishFinal() {
 
         alert("ANNONCE PUBLIÉE !");
         
-        // On force le rechargement pour voir l'annonce immédiatement
         location.reload(); 
 
     } catch (err) {
@@ -963,8 +973,12 @@ async function publishFinal() {
         if (!container) return;
         container.innerHTML = '';
         
-        // CORRECTION : Filtrer uniquement les annonces en ligne (disponibles)
-        const myAnnonces = marketData.filter(m => (m.owner === currentUser || !m.owner) && m.status === 'available');
+        // CORRECTION : Filtrer par owner_id (Supabase) pour correspondre à ton ID utilisateur actuel
+        const myAnnonces = marketData.filter(m => {
+            // On vérifie les deux types de clés possibles pour la compatibilité
+            const isOwner = (m.owner_id === String(MY_TEST_ID) || m.owner === currentUser);
+            return isOwner && m.status === 'available';
+        });
         
         if (myAnnonces.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:20px; color:#555;">AUCUNE ANNONCE EN LIGNE</div>';
@@ -974,9 +988,17 @@ async function publishFinal() {
         myAnnonces.forEach(a => {
             const div = document.createElement('div');
             div.style = "background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px; margin-bottom:10px;";
+            // AJOUT : Affichage de la miniature si elle existe
+            const imgHtml = a.image_url ? `<img src="${a.image_url}" style="width:50px; height:50px; object-fit:cover; border:1px solid var(--neon-orange);">` : '';
+            
             div.innerHTML = `
-                <div style="font-weight:bold; color:var(--neon-orange);">${a.title}</div>
-                <div style="font-size:0.8rem;">${a.price} € - ${a.status}</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    ${imgHtml}
+                    <div>
+                        <div style="font-weight:bold; color:var(--neon-orange);">${a.title}</div>
+                        <div style="font-size:0.8rem;">${a.price} € - ${a.status}</div>
+                    </div>
+                </div>
                 <div style="display:flex; gap:10px;">
                     <button class="btn-action" style="font-size:0.6rem; padding:5px; flex:1;" onclick="editAnnonce(${a.id})">MODIFIER</button>
                     <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem; padding:5px; flex:1;" onclick="deleteAnnonce(${a.id})">SUPPRIMER</button>
@@ -990,21 +1012,39 @@ async function publishFinal() {
         const item = marketData.find(m => m.id === id);
         if(!item) return;
         closeModals();
-        startCertification();
+        if (typeof startCertification === 'function') startCertification();
         editingId = id;
         document.getElementById('inputTitle').value = item.title;
         document.getElementById('inputPrice').value = item.price;
-        document.getElementById('inputDesc').value = item.desc;
-        document.getElementById('saleCat').value = item.cat;
-        document.getElementById('saleShip').value = item.shipSize;
-        chooseMethod(item.type === 'native' ? 'hot_native' : 'hot_legacy');
+        document.getElementById('inputDesc').value = item.description || item.desc;
+        if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat;
+        if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize;
+        
+        if (typeof chooseMethod === 'function') {
+            chooseMethod(item.is_native ? 'hot_native' : 'hot_legacy');
+        }
     }
 
-    function deleteAnnonce(id) {
+    // AJOUT : Suppression réelle sur Supabase pour la cohérence
+    async function deleteAnnonce(id) {
         if(confirm("Supprimer définitivement cette annonce ?")) {
-            marketData = marketData.filter(m => m.id !== id);
-            renderMarket();
-            updateUserAnnonces();
+            try {
+                // On supprime d'abord sur Supabase
+                const { error } = await _spirit
+                    .from('products_live')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                // On met à jour le local
+                marketData = marketData.filter(m => m.id !== id);
+                renderMarket();
+                updateUserAnnonces();
+                alert("Annonce supprimée du Ledger.");
+            } catch (err) {
+                alert("Erreur de suppression : " + err.message);
+            }
         }
     }
 
@@ -1977,6 +2017,7 @@ document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
 </html>
 </body>
 </html>
+
 
 
 
