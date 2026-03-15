@@ -1055,7 +1055,6 @@ function addToMySales(product, carrierName) {
     shippingList.appendChild(saleItem);
 
 }
-
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function confirmPayment() {
@@ -1082,20 +1081,31 @@ async function confirmPayment() {
         
         // INSERTION STRICTE AVEC IDENTIFICATION UTILISATEUR
         // Correction : seller_id utilise maintenant owner_id (automatique) ou owner (manuel)
+        // Ajout du champ currency pour correspondre à ta table
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
                 amount: totalAcheteur, 
                 buyer_id: String(MY_TEST_ID), // <-- ID de l'acheteur actuel
-                seller_id: String(selectedProduct.owner_id || selectedProduct.owner || "SYSTEM"), // <-- ID automatique du vendeur
+                seller_id: String(selectedProduct.owner_id || selectedProduct.owner || "67890"), // <-- Correction : ID dynamique au lieu de SYSTEM
                 user_profit: uProfit, 
                 firm_profit: fProfit, 
                 bank_share: bShare, 
                 status: 'SÉQUESTRE ACTIF', 
-                figurine_name: selectedProduct.title 
+                figurine_name: selectedProduct.title,
+                currency: 'EUR' // Ajout de la devise constatée dans ta table
             }]);
 
         if (error) throw error;
+
+        // AJOUT : Mise à jour automatique de la table products_live pour passer en "sold"
+        // Cela évite que l'objet reste disponible après l'achat
+        const { error: errorUpdate } = await _spirit
+            .from('products_live')
+            .update({ status: 'sold' })
+            .eq('title', selectedProduct.title);
+
+        if (errorUpdate) console.warn("Note: Statut produit non mis à jour", errorUpdate.message);
 
         alert(`✅ SPIRIT SECURE : ${totalAcheteur} € enregistrés.`);
         location.reload();
@@ -1105,6 +1115,9 @@ async function confirmPayment() {
         alert("ERREUR SUPABASE : " + err.message);
     }
 }
+
+
+
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
     function sendMessage() {
@@ -1932,6 +1945,7 @@ window.generateSpiritLabel = async function(transactionId) {
 </html>
 </body>
 </html>
+
 
 
 
