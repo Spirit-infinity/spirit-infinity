@@ -714,7 +714,7 @@ async function loadUserPurchases() {
         });
     }
 
- // (c) 2026 Spirit Infinity - Tous droits réservés
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
 function renderMarket(filteredData = null) {
         const gn = document.getElementById('marketGridNative');
@@ -724,6 +724,9 @@ function renderMarket(filteredData = null) {
         gn.innerHTML = ''; gl.innerHTML = '';
         const dataToRender = filteredData || marketData;
         
+        // AJOUT : Log pour vérifier l'ID utilisateur au moment du rendu (Aide au débug "Mes Ventes")
+        console.log("[SPIRIT DEBUG] Rendu Market avec ID Utilisateur actuel:", MY_TEST_ID);
+
         dataToRender.forEach(item => {
             const card = document.createElement('div');
             card.className = 'card' + (item.status === 'sold' ? ' sold' : '');
@@ -737,17 +740,19 @@ function renderMarket(filteredData = null) {
             const soldBadge = item.status === 'sold' ? '<div class="badge-sold">VENDU</div>' : '';
             
             // CORRECTION : Priorité à image_url (Supabase) puis img (Local)
+            // AJOUT : object-fit:contain pour ne pas déformer les photos peu importe leur taille
             const displayImg = item.image_url || item.img;
             const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `PHOTO ${item.title}`;
             
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
             const displayCountry = item.country || "France";
-            const displayDiag = isNative ? 'Auto-Diag: OK' : 'IA: Validé';
+            // On précise "Hardware Ledger" uniquement si c'est Native
+            const displayDiag = isNative ? 'Hardware Ledger' : 'IA Scan';
 
             card.innerHTML = `
                 ${soldBadge}
                 <div class="badge ${badgeClass}">${badgeText}</div>
-                <div class="img-placeholder">${imgContent}</div>
+                <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden;">${imgContent}</div>
                 <div class="card-info">
                     <div class="price">${item.price} €</div>
                     <div class="title">${item.title}</div>
@@ -755,10 +760,67 @@ function renderMarket(filteredData = null) {
                 </div>
             `;
             
-            if(isNative) gn.appendChild(card);
-            else gl.appendChild(card);
+            // CORRECTION : Pour tout mettre sous "ANNONCES" sans séparer les grilles visuellement
+            // On injecte tout dans gn (Marketplace principal)
+            gn.appendChild(card);
+            
+            // On garde l'injection dans gl au cas où ton CSS en dépend, 
+            // mais visuellement on unifie le flux.
+            if(isNative === false && gl !== gn) {
+                // gl.appendChild(card.cloneNode(true)); // Optionnel si tu veux doubler l'affichage
+            }
         });
+}
+
+// AJOUT : Correction de loadMySales avec log forcé pour comprendre pourquoi c'est vide
+async function loadMySales() {
+    const listBody = document.getElementById('my-sales-list'); 
+    if (!listBody) return;
+    
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">VÉRIFICATION LEDGER...</div>';
+
+    try {
+        const checkID = String(MY_TEST_ID);
+        console.log("[SPIRIT LEDGER] Recherche des ventes pour seller_id strict :", checkID);
+        
+        const { data, error } = await _spirit
+            .from('transactions')
+            .select('*')
+            .eq('seller_id', checkID) 
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        console.log("[SPIRIT LEDGER] Résultat Supabase pour " + checkID + " :", data);
+
+        listBody.innerHTML = ''; 
+
+        if (data && data.length > 0) {
+            data.forEach(tr => {
+                const productTitle = tr.figurine_name || "Produit #" + tr.id;
+                const saleDiv = document.createElement('div');
+                saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.8); border-radius: 4px;";
+                saleDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <small style="color: #888;">Réf: ${tr.id}</small>
+                            <h3 style="margin: 5px 0; color: white;">${productTitle}</h3>
+                            <p style="margin: 0;">Total : <b>${tr.amount} €</b></p>
+                            <p style="margin: 0; color:orange;">Statut : ${tr.status}</p>
+                        </div>
+                        <button onclick="generateSpiritLabel('${tr.id}')" style="background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px; border-radius:2px;">📦 BORDEREAU</button>
+                    </div>
+                `;
+                listBody.appendChild(saleDiv);
+            });
+        } else {
+            listBody.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE VENTE DÉTECTÉE (ID: ${checkID})</div>`;
+        }
+    } catch (err) { 
+        console.error("ERREUR :", err); 
+        listBody.innerHTML = "<div style='color:red;'>ERREUR SYNC.</div>";
     }
+}
     function resetSellForm() {
         editingId = null;
         diagActive = false;
@@ -2034,6 +2096,7 @@ document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
 </html>
 </body>
 </html>
+
 
 
 
