@@ -774,22 +774,25 @@ function renderMarket(filteredData = null) {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function loadMySales() {
     const listBody = document.getElementById('my-sales-list'); 
     if (!listBody) return;
     
-    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">CONSULTATION DU LEDGER...</div>';
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">SYNCHRONISATION LEDGER...</div>';
 
     try {
-        // CORRECTION CRITIQUE : On force l'ID en String pour matcher le type 'text' de Supabase
-        const targetID = String(MY_TEST_ID).trim();
-        
-        console.log("[SPIRIT LEDGER] Recherche des ventes pour :", targetID);
+        // Correction : On s'assure que l'ID est bien une String sans espaces
+        const currentID = String(MY_TEST_ID).trim();
+        console.log("[SPIRIT LEDGER] Recherche des Ventes pour l'ID :", currentID);
 
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
-            .eq('seller_id', targetID) // Comparaison Texte à Texte
+            .eq('seller_id', currentID) // On cherche là où l'ID est VENDEUR
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -799,30 +802,28 @@ async function loadMySales() {
         if (data && data.length > 0) {
             data.forEach(tr => {
                 const saleDiv = document.createElement('div');
-                saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.9); border-radius: 4px;";
+                saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.9); border-radius: 4px; border-left: 4px solid var(--neon-orange);";
                 saleDiv.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <small style="color: #888;">${new Date(tr.created_at).toLocaleDateString()}</small>
-                            <h3 style="margin: 5px 0; color: white;">${tr.figurine_name || 'OBJET SPIRIT'}</h3>
-                            <p style="margin: 0;">Total : <b>${tr.amount} €</b></p>
-                            <span style="color:var(--neon-orange); font-size:0.8rem;">Statut : ${tr.status}</span>
+                            <h3 style="margin: 5px 0; color: white; text-transform: uppercase;">${tr.figurine_name}</h3>
+                            <p style="margin: 0; color: var(--spirit-green); font-weight: bold;">${tr.amount} €</p>
+                            <span style="font-size: 0.8rem; color: orange;">Statut : ${tr.status}</span>
                         </div>
-                        <button onclick="generateSpiritLabel('${tr.id}')" style="background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px; cursor:pointer;">📦 BORDEREAU</button>
+                        <button onclick="generateSpiritLabel('${tr.id}')" style="background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px 15px; cursor:pointer; border-radius:2px;">📦 BORDEREAU</button>
                     </div>
                 `;
                 listBody.appendChild(saleDiv);
             });
         } else {
-            listBody.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE VENTE TROUVÉE DANS LE LEDGER POUR L'ID : ${targetID}</div>`;
+            listBody.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE VENTE TROUVÉE POUR L'ID : ${currentID}</div>`;
         }
-
     } catch (err) { 
         console.error("ERREUR :", err); 
-        listBody.innerHTML = "<div style='color:red; text-align:center;'>ERREUR SYNC LEDGER</div>";
+        listBody.innerHTML = "<div style='color:red; text-align:center;'>ERREUR LEDGER</div>";
     }
 }
-
 
     function resetSellForm() {
         editingId = null;
@@ -1273,26 +1274,50 @@ async function confirmPayment() {
         box.scrollTop = box.scrollHeight;
     }
 
-    function openProduct(item) {
+ function openProduct(item) {
         selectedProduct = item;
         document.getElementById('productModal').style.display = 'flex';
-        document.getElementById('pTitle').innerText = item.title;
-        document.getElementById('pOrigin').innerText = item.country + " | " + item.cond;
-        document.getElementById('pDescBox').innerText = item.desc;
-        document.getElementById('pSizeLabel').innerText = item.shipSize;
+        
+        // CORRECTION : Gestion des noms de colonnes Supabase vs Local
+        document.getElementById('pTitle').innerText = item.title || "Sans Titre";
+        
+        // AJOUT : Fallback pour les données pays et condition
+        const displayCountry = item.country || "France";
+        const displayCond = item.cond || "Certifié Spirit";
+        document.getElementById('pOrigin').innerText = displayCountry + " | " + displayCond;
+        
+        // CORRECTION : Supabase utilise 'description' au lieu de 'desc'
+        document.getElementById('pDescBox').innerText = item.description || item.desc || "Aucune description disponible.";
+        
+        // CORRECTION : Supabase utilise 'ship_size' au lieu de 'shipSize'
+        document.getElementById('pSizeLabel').innerText = item.ship_size || item.shipSize || "Moyen";
+        
         document.getElementById('pCarrierSelect').value = "0";
         
+        // CORRECTION DE LA GALERIE : Gestion de image_url (Supabase) et photos (Local)
         let galleryHtml = '';
-        if(item.photos && item.photos.length > 0) {
+        
+        // Cas 1 : Données Supabase (image_url unique pour le moment)
+        if(item.image_url) {
+            galleryHtml += `<img src="${item.image_url}" onclick="zoomImg('${item.image_url}')" style="width:95%; max-height:300px; object-fit:contain; margin:5px; border:1px solid var(--neon-orange); cursor:zoom-in; background:#000;">`;
+        } 
+        // Cas 2 : Données locales (Tableau de photos)
+        else if(item.photos && item.photos.length > 0) {
             item.photos.forEach(p => {
-                galleryHtml += `<img src="${p}" onclick="zoomImg('${p}')" style="width:45%; margin:5px; border:1px solid #333; cursor:zoom-in;">`;
+                galleryHtml += `<img src="${p}" onclick="zoomImg('${p}')" style="width:45%; margin:5px; border:1px solid #333; cursor:zoom-in; object-fit:contain; background:#000;">`;
             });
         }
-        document.getElementById('pGallery').innerHTML = galleryHtml || "IMAGE NON DISPONIBLE";
-        renderChatMessages();
-        updateTotalWithCarrier();
-    }
+        // Cas 3 : Fallback si item.img existe mais pas les autres
+        else if(item.img) {
+            galleryHtml += `<img src="${item.img}" onclick="zoomImg('${item.img}')" style="width:95%; max-height:300px; object-fit:contain; margin:5px; border:1px solid #333; cursor:zoom-in; background:#000;">`;
+        }
 
+        document.getElementById('pGallery').innerHTML = galleryHtml || "<div style='color:#555; padding:20px;'>IMAGE NON DISPONIBLE DANS LE LEDGER</div>";
+        
+        // Fonctions de support
+        if (typeof renderChatMessages === 'function') renderChatMessages();
+        if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier();
+    }
     // --- AUTRES FONCTIONS ---
     function transferToSale() {
         diagActive = true;
@@ -2021,6 +2046,7 @@ document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
 </html>
 </body>
 </html>
+
 
 
 
