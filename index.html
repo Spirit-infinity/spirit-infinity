@@ -774,16 +774,16 @@ function renderMarket(filteredData = null) {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
-// (c) 2026 Spirit Infinity - Tous droits réservés
 
 /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function loadMySales() {
     const listBody = document.getElementById('my-sales-list'); 
-    if (!listBody) return;
+    if (!listBody) {
+        console.error("[SPIRIT ERROR] Conteneur 'my-sales-list' absent du DOM"); // AJOUT : Alerte console si le HTML est mal structuré
+        return;
+    }
     
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">LECTURE DU LEDGER SPIRIT...</div>';
 
@@ -794,6 +794,7 @@ async function loadMySales() {
         
         console.log("[SPIRIT LEDGER] Synchronisation des Ventes pour l'ID :", currentID);
 
+        // CORRECTION : Sélection élargie pour inclure les colonnes de photos nécessaires aux litiges
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
@@ -813,8 +814,10 @@ async function loadMySales() {
                 // AJOUT : Design Industrial Dark avec bordure néon orange
                 saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 15px; background: rgba(0,0,0,0.9); border-radius: 4px; box-shadow: 0 4px 15px rgba(255,102,0,0.1);";
                 
-                // AJOUT : Récupération de la photo si disponible dans la transaction
-                const saleImg = tr.image_url ? `<img src="${tr.image_url}" style="width:60px; height:60px; object-fit:cover; border:1px solid #333; margin-right:15px;">` : `<div style="width:60px; height:60px; background:#222; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#555;">NO IMG</div>`;
+                // AJOUT : Gestion de la galerie (Mapping des 5 photos obligatoires Spirit Guard)
+                // On utilise image_url (principale) ou img1 si disponible
+                const mainImg = tr.image_url || tr.img1 || "";
+                const saleImg = mainImg ? `<img src="${mainImg}" style="width:60px; height:60px; object-fit:cover; border:1px solid #333; margin-right:15px; border-radius:2px;">` : `<div style="width:60px; height:60px; background:#222; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#555; border:1px solid #333;">NO IMG</div>`;
 
                 saleDiv.innerHTML = `
                     <div style="display: flex; align-items: center;">
@@ -823,14 +826,19 @@ async function loadMySales() {
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                 <div>
                                     <small style="color: #666; font-family: monospace;">LEDGER-ID: ${tr.id}</small>
-                                    <h3 style="margin: 2px 0; color: white; text-transform: uppercase; letter-spacing:1px;">${tr.figurine_name || 'OBJET SPIRIT'}</h3>
+                                    <h3 style="margin: 2px 0; color: white; text-transform: uppercase; letter-spacing:1px; font-size:0.9rem;">${tr.figurine_name || 'OBJET SPIRIT'}</h3>
                                     <p style="margin: 0; color: var(--spirit-green); font-weight: bold; font-size:1.1rem;">${tr.amount} €</p>
                                 </div>
                                 <div style="text-align:right;">
                                     <span style="display:block; font-size: 0.7rem; color: #888;">${new Date(tr.created_at).toLocaleString()}</span>
-                                    <span style="display:inline-block; margin-top:5px; padding:2px 8px; background:rgba(255,165,0,0.1); color: orange; font-size:0.7rem; font-weight:bold; border:1px solid orange;">${tr.status}</span>
+                                    <span style="display:inline-block; margin-top:5px; padding:2px 8px; background:rgba(255,165,0,0.1); color: orange; font-size:0.7rem; font-weight:bold; border:1px solid orange; text-transform:uppercase;">${tr.status}</span>
                                 </div>
                             </div>
+                            
+                            <div style="margin-top:8px; font-size:0.65rem; color:#444; font-style:italic;">
+                                Protection Spirit Guard Active (8%)
+                            </div>
+
                             <div style="margin-top:15px; display:flex; gap:10px;">
                                 <button onclick="generateSpiritLabel('${tr.id}')" style="flex:1; background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px; cursor:pointer; text-transform:uppercase; font-size:0.7rem;">📦 Générer Bordereau</button>
                                 <button onclick="openDispute('${tr.id}')" style="background:transparent; color:#555; border:1px solid #333; padding:10px; cursor:pointer; font-size:0.7rem;">LITIGE</button>
@@ -841,12 +849,12 @@ async function loadMySales() {
                 listBody.appendChild(saleDiv);
             });
         } else {
-            // AJOUT : Feedback clair si aucune vente
+            // AJOUT : Feedback clair si aucune vente (Évite l'écran figé sur "Initialisation")
             listBody.innerHTML = `
-                <div style="text-align:center; padding:40px; border: 1px dashed #333; color:#555;">
-                    <i class="fas fa-box-open" style="font-size:2rem; margin-bottom:10px;"></i>
-                    <p>AUCUNE VENTE DÉTECTÉE DANS LE LEDGER</p>
-                    <small>ID Actuel : ${currentID}</small>
+                <div style="text-align:center; padding:40px; border: 1px dashed #333; color:#555; background:rgba(0,0,0,0.3);">
+                    <div style="font-size:2rem; margin-bottom:10px;">📂</div>
+                    <p style="margin:0; font-weight:bold;">AUCUNE VENTE DÉTECTÉE DANS LE LEDGER</p>
+                    <small style="display:block; margin-top:10px; color:#444;">ID de session : ${currentID}</small>
                 </div>`;
         }
     } catch (err) { 
@@ -2110,6 +2118,7 @@ document.addEventListener('DOMContentLoaded', fetchMarketplaceFromSupabase);
 </html>
 </body>
 </html>
+
 
 
 
