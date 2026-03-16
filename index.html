@@ -728,6 +728,7 @@ async function loadUserPurchases() {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 function renderMarket(filteredData = null) {
+
         const gn = document.getElementById('marketGridNative');
         const gl = document.getElementById('marketGridLegacy');
         if (!gn || !gl) return; // Sécurité si les IDs n'existent pas
@@ -747,31 +748,35 @@ function renderMarket(filteredData = null) {
 
         dataToRender.forEach(item => {
             const card = document.createElement('div');
-            // CORRECTION : On vérifie le statut 'sold' de manière stricte (insensible à la casse)
+            
+            // CORRECTION : On vérifie le statut 'sold' ou 'available' (Basé sur tes colonnes Supabase 'status')
+            // AJOUT : On s'assure que si le statut est 'available', l'item est bien visible
             const isSold = String(item.status).toLowerCase() === 'sold';
+            const isAvailable = String(item.status).toLowerCase() === 'available';
+            
             card.className = 'card' + (isSold ? ' sold' : '');
             card.onclick = () => openProduct(item);
             
-            // CORRECTION : Gestion dynamique du type Spirit Native ou Legacy
-            const isNative = item.is_native === true || item.type === 'native';
+            // CORRECTION : Gestion dynamique selon tes colonnes image (is_native est un booléen dans Supabase)
+            // AJOUT : Conversion explicite pour éviter les erreurs de type
+            const isNative = item.is_native === true || item.is_native === "true" || item.type === 'native';
             const badgeClass = isNative ? 'native' : 'legacy';
             const badgeText = isNative ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
             
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
             
-            // CORRECTION : Priorité à image_url (Supabase) puis img (Local)
-            // AJOUT : Fallback sur img1, img2 si image_url est vide (Gestion multi-photos)
+            // CORRECTION : Priorité à image_url (qui contient ton base64 dans Supabase)
             const displayImg = item.image_url || item.img1 || item.img;
             const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `<div style="color:#333; font-size:10px;">PHOTO ${item.title}</div>`;
             
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
             const displayCountry = item.country || "France";
-            // On précise "Hardware Ledger" uniquement si c'est Native
             const displayDiag = isNative ? 'Hardware Ledger' : 'IA Scan';
 
-            // AJOUT : Badge de Propriétaire (Invisible pour les autres, utile pour tes tests)
-            const isMine = String(item.owner_id) === String(MY_TEST_ID);
-            const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.2); color:#0f0; font-size:9px; padding:2px 4px; border:1px solid #0f0; border-radius:2px;">MES ANNONCES</div>` : '';
+            // AJOUT / CORRECTION : Badge de Propriétaire (Vérification stricte de l'owner_id)
+            // C'est ici que l'annonce est identifiée comme la tienne
+            const isMine = String(item.owner_id).trim() === String(MY_TEST_ID).trim();
+            const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.2); color:#0f0; font-size:9px; padding:2px 4px; border:1px solid #0f0; border-radius:2px; z-index:10;">MES ANNONCES</div>` : '';
 
             card.innerHTML = `
                 ${soldBadge}
@@ -785,20 +790,20 @@ function renderMarket(filteredData = null) {
                 </div>
             `;
             
-            // CORRECTION : Pour tout mettre sous "ANNONCES" sans séparer les grilles visuellement
-            // On injecte tout dans gn (Marketplace principal)
-            gn.appendChild(card);
+            // CORRECTION : Pour l'affichage sur la page de garde
+            // On injecte dans gn si c'est disponible ou si c'est à moi (pour voir mes annonces même vendues)
+            if (isAvailable || isMine) {
+                gn.appendChild(card);
+            }
             
-            // On garde l'injection dans gl au cas où ton CSS en dépend, 
-            // mais visuellement on unifie le flux.
+            // AJOUT : Injection spécifique dans la grille Legacy si besoin
             if(isNative === false && gl !== gn) {
-                // gl.appendChild(card.cloneNode(true)); // Optionnel si tu veux doubler l'affichage
+                 gl.appendChild(card.cloneNode(true));
             }
         });
         
         console.log(`[SPIRIT MARKET] Rendu de ${dataToRender.length} objets terminé.`);
 }
-
 /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
@@ -2204,6 +2209,7 @@ async function fetchMarketplaceFromSupabase() {
 </html>
 </body>
 </html>
+
 
 
 
