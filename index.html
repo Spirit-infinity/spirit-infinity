@@ -438,59 +438,70 @@
                     <p>C'est ici que s'affiche ton résumé.</p>
                 </div>
 
-                <div id="tab-achats" class="account-page">
-                    <h2>🛒 MES ACHATS</h2>
-                    <div style="background:#0a0a0a; padding:10px; border:1px solid #222; margin-bottom:15px; font-size:0.75rem; color:#888;">
-                        <p style="margin:0;">
-                            Les fonds sont bloqués en <b>Séquestre Spirit</b>. 
-                            Une fois le bouton "REÇU" cliqué, le vendeur est payé et la transaction est définitive.
-                        </p>
-                    </div>
-                    <table class="table-spirit">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Produit</th>
-                                <th>Montant</th>
-                                <th>Statut</th>
-                                <th style="text-align:center;">Actions Spirit Shield</th>
-                            </tr>
-                        </thead>
-                        <tbody id="list-achats">
-                            </tbody>
-                    </table>
-                </div>
+            <div id="tab-achats" class="account-page">
+    <h2>🛒 MES ACHATS</h2>
+    <div style="background:#0a0a0a; padding:10px; border:1px solid #222; margin-bottom:15px; font-size:0.75rem; color:#888;">
+        <p style="margin:0;">
+            Les fonds sont bloqués en <b>Séquestre Spirit</b>. 
+            Une fois le bouton "REÇU" cliqué, le vendeur est payé et la transaction est définitive.
+        </p>
+    </div>
 
-                <div id="tab-ventes" class="account-page">
-                    <h2>💰 MES VENTES</h2>
-                    <p>Ici, tu verras ce que tu as vendu.</p>
-                    <div id="shipping-list"></div>
-                    <div id="labelPreview" style="display:none;">
-                        <div class="shipping-label" id="labelContent"></div>
-                        <button class="btn-action" style="margin-top:10px; width:100%; background:#222; color:white;" onclick="document.getElementById('labelPreview').style.display='none'">FERMER L'APERCU</button>
-                    </div>
-                </div>
+    <div id="my-purchases-list"></div>
 
-                <div id="tab-annonces" class="account-page">
-                    <h3>MES ANNONCES ACTIVES</h3>
-                    <div id="user-annonces-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                        <p style="font-size:0.8rem; color:#777;">Aucune annonce active.</p>
-                    </div>
-                </div>
+    <table class="table-spirit">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Produit</th>
+                <th>Montant</th>
+                <th>Statut</th>
+                <th style="text-align:center;">Actions Spirit Shield</th>
+            </tr>
+        </thead>
+        <tbody id="list-achats">
+            </tbody>
+    </table>
+</div>
 
-                <div id="tab-params" class="account-page">
-                    <h3>PARAMÈTRES DU COMPTE</h3>
-                    <div class="rib-box" id="rib-display">
-                        BANQUE : SPIRIT DIGITAL BANK<br>
-                        IBAN : FR76 3000 1000 2000 3000 4000 123<br>
-                        BIC : SPIRITFRXX
-                    </div>
-                    <button class="btn-action" style="margin-top:10px; font-size:0.7rem;" onclick="changeRIB()">METTRE / CHANGER UN RIB ACTIF</button>
-                </div>
-            </div>
-        </div>
+<div id="tab-ventes" class="account-page">
+    <h2>💰 MES VENTES</h2>
+    <p>Ici, tu verras ce que tu as vendu.</p>
+    
+    <div id="my-sales-list"></div>
+
+    <div id="shipping-list"></div>
+    <div id="labelPreview" style="display:none;">
+        <div class="shipping-label" id="labelContent"></div>
+        <button class="btn-action" style="margin-top:10px; width:100%; background:#222; color:white;" onclick="document.getElementById('labelPreview').style.display='none'">FERMER L'APERCU</button>
     </div>
 </div>
+
+<div id="tab-annonces" class="account-page">
+    <h3>MES ANNONCES ACTIVES</h3>
+    
+    <div id="user-annonces-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <p style="font-size:0.8rem; color:#777;">Aucune annonce active.</p>
+    </div>
+</div>
+
+<div id="tab-params" class="account-page">
+    <h3>PARAMÈTRES DU COMPTE</h3>
+    
+    <div id="user-ratings" style="margin-bottom:20px; padding:10px; background:rgba(255,165,0,0.05); border:1px solid #333;">
+        <h4 style="color:var(--neon-orange); margin-top:0; font-size:0.8rem;">MA RÉPUTATION VENDEUR</h4>
+        <div id="rating-stars" style="color:gold;">⭐⭐⭐⭐⭐ (5/5)</div>
+    </div>
+
+    <div class="rib-box" id="rib-display">
+        BANQUE : SPIRIT DIGITAL BANK<br>
+        IBAN : FR76 3000 1000 2000 3000 4000 123<br>
+        BIC : SPIRITFRXX
+    </div>
+    <button class="btn-action" style="margin-top:10px; font-size:0.7rem;" onclick="changeRIB()">METTRE / CHANGER UN RIB ACTIF</button>
+</div>
+
+
 
 <div id="ledgerModal" class="overlay">
     <div class="modal-content">
@@ -2128,6 +2139,7 @@ async function fetchMarketplaceFromSupabase() {
 </html>
 </body>
 </html>
+
 
 
 
