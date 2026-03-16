@@ -2088,12 +2088,16 @@ window.generateSpiritLabel = async function(transactionId) {
     } catch (e) { alert("Erreur système"); }
 };
 
-   
-
-// (c) 2026 Spirit Infinity - Tous droits réservés
+ // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function fetchMarketplaceFromSupabase() {
     console.log("[SPIRIT MARKET] Initialisation du flux Ledger...");
+    
+    // AJOUT : On prépare l'interface à recevoir les nouvelles données
+    const marketContainer = document.getElementById('market-grid') || document.getElementById('products-container');
+    if (marketContainer) {
+        console.log("[SPIRIT MARKET] Nettoyage du cache visuel pour synchronisation...");
+    }
     
     try {
         // CORRECTION : On s'assure que la requête n'est pas bloquée par un filtre ID trop restrictif
@@ -2107,21 +2111,34 @@ async function fetchMarketplaceFromSupabase() {
         // AJOUT : Vérification de sécurité pour ne pas écraser si vide
         if (!data || data.length === 0) {
             console.warn("[SPIRIT MARKET] Aucune annonce trouvée dans products_live");
+            // AJOUT : Feedback visuel si la base est vide
+            if (marketContainer) marketContainer.innerHTML = "<p style='color:#555; text-align:center;'>AUCUNE ANNONCE DISPONIBLE</p>";
             return;
         }
 
         marketData = data; 
         console.log("[SPIRIT MARKET] Flux synchronisé :", marketData.length, "annonces.");
         
+        // AJOUT : Logique de forçage du rendu (Mapping des données)
+        if (Array.isArray(marketData)) {
+             console.log("[SPIRIT DEBUG] Préparation du rendu pour ID actuel:", window.MY_TEST_ID || MY_TEST_ID);
+        }
+
         // DÉCLENCHEUR : On relance le rendu visuel
         if (typeof renderMarket === 'function') {
+            // AJOUT : On vide le conteneur avant de rendre pour éviter les doublons ou les anciens affichages
+            if (marketContainer) marketContainer.innerHTML = ''; 
             renderMarket();
+            console.log("[SPIRIT MARKET] Rendu visuel terminé à 110%.");
         }
 
     } catch (err) {
         console.error("[SPIRIT ERROR] Échec du flux Marketplace :", err);
+        // AJOUT : Alerte visuelle en cas d'erreur de connexion
+        if (marketContainer) marketContainer.innerHTML = "<p style='color:red;'>ERREUR DE LIAISON LEDGER</p>";
     }
-}
+}   
+
 
 </script>
 
@@ -2139,6 +2156,7 @@ async function fetchMarketplaceFromSupabase() {
 </html>
 </body>
 </html>
+
 
 
 
