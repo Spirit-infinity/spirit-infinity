@@ -2294,35 +2294,42 @@ async function debugMarket() {
     // On force un rendu avec TOUTES les données sans filtrer
     renderMarket(data);
 }
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- */
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log("[SPIRIT] Système d'auto-synchro activé.");
+async function refreshSpiritFlow() {
+    console.log("[SPIRIT] Récupération des données depuis Supabase...");
+    
+    // On force la récupération SANS filtre pour être sûr de tout voir
+    const { data, error } = await _spirit
+        .from('products_live')
+        .select('*')
+        .order('id', { ascending: false });
 
-    // 1. Premier chargement automatique au lancement de la page
-    if (typeof refreshSpiritFlow === 'function') {
-        try {
-            await refreshSpiritFlow();
-            console.log("[SPIRIT] Flux initial chargé avec succès.");
-        } catch (e) {
-            console.error("[SPIRIT] Erreur lors du chargement initial :", e);
-        }
+    if (error) {
+        console.error("[SPIRIT ERROR] Supabase :", error.message);
+        return;
     }
 
-    // 2. Boucle de rafraîchissement (toutes les 30 secondes)
-    // Cela permet de voir les nouvelles annonces sans recharger la page
-    setInterval(async () => {
-        if (typeof refreshSpiritFlow === 'function') {
-            await refreshSpiritFlow();
-        }
-    }, 30000); 
-});
+    if (!data || data.length === 0) {
+        console.warn("[SPIRIT] La table 'products_live' est VIDE.");
+        return;
+    }
+
+    console.log(`[SPIRIT] ${data.length} produits récupérés.`);
+    console.table(data); // Tu verras tout le contenu de ta DB ici
+
+    // On met à jour la variable globale
+    marketData = data; 
+
+    // On lance le rendu pour le Market ET pour "Mes Annonces"
+    if (typeof renderMarket === 'function') renderMarket(data);
+    if (typeof renderMesAnnonces === 'function') renderMesAnnonces();
+}
                 
 </script
 </body>
 </html>
+
 
 
 
