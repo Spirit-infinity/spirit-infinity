@@ -1086,73 +1086,86 @@ async function saveSpiritAudit(title, detected, score, status) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function publishFinal() {
-    console.log("[SPIRIT] Tentative de publication...");
+    console.log("[SPIRIT] Lancement de la publication finale...");
     
     try {
-        const title = document.getElementById('inputTitle').value;
-        const price = parseFloat(document.getElementById('inputPrice').value);
-        const desc = document.getElementById('inputDesc').value;
-        const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore) || 0;
+        // Récupération sécurisée des éléments HTML
+        const titleEl = document.getElementById('inputTitle');
+        const priceEl = document.getElementById('inputPrice');
+        const descEl = document.getElementById('inputDesc');
+        const stepFinishEl = document.getElementById('stepFinish');
 
-        // CORRECTION : On récupère les valeurs des menus pour remplir les colonnes NULL de Supabase
-        const category = document.getElementById('saleCat')?.value || "Collection";
-        const shipSize = document.getElementById('saleShip')?.value || "Moyen";
-        
-        // On récupère la photo (vérification de previewPhotos)
-        let photoUrl = null;
-        if (typeof previewPhotos !== 'undefined' && previewPhotos.length > 0) {
-            photoUrl = previewPhotos[0];
+        // Validation simple pour éviter d'envoyer du vide
+        if (!titleEl || !priceEl) {
+            throw new Error("Formulaire incomplet (Titre ou Prix introuvable)");
         }
 
+        const title = titleEl.value;
+        const price = parseFloat(priceEl.value) || 0;
+        const desc = descEl ? descEl.value : "";
+        const scoreIA = stepFinishEl ? (parseInt(stepFinishEl.dataset.lastScore) || 0) : 0;
+
+        // Récupération des menus (Catégories / Livraison)
+        const category = document.getElementById('saleCat')?.value || "1/6";
+        const shipSize = document.getElementById('saleShip')?.value || "Moyen";
+        
+        // Gestion de la photo (Colonne image_url sur tes captures)
+        let photoUrl = "";
+        if (typeof previewPhotos !== 'undefined' && previewPhotos.length > 0) {
+            photoUrl = previewPhotos[0]; // On prend le base64 de la première photo
+        }
+
+        // MAPPING EXACT DES COLONNES SUPABASE (Basé sur tes images)
         const newItem = {
-            uuid: "SPIRIT-" + Date.now(),
-            title: title, 
-            price: price, 
-            description: desc, 
-            ia_score: scoreIA, 
-            owner_id: String(MY_TEST_ID),
-            status: "available", 
-            currency: "EUR", 
-            is_native: true,
-            category: category,
-            ship_size: shipSize,
-            image_url: photoUrl,
-            brand: "Spirit Infinity"
+            uuid: "SPIRIT-" + Date.now(), // Colonne 'uuid' (text)
+            title: title, // Colonne 'title' (text)
+            price: price, // Colonne 'price' (numeric)
+            description: desc, // Colonne 'description' (text)
+            ia_score: scoreIA, // Colonne 'ia_score' (int4)
+            owner_id: String(MY_TEST_ID),// Colonne 'owner_id' (text)
+            status: "available", // Colonne 'status' (text)
+            currency: "EUR", // Colonne 'currency' (text)
+            is_native: true, // Colonne 'is_native' (bool)
+            category: category, // Colonne 'category' (text)
+            ship_size: shipSize, // Colonne 'ship_size' (text)
+            image_url: photoUrl, // Colonne 'image_url' (text) - Stocke ton Base64
+            brand: "Spirit Infinity" // Colonne 'brand' (text)
         };
 
-        console.log("[SPIRIT] Objet à envoyer :", newItem);
+        console.log("[SPIRIT] Objet préparé pour Supabase :", newItem);
 
-        // CORRECTION CRITIQUE : Vérification de l'objet Supabase. 
-        // Si '_spirit' n'existe pas, on essaie 'supabase' (nom standard)
+        // Détection du client Supabase
         const client = (typeof _spirit !== 'undefined') ? _spirit : (typeof supabase !== 'undefined' ? supabase : null);
         
         if (!client) {
-            throw new Error("Client Supabase introuvable (Vérifiez _spirit ou supabase)");
+            throw new Error("Connexion à la base de données (Supabase) introuvable.");
         }
 
+        // INSERTION RÉELLE
         const { data, error } = await client
             .from('products_live') 
             .insert([newItem])
-            .select(); // On demande le retour pour confirmer
+            .select(); 
 
         if (error) {
-            console.error("[SUPABASE ERROR]", error);
-            throw error;
+            console.error("[SPIRIT DATABASE ERROR]", error);
+            throw new Error(`Erreur Base de données : ${error.message}`);
         }
 
-        console.log("[SPIRIT] Succès Insertion :", data);
-        alert("ANNONCE PUBLIÉE !");
+        console.log("[SPIRIT] Insertion réussie !", data);
+        alert("SPIRIT INFINITY : ANNONCE PUBLIÉE !");
 
-        // CORRECTION : Au lieu de freeze la page, on force une redirection propre
-        // qui nettoie le cache pour forcer l'affichage sur la page de garde
-        window.location.href = window.location.pathname + "?v=" + Date.now();
+        // RESET ET REDIRECTION
+        // On utilise un petit délai pour laisser à Supabase le temps de propager la donnée
+        setTimeout(() => {
+            window.location.href = "index.html?refresh=" + Date.now(); 
+        }, 500);
 
     } catch (err) {
         console.error("[SPIRIT FATAL ERROR]", err);
-        alert("ERREUR CRITIQUE : " + err.message);
+        alert("ÉCHEC DE PUBLICATION : " + err.message);
     }
 }
-
 
  /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
@@ -2275,6 +2288,7 @@ async function fetchMarketplaceFromSupabase() {
 </html>
 </body>
 </html>
+
 
 
 
