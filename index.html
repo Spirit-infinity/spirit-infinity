@@ -2298,26 +2298,29 @@ async function debugMarket() {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 
-// --- PLACER APRÈS TOUTES TES FONCTIONS (renderMarket, publishFinal, etc.) ---
+// --- PLACER JUSTE AVANT LA BALISE </script> ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("[SPIRIT] Initialisation du Ledger...");
-    
-    // On vérifie si la fonction existe avant de l'appeler pour éviter un crash
+    console.log("[SPIRIT] Système d'auto-synchro activé.");
+
+    // 1. Premier chargement automatique au lancement de la page
     if (typeof refreshSpiritFlow === 'function') {
-        await refreshSpiritFlow(); 
-    } else {
-        console.warn("[SPIRIT] refreshSpiritFlow n'est pas encore définie.");
+        try {
+            await refreshSpiritFlow();
+            console.log("[SPIRIT] Flux initial chargé avec succès.");
+        } catch (e) {
+            console.error("[SPIRIT] Erreur lors du chargement initial :", e);
+        }
     }
-    
-    // On lance un rafraîchissement automatique toutes les 30 secondes 
+
+    // 2. Boucle de rafraîchissement (toutes les 30 secondes)
+    // Cela permet de voir les nouvelles annonces sans recharger la page
     setInterval(async () => {
         if (typeof refreshSpiritFlow === 'function') {
             await refreshSpiritFlow();
         }
-    }, 30000);
+    }, 30000); 
 });
-
 </script>
 
 <div id="labelPreview" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:10000; background:rgba(0,0,0,0.95); padding:20px; border:2px solid #00ff96; border-radius: 8px; width: 360px; color:white;">
@@ -2334,6 +2337,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 </html>
 </body>
 </html>
+
 
 
 
