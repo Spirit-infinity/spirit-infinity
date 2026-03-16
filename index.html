@@ -2294,7 +2294,29 @@ async function debugMarket() {
     // On force un rendu avec TOUTES les données sans filtrer
     renderMarket(data);
 }
+/**
+ * (c) 2026 Spirit Infinity - Tous droits réservés
+ */
 
+// --- PLACER APRÈS TOUTES TES FONCTIONS (renderMarket, publishFinal, etc.) ---
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("[SPIRIT] Initialisation du Ledger...");
+    
+    // On vérifie si la fonction existe avant de l'appeler pour éviter un crash
+    if (typeof refreshSpiritFlow === 'function') {
+        await refreshSpiritFlow(); 
+    } else {
+        console.warn("[SPIRIT] refreshSpiritFlow n'est pas encore définie.");
+    }
+    
+    // On lance un rafraîchissement automatique toutes les 30 secondes 
+    setInterval(async () => {
+        if (typeof refreshSpiritFlow === 'function') {
+            await refreshSpiritFlow();
+        }
+    }, 30000);
+});
 
 </script>
 
@@ -2312,6 +2334,7 @@ async function debugMarket() {
 </html>
 </body>
 </html>
+
 
 
 
