@@ -738,9 +738,18 @@ function renderMarket(filteredData = null) {
         // AJOUT : Log pour vérifier l'ID utilisateur au moment du rendu (Aide au débug "Mes Ventes")
         console.log("[SPIRIT DEBUG] Rendu Market avec ID Utilisateur actuel:", MY_TEST_ID);
 
+        // AJOUT : Vérification si les données sont bien chargées depuis Supabase
+        if (!dataToRender || dataToRender.length === 0) {
+            console.warn("[SPIRIT MARKET] Aucune donnée à afficher dans le flux.");
+            gn.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:50px; color:#444;">SYNCHRONISATION DU FLUX SPIRIT...</div>';
+            return;
+        }
+
         dataToRender.forEach(item => {
             const card = document.createElement('div');
-            card.className = 'card' + (item.status === 'sold' ? ' sold' : '');
+            // CORRECTION : On vérifie le statut 'sold' de manière stricte (insensible à la casse)
+            const isSold = String(item.status).toLowerCase() === 'sold';
+            card.className = 'card' + (isSold ? ' sold' : '');
             card.onclick = () => openProduct(item);
             
             // CORRECTION : Gestion dynamique du type Spirit Native ou Legacy
@@ -748,25 +757,30 @@ function renderMarket(filteredData = null) {
             const badgeClass = isNative ? 'native' : 'legacy';
             const badgeText = isNative ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
             
-            const soldBadge = item.status === 'sold' ? '<div class="badge-sold">VENDU</div>' : '';
+            const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
             
             // CORRECTION : Priorité à image_url (Supabase) puis img (Local)
-            // AJOUT : object-fit:contain pour ne pas déformer les photos peu importe leur taille
-            const displayImg = item.image_url || item.img;
-            const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `PHOTO ${item.title}`;
+            // AJOUT : Fallback sur img1, img2 si image_url est vide (Gestion multi-photos)
+            const displayImg = item.image_url || item.img1 || item.img;
+            const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `<div style="color:#333; font-size:10px;">PHOTO ${item.title}</div>`;
             
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
             const displayCountry = item.country || "France";
             // On précise "Hardware Ledger" uniquement si c'est Native
             const displayDiag = isNative ? 'Hardware Ledger' : 'IA Scan';
 
+            // AJOUT : Badge de Propriétaire (Invisible pour les autres, utile pour tes tests)
+            const isMine = String(item.owner_id) === String(MY_TEST_ID);
+            const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.2); color:#0f0; font-size:9px; padding:2px 4px; border:1px solid #0f0; border-radius:2px;">MES ANNONCES</div>` : '';
+
             card.innerHTML = `
                 ${soldBadge}
+                ${ownerTag}
                 <div class="badge ${badgeClass}">${badgeText}</div>
-                <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden;">${imgContent}</div>
+                <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
                 <div class="card-info">
                     <div class="price">${item.price} €</div>
-                    <div class="title">${item.title}</div>
+                    <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title || item.name || "SANS TITRE"}</div>
                     <div class="legende"><span>${displayCountry}</span><span>${displayDiag}</span></div>
                 </div>
             `;
@@ -781,10 +795,9 @@ function renderMarket(filteredData = null) {
                 // gl.appendChild(card.cloneNode(true)); // Optionnel si tu veux doubler l'affichage
             }
         });
+        
+        console.log(`[SPIRIT MARKET] Rendu de ${dataToRender.length} objets terminé.`);
 }
-
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
 
 /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
@@ -1101,86 +1114,120 @@ async function publishFinal() {
     }
 }
 
-    function updateUserAnnonces() {
-        const container = document.getElementById('user-annonces-list');
-        if (!container) return;
-        container.innerHTML = '';
-        
-        // CORRECTION : Filtrer par owner_id (Supabase) pour correspondre à ton ID utilisateur actuel
-        const myAnnonces = marketData.filter(m => {
-            // On vérifie les deux types de clés possibles pour la compatibilité
-            const isOwner = (m.owner_id === String(MY_TEST_ID) || m.owner === currentUser);
-            return isOwner && m.status === 'available';
-        });
-        
-        if (myAnnonces.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:#555;">AUCUNE ANNONCE EN LIGNE</div>';
-            return;
-        }
+ /**
+ * (c) 2026 Spirit Infinity - Tous droits réservés
+ */
 
-        myAnnonces.forEach(a => {
-            const div = document.createElement('div');
-            div.style = "background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px; margin-bottom:10px;";
-            // AJOUT : Affichage de la miniature si elle existe
-            const imgHtml = a.image_url ? `<img src="${a.image_url}" style="width:50px; height:50px; object-fit:cover; border:1px solid var(--neon-orange);">` : '';
-            
-            div.innerHTML = `
-                <div style="display:flex; gap:10px; align-items:center;">
-                    ${imgHtml}
-                    <div>
-                        <div style="font-weight:bold; color:var(--neon-orange);">${a.title}</div>
-                        <div style="font-size:0.8rem;">${a.price} € - ${a.status}</div>
+function updateUserAnnonces() {
+    const container = document.getElementById('user-annonces-list');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    // STABILISATION : On force l'ID actuel en texte pour éviter les échecs de filtrage
+    const currentUserID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+    
+    // CORRECTION : Filtrer par owner_id (Supabase) pour correspondre à ton ID utilisateur actuel
+    const myAnnonces = marketData.filter(m => {
+        // AJOUT : Comparaison stricte en String pour owner_id et support de l'ancien format owner
+        const isOwner = (String(m.owner_id).trim() === currentUserID || m.owner === currentUser);
+        // CORRECTION : On affiche les annonces 'available' mais aussi 'sold' pour que l'utilisateur voit son historique
+        return isOwner;
+    });
+    
+    if (myAnnonces.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE ANNONCE EN LIGNE (ID: ${currentUserID})</div>`;
+        return;
+    }
+
+    myAnnonces.forEach(a => {
+        const div = document.createElement('div');
+        // AJOUT : Style Industrial Dark avec distinction si vendu
+        const opacity = a.status === 'sold' ? 'opacity: 0.6;' : '';
+        div.style = `background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px; margin-bottom:10px; ${opacity} border-left: 3px solid ${a.status === 'sold' ? '#555' : 'var(--neon-orange)'};`;
+        
+        // AJOUT : Affichage de la miniature avec fallback img1/img
+        const displayImg = a.image_url || a.img1 || a.img;
+        const imgHtml = displayImg ? `<img src="${displayImg}" style="width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:2px;">` : `<div style="width:50px; height:50px; background:#222; display:flex; align-items:center; justify-content:center; font-size:8px;">NO IMG</div>`;
+        
+        // AJOUT : Badge de statut
+        const statusBadge = a.status === 'sold' ? `<span style="color:white; background:red; padding:2px 5px; font-size:0.6rem; font-weight:bold;">VENDU</span>` : `<span style="color:var(--spirit-green); font-size:0.6rem;">EN LIGNE</span>`;
+
+        div.innerHTML = `
+            <div style="display:flex; gap:12px; align-items:center;">
+                ${imgHtml}
+                <div style="flex:1;">
+                    <div style="font-weight:bold; color:white; text-transform:uppercase; font-size:0.85rem;">${a.title || a.name || "SANS TITRE"}</div>
+                    <div style="display:flex; align-items:center; gap:10px; margin-top:2px;">
+                        <span style="font-weight:bold; color:var(--neon-orange);">${a.price} €</span>
+                        ${statusBadge}
                     </div>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-action" style="font-size:0.6rem; padding:5px; flex:1;" onclick="editAnnonce(${a.id})">MODIFIER</button>
-                    <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem; padding:5px; flex:1;" onclick="deleteAnnonce(${a.id})">SUPPRIMER</button>
-                </div>
-            `;
-            container.appendChild(div);
-        });
-    }
+            </div>
+            <div style="display:flex; gap:10px; margin-top:5px;">
+                <button class="btn-action" style="font-size:0.6rem; padding:8px; flex:1; cursor:pointer;" onclick="editAnnonce('${a.id}')">MODIFIER</button>
+                <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem; padding:8px; flex:1; cursor:pointer; border:none;" onclick="deleteAnnonce('${a.id}')">SUPPRIMER</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+    console.log(`[SPIRIT SYSTEM] Mise à jour liste utilisateur : ${myAnnonces.length} annonces affichées.`);
+}
 
-    function editAnnonce(id) {
-        const item = marketData.find(m => m.id === id);
-        if(!item) return;
-        closeModals();
-        if (typeof startCertification === 'function') startCertification();
-        editingId = id;
-        document.getElementById('inputTitle').value = item.title;
-        document.getElementById('inputPrice').value = item.price;
-        document.getElementById('inputDesc').value = item.description || item.desc;
-        if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat;
-        if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize;
-        
-        if (typeof chooseMethod === 'function') {
-            chooseMethod(item.is_native ? 'hot_native' : 'hot_legacy');
+function editAnnonce(id) {
+    // CORRECTION : On s'assure que l'ID est traité comme String pour le find
+    const item = marketData.find(m => String(m.id) === String(id));
+    if(!item) {
+        console.error("[SPIRIT ERROR] Annonce introuvable pour édition:", id);
+        return;
+    }
+    
+    if (typeof closeModals === 'function') closeModals();
+    if (typeof startCertification === 'function') startCertification();
+    
+    editingId = id;
+    
+    // AJOUT : Sécurité sur les champs pour éviter les erreurs si l'élément n'existe pas encore dans le DOM
+    if(document.getElementById('inputTitle')) document.getElementById('inputTitle').value = item.title || item.name || '';
+    if(document.getElementById('inputPrice')) document.getElementById('inputPrice').value = item.price || 0;
+    if(document.getElementById('inputDesc')) document.getElementById('inputDesc').value = item.description || item.desc || '';
+    if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat || 'figurine';
+    if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize || 'medium';
+    
+    if (typeof chooseMethod === 'function') {
+        const isNative = item.is_native === true || item.type === 'native';
+        chooseMethod(isNative ? 'hot_native' : 'hot_legacy');
+    }
+    console.log("[SPIRIT SYSTEM] Mode édition activé pour:", item.title);
+}
+
+// AJOUT : Suppression réelle sur Supabase pour la cohérence
+async function deleteAnnonce(id) {
+    if(confirm("Voulez-vous vraiment supprimer cette annonce du Ledger Spirit ?")) {
+        try {
+            console.log("[SPIRIT LEDGER] Suppression en cours de l'ID:", id);
+            
+            // On supprime d'abord sur Supabase (table products_live)
+            const { error } = await _spirit
+                .from('products_live')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+
+            // AJOUT : Mise à jour du cache local après succès
+            marketData = marketData.filter(m => String(m.id) !== String(id));
+            
+            // AJOUT : Rafraîchissement global immédiat
+            if (typeof renderMarket === 'function') renderMarket();
+            updateUserAnnonces();
+            
+            alert("ANNONCE SUPPRIMÉE : Le Ledger a été mis à jour.");
+        } catch (err) {
+            console.error("[SPIRIT ERROR] Échec de suppression :", err);
+            alert("ERREUR LEDGER : Impossible de supprimer l'annonce.");
         }
     }
-
-    // AJOUT : Suppression réelle sur Supabase pour la cohérence
-    async function deleteAnnonce(id) {
-        if(confirm("Supprimer définitivement cette annonce ?")) {
-            try {
-                // On supprime d'abord sur Supabase
-                const { error } = await _spirit
-                    .from('products_live')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw error;
-
-                // On met à jour le local
-                marketData = marketData.filter(m => m.id !== id);
-                renderMarket();
-                updateUserAnnonces();
-                alert("Annonce supprimée du Ledger.");
-            } catch (err) {
-                alert("Erreur de suppression : " + err.message);
-            }
-        }
-    }
-
+}
     // --- LOGIQUE PAIEMENT ---
     function openPaymentModal() {
         const total = document.getElementById('sumTotal').innerText;
@@ -1666,7 +1713,8 @@ async function loadMyPurchases() {
  * FONCTION POUR TES VENTES (DYNAMIQUE)
  */
 
-/**
+
+    /**
  * RENDU VISUEL DES TRANSACTIONS (ACHATS / VENTES)
  */
 function renderTransactionList(container, data, error, type) {
@@ -2156,6 +2204,7 @@ async function fetchMarketplaceFromSupabase() {
 </html>
 </body>
 </html>
+
 
 
 
