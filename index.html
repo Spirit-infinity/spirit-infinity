@@ -1082,7 +1082,6 @@ async function saveSpiritAudit(title, detected, score, status) {
         console.log("✅ SPIRIT LEDGER : Donnée archivée avec succès !");
     }
 }
-
 /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
@@ -1116,20 +1115,59 @@ async function publishFinal() {
     };
 
     try {
+        // CORRECTION : Utilisation de l'objet client Supabase (ici nommé _spirit)
         const { error } = await _spirit
             .from('products_live') 
             .insert([newItem]);
 
         if (error) throw error;
 
-        alert("ANNONCE PUBLIÉE !");
+        // --- AJOUT CRITIQUE POUR L'AFFICHAGE IMMÉDIAT ---
+        console.log("[SPIRIT] Publication réussie, synchronisation du flux...");
         
-        location.reload(); 
+        // On informe l'utilisateur
+        alert("ANNONCE PUBLIÉE SUR LE MARCHÉ MONDIAL !");
+
+        // Au lieu de recharger toute la page (qui peut causer des bugs de cache),
+        // on appelle la fonction de rafraîchissement du flux.
+        if (typeof refreshSpiritFlow === 'function') {
+            await refreshSpiritFlow();
+        } else {
+            // Si la fonction n'est pas encore définie, on force le reload proprement
+            location.href = location.pathname + "?refresh=" + Date.now();
+        }
+
+        // AJOUT : Fermeture de la fenêtre de vente si elle existe
+        if (typeof closeModal === 'function') closeModal('modalVendre');
 
     } catch (err) {
+        console.error("[SPIRIT ERROR]", err);
         alert("ERREUR : " + err.message + " (Appuie sur CTRL+F5)");
     }
 }
+
+// AJOUT DE LA FONCTION DE SYNCHRO (À placer dans le même fichier ou globalement)
+async function refreshSpiritFlow() {
+    console.log("[SPIRIT] Rechargement du Ledger Spirit...");
+    
+    const { data, error } = await _spirit
+        .from('products_live')
+        .select('*')
+        .order('id', { ascending: false });
+
+    if (!error && data) {
+        // On met à jour la variable globale qui alimente ton market
+        if (typeof marketData !== 'undefined') {
+            marketData = data;
+        }
+        
+        // On relance le rendu visuel
+        if (typeof renderMarket === 'function') {
+            renderMarket(data);
+        }
+    }
+}
+
 
  /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
@@ -2252,6 +2290,7 @@ async function fetchMarketplaceFromSupabase() {
 </html>
 </body>
 </html>
+
 
 
 
