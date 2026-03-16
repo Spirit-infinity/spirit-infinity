@@ -2270,6 +2270,30 @@ async function fetchMarketplaceFromSupabase() {
         if (marketContainer) marketContainer.innerHTML = "<p style='color:red;'>ERREUR DE LIAISON LEDGER</p>";
     }
 }   
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+async function debugMarket() {
+    console.log("[SPIRIT DEBUG] Récupération forcée de TOUS les produits...");
+    
+    // On appelle Supabase directement pour voir ce qu'il y a dedans sans filtre
+    const { data, error } = await _spirit
+        .from('products_live')
+        .select('*');
+
+    if (error) {
+        console.error("Erreur lecture :", error);
+        return;
+    }
+
+    console.table(data); // Affiche tout dans un tableau propre
+    
+    // On vérifie combien d'items sont à toi
+    const mesItems = data.filter(i => String(i.owner_id).trim() === String(MY_TEST_ID).trim());
+    console.log(`[SPIRIT DEBUG] Trouvé ${data.length} produits au total, dont ${mesItems.length} à toi.`);
+    
+    // On force un rendu avec TOUTES les données sans filtrer
+    renderMarket(data);
+}
 
 
 </script>
@@ -2288,6 +2312,7 @@ async function fetchMarketplaceFromSupabase() {
 </html>
 </body>
 </html>
+
 
 
 
