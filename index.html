@@ -1841,6 +1841,9 @@ async function generateSpiritLabel(id) {
     w.document.close();
 }
 
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 // --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
 function renderTransactionList(container, data, error, type) {
     if (error) { container.innerHTML = "Erreur sync."; return; }
@@ -1850,31 +1853,59 @@ function renderTransactionList(container, data, error, type) {
     }
 
     container.innerHTML = data.map(tr => {
+        // AJOUT : Calcul des frais Spirit Infinity (8% protection) pour l'affichage si besoin
+        const totalWithProtection = tr.amount * 1.08;
+
         // Logique des boutons : Bordereau pour VENTES, Valider pour ACHATS
         let actionBtn = "";
-        if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
+        
+        // CORRECTION : Vérification stricte du statut (gestion casse Supabase)
+        const currentStatus = String(tr.status).toUpperCase();
+
+        if (type === 'VENTES' && (currentStatus === 'SÉQUESTRE ACTIF' || currentStatus === 'PAID')) {
             actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer;">📦 VOIR LE BORDEREAU</button>`;
-        } else if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
+        } else if (type === 'ACHATS' && currentStatus === 'SÉQUESTRE ACTIF') {
             actionBtn = `
                 <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px;">Valider</button>
-                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px;">Litige</button>
+                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px; cursor:pointer;">Valider</button>
+                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px; cursor:pointer;">Litige</button>
                 </div>`;
         }
 
+        // AJOUT : Section dédiée à la notation (Instruction : "L'acheteur doit noter la transaction")
+        // Apparaît uniquement pour l'acheteur quand la transaction est terminée ou validée
+        let ratingSection = "";
+        if (type === 'ACHATS' && currentStatus === 'COMPLETED' && !tr.has_rated) {
+            ratingSection = `
+                <div style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">
+                    <p style="font-size:0.65rem; color:#888; margin-bottom:5px;">NOTER CETTE TRANSACTION :</p>
+                    <div style="display:flex; gap:5px; justify-content:center;">
+                        ${[1,2,3,4,5].map(star => `<span onclick="submitSpiritRating('${tr.id}', ${star})" style="cursor:pointer; color:var(--neon-orange); font-size:1.2rem;">★</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         return `
-            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
+            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px; position:relative;">
+                <div style="position:absolute; top:0; right:10px; font-size:0.5rem; color:#333;">${tr.id}</div>
+                
                 <div style="display:flex; justify-content:space-between;">
-                    <span style="color:white; font-weight:bold;">${tr.figurine_name}</span>
+                    <span style="color:white; font-weight:bold; text-transform:uppercase;">${tr.figurine_name || tr.title || "Produit Spirit"}</span>
                     <span style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</span>
                 </div>
-                <div style="font-size:0.7rem; color:#555; margin-top:5px;">Statut: ${tr.status}</div>
+                
+                <div style="display:flex; align-items:center; gap:8px; margin-top:5px;">
+                    <div style="width:6px; height:6px; border-radius:50%; background:${currentStatus === 'COMPLETED' ? 'var(--spirit-green)' : '#FF5F1F'}"></div>
+                    <div style="font-size:0.7rem; color:#888;">Statut: <span style="color:#ccc;">${currentStatus}</span></div>
+                </div>
+
                 ${actionBtn}
+                ${ratingSection}
             </div>
         `;
     }).join('');
 }
-
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 /**
@@ -2221,6 +2252,7 @@ async function fetchMarketplaceFromSupabase() {
 </html>
 </body>
 </html>
+
 
 
 
