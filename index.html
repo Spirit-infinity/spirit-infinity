@@ -1086,85 +1086,70 @@ async function saveSpiritAudit(title, detected, score, status) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function publishFinal() {
-    const title = document.getElementById('inputTitle').value;
-    const price = parseFloat(document.getElementById('inputPrice').value);
-    const desc = document.getElementById('inputDesc').value;
-    const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore);
-
-    // CORRECTION : On récupère les valeurs des menus pour remplir les colonnes NULL de Supabase
-    const category = document.getElementById('saleCat')?.value || "Collection";
-    const shipSize = document.getElementById('saleShip')?.value || "Moyen";
-    // On récupère la première photo du tableau previewPhotos pour la colonne image_url
-    const photoUrl = (typeof previewPhotos !== 'undefined' && previewPhotos.length > 0) ? previewPhotos[0] : null;
-
-    const newItem = {
-        uuid: "SPIRIT-" + Date.now(),
-        title: title, 
-        price: price, 
-        description: desc, 
-        ia_score: scoreIA, 
-        owner_id: String(MY_TEST_ID),
-        status: "available", 
-        currency: "EUR", 
-        is_native: true,
-        // AJOUTS POUR CORRIGER LES COLONNES NULL ET L'AFFICHAGE PHOTO
-        category: category,
-        ship_size: shipSize,
-        image_url: photoUrl,
-        brand: "Spirit Infinity"
-    };
-
+    console.log("[SPIRIT] Tentative de publication...");
+    
     try {
-        // CORRECTION : Utilisation de l'objet client Supabase (ici nommé _spirit)
-        const { error } = await _spirit
-            .from('products_live') 
-            .insert([newItem]);
+        const title = document.getElementById('inputTitle').value;
+        const price = parseFloat(document.getElementById('inputPrice').value);
+        const desc = document.getElementById('inputDesc').value;
+        const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore) || 0;
 
-        if (error) throw error;
-
-        // --- AJOUT CRITIQUE POUR L'AFFICHAGE IMMÉDIAT ---
-        console.log("[SPIRIT] Publication réussie, synchronisation du flux...");
+        // CORRECTION : On récupère les valeurs des menus pour remplir les colonnes NULL de Supabase
+        const category = document.getElementById('saleCat')?.value || "Collection";
+        const shipSize = document.getElementById('saleShip')?.value || "Moyen";
         
-        // On informe l'utilisateur
-        alert("ANNONCE PUBLIÉE SUR LE MARCHÉ MONDIAL !");
-
-        // Au lieu de recharger toute la page (qui peut causer des bugs de cache),
-        // on appelle la fonction de rafraîchissement du flux.
-        if (typeof refreshSpiritFlow === 'function') {
-            await refreshSpiritFlow();
-        } else {
-            // Si la fonction n'est pas encore définie, on force le reload proprement
-            location.href = location.pathname + "?refresh=" + Date.now();
+        // On récupère la photo (vérification de previewPhotos)
+        let photoUrl = null;
+        if (typeof previewPhotos !== 'undefined' && previewPhotos.length > 0) {
+            photoUrl = previewPhotos[0];
         }
 
-        // AJOUT : Fermeture de la fenêtre de vente si elle existe
-        if (typeof closeModal === 'function') closeModal('modalVendre');
+        const newItem = {
+            uuid: "SPIRIT-" + Date.now(),
+            title: title, 
+            price: price, 
+            description: desc, 
+            ia_score: scoreIA, 
+            owner_id: String(MY_TEST_ID),
+            status: "available", 
+            currency: "EUR", 
+            is_native: true,
+            category: category,
+            ship_size: shipSize,
+            image_url: photoUrl,
+            brand: "Spirit Infinity"
+        };
+
+        console.log("[SPIRIT] Objet à envoyer :", newItem);
+
+        // CORRECTION CRITIQUE : Vérification de l'objet Supabase. 
+        // Si '_spirit' n'existe pas, on essaie 'supabase' (nom standard)
+        const client = (typeof _spirit !== 'undefined') ? _spirit : (typeof supabase !== 'undefined' ? supabase : null);
+        
+        if (!client) {
+            throw new Error("Client Supabase introuvable (Vérifiez _spirit ou supabase)");
+        }
+
+        const { data, error } = await client
+            .from('products_live') 
+            .insert([newItem])
+            .select(); // On demande le retour pour confirmer
+
+        if (error) {
+            console.error("[SUPABASE ERROR]", error);
+            throw error;
+        }
+
+        console.log("[SPIRIT] Succès Insertion :", data);
+        alert("ANNONCE PUBLIÉE !");
+
+        // CORRECTION : Au lieu de freeze la page, on force une redirection propre
+        // qui nettoie le cache pour forcer l'affichage sur la page de garde
+        window.location.href = window.location.pathname + "?v=" + Date.now();
 
     } catch (err) {
-        console.error("[SPIRIT ERROR]", err);
-        alert("ERREUR : " + err.message + " (Appuie sur CTRL+F5)");
-    }
-}
-
-// AJOUT DE LA FONCTION DE SYNCHRO (À placer dans le même fichier ou globalement)
-async function refreshSpiritFlow() {
-    console.log("[SPIRIT] Rechargement du Ledger Spirit...");
-    
-    const { data, error } = await _spirit
-        .from('products_live')
-        .select('*')
-        .order('id', { ascending: false });
-
-    if (!error && data) {
-        // On met à jour la variable globale qui alimente ton market
-        if (typeof marketData !== 'undefined') {
-            marketData = data;
-        }
-        
-        // On relance le rendu visuel
-        if (typeof renderMarket === 'function') {
-            renderMarket(data);
-        }
+        console.error("[SPIRIT FATAL ERROR]", err);
+        alert("ERREUR CRITIQUE : " + err.message);
     }
 }
 
@@ -2290,6 +2275,7 @@ async function fetchMarketplaceFromSupabase() {
 </html>
 </body>
 </html>
+
 
 
 
