@@ -422,7 +422,7 @@ async function loadMySales() {
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">LECTURE DU LEDGER SPIRIT...</div>';
 
     try {
-        const currentID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+       
         console.log("[SPIRIT LEDGER] Synchronisation des Ventes pour l'ID :", currentID);
 
         const { data, error } = await _spirit
@@ -700,7 +700,7 @@ function updateUserAnnonces() {
     if (!container) return;
     container.innerHTML = '';
     
-    const currentUserID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+   
     
     const myAnnonces = marketData.filter(m => {
         return (String(m.owner_id).trim() === currentUserID || m.owner === currentUser);
@@ -1356,6 +1356,7 @@ function debugSpiritMarket() {
 </body>
 </html>
             
+
 
 
 
