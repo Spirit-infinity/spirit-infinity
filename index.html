@@ -617,20 +617,23 @@
 </div>
 
 <section id="precommandes-hot-toys" class="overlay">
-<div id="force-content" style="display: block !important; padding: 20px; z-index: 9999; position: relative; background: #050505;">
-   <h1 style="color: #ff6600; text-align: center;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1>
-   <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-      <div style="border: 2px solid #ff6600; padding: 10px; width: 250px;">
-         <img src="https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg" style="width: 100%;">
-         <p style="color: white; text-align: center;">IRON MAN MARK LXXXV</p>
-         <button style="width: 100%; background: #ff6600; font-weight: bold;">RÉSERVER</button>
-      </div>
-      <div style="border: 2px solid #ff6600; padding: 10px; width: 250px;">
-         <img src="https://www.hottoys.com.hk/photos/PD1642142232u4w.jpg" style="width: 100%;">
-         <p style="color: white; text-align: center;">THE BATMAN</p>
-         <button style="width: 100%; background: #ff6600; font-weight: bold;">RÉSERVER</button>
-      </div>
-   </div>
+<div style="padding: 40px; background: #050505; min-height: 100vh;">
+  <h2 style="color: #ff6600; text-align: center; font-size: 2rem; text-shadow: 0 0 10px #ff6600;">PRÉCOMMANDES OFFICIELLES HOT TOYS</h2>
+  <div id="hot-toys-static-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 30px;">
+    > <div class="preorder-card" style="padding: 15px; text-align: center;">
+      <img src="https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg" style="width: 100%; border-radius: 4px;">
+      <h3 class="preorder-title">IRON MAN MARK LXXXV</h3>
+      <p style="color: #ff6600; font-weight: bold;">425€</p>
+      <button class="btn-action" style="width: 100%;">RÉSERVER VIA LA FIRME</button>
+    </div>
+    > <div class="preorder-card" style="padding: 15px; text-align: center;">
+      <img src="https://www.hottoys.com.hk/photos/PD1642142232u4w.jpg" style="width: 100%; border-radius: 4px;">
+      <h3 class="preorder-title">THE BATMAN (2022)</h3>
+      <p style="color: #ff6600; font-weight: bold;">380€</p>
+      <button class="btn-action" style="width: 100%;">RÉSERVER VIA LA FIRME</button>
+    </div>
+  </div>
+  <p style="text-align: center; color: #444; margin-top: 50px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
 </div>
 </section>
 
@@ -1808,7 +1811,10 @@ async function confirmPayment(method) {
     window.showForum = function () { navigateTo('forum'); };
     window.showMonCompte = function () { navigateTo('account'); };
     window.showSecurite = function () { navigateTo('security'); };
-    window.showPrecommandesHotToys = function () { showPrecommandes(); };
+    window.showPrecommandesHotToys = function () {
+      hideAllSections();
+      document.getElementById('precommandes-hot-toys').style.display = 'block';
+    };
     // Alias demandé: showPrecommandes()
     function showPrecommandes() {
       hideAllSections();
