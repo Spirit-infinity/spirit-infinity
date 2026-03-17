@@ -1510,26 +1510,31 @@ async function confirmPayment() {
         hideTopicEditor();
     }
 /** (c) 2026 Spirit Infinity - Tous droits réservés */
-function openForum() { showSpiritModal('forumModal'); }
-function openRegister() { showSpiritModal('registerModal'); }
-function openLedger() { showSpiritModal('ledgerModal'); }
-function openSupport() { showSpiritModal('supportModal'); }
-function openSecurity() { showSpiritModal('securityModal'); }
-function openAccount() { showSpiritModal('accountModal'); showAccountTab('achats'); }
+function openForum() { forceDisplaySpirit('forumModal'); }
+function openRegister() { forceDisplaySpirit('registerModal'); }
+function openLedger() { forceDisplaySpirit('ledgerModal'); }
+function openSupport() { forceDisplaySpirit('supportModal'); }
+function openSecurity() { forceDisplaySpirit('securityModal'); }
+function openAccount() { forceDisplaySpirit('accountModal'); showAccountTab('achats'); }
 
-// Fonction maîtresse pour briser le conflit visuel
-function showSpiritModal(id) {
-    closeModals(); // On ferme les autres
-    const m = document.getElementById(id);
-    if(m) {
-        // On force TOUT : affichage, visibilité, opacité et priorité
-        m.style.display = 'flex';
-        m.style.visibility = 'visible';
-        m.style.opacity = '1';
-        m.style.zIndex = '100000'; 
-        console.log("SPIRIT : Modal " + id + " forcé au premier plan.");
+function forceDisplaySpirit(id) {
+    closeModals();
+    const modal = document.getElementById(id);
+    if (modal) {
+        // On force les styles critiques
+        modal.style.display = 'flex';
+        modal.style.opacity = '1';
+        modal.style.visibility = 'visible';
+        modal.style.zIndex = '100001';
+        
+        // On force le rafraîchissement du navigateur
+        window.requestAnimationFrame(() => {
+            modal.style.display = 'flex';
+            console.log("SPIRIT : Affichage forcé de " + id);
+        });
     }
 }
+
 
 /** (c) 2026 Spirit Infinity - Tous droits réservés */
 function openLedger() {
