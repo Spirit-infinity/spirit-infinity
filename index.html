@@ -1537,25 +1537,24 @@ function forceDisplaySpirit(id) {
 
 /** (c) 2026 Spirit Infinity - Tous droits réservés */
 function openLedger() {
+    console.log("FORCE START");
     closeModals();
+    
     const m = document.getElementById('ledgerModal');
     if(m) {
-        // 1. On force l'affichage
-        m.style.display = 'flex';
-        m.style.zIndex = '100002';
+        // On détruit les anciennes règles qui pourraient bloquer
+        m.removeAttribute('style'); 
         
-        // 2. LE TRUC MAGIQUE : On force le navigateur à "reflow" (recalculer la page)
-        m.offsetHeight; 
+        // On réinjecte tout en "FORCE"
+        m.style.cssText = "display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 999999 !important; position: fixed !important;";
         
-        // 3. On confirme visuellement
-        m.style.opacity = '1';
-        m.style.visibility = 'visible';
+        // On force le rafraîchissement physique de la carte graphique
+        document.body.style.zoom = "100.0001%"; 
+        setTimeout(() => { document.body.style.zoom = "100%"; }, 50);
         
-        console.log("SPIRIT : Ledger forcé avec Reflow.");
+        console.log("FORCE END - Ledger devrait être visible");
     }
 }
-
-// Fais la même chose pour openSecurity et openAccount en ajoutant "m.offsetHeight;"
 
 function openSecurity() { 
     closeModals(); 
