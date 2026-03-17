@@ -631,6 +631,32 @@
     let editingId = null;
     let marketData = []; // Sera rempli par Supabase dans la partie 2
 
+   /**
+ * (c) 2026 Spirit Infinity - Tous droits réservés
+ * Fonctions de navigation interface
+ */
+function openAccount() {
+    const modal = document.getElementById('accountModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // On force le rafraîchissement des données à l'ouverture
+        if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
+        showAccountTab('achats'); 
+    }
+}
+
+function openForum() {
+    const modal = document.getElementById('forumModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function openLedger() {
+    const modal = document.getElementById('ledgerModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+ 
+
     /**
      * CALCUL DU SPLIT FINANCIER (3% / 3% / 2%)
      * Respecte strictement le 50/50 utilisateur/firme sur les bénéfices de protection.
@@ -650,6 +676,10 @@
             sellerNet: (p - totalFee).toFixed(2)
         };
     }
+// (c) 2026 Spirit Infinity - Tous droits réservés
+let MY_TEST_ID = "12345"; // Définition globale immédiate
+let currentUser = "Moi";
+    
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 /**
@@ -709,7 +739,14 @@ async function loadUserPurchases() {
  * RENDU MARKETPLACE DYNAMIQUE
  * Incorpore la séparation Grille Native / Legacy / Mes Annonces
  */
-function renderMarket(filteredData = null) {
+function renderMarket(dataToRender) {
+    // Sécurité : si MY_TEST_ID n'est pas encore là, on utilise une valeur par défaut
+    const currentID = String(window.MY_TEST_ID || "12345").trim();
+    const items = dataToRender || marketData;
+    
+    // ... reste de ton code renderMarket ...
+}
+
     const gn = document.getElementById('marketGridNative');
     const gl = document.getElementById('marketGridLegacy');
     const gMine = document.getElementById('marketGridMines');
@@ -1618,6 +1655,7 @@ console.log("[SPIRIT] Script chargé et sécurisé à 110%.");
 </script>
 </body>
 </html>
+
 
 
 
