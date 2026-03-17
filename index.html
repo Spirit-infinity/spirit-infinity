@@ -1527,11 +1527,28 @@ async function confirmPayment(method) {
 
     // --- NAVIGATION SPIRIT : 1 MENU = 1 SECTION (sans reload) ---
     function hideAllSections() {
-        // Cache toutes les overlays (Compte, Ledger, Forum, Support, Sécurité, Modals...)
+        // CRITIQUE : chaque clic sur un menu commence par TOUT cacher
+        // (évite l'ancien menu/overlay qui reste affiché ou bloque le nouveau)
         document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
-        // Cache lightbox image si ouverte
-        const lb = document.getElementById('lightbox');
-        if (lb) lb.style.display = 'none';
+
+        // Redondance volontaire : on force aussi certains IDs connus
+        [
+            'ledgerModal',
+            'forumModal',
+            'accountModal',
+            'securityModal',
+            'supportModal',
+            'registerModal',
+            'productModal',
+            'paymentModal',
+            'certifModal',
+            'labelPreview',
+            'lightbox'
+        ].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+
         // Réinitialise l'éditeur forum si présent
         try { hideTopicEditor(); } catch (e) {}
     }
@@ -2247,11 +2264,29 @@ async function fetchMarketplaceFromSupabase() {
     if (gridNative || gridLegacy) console.log("[SPIRIT MARKET] Grilles Marketplace détectées (Native/Legacy).");
     
     try {
-        // CORRECTION : On s'assure que la requête n'est pas bloquée par un filtre ID trop restrictif
-        const { data, error } = await _spirit
-            .from('products_live')
-            .select('*')
-            .order('created_at', { ascending: false });
+        // CORRECTION SQL : la colonne `created_at` peut ne pas exister sur `products_live`.
+        // On tente le tri, puis fallback sans tri si Supabase renvoie "does not exist".
+        let data, error;
+        try {
+            const res = await _spirit
+                .from('products_live')
+                .select('*')
+                .order('created_at', { ascending: false });
+            data = res.data;
+            error = res.error;
+        } catch (e) {
+            error = e;
+        }
+
+        const errMsg = String((error && (error.message || error.error_description || error.details)) || error || "");
+        if (error && /created_at/i.test(errMsg) && /(does not exist|not exist|unknown column|column)/i.test(errMsg)) {
+            console.warn("[SPIRIT MARKET] Colonne created_at absente sur products_live → suppression du tri.");
+            const res2 = await _spirit
+                .from('products_live')
+                .select('*'); // pas de tri, on affiche enfin les annonces
+            data = res2.data;
+            error = res2.error;
+        }
 
         if (error) throw error;
 
