@@ -1534,25 +1534,24 @@ function forceDisplaySpirit(id) {
         });
     }
 }
-
 /** (c) 2026 Spirit Infinity - Tous droits réservés */
 function openLedger() {
-    console.log("FORCE START");
+    console.log("FORCE START - LEDGER");
+    
+    // 1. On bloque la navigation auto en nettoyant les classes 'active'
+    document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('nav-ledger').classList.add('active');
+
+    // 2. On ferme tout le reste
     closeModals();
     
     const m = document.getElementById('ledgerModal');
     if(m) {
-        // On détruit les anciennes règles qui pourraient bloquer
-        m.removeAttribute('style'); 
+        // 3. ON FORCE LE CALQUE AU-DESSUS DE LA NAVIGATION
+        // On utilise cssText pour être sûr qu'aucun autre script ne puisse l'annuler
+        m.style.cssText = "display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999999 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9);";
         
-        // On réinjecte tout en "FORCE"
-        m.style.cssText = "display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 999999 !important; position: fixed !important;";
-        
-        // On force le rafraîchissement physique de la carte graphique
-        document.body.style.zoom = "100.0001%"; 
-        setTimeout(() => { document.body.style.zoom = "100%"; }, 50);
-        
-        console.log("FORCE END - Ledger devrait être visible");
+        console.log("FORCE END - Si rien ne s'affiche, c'est l'ID ledgerModal qui est faux.");
     }
 }
 
