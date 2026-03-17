@@ -1656,17 +1656,31 @@ function hideTopicEditor() {
         topicEditor.style.display = 'none';
     }
 }
-
+/**
+ * (c) 2026 Spirit Infinity - Tous droits réservés
+ */
 function openAccount() {
-    const modal = document.getElementById('userModal'); // Corrigé : utilise ton ID réel
+    // On définit explicitement l'élément avant de l'utiliser
+    const modal = document.getElementById('accountModal'); 
+    
     if (modal) {
+        // On change le style seulement si l'élément existe
         modal.style.display = 'flex';
-        if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
-        if (typeof showAccountTab === 'function') showAccountTab('achats'); 
+        
+        // On lance les fonctions internes si elles existent
+        if (typeof updateUserAnnonces === 'function') {
+            updateUserAnnonces();
+        }
+        if (typeof showAccountTab === 'function') {
+            showAccountTab('achats');
+        }
+        console.log("[SPIRIT] Panneau de contrôle ouvert avec succès.");
     } else {
-        console.error("Erreur Spirit : L'élément 'userModal' est introuvable dans le HTML.");
+        // Si ça ne marche pas, on a un message précis dans la console
+        console.error("[SPIRIT ERROR] L'élément 'accountModal' est introuvable dans le HTML.");
     }
 }
+
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
