@@ -503,38 +503,38 @@
 
 
 
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- */
-
-function openLedger() {
-    // On cible précisément l'ID de ton bloc Panneau de Contrôle Hardware
-    const modal = document.getElementById('ledgerModal');
-    
-    if (modal) {
-        modal.style.display = 'flex';
-        // On s'assure que le statut est bien visible à l'ouverture
-        console.log("[SPIRIT] Panneau de Contrôle Hardware (Ledger) : Affichage activé.");
-    } else {
-        console.error("[SPIRIT ERROR] L'élément 'ledgerModal' est introuvable dans le DOM.");
-    }
-}
-
-function closeModals() {
-    // Cette fonction ferme ton panneau hardware comme demandé par ton bouton ✕
-    const ledger = document.getElementById('ledgerModal');
-    const account = document.getElementById('accountModal');
-    
-    if (ledger) ledger.style.display = 'none';
-    if (account) account.style.display = 'none';
-}
-
-function transferToSale() {
-    // Fonction déclenchée par ton bouton en bas du panneau
-    console.log("[SPIRIT] Lancement de la procédure de transfert pour vente & certification...");
-    // Ici on ajoutera la logique de certification Spirit Ledger plus tard
-}
-
+<div id="ledgerModal" class="overlay">
+    <div class="modal-content">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <h2 style="color:var(--neon-orange)">PANNEAU DE CONTROLE HARDWARE</h2>
+        <div id="realTimeData" class="ledger-status">
+            [ STATUT : CONNECTÉ AU RÉSEAU SPIRIT ]
+        </div>
+        <div class="control-grid">
+            <div class="control-item">
+                <p>Niveau de Batterie</p>
+                <div class="control-val" id="ctrl-batt">92% (4.1V)</div>
+            </div>
+            <div class="control-item">
+                <p>Santé Puce Spirit</p>
+                <div class="control-val" id="ctrl-diag" style="color:var(--spirit-green)">OK - 100% FONCTIONNEL</div>
+            </div>
+            <div class="control-item">
+                <p>Néon Bas (Pulse-ID)</p>
+                <div class="control-val" id="ctrl-neon-low">142 Heures d'utilisation</div>
+            </div>
+            <div class="control-item">
+                <p>Néon Haut (Halo)</p>
+                <div class="control-val" id="ctrl-neon-high">88 Heures d'utilisation</div>
+            </div>
+            <div class="control-item">
+                <p>Figurine LED</p>
+                <div class="control-val" id="ctrl-fig">210 Heures d'utilisation</div>
+            </div>
+        </div>
+        <button class="btn-action" style="width:100%; margin-top:20px;" onclick="transferToSale()">TRANSFERER POUR VENTE & CERTIFICATION</button>
+    </div>
+</div>
 
 <div id="supportModal" class="overlay">
     <div class="modal-content">
@@ -1502,50 +1502,18 @@ async function confirmPayment() {
         document.getElementById('sumTotal').innerText = (selectedProduct.price + shipCost + prot).toFixed(2) + " €";
     }
 
-   /** (c) 2026 Spirit Infinity - Tous droits réservés */
-
-function closeModals() {
-    document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
-    hideTopicEditor();
-}
-
-function openForum() { 
-    document.getElementById('forumModal').style.display = 'flex'; 
-}
-
-function openRegister() { 
-    document.getElementById('registerModal').style.display = 'flex'; 
-}
-
-function openLedger() { 
-    // Correction ici : on définit 'm' pour cibler ton ledgerModal
-    const m = document.getElementById('ledgerModal'); 
-    if(m) { 
-        m.style.display = 'flex'; 
-    } else { 
-        console.error("ID ledgerModal introuvable"); 
+    function closeModals() {
+        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
+        hideTopicEditor();
     }
-}
 
-function openSupport() { 
-    document.getElementById('supportModal').style.display = 'flex'; 
-}
+   function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
+    function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
+    function openLedger() { const m = document.getElementById('ledgerModal'); if(m) m.style.display = 'flex'; }
+    function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
+    function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
+    function openAccount() { document.getElementById('accountModal').style.display = 'flex'; }
 
-function openSecurity() { 
-    document.getElementById('securityModal').style.display = 'flex'; 
-}
-
-// Ajout de la fonction pour ton bouton Mon Compte pour éviter les conflits
-function openAccount() {
-    const modal = document.getElementById('accountModal');
-    if (modal) {
-        modal.style.display = 'flex';
-    } else {
-        console.error("ID accountModal introuvable");
-    }
-}
-
-  
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
 function showAccountTab(tab) {
@@ -1690,31 +1658,21 @@ function hideTopicEditor() {
         topicEditor.style.display = 'none';
     }
 }
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- */
-function openAccount() {
-    // On définit explicitement l'élément avant de l'utiliser
-    const modal = document.getElementById('accountModal'); 
-    
-    if (modal) {
-        // On change le style seulement si l'élément existe
-        modal.style.display = 'flex';
-        
-        // On lance les fonctions internes si elles existent
-        if (typeof updateUserAnnonces === 'function') {
-            updateUserAnnonces();
-        }
-        if (typeof showAccountTab === 'function') {
-            showAccountTab('achats');
-        }
-        console.log("[SPIRIT] Panneau de contrôle ouvert avec succès.");
-    } else {
-        // Si ça ne marche pas, on a un message précis dans la console
-        console.error("[SPIRIT ERROR] L'élément 'accountModal' est introuvable dans le HTML.");
-    }
-}
 
+function openAccount() {
+    // On s'assure que les données sont fraîches à l'ouverture
+    if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
+    loadMyPurchases(); 
+    loadMySales();
+    
+    const accountModal = document.getElementById('accountModal');
+    if (accountModal) {
+        accountModal.style.display = 'flex';
+    }
+    
+    // Par défaut, on affiche l'onglet achats à l'ouverture
+    showAccountTab('achats');
+}
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
