@@ -266,7 +266,7 @@
                 <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
                 <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
                 <div id="pDescBox" style="font-size:0.85rem; color:#aaa; margin-bottom:15px; background:#111; padding:10px; border-left:2px solid var(--neon-orange);"></div>
-               
+                
                 <div style="background:rgba(255,102,0,0.05); padding:15px; border:1px solid #333; margin-bottom:15px;">
                     <label style="font-size:0.7rem; color:var(--neon-orange); font-weight:bold; display:block; margin-bottom:5px;">LIVRAISON (Taille: <span id="pSizeLabel">---</span>)</label>
                     <select id="pCarrierSelect" onchange="updateTotalWithCarrier()" style="margin:0;">
@@ -431,7 +431,7 @@
                 <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
                 <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
-           
+            
             <div class="dash-content">
                 <div id="tab-dashboard" class="account-page active">
                     <h2>🏠 TABLEAU DE BORD</h2>
@@ -442,7 +442,7 @@
     <h2>🛒 MES ACHATS</h2>
     <div style="background:#0a0a0a; padding:10px; border:1px solid #222; margin-bottom:15px; font-size:0.75rem; color:#888;">
         <p style="margin:0;">
-            Les fonds sont bloqués en <b>Séquestre Spirit</b>.
+            Les fonds sont bloqués en <b>Séquestre Spirit</b>. 
             Une fois le bouton "REÇU" cliqué, le vendeur est payé et la transaction est définitive.
         </p>
     </div>
@@ -467,7 +467,7 @@
 <div id="tab-ventes" class="account-page">
     <h2>💰 MES VENTES</h2>
     <p>Ici, tu verras ce que tu as vendu.</p>
-   
+    
     <div id="my-sales-list"></div>
 
     <div id="shipping-list"></div>
@@ -479,7 +479,7 @@
 
 <div id="tab-annonces" class="account-page">
     <h3>MES ANNONCES ACTIVES</h3>
-   
+    
     <div id="user-annonces-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
         <p style="font-size:0.8rem; color:#777;">Aucune annonce active.</p>
     </div>
@@ -487,7 +487,7 @@
 
 <div id="tab-params" class="account-page">
     <h3>PARAMÈTRES DU COMPTE</h3>
-   
+    
     <div id="user-ratings" style="margin-bottom:20px; padding:10px; background:rgba(255,165,0,0.05); border:1px solid #333;">
         <h4 style="color:var(--neon-orange); margin-top:0; font-size:0.8rem;">MA RÉPUTATION VENDEUR</h4>
         <div id="rating-stars" style="color:gold;">⭐⭐⭐⭐⭐ (5/5)</div>
@@ -593,14 +593,10 @@
 </div>
 
 <script>
-    /**
-     * (c) 2026 Spirit Infinity - Tous droits réservés
-     * PARTIE 1 : CONFIGURATION ET VARIABLES GLOBALES
-     */
     const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
     const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-   
+    
     const translations = {
         'FR': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANNEAU DE CONTROLE', 'nav_forum': 'FORUM', 'nav_account': 'MON COMPTE',
@@ -614,6 +610,7 @@
             'safety_msg_escrow': 'SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).', 'lbl_price': 'Prix', 'lbl_duty': 'Frais de Douane Est.',
             'lbl_total_pay': 'TOTAL À PAYER', 'btn_buy': 'ACHAT DIRECT', 'btn_offer': 'FAIRE OFFRE'
         }
+        // ... (Suite des traductions inchangée)
     };
 
     const shippingRates = {
@@ -622,83 +619,50 @@
         "Grand": { "mr": 12.90, "cl": 25.00, "dh": 45.00 }
     };
 
-    // --- VARIABLES DE SESSION ---
+    let marketData = [
+        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Figurine comme neuve, jamais exposée. Puce Spirit OK.", status: 'available', chat: [] },
+        { id: 2, title: "Spider-Man No Way Home", price: 320, type: 'native', country: 'France', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Complet en boite.", status: 'available', chat: [] },
+        { id: 3, title: "Batman The Dark Knight", price: 890, mac: 'IA-SCAN-992', type: 'legacy', country: 'USA', cond: 'Neuf', brand: 'InArt', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Version InArt scellée.", status: 'available', chat: [] },
+        { id: 4, title: "The Joker Rooted Hair", price: 1200, type: 'legacy', country: 'Hong Kong', cond: 'Neuf', brand: 'InArt', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "InArt Joker Rooted.", status: 'available', chat: [] },
+        { id: 5, title: "Captain America Endgame", price: 280, type: 'native', country: 'France', cond: 'Bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Très bon état.", status: 'available', chat: [] },
+        { id: 6, title: "Darth Vader OBW", price: 450, type: 'native', country: 'Europe', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Scellé.", status: 'available', chat: [] }
+    ];
+
     let currentMethod = '';
     let previewPhotos = [null, null, null, null, null];
     let selectedProduct = null;
     let currentUser = "INVITÉ";
     let diagActive = false;
     let editingId = null;
-    let marketData = []; // Sera rempli par Supabase dans la partie 2
 
-   /**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- * Fonctions de navigation interface
- */
-function openAccount() {
-    const modal = document.getElementById('accountModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        // On force le rafraîchissement des données à l'ouverture
-        if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
-        showAccountTab('achats'); 
-    }
-}
-
-function openForum() {
-    const modal = document.getElementById('forumModal');
-    if (modal) modal.style.display = 'flex';
-}
-
-function openLedger() {
-    const modal = document.getElementById('ledgerModal');
-    if (modal) modal.style.display = 'flex';
-}
-
- 
-
-    /**
-     * CALCUL DU SPLIT FINANCIER (3% / 3% / 2%)
-     * Respecte strictement le 50/50 utilisateur/firme sur les bénéfices de protection.
-     */
+    // CALCUL DU SPLIT FINANCIER 3% / 3% / 2%
     function calculateSpiritSplit(price) {
-        const p = parseFloat(price) || 0;
-        const totalFee = p * 0.08;
-        const myShare = p * 0.03;
-        const firmShare = p * 0.03;
-        const bankShare = p * 0.02;
+        const totalFee = price * 0.08;
+        const myShare = price * 0.03;
+        const firmShare = price * 0.03;
+        const bankShare = price * 0.02;
 
         return {
             totalFee: totalFee.toFixed(2),
             myShare: myShare.toFixed(2),
             firmShare: firmShare.toFixed(2),
             bankShare: bankShare.toFixed(2),
-            sellerNet: (p - totalFee).toFixed(2)
+            sellerNet: (price - totalFee).toFixed(2)
         };
     }
-// (c) 2026 Spirit Infinity - Tous droits réservés
-let MY_TEST_ID = "12345"; // Définition globale immédiate
-let currentUser = "Moi";
-    
-// (c) 2026 Spirit Infinity - Tous droits réservés
 
-/**
- * CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
- * Optimisé : Correction des ID et gestion d'erreur affinée
- */
+  // (c) 2026 Spirit Infinity - Tous droits réservés
+
+// CHARGEMENT DYNAMIQUE DES ACHATS (SPIRIT SHIELD)
 async function loadUserPurchases() {
     const listBody = document.getElementById('list-achats');
     if(!listBody) return;
-    
     listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Chargement du Ledger...</td></tr>';
-
-    // Utilisation de String(MY_TEST_ID) pour éviter les erreurs de type UUID/Int
-    const currentBuyerID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
 
     const { data, error } = await _spirit
         .from('transactions')
         .select('*')
-        .eq('buyer_id', currentBuyerID)
+        .eq('buyer_id', String(MY_TEST_ID)) // Remplace '12345' par String(MY_TEST_ID)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -707,21 +671,22 @@ async function loadUserPurchases() {
         return;
     }
 
+    // Vérifie si "data" existe avant de lancer le rendu
     if (data && data.length > 0) {
-        listBody.innerHTML = ''; 
+        listBody.innerHTML = ''; // On vide le message de chargement
+        
         data.forEach(tr => {
             const productTitle = tr.figurine_name || "Produit #" + tr.id;
             const dateStr = new Date(tr.created_at).toLocaleDateString('fr-FR');
-            const statusUpper = String(tr.status).toUpperCase();
             
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${dateStr}</td>
                 <td><b style="color:var(--neon-orange)">${productTitle}</b></td>
                 <td>${tr.amount} €</td>
-                <td><span style="color:${statusUpper === 'SÉQUESTRE' ? 'orange' : 'var(--spirit-green)'}">${statusUpper}</span></td>
+                <td><span style="color:${tr.status === 'SÉQUESTRE' ? 'orange' : 'var(--spirit-green)'}">${tr.status.toUpperCase()}</span></td>
                 <td style="text-align:center;">
-                    ${statusUpper === 'SÉQUESTRE' ? `
+                    ${tr.status === 'SÉQUESTRE' ? `
                         <button class="btn-recu-action" data-id="${tr.id}" onclick="confirmReceipt('${tr.id}')">✅ REÇU</button>
                         <button class="btn-litige-action" data-id="${tr.id}" onclick="openSupport()">⚠️ LITIGE</button>
                     ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
@@ -730,98 +695,148 @@ async function loadUserPurchases() {
             listBody.appendChild(row);
         });
     } else {
-        console.warn("Spirit Ledger : Aucun achat trouvé pour : " + currentBuyerID);
+        // Correction ligne 709 : s'affiche si vraiment aucun achat n'est trouvé en base
+        console.warn("Spirit Ledger : Aucun achat trouvé pour l'ID : " + MY_TEST_ID);
         listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#555;">Aucun achat enregistré.</td></tr>';
     }
 }
 
-/**
- * RENDU MARKETPLACE DYNAMIQUE
- * Incorpore la séparation Grille Native / Legacy / Mes Annonces
- */
-function renderMarket(dataToRender) {
-    // Sécurité : si MY_TEST_ID n'est pas encore là, on utilise une valeur par défaut
-    const currentID = String(window.MY_TEST_ID || "12345").trim();
-    const items = dataToRender || marketData;
+    // --- SYSTEME DE SECURITE CHAT & FORUM ---
+    const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
     
-    // ... reste de ton code renderMarket ...
-}
-
-    const gn = document.getElementById('marketGridNative');
-    const gl = document.getElementById('marketGridLegacy');
-    const gMine = document.getElementById('marketGridMines');
-
-    if (!gn || !gl) return;
-    
-    gn.innerHTML = ''; gl.innerHTML = '';
-    if (gMine) gMine.innerHTML = '';
-
-    const dataToRender = filteredData || (typeof marketData !== 'undefined' ? marketData : []);
-    const currentUserID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
-
-    if (!dataToRender || dataToRender.length === 0) {
-        gn.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:50px; color:#444;">SYNCHRONISATION DU FLUX SPIRIT...</div>';
-        return;
+    function filterMessage(text) {
+        let cleanText = text.toLowerCase();
+        let suspicious = false;
+        BANNED_WORDS.forEach(word => {
+            if (cleanText.includes(word)) suspicious = true;
+        });
+        if(suspicious) {
+            alert("ALERTE SÉCURITÉ : Les transactions hors marketplace sont interdites pour protéger vos fonds. Votre message contient des termes proscrits.");
+            return null;
+        }
+        return text;
     }
 
-    dataToRender.forEach(item => {
-        const card = document.createElement('div');
-        
-        const isSold = String(item.status).toLowerCase() === 'sold';
-        const isAvailable = String(item.status).toLowerCase() === 'available';
-        const isMine = String(item.owner_id || item.seller_id).trim() === currentUserID;
-        
-        card.className = 'card' + (isSold ? ' sold' : '');
-        card.onclick = () => openProduct(item);
-        
-        const isNative = item.is_native === true || item.type === 'native';
-        const badgeClass = isNative ? 'native' : 'legacy';
-        const badgeText = isNative ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
-        const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
-        const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.5); color:#0f0; font-size:10px; padding:2px 6px; border:1px solid #0f0; border-radius:2px; z-index:10; font-weight:bold;">MES ANNONCES</div>` : '';
+    function changeLang(lang) {
+        const set = translations[lang] || translations['FR'];
+        document.querySelectorAll('[data-key]').forEach(el => {
+            const key = el.getAttribute('data-key');
+            if(set[key]) el.innerText = set[key];
+        });
+    }
 
-        const displayImg = item.image_url || item.img1 || "";
-        const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `<div style="color:#333; font-size:10px;">PHOTO ${item.title}</div>`;
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
-        card.innerHTML = `
-            ${soldBadge}
-            ${ownerTag}
-            <div class="badge ${badgeClass}">${badgeText}</div>
-            <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
-            <div class="card-info">
-                <div class="price">${item.price} €</div>
-                <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title || "SANS TITRE"}</div>
-                <div class="legende"><span>${item.country || "France"}</span><span>${isNative ? 'Hardware Ledger' : 'IA Scan'}</span></div>
-            </div>
-        `;
+function renderMarket(filteredData = null) {
 
-        // Logique de distribution dans les grilles
-        if (isMine && gMine) {
-            gMine.appendChild(card.cloneNode(true));
+        const gn = document.getElementById('marketGridNative');
+        const gl = document.getElementById('marketGridLegacy');
+        
+        // AJOUT : Ciblage de la grille "Mes Annonces" si elle existe dans ton interface compte
+        const gMine = document.getElementById('marketGridMines');
+
+        if (!gn || !gl) return; // Sécurité si les IDs n'existent pas
+        
+        gn.innerHTML = ''; gl.innerHTML = '';
+        if (gMine) gMine.innerHTML = ''; // AJOUT : Nettoyage de la grille perso
+
+        // CORRECTION : On s'assure que dataToRender contient les données brutes ou filtrées
+        const dataToRender = filteredData || marketData;
+        
+        // AJOUT : Log pour vérifier l'ID utilisateur au moment du rendu (Aide au débug "Mes Ventes")
+        console.log("[SPIRIT DEBUG] Rendu Market avec ID Utilisateur actuel:", MY_TEST_ID);
+        console.log("[SPIRIT DEBUG] Nombre d'items à traiter:", dataToRender ? dataToRender.length : 0);
+
+        // AJOUT : Vérification si les données sont bien chargées depuis Supabase
+        if (!dataToRender || dataToRender.length === 0) {
+            console.warn("[SPIRIT MARKET] Aucune donnée à afficher dans le flux.");
+            gn.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:50px; color:#444;">SYNCHRONISATION DU FLUX SPIRIT...</div>';
+            return;
         }
 
-        if (isAvailable || isMine) {
-            if (isNative) {
+        dataToRender.forEach(item => {
+            const card = document.createElement('div');
+            
+            // CORRECTION : Mapping strict avec tes colonnes Supabase 'status' (available / sold)
+            const isSold = String(item.status).toLowerCase() === 'sold';
+            const isAvailable = String(item.status).toLowerCase() === 'available';
+            
+            card.className = 'card' + (isSold ? ' sold' : '');
+            card.onclick = () => openProduct(item);
+            
+            // CORRECTION : is_native est un booléen (true/false) dans ta base Supabase
+            const isNative = item.is_native === true || item.is_native === "true" || item.type === 'native';
+            const badgeClass = isNative ? 'native' : 'legacy';
+            const badgeText = isNative ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
+            
+            const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
+            
+            // CORRECTION : image_url est la colonne qui contient ton base64 ou URL (Image 5 de tes captures)
+            const displayImg = item.image_url || item.img1 || item.img;
+            const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `<div style="color:#333; font-size:10px;">PHOTO ${item.title}</div>`;
+            
+            // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
+            const displayCountry = item.country || "France";
+            const displayDiag = isNative ? 'Hardware Ledger' : 'IA Scan';
+
+            // AJOUT / CORRECTION : owner_id est stocké en texte (Image 2). 
+            // AJOUT : .trim() pour éviter les échecs de comparaison dus à des espaces invisibles.
+            const isMine = String(item.owner_id).trim() === String(MY_TEST_ID).trim();
+            const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.5); color:#0f0; font-size:10px; padding:2px 6px; border:1px solid #0f0; border-radius:2px; z-index:10; font-weight:bold;">MES ANNONCES</div>` : '';
+
+            card.innerHTML = `
+                ${soldBadge}
+                ${ownerTag}
+                <div class="badge ${badgeClass}">${badgeText}</div>
+                <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
+                <div class="card-info">
+                    <div class="price">${item.price} €</div>
+                    <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title || item.name || "SANS TITRE"}</div>
+                    <div class="legende"><span>${displayCountry}</span><span>${displayDiag}</span></div>
+                </div>
+            `;
+            
+            // --- LOGIQUE D'AFFICHAGE CORRIGÉE ---
+
+            // 1. Affichage Global : On montre ce qui est 'available' OU ce qui m'appartient (pour voir mes ventes même finies)
+            if (isAvailable || isMine) {
                 gn.appendChild(card);
-            } else {
-                gl.appendChild(card);
             }
-        }
-    });
+            
+            // 2. Affichage Compte : Si une grille "Mes Annonces" existe, on y injecte uniquement mes produits
+            if (isMine && gMine) {
+                gMine.appendChild(card.cloneNode(true));
+            }
+            
+            // AJOUT : Injection spécifique dans la grille Legacy si besoin (maintien de ta structure)
+            if(isNative === false && gl !== gn && isAvailable) {
+                 gl.appendChild(card.cloneNode(true));
+            }
+        });
+        
+        console.log(`[SPIRIT MARKET] Rendu de ${dataToRender.length} objets terminé.`);
 }
-
 /**
- * CHARGEMENT DES VENTES (DASHBOARD VENDEUR)
- * Design Industrial Dark avec bordures néon
+ * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function loadMySales() {
+  
     const listBody = document.getElementById('my-sales-list'); 
-    if (!listBody) return;
+    if (!listBody) {
+        console.error("[SPIRIT ERROR] Conteneur 'my-sales-list' absent du DOM"); // AJOUT : Alerte console si le HTML est mal structuré
+        return;
+    }
     
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">LECTURE DU LEDGER SPIRIT...</div>';
 
     try {
+        // STABILISATION : On force la récupération de la valeur globale la plus récente
+        // et on s'assure qu'elle est traitée comme du texte pur pour Supabase
         const currentID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+        
+        console.log("[SPIRIT LEDGER] Synchronisation des Ventes pour l'ID :", currentID);
+
+        // CORRECTION : Sélection élargie pour inclure les colonnes de photos nécessaires aux litiges
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
@@ -830,13 +845,19 @@ async function loadMySales() {
 
         if (error) throw error;
 
+        // AJOUT : Log de confirmation visuelle dans la console
+        console.log(`[SPIRIT LEDGER] ${data.length} vente(s) trouvée(s) pour ${currentID}`);
+
         listBody.innerHTML = ''; 
 
         if (data && data.length > 0) {
             data.forEach(tr => {
                 const saleDiv = document.createElement('div');
+                // AJOUT : Design Industrial Dark avec bordure néon orange
                 saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 15px; background: rgba(0,0,0,0.9); border-radius: 4px; box-shadow: 0 4px 15px rgba(255,102,0,0.1);";
                 
+                // AJOUT : Gestion de la galerie (Mapping des 5 photos obligatoires Spirit Guard)
+                // On utilise image_url (principale) ou img1 si disponible
                 const mainImg = tr.image_url || tr.img1 || "";
                 const saleImg = mainImg ? `<img src="${mainImg}" style="width:60px; height:60px; object-fit:cover; border:1px solid #333; margin-right:15px; border-radius:2px;">` : `<div style="width:60px; height:60px; background:#222; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#555; border:1px solid #333;">NO IMG</div>`;
 
@@ -855,6 +876,11 @@ async function loadMySales() {
                                     <span style="display:inline-block; margin-top:5px; padding:2px 8px; background:rgba(255,165,0,0.1); color: orange; font-size:0.7rem; font-weight:bold; border:1px solid orange; text-transform:uppercase;">${tr.status}</span>
                                 </div>
                             </div>
+                            
+                            <div style="margin-top:8px; font-size:0.65rem; color:#444; font-style:italic;">
+                                Protection Spirit Guard Active (8%)
+                            </div>
+
                             <div style="margin-top:15px; display:flex; gap:10px;">
                                 <button onclick="generateSpiritLabel('${tr.id}')" style="flex:1; background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px; cursor:pointer; text-transform:uppercase; font-size:0.7rem;">📦 Générer Bordereau</button>
                                 <button onclick="openDispute('${tr.id}')" style="background:transparent; color:#555; border:1px solid #333; padding:10px; cursor:pointer; font-size:0.7rem;">LITIGE</button>
@@ -865,118 +891,211 @@ async function loadMySales() {
                 listBody.appendChild(saleDiv);
             });
         } else {
-            listBody.innerHTML = `<div style="text-align:center; padding:40px; border: 1px dashed #333; color:#555;">AUCUNE VENTE DÉTECTÉE</div>`;
+            // AJOUT : Feedback clair si aucune vente (Évite l'écran figé sur "Initialisation")
+            listBody.innerHTML = `
+                <div style="text-align:center; padding:40px; border: 1px dashed #333; color:#555; background:rgba(0,0,0,0.3);">
+                    <div style="font-size:2rem; margin-bottom:10px;">📂</div>
+                    <p style="margin:0; font-weight:bold;">AUCUNE VENTE DÉTECTÉE DANS LE LEDGER</p>
+                    <small style="display:block; margin-top:10px; color:#444;">ID de session : ${currentID}</small>
+                </div>`;
         }
     } catch (err) { 
-        console.error("[SPIRIT ERROR]:", err); 
-        listBody.innerHTML = "<div style='color:var(--danger); text-align:center;'>ERREUR DE SYNCHRONISATION</div>";
+        console.error("[SPIRIT ERROR] Échec loadMySales:", err); 
+        listBody.innerHTML = "<div style='color:var(--danger); text-align:center; padding:20px; border:1px solid var(--danger);'>ERREUR DE SYNCHRONISATION LEDGER</div>";
     }
 }
 
-/**
- * MOTEUR IA - SPIRIT EYES
- * Analyse et archivage automatique des rejets
- */
+    function resetSellForm() {
+        editingId = null;
+        diagActive = false;
+        previewPhotos = [null, null, null, null, null];
+        document.getElementById('inputTitle').value = '';
+        document.getElementById('inputPrice').value = '';
+        document.getElementById('inputDesc').value = '';
+        document.getElementById('saleCat').value = '';
+        document.getElementById('saleShip').value = 'Moyen';
+        for(let i=1; i<=5; i++) {
+            document.getElementById('pBox' + i).innerHTML = 'PHOTO ' + i;
+        }
+        document.getElementById('diag-link').style.display = 'none';
+        document.getElementById('stepMethod').style.display = 'block';
+        document.getElementById('stepInfo').style.display = 'none';
+        document.getElementById('stepScan').style.display = 'none';
+        document.getElementById('stepFinish').style.display = 'none';
+        document.querySelectorAll('.step').forEach((s, i) => s.className = i===0 ? 'step active' : 'step');
+    }
+
+    function startCertification() {
+        resetSellForm();
+        document.getElementById('certifModal').style.display = 'flex';
+    }
+
+    function chooseMethod(m) {
+        currentMethod = m;
+        document.getElementById('stepMethod').style.display = 'none';
+        document.getElementById('stepInfo').style.display = 'block';
+        document.getElementById('s2').className = 'step active';
+    }
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
 async function goToScan() {
     const title = document.getElementById('inputTitle').value;
     const price = document.getElementById('inputPrice').value;
     const pBox1 = document.getElementById('pBox1');
-    const imgToScan = pBox1 ? pBox1.querySelector('img') : null;
+    const imgToScan = pBox1.querySelector('img');
 
-    if(!title || !price || !imgToScan) {
-        alert("ERREUR : Titre, Prix et Photo 1 sont obligatoires pour l'audit.");
+    // --- SÉCURITÉ PRÉ-SCAN ---
+    if(!title || !price) {
+        alert("TITRE ET PRIX REQUIS : Spirit Ledger ne peut pas indexer un objet vide.");
+        return;
+    }
+    if(!imgToScan) {
+        alert("PHOTO MANQUANTE : La Photo 1 est la base de l'audit Spirit Eyes.");
         return;
     }
 
+    // Affichage interface de scan
     document.getElementById('stepInfo').style.display = 'none';
     document.getElementById('stepScan').style.display = 'block';
     document.getElementById('s3').className = 'step active';
     
     const statusEl = document.getElementById('scanStatus');
-    statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse en cours...</span>";
+    statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse des vecteurs et textures...</span>";
 
     try {
+        // --- CHARGEMENT DU MOTEUR IA ---
         const model = await mobilenet.load();
         const predictions = await model.classify(imgToScan);
         
+        // Extraction des résultats
         const topResult = predictions[0].className.toLowerCase();
+        const secondResult = predictions[1] ? predictions[1].className.toLowerCase() : "";
         const scoreFinal = Math.round(predictions[0].probability * 100);
 
-        // Filtres
-        const forbidden = ['vape', 'refrigerator', 'fridge', 'desk', 'table', 'chair', 'dog', 'cat', 'phone', 'tv'];
+        // --- FILTRES DE SÉCURITÉ SPIRIT ---
+        // 1. Liste Noire (Objets interdits)
+        const forbidden = ['vape', 'refrigerator', 'fridge', 'desk', 'table', 'chair', 'dog', 'cat', 'phone', 'tv', 'furniture'];
         const isFraud = forbidden.some(term => topResult.includes(term));
-        const lowQualityTerms = ['toy', 'plastic', 'doll', 'lego'];
-        const isLowQuality = lowQualityTerms.some(term => topResult.includes(term));
 
+        // 2. Détection de "Qualité Jouet" (Indice de contrefaçon)
+        const lowQualityTerms = ['toy', 'plastic', 'doll', 'lego', 'mask', 'trinket'];
+        const isLowQuality = lowQualityTerms.some(term => topResult.includes(term) || secondResult.includes(term));
+
+        // --- TRANSITION VERS RÉSULTAT ---
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'block';
         document.getElementById('s4').className = 'step active';
 
         const msg = document.getElementById('finishMsg');
         const publishBtn = document.getElementById('btn-publish-final');
+ 
+        // ... (après le calcul du score et des filtres) ...
 
         if (isFraud || scoreFinal < 50) {
-            msg.innerHTML = `<h2 style="color:var(--danger);">OBJET REJETÉ</h2><p>Détecté : ${topResult}</p>`;
+            // CAS REFUSÉ
+            msg.innerHTML = `<h2 style="color:var(--danger);">OBJET REJETÉ</h2>...`;
             if(publishBtn) publishBtn.style.display = 'none';
+
+            // --- LA GREFFE ICI ---
+            // On envoie le REJET à Supabase immédiatement
             saveSpiritAudit(title, topResult, scoreFinal, 'REJECTED');
-        } 
-        else if (isLowQuality && scoreFinal < 80) {
-            msg.innerHTML = `<h2 style="color:orange;">QUALITÉ SUSPECTE</h2><p>Indice : ${scoreFinal}%</p>`;
+            // ---------------------
+
+        } else if (isLowQuality && scoreFinal < 80) {
+            // CAS SUSPECT
+            msg.innerHTML = `<h2 style="color:orange;">QUALITÉ SUSPECTE</h2>...`;
             if(publishBtn) publishBtn.style.display = 'none';
+
+            // --- ET ICI AUSSI ---
             saveSpiritAudit(title, topResult, scoreFinal, 'SUSPECT');
-        } 
-        else {
-            msg.innerHTML = `<h2 style="color:var(--spirit-green);">SCAN RÉUSSI</h2><p>Authenticité : ${scoreFinal}%</p>`;
+            // ---------------------
+
+        } else {
+            // CAS VALIDÉ
+            msg.innerHTML = `<h2 style="color:var(--spirit-green);">SCAN RÉUSSI</h2>...`;
             if(publishBtn) publishBtn.style.display = 'block';
             document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
+            
+            // Note : Pour les succès, on peut attendre le clic sur "Publier"
+            // ou l'envoyer ici avec le statut 'CERTIFIED-PENDING'
+        }
+
+        // --- LOGIQUE DE DÉCISION (LE COEUR DU SYSTÈME) ---
+        
+        if (isFraud || scoreFinal < 50) {
+            // CAS A : Objet interdit ou Photo illisible
+            msg.innerHTML = `
+                <h2 style="color:var(--danger); margin:0;">REFUSÉ : HORS CATÉGORIE</h2>
+                <p style="color:white;">Détecté : <strong>${topResult.toUpperCase()}</strong></p>
+                <p style="font-size:0.8rem; color:#777;">L'IA Spirit n'autorise que les objets de collection certifiables.</p>
+            `;
+            if(publishBtn) publishBtn.style.display = 'none';
+
+        } else if (isLowQuality && scoreFinal < 80) {
+            // CAS B : Suspect (Plastique brillant, jouet, possible contrefaçon)
+            msg.innerHTML = `
+                <h2 style="color:orange; margin:0;">ALERTE : QUALITÉ SUSPECTE</h2>
+                <p style="color:white; font-size:1.1rem;">INDICE DE CONFIANCE : ${scoreFinal}%</p>
+                <p style="font-size:0.8rem; color:#aaa;">Attention : Les textures détectées ressemblent à un jouet de série (Toy Grade) ou un Recast. Certification impossible.</p>
+            `;
+            if(publishBtn) publishBtn.style.display = 'none';
+
+          saveSpiritAudit(title, topResult, scoreFinal, 'REJECTED', isFraud ? 'Fraud' : 'Low Quality');  
+
+        } else {
+            // CAS C : AUTHENTIQUE (Figurine de collection validée)
+            msg.innerHTML = `
+                <h2 style="color:var(--spirit-green); margin:0;">SCAN RÉUSSI</h2>
+                <p style="color:white; font-size:1.1rem;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
+                <p style="color:#aaa; font-size:0.8rem;">Modèle identifié : ${topResult}<br>Signature thermique et sculpt conformes.</p>
+            `;
+            if(publishBtn) publishBtn.style.display = 'block';
+            document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
+
+            // Déjà géré dans publishFinal, mais tu peux l'ajouter ici pour un double archivage
         }
 
     } catch (err) {
         console.error("ERREUR CRITIQUE SPIRIT EYES :", err);
-        if(statusEl) statusEl.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA</span>";
+        statusEl.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA - VÉRIFIEZ CONNEXION</span>";
     }
 }
 
-/**
- * ARCHIVAGE LEDGER (SÉCURITÉ)
- */
+// (c) 2026 Spirit Infinity - Tous droits réservés
 async function saveSpiritAudit(title, detected, score, status) {
-    const { error } = await _spirit
-        .from('spirit_ledger')
+    console.log("[SPIRIT LEDGER] Tentative d'archivage...");
+    
+    // On s'assure que _spirit (Supabase) est bien initialisé
+    const { data, error } = await _spirit
+        .from('spirit_ledger') // Assure-toi que la table s'appelle bien comme ça
         .insert([{
             listing_title: title,
             detected_object: detected,
             ia_score: parseInt(score),
-            status: status,
-            seller_name: window.currentUser || "Unknown"
+            status: status, // 'CERTIFIED' ou 'REJECTED'
+            seller_name: currentUser
         }]);
 
-    if (error) console.error("❌ Erreur SQL Ledger:", error.message);
-    else console.log("✅ SPIRIT LEDGER : Archivé.");
-}
-
-// --- SYSTÈME DE SÉCURITÉ CHAT ---
-const BANNED_WORDS = ["paypal friends", "paypal amis", "envoi entre proches", "whatsapp", "phone", "téléphone", "mail", "direct payment"];
-function filterMessage(text) {
-    let cleanText = text.toLowerCase();
-    if (BANNED_WORDS.some(word => cleanText.includes(word))) {
-        alert("ALERTE SÉCURITÉ : Termes proscrits détectés.");
-        return null;
+    if (error) {
+        console.error("❌ Erreur SQL Ledger:", error.message);
+    } else {
+        console.log("✅ SPIRIT LEDGER : Donnée archivée avec succès !");
     }
-    return text;
 }
 /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 async function publishFinal() {
     console.log("[SPIRIT] Lancement de la publication finale...");
-   
+    
     try {
+        // Récupération sécurisée des éléments HTML
         const titleEl = document.getElementById('inputTitle');
         const priceEl = document.getElementById('inputPrice');
         const descEl = document.getElementById('inputDesc');
         const stepFinishEl = document.getElementById('stepFinish');
 
+        // Validation simple pour éviter d'envoyer du vide
         if (!titleEl || !priceEl) {
             throw new Error("Formulaire incomplet (Titre ou Prix introuvable)");
         }
@@ -985,49 +1104,61 @@ async function publishFinal() {
         const price = parseFloat(priceEl.value) || 0;
         const desc = descEl ? descEl.value : "";
         const scoreIA = stepFinishEl ? (parseInt(stepFinishEl.dataset.lastScore) || 0) : 0;
+
+        // Récupération des menus (Catégories / Livraison)
         const category = document.getElementById('saleCat')?.value || "1/6";
         const shipSize = document.getElementById('saleShip')?.value || "Moyen";
-       
+        
+        // Gestion de la photo (Colonne image_url sur tes captures)
         let photoUrl = "";
         if (typeof previewPhotos !== 'undefined' && previewPhotos.length > 0) {
-            photoUrl = previewPhotos[0]; 
+            photoUrl = previewPhotos[0]; // On prend le base64 de la première photo
         }
 
-        // MAPPING EXACT SUPABASE products_live
+        // MAPPING EXACT DES COLONNES SUPABASE (Basé sur tes images)
         const newItem = {
-            uuid: "SPIRIT-" + Date.now(),
-            title: title,
-            price: price,
-            description: desc,
-            ia_score: scoreIA,
-            owner_id: String(window.MY_TEST_ID || MY_TEST_ID).trim(),
-            seller_id: String(window.MY_TEST_ID || MY_TEST_ID).trim(), // Doublon de sécurité pour les jointures
-            status: "available",
-            currency: "EUR",
-            is_native: (typeof diagActive !== 'undefined' ? diagActive : true),
-            category: category,
-            ship_size: shipSize,
-            image_url: photoUrl,
-            brand: "Spirit Infinity"
+            uuid: "SPIRIT-" + Date.now(), // Colonne 'uuid' (text)
+            title: title, // Colonne 'title' (text)
+            price: price, // Colonne 'price' (numeric)
+            description: desc, // Colonne 'description' (text)
+            ia_score: scoreIA, // Colonne 'ia_score' (int4)
+            owner_id: String(MY_TEST_ID),// Colonne 'owner_id' (text)
+            status: "available", // Colonne 'status' (text)
+            currency: "EUR", // Colonne 'currency' (text)
+            is_native: true, // Colonne 'is_native' (bool)
+            category: category, // Colonne 'category' (text)
+            ship_size: shipSize, // Colonne 'ship_size' (text)
+            image_url: photoUrl, // Colonne 'image_url' (text) - Stocke ton Base64
+            brand: "Spirit Infinity" // Colonne 'brand' (text)
         };
 
-        console.log("[SPIRIT] Objet préparé :", newItem);
+        console.log("[SPIRIT] Objet préparé pour Supabase :", newItem);
 
+        // Détection du client Supabase
         const client = (typeof _spirit !== 'undefined') ? _spirit : (typeof supabase !== 'undefined' ? supabase : null);
-        if (!client) throw new Error("Connexion Supabase introuvable.");
+        
+        if (!client) {
+            throw new Error("Connexion à la base de données (Supabase) introuvable.");
+        }
 
+        // INSERTION RÉELLE
         const { data, error } = await client
-            .from('products_live')
+            .from('products_live') 
             .insert([newItem])
-            .select();
+            .select(); 
 
-        if (error) throw error;
+        if (error) {
+            console.error("[SPIRIT DATABASE ERROR]", error);
+            throw new Error(`Erreur Base de données : ${error.message}`);
+        }
 
         console.log("[SPIRIT] Insertion réussie !", data);
         alert("SPIRIT INFINITY : ANNONCE PUBLIÉE !");
 
+        // RESET ET REDIRECTION
+        // On utilise un petit délai pour laisser à Supabase le temps de propager la donnée
         setTimeout(() => {
-            window.location.href = "index.html?refresh=" + Date.now();
+            window.location.href = "index.html?refresh=" + Date.now(); 
         }, 500);
 
     } catch (err) {
@@ -1036,40 +1167,49 @@ async function publishFinal() {
     }
 }
 
-/**
+ /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
+
 function updateUserAnnonces() {
     const container = document.getElementById('user-annonces-list');
     if (!container) return;
     container.innerHTML = '';
-   
+    
+    // STABILISATION : On force l'ID actuel en texte pour éviter les échecs de filtrage
     const currentUserID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
-   
-    // Filtrage sur marketData (Cache local synchronisé)
+    
+    // CORRECTION : Filtrer par owner_id (Supabase) pour correspondre à ton ID utilisateur actuel
     const myAnnonces = marketData.filter(m => {
-        return (String(m.owner_id).trim() === currentUserID || String(m.seller_id).trim() === currentUserID);
+        // AJOUT : Comparaison stricte en String pour owner_id et support de l'ancien format owner
+        const isOwner = (String(m.owner_id).trim() === currentUserID || m.owner === currentUser);
+        // CORRECTION : On affiche les annonces 'available' mais aussi 'sold' pour que l'utilisateur voit son historique
+        return isOwner;
     });
-   
+    
     if (myAnnonces.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE ANNONCE EN LIGNE</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE ANNONCE EN LIGNE (ID: ${currentUserID})</div>`;
         return;
     }
 
     myAnnonces.forEach(a => {
         const div = document.createElement('div');
+        // AJOUT : Style Industrial Dark avec distinction si vendu
         const opacity = a.status === 'sold' ? 'opacity: 0.6;' : '';
         div.style = `background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px; margin-bottom:10px; ${opacity} border-left: 3px solid ${a.status === 'sold' ? '#555' : 'var(--neon-orange)'};`;
-       
+        
+        // AJOUT : Affichage de la miniature avec fallback img1/img
         const displayImg = a.image_url || a.img1 || a.img;
         const imgHtml = displayImg ? `<img src="${displayImg}" style="width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:2px;">` : `<div style="width:50px; height:50px; background:#222; display:flex; align-items:center; justify-content:center; font-size:8px;">NO IMG</div>`;
+        
+        // AJOUT : Badge de statut
         const statusBadge = a.status === 'sold' ? `<span style="color:white; background:red; padding:2px 5px; font-size:0.6rem; font-weight:bold;">VENDU</span>` : `<span style="color:var(--spirit-green); font-size:0.6rem;">EN LIGNE</span>`;
 
         div.innerHTML = `
             <div style="display:flex; gap:12px; align-items:center;">
                 ${imgHtml}
                 <div style="flex:1;">
-                    <div style="font-weight:bold; color:white; text-transform:uppercase; font-size:0.85rem;">${a.title || "SANS TITRE"}</div>
+                    <div style="font-weight:bold; color:white; text-transform:uppercase; font-size:0.85rem;">${a.title || a.name || "SANS TITRE"}</div>
                     <div style="display:flex; align-items:center; gap:10px; margin-top:2px;">
                         <span style="font-weight:bold; color:var(--neon-orange);">${a.price} €</span>
                         ${statusBadge}
@@ -1077,148 +1217,416 @@ function updateUserAnnonces() {
                 </div>
             </div>
             <div style="display:flex; gap:10px; margin-top:5px;">
-                <button class="btn-action" style="font-size:0.6rem; padding:8px; flex:1;" onclick="editAnnonce('${a.id}')">MODIFIER</button>
-                <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem; padding:8px; flex:1;" onclick="deleteAnnonce('${a.id}')">SUPPRIMER</button>
+                <button class="btn-action" style="font-size:0.6rem; padding:8px; flex:1; cursor:pointer;" onclick="editAnnonce('${a.id}')">MODIFIER</button>
+                <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem; padding:8px; flex:1; cursor:pointer; border:none;" onclick="deleteAnnonce('${a.id}')">SUPPRIMER</button>
             </div>
         `;
         container.appendChild(div);
     });
+    console.log(`[SPIRIT SYSTEM] Mise à jour liste utilisateur : ${myAnnonces.length} annonces affichées.`);
 }
 
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- */
+function editAnnonce(id) {
+    // CORRECTION : On s'assure que l'ID est traité comme String pour le find
+    const item = marketData.find(m => String(m.id) === String(id));
+    if(!item) {
+        console.error("[SPIRIT ERROR] Annonce introuvable pour édition:", id);
+        return;
+    }
+    
+    if (typeof closeModals === 'function') closeModals();
+    if (typeof startCertification === 'function') startCertification();
+    
+    editingId = id;
+    
+    // AJOUT : Sécurité sur les champs pour éviter les erreurs si l'élément n'existe pas encore dans le DOM
+    if(document.getElementById('inputTitle')) document.getElementById('inputTitle').value = item.title || item.name || '';
+    if(document.getElementById('inputPrice')) document.getElementById('inputPrice').value = item.price || 0;
+    if(document.getElementById('inputDesc')) document.getElementById('inputDesc').value = item.description || item.desc || '';
+    if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat || 'figurine';
+    if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize || 'medium';
+    
+    if (typeof chooseMethod === 'function') {
+        const isNative = item.is_native === true || item.type === 'native';
+        chooseMethod(isNative ? 'hot_native' : 'hot_legacy');
+    }
+    console.log("[SPIRIT SYSTEM] Mode édition activé pour:", item.title);
+}
+
+// AJOUT : Suppression réelle sur Supabase pour la cohérence
+async function deleteAnnonce(id) {
+    if(confirm("Voulez-vous vraiment supprimer cette annonce du Ledger Spirit ?")) {
+        try {
+            console.log("[SPIRIT LEDGER] Suppression en cours de l'ID:", id);
+            
+            // On supprime d'abord sur Supabase (table products_live)
+            const { error } = await _spirit
+                .from('products_live')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+
+            // AJOUT : Mise à jour du cache local après succès
+            marketData = marketData.filter(m => String(m.id) !== String(id));
+            
+            // AJOUT : Rafraîchissement global immédiat
+            if (typeof renderMarket === 'function') renderMarket();
+            updateUserAnnonces();
+            
+            alert("ANNONCE SUPPRIMÉE : Le Ledger a été mis à jour.");
+        } catch (err) {
+            console.error("[SPIRIT ERROR] Échec de suppression :", err);
+            alert("ERREUR LEDGER : Impossible de supprimer l'annonce.");
+        }
+    }
+}
+    // --- LOGIQUE PAIEMENT ---
+    function openPaymentModal() {
+        const total = document.getElementById('sumTotal').innerText;
+        if(total === "0.00 €" || total === "0 €") {
+            alert("Veuillez d'abord sélectionner un transporteur.");
+            return;
+        }
+        document.getElementById('payTotalAmount').innerText = total;
+        document.getElementById('paymentModal').style.display = 'flex';
+    }
+
+   // --- SYSTÈME DE BORDEREAU SPIRIT INFINITY ---
+function viewLabel(encodedHtml) {
+    const labelContent = document.getElementById('labelContent');
+    const labelPreview = document.getElementById('labelPreview');
+    labelContent.innerHTML = atob(encodedHtml);
+    labelPreview.style.display = 'block';
+    labelPreview.scrollIntoView({ behavior: 'smooth' });
+}
+
+function addToMySales(product, carrierName) {
+    const shippingList = document.getElementById('shipping-list');
+    const trackingNum = "SP-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+    
+    const labelHtml = `
+        <div style="padding:15px; border:2px dashed #555; background:#fff; color:#000; font-family:monospace; width:100%;">
+            <b style="font-size:1.2rem;">SPIRIT LOGISTICS</b><br>
+            <small>OBJET : ${product.title}</small><br><br>
+            <b>DESTINATAIRE : ${currentUser}</b><br>
+            <span>VIA : ${carrierName}</span><br><br>
+            <div style="text-align:center; border:1px solid #000; padding:5px;">
+                <b>TRACKING : ${trackingNum}</b>
+            </div>
+        </div>`;
+    
+    const saleItem = document.createElement('div');
+    saleItem.style = "background:#111; padding:15px; border:1px solid var(--spirit-green); margin-bottom:15px;";
+    saleItem.innerHTML = `
+        <h4 style="margin:0; color:var(--spirit-green)">${product.title}</h4>
+        <p style="font-size:0.7rem;">Tracking: ${trackingNum}</p>
+        <button class="btn-action" style="font-size:0.6rem; width:100%;" onclick="viewLabel('${btoa(labelHtml)}')">VOIR LE BORDEREAU</button>
+    `;
+    
+    if (shippingList.innerHTML.includes("Aucune")) shippingList.innerHTML = "";
+    shippingList.appendChild(saleItem);
+
+}
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function confirmPayment() {
+
     if (!selectedProduct) return;
 
+    // 1. Récupération des prix
     const prixFigurine = parseFloat(selectedProduct.price);
     const fraisLivraison = parseFloat(document.getElementById('sumShip').innerText) || 0;
-   
-    // Calcul de la Rente Marketplace (8% total divisé)
+    
+    // 2. Calcul du Split 3/3/2 (8%)
     const uProfit = (prixFigurine * 0.03).toFixed(2);  
     const fProfit = (prixFigurine * 0.03).toFixed(2);  
     const bShare = (prixFigurine * 0.02).toFixed(2);  
+    
+    // Protection totale pour le calcul du montant final
     const protectionTotale = parseFloat(uProfit) + parseFloat(fProfit) + parseFloat(bShare);
 
+    // 3. Montant total (amount) = Objet + Port + Protection
     const totalAcheteur = (prixFigurine + fraisLivraison + protectionTotale).toFixed(2);
 
     try {
-        console.log("[SPIRIT LEDGER] Transaction en cours...");
-       
+        console.log("[SPIRIT LEDGER] Écriture dans les colonnes Supabase...");
+        
+        // INSERTION STRICTE AVEC IDENTIFICATION UTILISATEUR
+        // Correction : seller_id utilise maintenant owner_id (automatique) ou owner (manuel)
+        // Ajout du champ currency pour correspondre à ta table
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount: totalAcheteur,
-                buyer_id: String(window.MY_TEST_ID || MY_TEST_ID).trim(),
-                seller_id: String(selectedProduct.owner_id || selectedProduct.seller_id).trim(),
-                user_profit: uProfit,
-                firm_profit: fProfit,
-                bank_share: bShare,
-                status: 'SÉQUESTRE ACTIF',
+                amount: totalAcheteur, 
+                buyer_id: String(MY_TEST_ID), // <-- ID de l'acheteur actuel
+                seller_id: String(selectedProduct.owner_id || selectedProduct.owner || "67890"), // <-- Correction : ID dynamique au lieu de SYSTEM
+                user_profit: uProfit, 
+                firm_profit: fProfit, 
+                bank_share: bShare, 
+                status: 'SÉQUESTRE ACTIF', 
                 figurine_name: selectedProduct.title,
-                currency: 'EUR'
+                currency: 'EUR' // Ajout de la devise constatée dans ta table
             }]);
 
         if (error) throw error;
 
-        // Mise à jour de l'état du produit
-        await _spirit.from('products_live').update({ status: 'sold' }).eq('id', selectedProduct.id);
+        // AJOUT : Mise à jour automatique de la table products_live pour passer en "sold"
+        // Cela évite que l'objet reste disponible après l'achat
+        const { error: errorUpdate } = await _spirit
+            .from('products_live')
+            .update({ status: 'sold' })
+            .eq('title', selectedProduct.title);
 
-        alert(`✅ SPIRIT SECURE : Transaction de ${totalAcheteur} € validée.`);
+        if (errorUpdate) console.warn("Note: Statut produit non mis à jour", errorUpdate.message);
+
+        alert(`✅ SPIRIT SECURE : ${totalAcheteur} € enregistrés.`);
         location.reload();
 
     } catch (err) {
-        console.error("ERREUR PAIEMENT :", err.message);
-        alert("ERREUR LEDGER : " + err.message);
+        console.error("ERREUR COLONNE :", err.message);
+        alert("ERREUR SUPABASE : " + err.message);
     }
 }
 
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- */
-function openProduct(item) {
-    selectedProduct = item;
-    const modal = document.getElementById('productModal');
-    if(!modal) return;
-    modal.style.display = 'flex';
-   
-    document.getElementById('pTitle').innerText = item.title || "Sans Titre";
-    document.getElementById('pOrigin').innerText = (item.country || "France") + " | " + (item.condition || "Certifié Spirit");
-    document.getElementById('pDescBox').innerText = item.description || "Aucune description.";
-    document.getElementById('pSizeLabel').innerText = item.ship_size || "Standard";
-    document.getElementById('pCarrierSelect').value = "0";
-   
-    let galleryHtml = '';
-    const photos = item.image_url ? [item.image_url] : (item.photos || []);
-    
-    if(photos.length > 0) {
-        photos.forEach(p => {
-            galleryHtml += `<img src="${p}" onclick="zoomImg('${p}')" style="width:45%; margin:5px; border:1px solid #333; cursor:zoom-in; object-fit:contain; background:#000;">`;
-        });
-    } else {
-        galleryHtml = "<div style='color:#555; padding:20px;'>AUCUNE IMAGE</div>";
+
+
+// --- FIN DU SYSTÈME ---
+    // --- LOGIQUE CHAT ---
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const text = filterMessage(input.value.trim());
+        if(!text || !selectedProduct) return;
+        if(!selectedProduct.chat) selectedProduct.chat = [];
+        selectedProduct.chat.push({ user: currentUser, text: text });
+        input.value = '';
+        renderChatMessages();
     }
 
-    document.getElementById('pGallery').innerHTML = galleryHtml;
-   
-    if (typeof renderChatMessages === 'function') renderChatMessages();
-    if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier();
-}
-
-/**
- * GESTIONNAIRE D'ONGLETS DU COMPTE
- */
-function showAccountTab(tab) {
-    const currentID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
-    console.log("[SPIRIT NAV] Onglet :", tab, "pour ID :", currentID);
-
-    // Navigation UI
-    document.querySelectorAll('.dash-nav button').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.account-page').forEach(p => p.style.display = 'none');
-
-    const pageActive = document.getElementById('tab-' + tab);
-    const btnActive = document.getElementById('btn-' + tab);
-
-    if (pageActive) {
-        pageActive.style.display = 'block';
-        if(btnActive) btnActive.classList.add('active');
-
-        // Trigger des fonctions de chargement
-        if (tab === 'achats') loadUserPurchases();
-        if (tab === 'ventes') loadMySales();
-        if (tab === 'annonces') updateUserAnnonces();
+    function renderChatMessages() {
+        const box = document.getElementById('chatMsgs');
+        box.innerHTML = '';
+        if(selectedProduct && selectedProduct.chat) {
+            selectedProduct.chat.forEach(m => {
+                box.innerHTML += `<div class="msg-line"><span class="msg-user">${m.user}:</span><span class="msg-text">${m.text}</span></div>`;
+            });
+        }
+        box.scrollTop = box.scrollHeight;
     }
-}
 
-// --- Fonctions Utilitaires ---
-function triggerFile(id) { document.getElementById(id).click(); }
-function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
-function zoomImg(src) { /* Ta logique de zoom ici */ }
+    function sendForumMsg() {
+        const input = document.getElementById('forumInput');
+        const text = filterMessage(input.value.trim());
+        if(!text) return;
+        const box = document.getElementById('forumChat');
+        box.innerHTML += `<div class="msg-line"><span class="msg-user">${currentUser}:</span><span class="msg-text">${text}</span></div>`;
+        input.value = '';
+        box.scrollTop = box.scrollHeight;
+    }
 
-async function deleteAnnonce(id) {
-    if(confirm("Supprimer définitivement cette annonce ?")) {
-        const { error } = await _spirit.from('products_live').delete().eq('id', id);
-        if(!error) {
-            marketData = marketData.filter(m => String(m.id) !== String(id));
-            updateUserAnnonces();
-            if(typeof renderMarket === 'function') renderMarket();
+ function openProduct(item) {
+        selectedProduct = item;
+        document.getElementById('productModal').style.display = 'flex';
+        
+        // CORRECTION : Gestion des noms de colonnes Supabase vs Local
+        document.getElementById('pTitle').innerText = item.title || "Sans Titre";
+        
+        // AJOUT : Fallback pour les données pays et condition
+        const displayCountry = item.country || "France";
+        const displayCond = item.cond || "Certifié Spirit";
+        document.getElementById('pOrigin').innerText = displayCountry + " | " + displayCond;
+        
+        // CORRECTION : Supabase utilise 'description' au lieu de 'desc'
+        document.getElementById('pDescBox').innerText = item.description || item.desc || "Aucune description disponible.";
+        
+        // CORRECTION : Supabase utilise 'ship_size' au lieu de 'shipSize'
+        document.getElementById('pSizeLabel').innerText = item.ship_size || item.shipSize || "Moyen";
+        
+        document.getElementById('pCarrierSelect').value = "0";
+        
+        // CORRECTION DE LA GALERIE : Gestion de image_url (Supabase) et photos (Local)
+        let galleryHtml = '';
+        
+        // Cas 1 : Données Supabase (image_url unique pour le moment)
+        if(item.image_url) {
+            galleryHtml += `<img src="${item.image_url}" onclick="zoomImg('${item.image_url}')" style="width:95%; max-height:300px; object-fit:contain; margin:5px; border:1px solid var(--neon-orange); cursor:zoom-in; background:#000;">`;
+        } 
+        // Cas 2 : Données locales (Tableau de photos)
+        else if(item.photos && item.photos.length > 0) {
+            item.photos.forEach(p => {
+                galleryHtml += `<img src="${p}" onclick="zoomImg('${p}')" style="width:45%; margin:5px; border:1px solid #333; cursor:zoom-in; object-fit:contain; background:#000;">`;
+            });
+        }
+        // Cas 3 : Fallback si item.img existe mais pas les autres
+        else if(item.img) {
+            galleryHtml += `<img src="${item.img}" onclick="zoomImg('${item.img}')" style="width:95%; max-height:300px; object-fit:contain; margin:5px; border:1px solid #333; cursor:zoom-in; background:#000;">`;
+        }
+
+        document.getElementById('pGallery').innerHTML = galleryHtml || "<div style='color:#555; padding:20px;'>IMAGE NON DISPONIBLE DANS LE LEDGER</div>";
+        
+        // Fonctions de support
+        if (typeof renderChatMessages === 'function') renderChatMessages();
+        if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier();
+    }
+    // --- AUTRES FONCTIONS ---
+    function transferToSale() {
+        diagActive = true;
+        closeModals();
+        startCertification();
+        chooseMethod('hot_native');
+        document.getElementById('diag-link').style.display = 'block';
+    }
+
+    function handleRegister() {
+        const u = document.getElementById('regUser').value;
+        if(!u) return;
+        currentUser = u;
+        document.getElementById('btn-reg').innerText = u.toUpperCase();
+        document.getElementById('user-display').innerText = u.toUpperCase();
+        alert("Bienvenue " + u);
+        closeModals();
+        updateUserAnnonces();
+    }
+
+    function triggerFile(id) { document.getElementById(id).click(); }
+    function previewSale(input, boxId, index) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById(boxId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+                previewPhotos[index] = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
         }
     }
+
+    function applyFilters() {
+        const pRange = document.getElementById('fPrice').value;
+        const country = document.getElementById('fCountry').value;
+        const brand = document.getElementById('fBrand').value;
+        const cat = document.getElementById('fCat').value;
+        const cond = document.getElementById('fCond').value;
+        const filtered = marketData.filter(item => {
+            let matchPrice = true;
+            if(pRange !== 'all') {
+                const [min, max] = pRange.split('-').map(v => parseInt(v));
+                if(pRange === '400+') matchPrice = item.price >= 400;
+                else matchPrice = (item.price >= min && item.price <= max);
+            }
+            return matchPrice && (country === 'all' || item.country === country) &&
+                   (brand === 'all' || item.brand === brand) && (cat === 'all' || item.cat === cat) &&
+                   (cond === 'all' || item.cond === cond);
+        });
+        renderMarket(filtered);
+    }
+
+    function updateTotalWithCarrier() {
+        if(!selectedProduct) return;
+        const carrierKey = document.getElementById('pCarrierSelect').value;
+        const size = selectedProduct.shipSize || "Moyen";
+        let shipCost = 0;
+        let carrierName = "---";
+        if(carrierKey !== "0") {
+            shipCost = shippingRates[size][carrierKey];
+            carrierName = document.getElementById('pCarrierSelect').options[document.getElementById('pCarrierSelect').selectedIndex].text;
+        }
+        const prot = selectedProduct.price * 0.08;
+        document.getElementById('sumPrice').innerText = selectedProduct.price + " €";
+        document.getElementById('sumShip').innerText = shipCost.toFixed(2) + " €";
+        document.getElementById('sumCarrierName').innerText = carrierName;
+        document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
+        document.getElementById('sumTotal').innerText = (selectedProduct.price + shipCost + prot).toFixed(2) + " €";
+    }
+
+    function closeModals() {
+        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
+        hideTopicEditor();
+    }
+    function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
+    function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
+    function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
+    function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
+    function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
+  
+ // (c) 2026 Spirit Infinity - Tous droits réservés
+
+function showAccountTab(tab) {
+   
+    // AJOUT : Sécurité ID avant chargement
+    if (typeof MY_TEST_ID !== 'undefined') {
+        window.MY_TEST_ID = String(MY_TEST_ID).trim();
+    }
+
+    if(tab === 'achats') loadUserPurchases();
+    if (tab === 'ventes') loadMySales();
+    
+    // 1. On nettoie l'interface (Boutons et Pages)
+    document.querySelectorAll('.dash-nav button').forEach(b => {
+        b.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.account-page').forEach(p => {
+        p.style.display = 'none';
+        p.classList.remove('active');
+    });
+
+    // 2. On affiche la page correspondante (ID: tab-achats, tab-ventes, etc.)
+    const pageActive = document.getElementById('tab-' + tab);
+    if (pageActive) {
+        pageActive.style.display = 'block';
+        pageActive.classList.add('active');
+        console.log("[SPIRIT NAV] Navigation vers :", tab);
+        
+        // AJOUT : Nettoyage du message statique "Ici tu verras..." pour laisser place au Ledger
+        const staticMsg = pageActive.querySelector('p');
+        if (staticMsg && staticMsg.innerText.includes("Ici, tu verras")) {
+            staticMsg.innerHTML = '<span style="color:var(--neon-orange);">INITIALISATION DU LEDGER...</span>';
+        }
+    }
+
+      // 3. TRIGGER : Synchronisation Ledger avec Supabase selon l'onglet
+    // On ne garde qu'un seul appel par onglet pour éviter les doublons de requêtes
+    if (tab === 'achats') {
+        if (typeof loadMyPurchases === 'function') {
+            loadMyPurchases();
+        } else if (typeof loadUserPurchases === 'function') {
+            loadUserPurchases();
+        }
+    } else if (tab === 'ventes') {
+        // Un seul appel ici vers la fonction dynamique
+        if (typeof loadMySales === 'function') {
+            loadMySales();
+        }
+    } else if (tab === 'annonces') {
+        if (typeof updateUserAnnonces === 'function') {
+            updateUserAnnonces();
+        }
+    }
+
+    // AJOUT : Support pour l'onglet Dashboard/Paramètres si nécessaire
+    if (tab === 'dashboard' || tab === 'parametres') {
+        console.log("[SPIRIT SYSTEM] Accès zone :", tab);
+    }
+
+
+    // 4. On allume le bouton du menu correspondant (ID: btn-achats, etc.)
+    const boutonActif = document.getElementById('btn-' + tab);
+    if (boutonActif) {
+        boutonActif.classList.add('active');
+    }
 }
+
 /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
- * SWITCH USER : Stabilisation des sessions et nettoyage des résidus
  */
 function switchUser(newId, label) {
     // STABILISATION : On force le type String pour garantir la correspondance Supabase
     MY_TEST_ID = String(newId).trim();
-    window.MY_TEST_ID = MY_TEST_ID; // Sécurité globale
-    
     // AJOUT : Synchronisation du nom d'utilisateur pour l'affichage et les annonces
-    currentUser = label;
-   
+    currentUser = label; 
+    
     console.log("[SPIRIT SYSTEM] Switch Session : " + label + " (ID: " + MY_TEST_ID + ")");
-   
+    
     // Mise à jour visuelle des boutons de switch
     if(document.getElementById('btn-user-moi')) {
         document.getElementById('btn-user-moi').style.background = (newId === '12345') ? 'var(--spirit-green)' : '#222';
@@ -1228,40 +1636,87 @@ function switchUser(newId, label) {
         document.getElementById('btn-user-guest').style.background = (newId === '67890') ? 'var(--spirit-green)' : '#222';
         document.getElementById('btn-user-guest').style.color = (newId === '67890') ? 'black' : '#888';
     }
-   
+    
+    // AJOUT : Mise à jour du nom affiché dans l'interface Compte
     const userNameDisplay = document.getElementById('display-user-name');
     if(userNameDisplay) userNameDisplay.innerText = label.toUpperCase();
 
-    // STABILISATION : On vide les listes avant de recharger pour éviter les résidus
+    // Rafraîchissement automatique et forcé de l'affichage
+    const activeBtn = document.querySelector('.dash-nav button.active');
+    
+    // STABILISATION : On vide les listes avant de recharger pour éviter les résidus de l'ancien utilisateur
     if(document.getElementById('my-sales-list')) document.getElementById('my-sales-list').innerHTML = '';
     if(document.getElementById('my-purchases-list')) document.getElementById('my-purchases-list').innerHTML = '';
     if(document.getElementById('user-annonces-list')) document.getElementById('user-annonces-list').innerHTML = '';
 
-    const activeBtn = document.querySelector('.dash-nav button.active');
     if (activeBtn) {
+        // Si un onglet est déjà ouvert, on le relance avec le nouvel ID
         const activeTab = activeBtn.id.replace('btn-', '');
         showAccountTab(activeTab);
     } else {
-        // Force le rechargement synchrone des 3 piliers
-        if (typeof loadMyPurchases === 'function') loadMyPurchases();
-        if (typeof loadMySales === 'function') loadMySales();
-        if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
+        // AJOUT : On force le rechargement synchrone des 3 piliers du compte
+        loadMyPurchases();
+        loadMySales();
+        updateUserAnnonces(); 
     }
-   
+    
+    // AJOUT : Relance le rendu du Marketplace pour mettre à jour les badges "Propriétaire" si nécessaire
     if (typeof renderMarket === 'function') renderMarket();
+
     console.log("[SPIRIT LEDGER] Synchronisation terminée pour " + label);
 }
 
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- * CALCUL DU SPLIT FINANCIER 8% (3% MOI / 3% FIRME / 2% BANQUE)
- */
+function zoomImg(src) {
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightbox = document.getElementById('lightbox');
+    if(lightboxImg && lightbox) {
+        lightboxImg.src = src;
+        lightbox.style.display = 'flex';
+    }
+}
+
+function showTopicEditor() {
+    const forumList = document.getElementById('forumList');
+    const topicEditor = document.getElementById('topicEditor');
+    if(forumList && topicEditor) {
+        forumList.style.display = 'none';
+        topicEditor.style.display = 'block';
+    }
+}
+
+function hideTopicEditor() {
+    const forumList = document.getElementById('forumList');
+    const topicEditor = document.getElementById('topicEditor');
+    if(forumList && topicEditor) {
+        forumList.style.display = 'block';
+        topicEditor.style.display = 'none';
+    }
+}
+
+function openAccount() {
+    // On s'assure que les données sont fraîches à l'ouverture
+    if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
+    loadMyPurchases(); 
+    loadMySales();
+    
+    const accountModal = document.getElementById('accountModal');
+    if (accountModal) {
+        accountModal.style.display = 'flex';
+    }
+    
+    // Par défaut, on affiche l'onglet achats à l'ouverture
+    showAccountTab('achats');
+}
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+// CALCUL DU SPLIT FINANCIER 8% (3% MOI / 3% FIRME / 2% BANQUE)
 function calculateSpiritSplit(price) {
-    const totalFee = price * 0.08; 
-    const myShare = price * 0.03; // Tes 3%
-    const firmShare = price * 0.03; // Royalties Firme
-    const bankShare = price * 0.02; // Frais Banque
-   
+    const totalFee = price * 0.08; // Total protection de 8%
+    const myShare = price * 0.03; // Tes 3% (Marketplace)
+    const firmShare = price * 0.03; // Les 3% Partenaire (Royalties)
+    const bankShare = price * 0.02; // Les 2% pour la Banque
+    
     return {
         totalFee: totalFee.toFixed(2),
         myShare: myShare.toFixed(2),
@@ -1271,10 +1726,161 @@ function calculateSpiritSplit(price) {
     };
 }
 
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+// On utilise 'let' pour pouvoir changer d'utilisateur avec le simulateur
+let MY_TEST_ID = "12345";
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 /**
- * (c) 2026 Spirit Infinity - Tous droits réservés
+ * CHARGEMENT DES ACHATS DEPUIS LE SPIRIT LEDGER
+ */
+async function loadMyPurchases() {
+    const listBody = document.getElementById('my-purchases-list');
+    if (!listBody) return; 
+
+    listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE ACHATS...</div>';
+
+    try {
+        const { data, error } = await _spirit
+            .from('transactions')
+            .select('*')
+            .eq('buyer_id', MY_TEST_ID)
+            .order('created_at', { ascending: false });
+
+        // Correction : Vérification que data existe avant le rendu pour éviter "data is not defined"
+        if (error) throw error;
+        renderTransactionList(listBody, data || [], error, 'ACHATS');
+    } catch (err) {
+        console.error(err);
+        listBody.innerHTML = "Erreur de connexion au Ledger.";
+    }
+}
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+/**
+ * FONCTION POUR TES VENTES (DYNAMIQUE)
+ */
+
+
+    /**
  * RENDU VISUEL DES TRANSACTIONS (ACHATS / VENTES)
  */
+function renderTransactionList(container, data, error, type) {
+    if (error) { container.innerHTML = "Erreur sync."; return; }
+    
+    // Correction : Gestion explicite du cas vide pour éviter l'écran noir
+    if (!data || data.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
+        return;
+    }
+
+    container.innerHTML = data.map(tr => {
+        let actionBtn = "";
+
+        if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
+            actionBtn = `
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:var(--spirit-green); color:black; font-weight:bold; border:none; padding:8px; border-radius:4px; cursor:pointer;">✅ REÇU</button>
+                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:#ff4444; border:1px solid #ff4444; padding:8px; border-radius:4px; cursor:pointer;">⚠️ LITIGE</button>
+                </div>`;
+        } 
+        else if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
+            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer; border-radius:4px;">📦 BORDEREAU D'ENVOI</button>`;
+        }
+        else {
+            actionBtn = `<div style="margin-top:10px; font-size:0.7rem; color:#444; text-align:center; border-top:1px solid #111; padding-top:5px;">${tr.status}</div>`;
+        }
+
+        return `
+            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div>
+                        <div style="color:white; font-weight:bold; font-size:0.9rem;">${tr.figurine_name || 'Produit Spirit'}</div>
+                        <div style="font-size:0.6rem; color:#555; margin-top:3px;">ID: ${tr.id}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</div>
+                        <div style="font-size:0.6rem; color:#888;">${new Date(tr.created_at).toLocaleDateString()}</div>
+                    </div>
+                </div>
+                ${actionBtn}
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * ACTION : CONFIRMER RÉCEPTION (DÉBLOQUE LES FONDS)
+ */
+async function confirmReception(id) {
+    if(!confirm("Valider la réception ? Cette action débloque le paiement vers le vendeur.")) return;
+    
+    const { error } = await _spirit
+        .from('transactions')
+        .update({ status: 'LIVRAISON VALIDÉE' })
+        .eq('id', id);
+
+    if (error) alert("Erreur : " + error.message);
+    else {
+        alert("✅ Réception confirmée. Transaction terminée.");
+        loadMyPurchases();
+    }
+}
+
+/**
+ * ACTION : OUVRIR UN LITIGE
+ */
+async function openDispute(id) {
+    if(!confirm("⚠️ Attention : Ouvrir un litige gèle les fonds et lance une analyse Spirit Guard. Confirmer ?")) return;
+
+    const { error } = await _spirit
+        .from('transactions')
+        .update({ status: 'LITIGE OUVERT' })
+        .eq('id', id);
+
+    if (error) alert("Erreur : " + error.message);
+    else {
+        alert("⚖️ Litige ouvert. Nos experts vérifient les photos d'expédition.");
+        loadMyPurchases();
+    }
+}
+
+/**
+ * ACTION : GÉNÉRATION BORDEREAU D'ENVOI
+ */
+async function generateSpiritLabel(id) {
+    const { data: tr, error } = await _spirit.from('transactions').select('*').eq('id', id).single();
+    if(error || !tr) return alert("Impossible de trouver la transaction.");
+
+    const w = window.open('', '_blank');
+    const labelHtml = `
+        <div style="width:380px; padding:20px; border:4px solid black; font-family:sans-serif; text-align:center;">
+            <h1 style="margin:0; border-bottom:2px solid black; padding-bottom:10px;">SPIRIT LOGISTICS</h1>
+            <div style="text-align:left; margin-top:20px; font-size:14px;">
+                <p><b>ARTICLE :</b> ${tr.figurine_name}</p>
+                <p><b>VALEUR :</b> ${tr.amount} €</p>
+                <p><b>DESTINATAIRE :</b> ACHETEUR #${tr.buyer_id}</p>
+            </div>
+            <div style="background:black; color:white; padding:15px; margin-top:20px; font-size:1.2rem; font-weight:bold; letter-spacing:3px;">
+                TRK-${id.toString().substring(0,8).toUpperCase()}
+            </div>
+            <p style="font-size:10px; margin-top:15px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
+        </div>
+        <script>window.print();<\/script>
+    `;
+    w.document.write(labelHtml);
+    w.document.close();
+}
+
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+// --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
 function renderTransactionList(container, data, error, type) {
     if (error) { container.innerHTML = "Erreur sync."; return; }
     if (!data || data.length === 0) {
@@ -1283,65 +1889,172 @@ function renderTransactionList(container, data, error, type) {
     }
 
     container.innerHTML = data.map(tr => {
-        const currentStatus = String(tr.status).toUpperCase();
-        let actionBtn = "";
+        // AJOUT : Calcul des frais Spirit Infinity (8% protection) pour l'affichage si besoin
+        const totalWithProtection = tr.amount * 1.08;
 
-        // Logique spécifique Achats
-        if (type === 'ACHATS' && currentStatus === 'SÉQUESTRE ACTIF') {
+        // Logique des boutons : Bordereau pour VENTES, Valider pour ACHATS
+        let actionBtn = "";
+        
+        // CORRECTION : Vérification stricte du statut (gestion casse Supabase)
+        const currentStatus = String(tr.status).toUpperCase();
+
+        if (type === 'VENTES' && (currentStatus === 'SÉQUESTRE ACTIF' || currentStatus === 'PAID')) {
+            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer;">📦 VOIR LE BORDEREAU</button>`;
+        } else if (type === 'ACHATS' && currentStatus === 'SÉQUESTRE ACTIF') {
             actionBtn = `
                 <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:var(--spirit-green); color:black; font-weight:bold; border:none; padding:8px; border-radius:4px; cursor:pointer;">✅ REÇU</button>
-                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:#ff4444; border:1px solid #ff4444; padding:8px; border-radius:4px; cursor:pointer;">⚠️ LITIGE</button>
+                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px; cursor:pointer;">Valider</button>
+                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px; cursor:pointer;">Litige</button>
                 </div>`;
         }
-        // Logique spécifique Ventes
-        else if (type === 'VENTES' && (currentStatus === 'SÉQUESTRE ACTIF' || currentStatus === 'PAID')) {
-            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer; border-radius:4px;">📦 BORDEREAU D'ENVOI</button>`;
-        }
-        else {
-            actionBtn = `<div style="margin-top:10px; font-size:0.7rem; color:#444; text-align:center; border-top:1px solid #111; padding-top:5px;">${currentStatus}</div>`;
-        }
 
-        // Section Notation (Acheteur uniquement)
+        // AJOUT : Section dédiée à la notation (Instruction : "L'acheteur doit noter la transaction")
+        // Apparaît uniquement pour l'acheteur quand la transaction est terminée ou validée
         let ratingSection = "";
         if (type === 'ACHATS' && currentStatus === 'COMPLETED' && !tr.has_rated) {
             ratingSection = `
                 <div style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">
-                    <p style="font-size:0.65rem; color:#888; margin-bottom:5px;">NOTER LA TRANSACTION :</p>
+                    <p style="font-size:0.65rem; color:#888; margin-bottom:5px;">NOTER CETTE TRANSACTION :</p>
                     <div style="display:flex; gap:5px; justify-content:center;">
                         ${[1,2,3,4,5].map(star => `<span onclick="submitSpiritRating('${tr.id}', ${star})" style="cursor:pointer; color:var(--neon-orange); font-size:1.2rem;">★</span>`).join('')}
                     </div>
-                </div>`;
+                </div>
+            `;
         }
 
         return `
             <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px; position:relative;">
-                <div style="position:absolute; top:2px; right:10px; font-size:0.5rem; color:#333;">${tr.id}</div>
-                <div style="display:flex; justify-content:space-between; align-items:start;">
-                    <div>
-                        <div style="color:white; font-weight:bold; font-size:0.9rem;">${tr.figurine_name || 'Produit Spirit'}</div>
-                        <div style="font-size:0.7rem; color:#888; margin-top:5px;">Statut: <span style="color:#ccc;">${currentStatus}</span></div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</div>
-                        <div style="font-size:0.6rem; color:#888;">${new Date(tr.created_at).toLocaleDateString()}</div>
-                    </div>
+                <div style="position:absolute; top:0; right:10px; font-size:0.5rem; color:#333;">${tr.id}</div>
+                
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:white; font-weight:bold; text-transform:uppercase;">${tr.figurine_name || tr.title || "Produit Spirit"}</span>
+                    <span style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</span>
                 </div>
+                
+                <div style="display:flex; align-items:center; gap:8px; margin-top:5px;">
+                    <div style="width:6px; height:6px; border-radius:50%; background:${currentStatus === 'COMPLETED' ? 'var(--spirit-green)' : '#FF5F1F'}"></div>
+                    <div style="font-size:0.7rem; color:#888;">Statut: <span style="color:#ccc;">${currentStatus}</span></div>
+                </div>
+
                 ${actionBtn}
                 ${ratingSection}
-            </div>`;
+            </div>
+        `;
     }).join('');
+}
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+/**
+ * OUVRIR UN LITIGE
+ * On met à jour uniquement le statut pour éviter l'erreur de colonne manquante
+ */
+async function openDispute(transactionId) {
+    if (!confirm("⚠️ Voulez-vous ouvrir un litige sur cette figurine ? Les fonds seront gelés.")) return;
+
+    try {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ status: 'LITIGE OUVERT' }) // On ne change que le status ici
+            .eq('id', transactionId);
+
+        if (error) throw error;
+
+        alert("⚖️ LITIGE OUVERT : Le séquestre est bloqué. L'équipe Spirit Infinity va analyser les preuves.");
+        loadMyPurchases(); // Rafraîchit l'affichage
+    } catch (err) {
+        console.error("Erreur Ledger:", err.message);
+        alert("Erreur lors de l'ouverture : " + err.message);
+    }
 }
 
 /**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- * SPIRIT EYES : EXPERT SCAN (ANALYSE MULTI-POINTS & CALCULS)
+ * CONFIRMER LA RÉCEPTION
  */
+async function confirmReception(transactionId) {
+    if (!confirm("✅ Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.")) return;
+
+    try {
+        const { error } = await _spirit
+            .from('transactions')
+            .update({ status: 'LIVRAISON VALIDÉE' })
+            .eq('id', transactionId);
+
+        if (error) throw error;
+
+        alert("✅ TRANSACTION TERMINÉE : Merci de votre confiance.");
+        loadMyPurchases();
+    } catch (err) {
+        console.error("Erreur Ledger:", err.message);
+        alert("Erreur de validation : " + err.message);
+    }
+}
+
+    renderMarket();
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+async function startAIAnalysis() {
+    const statusText = document.getElementById('scanStatus');
+    const img = document.getElementById('preview-img');
+    const msg = document.getElementById('finishMsg');
+    const btn = document.getElementById('publish-btn');
+
+    statusText.innerHTML = "🔍 <span style='color:orange;'>SPIRIT EYES : Analyse de conformité...</span>";
+
+    try {
+        const model = await mobilenet.load();
+        const predictions = await model.classify(img);
+        const top = predictions[0].className.toLowerCase();
+        const score = Math.round(predictions[0].probability * 100);
+
+        // 1. TRANSITION D'ÉCRAN
+        document.getElementById('stepScan').style.display = 'none';
+        document.getElementById('stepFinish').style.display = 'block';
+
+        // 2. FILTRE DE SÉCURITÉ (PRIORITÉ 1)
+        // Ajout de 'lighter', 'vape', 'mod' pour couvrir les cigarettes électroniques
+        const forbidden = ['vape', 'cigarette', 'lighter', 'mod', 'phone', 'gadget', 'electronic'];
+        const isFraud = forbidden.some(term => top.includes(term));
+
+        if (isFraud) {
+            // BLOQUAGE IMMÉDIAT
+            msg.innerHTML = `
+                <h2 style="color:#ff4444; margin:0;">OBJET NON CONFORME</h2>
+                <p style="color:white; font-size:1.1rem;">L'IA a détecté : <strong>${top.toUpperCase()}</strong></p>
+                <p style="color:#777; font-size:0.8rem;">Les articles de type "Vape/Tabac/Électronique" sont proscrits sur Spirit Infinity.</p>
+            `;
+            btn.disabled = true;
+            btn.style.opacity = "0.3";
+            btn.style.cursor = "not-allowed";
+        } else {
+            // VALIDATION (PRIORITÉ 2)
+            msg.innerHTML = `
+                <h2 style="color:var(--spirit-green); margin:0;">SCAN RÉUSSI</h2>
+                <p style="color:white; font-size:1.1rem;">SCORE D'AUTHENTICITÉ : ${score}%</p>
+                <p style="color:#aaa; font-size:0.8rem;">Modèle identifié : ${top}</p>
+            `;
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            btn.style.cursor = "pointer";
+            
+            // Sauvegarde pour le Ledger Spirit
+            document.getElementById('stepFinish').dataset.lastScore = score;
+        }
+    } catch (err) {
+        console.error("Erreur IA:", err);
+        statusText.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA</span>";
+    }
+}
+
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function startExpertScan() {
     const statusText = document.getElementById('scanStatus');
     const msg = document.getElementById('finishMsg');
     const btn = document.getElementById('publish-btn');
-   
+    const userTitle = document.getElementById('inputTitle').value.toLowerCase();
+    
+    // IDs des 5 photos obligatoires (Tête, Corps, Accessoires, Boîte, Carton Brun)
     const photos = ['img-head', 'img-body', 'img-acc', 'img-box', 'img-brown'];
     let detectedTerms = [];
 
@@ -1349,6 +2062,8 @@ async function startExpertScan() {
 
     try {
         const model = await mobilenet.load();
+        
+        // 1. ANALYSE MULTI-POINTS
         for (let id of photos) {
             const img = document.getElementById(id);
             if (img && img.src && !img.src.includes('placeholder')) {
@@ -1360,29 +2075,52 @@ async function startExpertScan() {
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'block';
 
-        const bannedClasses = ['dog', 'cat', 'furniture', 'fridge', 'stove', 'car', 'computer', 'phone', 'vape', 'lighter'];
+        // 2. FILTRE DE BANNISSEMENT (Tout ce qui n'est pas figurine)
+        const bannedClasses = ['dog', 'cat', 'furniture', 'fridge', 'stove', 'car', 'computer', 'phone'];
         const isBanned = detectedTerms.some(term => bannedClasses.some(b => term.includes(b)));
-        const isFigurine = detectedTerms.some(term => term.includes('toy') || term.includes('figure') || term.includes('statue') || term.includes('mask'));
+
+        // 3. VÉRIFICATION CATÉGORIE FIGURINE
+        const isFigurine = detectedTerms.some(term => term.includes('toy') || term.includes('figure') || term.includes('statue'));
 
         if (isBanned || !isFigurine) {
-            msg.innerHTML = `<h2 style="color:#ff4444;">OBJET INTERDIT</h2><p>L'IA a détecté un objet hors-catégorie.</p>`;
-            btn.disabled = true; btn.style.opacity = "0.3";
-        } else {
-            const price = parseFloat(document.getElementById('inputPrice').value) || 0;
-            const split = calculateSpiritSplit(price);
-            const shipping = 6.90; 
-            const totalPaye = (price + shipping + parseFloat(split.totalFee)).toFixed(2);
-
             msg.innerHTML = `
-                <h2 style="color:var(--spirit-green);">CERTIFICATION RÉUSSIE</h2>
-                <div style="background:#111; padding:10px; border:1px solid #333; font-size:0.9rem; margin-top:10px;">
-                    <b style="color:var(--spirit-orange);">Protection 8% : ${split.totalFee}€</b><br>
-                    <small>(Moi: ${split.myShare}€ | Firme: ${split.firmShare}€ | Banque: ${split.bankShare}€)</small><br>
-                    <b>Livraison : ${shipping}€</b><br>
-                    <hr style="border:0.5px solid #333; margin:10px 0;">
-                    <h3 style="color:var(--spirit-green); margin:0;">TOTAL CLIENT : ${totalPaye}€</h3>
-                </div>`;
-            btn.disabled = false; btn.style.opacity = "1";
+                <h2 style="color:#ff4444;">OBJET INTERDIT</h2>
+                <p>L'IA a détecté un objet hors-catégorie (${detectedTerms[0] || 'Inconnu'}).</p>
+                <p style="font-size:0.8rem; color:#777;">Spirit Infinity n'accepte que les figurines de collection.</p>
+            `;
+            btn.disabled = true;
+            btn.style.opacity = "0.3";
+        } else {
+           // (c) 2026 Spirit Infinity - Tous droits réservés
+// 4. CALCUL FINANCIER SPIRIT INFINITY (Modèle 8%)
+const price = parseFloat(document.getElementById('inputPrice').value) || 0;
+const shipping = 6.90; // Frais fixes
+
+const maPart = (price * 0.03).toFixed(2); // 3% pour Toi
+const partFirme = (price * 0.03).toFixed(2); // 3% pour la Firme
+const bankFee = (price * 0.02).toFixed(2); // 2% Frais de banque
+
+const commTotale = (parseFloat(maPart) + parseFloat(partFirme) + parseFloat(bankFee)).toFixed(2); // Total 8%
+const totalPaye = (price + shipping + parseFloat(commTotale)).toFixed(2);
+
+// Délais Escrow selon type
+const isNative = document.getElementById('isNative')?.checked || false;
+const escrowDays = isNative ? 3 : 4;
+
+msg.innerHTML = `
+    <h2 style="color:var(--spirit-green);">CERTIFICATION RÉUSSIE</h2>
+    <p style="color:white; font-size:1.1rem;">COHÉRENCE VISUELLE : OK</p>
+    <div style="background:#111; padding:10px; border:1px solid #333; font-size:0.9rem; margin-top:10px;">
+        <b style="color:var(--spirit-orange);">Total Protection 8% : ${commTotale}€</b><br>
+        <span style="font-size:0.8rem;">(Moi 3%: ${maPart}€ | Firme 3%: ${partFirme}€ | Banque 2%: ${bankFee}€)</span><br>
+        <b>Livraison : ${shipping}€</b><br>
+        <hr style="border:0.5px solid #333; margin:10px 0;">
+        <h3 style="color:var(--spirit-green); margin:0;">TOTAL CLIENT : ${totalPaye}€</h3>
+        <p style="margin-top:5px;">Protection Escrow : ${escrowDays} jours</p>
+    </div>
+            `;
+            btn.disabled = false;
+            btn.style.opacity = "1";
             document.getElementById('stepFinish').dataset.lastScore = 99;
         }
     } catch (err) {
@@ -1391,79 +2129,31 @@ async function startExpertScan() {
     }
 }
 
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- * ACTIONS LEDGER (RÉCEPTION / LITIGE / BORDEREAU)
- */
-async function confirmReception(id) {
-    if(!confirm("Valider la réception ? Cette action débloque le paiement vers le vendeur.")) return;
-    const { error } = await _spirit.from('transactions').update({ status: 'COMPLETED' }).eq('id', id);
-    if (error) alert("Erreur : " + error.message);
-    else { alert("✅ Réception confirmée."); if(typeof loadMyPurchases === 'function') loadMyPurchases(); }
-}
-
-async function openDispute(id) {
-    if(!confirm("⚠️ Confirmer l'ouverture du litige ? Les fonds seront gelés.")) return;
-    const { error } = await _spirit.from('transactions').update({ status: 'LITIGE OUVERT' }).eq('id', id);
-    if (error) alert("Erreur : " + error.message);
-    else { alert("⚖️ Litige ouvert."); if(typeof loadMyPurchases === 'function') loadMyPurchases(); }
-}
-
-async function generateSpiritLabel(id) {
-    const { data: tr, error } = await _spirit.from('transactions').select('*').eq('id', id).single();
-    if(error || !tr) return alert("Impossible de trouver la transaction.");
-    const w = window.open('', '_blank');
-    w.document.write(`
-        <div style="width:380px; padding:20px; border:4px solid black; font-family:sans-serif; text-align:center;">
-            <h1>SPIRIT LOGISTICS</h1>
-            <p><b>ARTICLE :</b> ${tr.figurine_name}</p>
-            <p><b>DESTINATAIRE :</b> ACHETEUR #${tr.buyer_id}</p>
-            <div style="background:black; color:white; padding:15px; font-size:1.2rem; letter-spacing:3px;">TRK-${id.substring(0,8).toUpperCase()}</div>
-        </div><script>window.print();<\/script>`);
-    w.document.close();
-}
-
-// Event Listeners pour les boutons dynamiques
+// (c) 2026 Spirit Infinity - Tous droits réservés
 document.addEventListener('click', function (e) {
-    const id = e.target.getAttribute('data-id');
-    if (e.target.classList.contains('btn-recu-action')) confirmReception(id);
-    if (e.target.classList.contains('btn-litige-action')) openDispute(id);
+    if (e.target.classList.contains('btn-recu-action')) {
+        confirmReceipt(e.target.getAttribute('data-id'));
+    }
+    if (e.target.classList.contains('btn-litige-action')) {
+        openDispute(e.target.getAttribute('data-id'));
+    }
 });
 
-// Fonctions Utilitaires UI
-function zoomImg(src) {
-    const lb = document.getElementById('lightbox');
-    const img = document.getElementById('lightbox-img');
-    if(lb && img) { img.src = src; lb.style.display = 'flex'; }
-}
-function showTopicEditor() { 
-    document.getElementById('forumList').style.display = 'none'; 
-    document.getElementById('topicEditor').style.display = 'block'; 
-}
-function hideTopicEditor() { 
-    document.getElementById('forumList').style.display = 'block'; 
-    document.getElementById('topicEditor').style.display = 'none'; 
-}
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- * GENERATE SPIRIT LABEL (V1 - Injection dans Modal)
- */
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function generateSpiritLabel(transactionId) {
-    console.log("[SPIRIT LOGISTICS] Appel du bordereau pour l'ID :", transactionId);
-   
+    console.log("Appel du bordereau pour l'ID :", transactionId);
+    
     const preview = document.getElementById('labelPreview');
     const content = document.getElementById('labelContent');
 
     if (!preview || !content) {
-        console.warn("Cadre HTML introuvable, tentative d'ouverture en mode secours (V2)...");
-        // Fallback automatique vers la version fenêtre si le modal n'existe pas
-        if(typeof window.generateSpiritLabel === 'function') {
-            window.generateSpiritLabel(transactionId);
-        }
+        alert("Erreur critique : Le cadre du bordereau (HTML) est introuvable dans la page.");
         return;
     }
 
     try {
+        // Récupération des données réelles sur Supabase
         const { data: tr, error } = await _spirit
             .from('transactions')
             .select('*')
@@ -1472,33 +2162,30 @@ async function generateSpiritLabel(transactionId) {
 
         if (error || !tr) throw new Error("Transaction introuvable");
 
+        // Injection du design dans le modal
         content.innerHTML = `
-            <div style="color:black; font-family:monospace; padding:15px; border:4px solid black; background:white;">
-                <h2 style="margin:0; border-bottom:2px solid black; text-align:center;">SPIRIT LOGISTICS</h2>
-                <div style="margin-top:10px;">
-                    <p><b>PRODUIT :</b> ${tr.figurine_name}</p>
-                    <p><b>VALEUR :</b> ${tr.amount} €</p>
-                    <p><b>DESTINATAIRE :</b> ACHETEUR #${tr.buyer_id}</p>
-                </div>
-                <div style="background:black; color:white; padding:15px; text-align:center; font-weight:bold; font-size:1.4rem; margin-top:10px;">
+            <div style="color:black; font-family:monospace; padding:10px; border:2px solid black;">
+                <h2 style="margin:0; border-bottom:2px solid black;">SPIRIT LOGISTICS</h2>
+                <p><b>PRODUIT :</b> ${tr.figurine_name}</p>
+                <p><b>VALEUR :</b> ${tr.amount} €</p>
+                <div style="background:black; color:white; padding:10px; text-align:center; font-weight:bold; font-size:1.2rem;">
                     SP-${Math.random().toString(36).toUpperCase().substring(2,10)}
                 </div>
-                <p style="font-size:10px; text-align:center; margin-top:10px; font-weight:bold;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
+                <p style="font-size:10px; text-align:center; margin-top:10px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
             </div>
         `;
 
+        // Affichage du modal
         preview.style.display = 'block';
 
     } catch (err) {
         console.error("Erreur de génération :", err);
-        alert("Impossible de générer le bordereau.");
+        alert("Impossible de générer le bordereau. Vérifie ta connexion Supabase.");
     }
 }
 
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- * WINDOW GENERATE SPIRIT LABEL (V2 - Mode Impression Fenêtre)
- */
+ // (c) 2026 Spirit Infinity - Tous droits réservés
+
 window.generateSpiritLabel = async function(transactionId) {
     try {
         const { data: tr, error } = await _spirit
@@ -1509,62 +2196,69 @@ window.generateSpiritLabel = async function(transactionId) {
 
         if (error || !tr) return alert("Erreur : Transaction introuvable.");
 
+        // Ouverture immédiate pour éviter les bloqueurs de pub
         const w = window.open('', '_blank');
-       
+        
         const html = `
             <html>
-            <title>BORDEREAU SPIRIT INFINITY</title>
-            <body style="font-family:sans-serif; padding:50px; background:#fff;">
+            <body style="font-family:sans-serif; padding:50px;">
                 <div style="border:5px solid #000; padding:20px; width:400px; margin:auto;">
-                    <h1 style="border-bottom:5px solid #000; margin:0; padding-bottom:10px; text-align:center;">SPIRIT LOGISTICS</h1>
-                    <div style="margin:20px 0;">
-                        <p style="font-size:1.2rem;"><b>OBJET :</b> ${tr.figurine_name}</p>
-                        <p style="font-size:1.2rem;"><b>VALEUR :</b> ${tr.amount} €</p>
-                        <p><b>REF TRANS :</b> ${transactionId}</p>
-                    </div>
-                    <div style="background:#000; color:#fff; padding:20px; text-align:center; font-size:1.8rem; font-weight:bold; letter-spacing:2px;">
+                    <h1 style="border-bottom:2px solid #000;">SPIRIT LOGISTICS</h1>
+                    <p><b>OBJET :</b> ${tr.figurine_name}</p>
+                    <p><b>VALEUR :</b> ${tr.amount} €</p>
+                    <div style="background:#000; color:#fff; padding:20px; text-align:center; font-size:1.5rem; font-weight:bold;">
                         REF-${transactionId.substring(0,8).toUpperCase()}
                     </div>
-                    <p style="text-align:center; font-size:0.8rem; margin-top:20px; font-weight:bold;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
+                    <p style="text-align:center; font-size:0.8rem; margin-top:20px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
                 </div>
                 <script>window.print();<\/script>
             </body>
             </html>`;
-           
+            
         w.document.write(html);
         w.document.close();
-    } catch (e) { alert("Erreur système Ledger."); }
+    } catch (e) { alert("Erreur système"); }
 };
 
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- */
+ // (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function fetchMarketplaceFromSupabase() {
     console.log("[SPIRIT MARKET] Initialisation du flux Ledger...");
-   
+    
+    // AJOUT : On prépare l'interface à recevoir les nouvelles données
     const marketContainer = document.getElementById('market-grid') || document.getElementById('products-container');
-   
+    if (marketContainer) {
+        console.log("[SPIRIT MARKET] Nettoyage du cache visuel pour synchronisation...");
+    }
+    
     try {
-        // CORRECTION : On simplifie la requête pour éviter l'erreur 400
-        // On récupère les données sans forcer le tri complexe qui fait planter
+        // CORRECTION : On s'assure que la requête n'est pas bloquée par un filtre ID trop restrictif
         const { data, error } = await _spirit
             .from('products_live')
-            .select('*');
+            .select('*')
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
 
+        // AJOUT : Vérification de sécurité pour ne pas écraser si vide
         if (!data || data.length === 0) {
-            console.warn("[SPIRIT MARKET] Aucune annonce trouvée.");
-            if (marketContainer) marketContainer.innerHTML = "<p style='color:#555; text-align:center; padding:50px;'>AUCUNE ANNONCE DISPONIBLE DANS LE LEDGER</p>";
+            console.warn("[SPIRIT MARKET] Aucune annonce trouvée dans products_live");
+            // AJOUT : Feedback visuel si la base est vide
+            if (marketContainer) marketContainer.innerHTML = "<p style='color:#555; text-align:center;'>AUCUNE ANNONCE DISPONIBLE</p>";
             return;
         }
 
-        // Tri manuel en JavaScript pour éviter l'erreur serveur 400
-        marketData = data.sort((a, b) => b.id - a.id); 
-        
+        marketData = data; 
         console.log("[SPIRIT MARKET] Flux synchronisé :", marketData.length, "annonces.");
-       
+        
+        // AJOUT : Logique de forçage du rendu (Mapping des données)
+        if (Array.isArray(marketData)) {
+             console.log("[SPIRIT DEBUG] Préparation du rendu pour ID actuel:", window.MY_TEST_ID || MY_TEST_ID);
+        }
+
+        // DÉCLENCHEUR : On relance le rendu visuel
         if (typeof renderMarket === 'function') {
+            // AJOUT : On vide le conteneur avant de rendre pour éviter les doublons ou les anciens affichages
             if (marketContainer) marketContainer.innerHTML = ''; 
             renderMarket();
             console.log("[SPIRIT MARKET] Rendu visuel terminé à 110%.");
@@ -1572,89 +2266,132 @@ async function fetchMarketplaceFromSupabase() {
 
     } catch (err) {
         console.error("[SPIRIT ERROR] Échec du flux Marketplace :", err);
-        if (marketContainer) marketContainer.innerHTML = "<p style='color:red; text-align:center;'>ERREUR DE LIAISON LEDGER</p>";
+        // AJOUT : Alerte visuelle en cas d'erreur de connexion
+        if (marketContainer) marketContainer.innerHTML = "<p style='color:red;'>ERREUR DE LIAISON LEDGER</p>";
     }
-}
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- * DEBUG MARKET : Analyse forcée des données propriétaires
- */
+}   
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
 async function debugMarket() {
     console.log("[SPIRIT DEBUG] Récupération forcée de TOUS les produits...");
-   
-    const { data, error } = await _spirit.from('products_live').select('*');
+    
+    // On appelle Supabase directement pour voir ce qu'il y a dedans sans filtre
+    const { data, error } = await _spirit
+        .from('products_live')
+        .select('*');
 
     if (error) {
-        console.error("Erreur lecture Ledger :", error);
+        console.error("Erreur lecture :", error);
         return;
     }
 
-    console.table(data); 
-   
-    const currentID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
-    const mesItems = data.filter(i => String(i.owner_id).trim() === currentID || String(i.seller_id).trim() === currentID);
+    console.table(data); // Affiche tout dans un tableau propre
     
-    console.log(`[SPIRIT DEBUG] Analyse terminée.`);
-    console.log(`- Total Ledger : ${data.length}`);
-    console.log(`- Tes Produits : ${mesItems.length} (ID utilisé: ${currentID})`);
-   
-    if (typeof renderMarket === 'function') renderMarket(data);
+    // On vérifie combien d'items sont à toi
+    const mesItems = data.filter(i => String(i.owner_id).trim() === String(MY_TEST_ID).trim());
+    console.log(`[SPIRIT DEBUG] Trouvé ${data.length} produits au total, dont ${mesItems.length} à toi.`);
+    
+    // On force un rendu avec TOUTES les données sans filtrer
+    renderMarket(data);
 }
+// (c) 2026 Spirit Infinity - Tous droits réservés
 
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- * REFRESH SPIRIT FLOW : Rechargement complet du système
- */
 async function refreshSpiritFlow() {
-    console.log("[SPIRIT] Rafraîchissement global du flux...");
-   
+    console.log("[SPIRIT] Récupération des données depuis Supabase...");
+    
+    // On force la récupération SANS filtre pour être sûr de tout voir
     const { data, error } = await _spirit
         .from('products_live')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('id', { ascending: false });
 
     if (error) {
-        console.error("[SPIRIT ERROR] Flux interrompu :", error.message);
+        console.error("[SPIRIT ERROR] Supabase :", error.message);
         return;
     }
 
     if (!data || data.length === 0) {
-        console.warn("[SPIRIT] Table products_live vide.");
+        console.warn("[SPIRIT] La table 'products_live' est VIDE.");
         return;
     }
 
-    marketData = data; // Actualisation globale
+    console.log(`[SPIRIT] ${data.length} produits récupérés.`);
+    console.table(data); // Tu verras tout le contenu de ta DB ici
 
+    // On met à jour la variable globale
+    marketData = data; 
+
+    // On lance le rendu pour le Market ET pour "Mes Annonces"
     if (typeof renderMarket === 'function') renderMarket(data);
     if (typeof renderMesAnnonces === 'function') renderMesAnnonces();
-    if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
 }
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- */
-
-// INITIALISATION GLOBALE AU CHARGEMENT
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("[SPIRIT SYSTEM] Initialisation du noyau...");
-    
-    // Lancement du flux Marketplace
-    if (typeof fetchMarketplaceFromSupabase === 'function') {
-        fetchMarketplaceFromSupabase();
-    }
-
-    // Vérification de la session active
-    if (typeof MY_TEST_ID !== 'undefined') {
-        console.log("[SPIRIT SYSTEM] Session ID détectée :", MY_TEST_ID);
-    }
-});
-
-// FIN DU SYSTÈME SPIRIT INFINITY - MODULE LEDGER & LOGISTIQUE
-console.log("[SPIRIT] Script chargé et sécurisé à 110%.");
-// --- FIN DU SYSTÈME SPIRIT INFINITY ---
-// (c) 2026 Spirit Infinity - Tous droits réservés
-</script>
+                
+</script
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
