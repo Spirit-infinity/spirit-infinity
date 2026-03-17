@@ -1508,7 +1508,10 @@ async function confirmPayment() {
     }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
     function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
-    function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
+   function openLedger() { 
+    const m = document.getElementById('ledgerModal') || document.getElementById('securityModal');
+    if(m) { m.style.display = 'flex'; } else { console.error("ID introuvable"); }
+}
     function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
     function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
   
