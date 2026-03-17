@@ -1508,11 +1508,11 @@ async function confirmPayment() {
     }
     function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
     function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
-   function openLedger() { 
-    const m = document.getElementById('ledgerModal') || document.getElementById('securityModal');
+   function openLedger() { document.getElementById('ledgerModal') 
     if(m) { m.style.display = 'flex'; } else { console.error("ID introuvable"); }
 }
     function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
+    function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
