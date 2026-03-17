@@ -1502,17 +1502,49 @@ async function confirmPayment() {
         document.getElementById('sumTotal').innerText = (selectedProduct.price + shipCost + prot).toFixed(2) + " €";
     }
 
-    function closeModals() {
-        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
-        hideTopicEditor();
-    }
-    function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
-    function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
-   function openLedger() { document.getElementById('ledgerModal') 
-    if(m) { m.style.display = 'flex'; } else { console.error("ID introuvable"); }
+   /** (c) 2026 Spirit Infinity - Tous droits réservés */
+
+function closeModals() {
+    document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
+    hideTopicEditor();
 }
-    function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
-    function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
+
+function openForum() { 
+    document.getElementById('forumModal').style.display = 'flex'; 
+}
+
+function openRegister() { 
+    document.getElementById('registerModal').style.display = 'flex'; 
+}
+
+function openLedger() { 
+    // Correction ici : on définit 'm' pour cibler ton ledgerModal
+    const m = document.getElementById('ledgerModal'); 
+    if(m) { 
+        m.style.display = 'flex'; 
+    } else { 
+        console.error("ID ledgerModal introuvable"); 
+    }
+}
+
+function openSupport() { 
+    document.getElementById('supportModal').style.display = 'flex'; 
+}
+
+function openSecurity() { 
+    document.getElementById('securityModal').style.display = 'flex'; 
+}
+
+// Ajout de la fonction pour ton bouton Mon Compte pour éviter les conflits
+function openAccount() {
+    const modal = document.getElementById('accountModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    } else {
+        console.error("ID accountModal introuvable");
+    }
+}
+
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
