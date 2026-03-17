@@ -152,14 +152,13 @@
         <span class="logo-top">HOT TOYS</span>
         <span class="logo-sub">SPIRIT INFINITY</span>
     </div>
-  <nav>
+ <nav>
     <button id="nav-market" onclick="location.reload()">MARKETPLACE</button>
     <button id="nav-ledger" onclick="openLedger()">PANNEAU DE CONTROLE</button>
     <button id="nav-forum" onclick="openForum()">FORUM</button>
     <button id="nav-account" onclick="openAccount()">MON COMPTE</button>
     <button id="nav-func" onclick="openSecurity()">SÉCURITÉ</button>
     <button id="nav-sav" onclick="openSupport()">SUPPORT SPIRIT</button>
-    
     <select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange);">
         <option value="FR">FR</option>
         <option value="EN">EN</option>
@@ -1537,28 +1536,23 @@ function forceDisplaySpirit(id) {
 /** (c) 2026 Spirit Infinity - Tous droits réservés */
 function openLedger() {
     console.log("FORCE START - LEDGER");
-    
-    // 1. ON DESACTIVE LA NAVIGATION AUTO POUR EVITER LE CONFLIT
-    if (typeof currentView !== 'undefined') currentView = 'none'; 
-    
-    // 2. ON FORCE LA FERMETURE DES AUTRES SANS NAVIGUER
     closeModals();
     
     const m = document.getElementById('ledgerModal');
     if(m) {
-        // 3. ON FORCE L'AFFICHAGE SANS AUCUNE CONDITION
-        m.style.setProperty('display', 'flex', 'important');
-        m.style.setProperty('opacity', '1', 'important');
-        m.style.setProperty('visibility', 'visible', 'important');
-        m.style.zIndex = "999999"; 
+        // On force l'affichage et on s'assure qu'aucun parent n'est caché
+        m.style.display = 'flex';
+        m.style.opacity = '1';
+        m.style.zIndex = '999999';
         
-        console.log("FORCE END - Ledger affiché et navigation bloquée.");
+        // On force le rafraîchissement visuel du navigateur
+        m.offsetHeight; 
+        
+        console.log("FORCE END - Ledger doit être visible maintenant.");
     } else {
-        alert("ERREUR : L'élément 'ledgerModal' est introuvable dans ton HTML !");
+        alert("ERREUR : L'élément HTML 'ledgerModal' n'existe pas ou a un autre nom !");
     }
 }
-
-
 
 function openSecurity() { 
     closeModals(); 
