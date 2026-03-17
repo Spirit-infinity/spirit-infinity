@@ -1509,10 +1509,27 @@ async function confirmPayment() {
         document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
         hideTopicEditor();
     }
- /** (c) 2026 Spirit Infinity - Tous droits réservés */
-function openForum() { window.location.hash = 'forum'; closeModals(); document.getElementById('forumModal').style.display = 'flex'; }
-function openRegister() { window.location.hash = 'register'; closeModals(); document.getElementById('registerModal').style.display = 'flex'; }
-function openSupport() { window.location.hash = 'support'; closeModals(); document.getElementById('supportModal').style.display = 'flex'; }
+/** (c) 2026 Spirit Infinity - Tous droits réservés */
+function openForum() { showSpiritModal('forumModal'); }
+function openRegister() { showSpiritModal('registerModal'); }
+function openLedger() { showSpiritModal('ledgerModal'); }
+function openSupport() { showSpiritModal('supportModal'); }
+function openSecurity() { showSpiritModal('securityModal'); }
+function openAccount() { showSpiritModal('accountModal'); showAccountTab('achats'); }
+
+// Fonction maîtresse pour briser le conflit visuel
+function showSpiritModal(id) {
+    closeModals(); // On ferme les autres
+    const m = document.getElementById(id);
+    if(m) {
+        // On force TOUT : affichage, visibilité, opacité et priorité
+        m.style.display = 'flex';
+        m.style.visibility = 'visible';
+        m.style.opacity = '1';
+        m.style.zIndex = '100000'; 
+        console.log("SPIRIT : Modal " + id + " forcé au premier plan.");
+    }
+}
 
 /** (c) 2026 Spirit Infinity - Tous droits réservés */
 function openLedger() {
