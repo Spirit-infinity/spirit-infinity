@@ -1658,18 +1658,14 @@ function hideTopicEditor() {
 }
 
 function openAccount() {
-    // On s'assure que les données sont fraîches à l'ouverture
-    if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
-    loadMyPurchases(); 
-    loadMySales();
-    
-    const accountModal = document.getElementById('accountModal');
-    if (accountModal) {
-        accountModal.style.display = 'flex';
+    const modal = document.getElementById('userModal'); // Corrigé : utilise ton ID réel
+    if (modal) {
+        modal.style.display = 'flex';
+        if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
+        if (typeof showAccountTab === 'function') showAccountTab('achats'); 
+    } else {
+        console.error("Erreur Spirit : L'élément 'userModal' est introuvable dans le HTML.");
     }
-    
-    // Par défaut, on affiche l'onglet achats à l'ouverture
-    showAccountTab('achats');
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -2145,7 +2141,8 @@ window.generateSpiritLabel = async function(transactionId) {
                     <p style="text-align:center; font-size:0.8rem; margin-top:20px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
                 </div>
                 <script>window.print();<\/script>
-
+            </body>
+            </html>`;
             
         w.document.write(html);
         w.document.close();
@@ -2216,6 +2213,8 @@ async function fetchMarketplaceFromSupabase() {
     </div>
 </div>
 
+</body>
+</html>
 </body>
 </html>
 
