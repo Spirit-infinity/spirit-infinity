@@ -1763,7 +1763,9 @@ async function confirmPayment(method) {
                 setActiveNav('nav-preorders');
                 const pre = document.getElementById('preordersModal');
                 if (pre) pre.style.display = 'flex';
+                // FORCE RENDER : rendu immédiat + rendu différé (anti écran vide)
                 try { if (typeof renderHotToysPreorders === 'function') renderHotToysPreorders(); } catch (e) {}
+                try { setTimeout(() => { try { if (typeof renderHotToysPreorders === 'function') renderHotToysPreorders(); } catch (e) {} }, 0); } catch (e) {}
                 break;
 
             case 'support':
@@ -1793,9 +1795,15 @@ async function confirmPayment(method) {
     window.showForum = function () { navigateTo('forum'); };
     window.showMonCompte = function () { navigateTo('account'); };
     window.showSecurite = function () { navigateTo('security'); };
-    window.showPrecommandesHotToys = function () { navigateTo('preorders'); };
+    window.showPrecommandesHotToys = function () {
+        navigateTo('preorders');
+        try { setTimeout(() => { try { if (typeof renderHotToysPreorders === 'function') renderHotToysPreorders(); } catch (e) {} }, 0); } catch (e) {}
+    };
     // Alias demandé: showPrecommandes()
-    window.showPrecommandes = function () { navigateTo('preorders'); };
+    window.showPrecommandes = function () {
+        navigateTo('preorders');
+        try { setTimeout(() => { try { if (typeof renderHotToysPreorders === 'function') renderHotToysPreorders(); } catch (e) {} }, 0); } catch (e) {}
+    };
     window.showSupport = function () { navigateTo('support'); };
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
