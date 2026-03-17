@@ -152,20 +152,23 @@
         <span class="logo-top">HOT TOYS</span>
         <span class="logo-sub">SPIRIT INFINITY</span>
     </div>
-    <nav>
-        <button id="nav-market" class="active" onclick="location.reload()" data-key="nav_market">MARKETPLACE</button>
-        <button id="nav-ledger" onclick="openLedger()" data-key="nav_ledger">PANNEAU DE CONTROLE</button>
-        <button id="nav-forum" onclick="openForum()" data-key="nav_forum">FORUM</button>
-        <button id="nav-account" onclick="openAccount()" data-key="nav_account">MON COMPTE</button>
-        <button id="nav-func" onclick="openSecurity()" data-key="nav_security">SÉCURITÉ</button>
-        <button id="nav-sav" onclick="openSupport()" data-key="nav_support">SUPPORT SPIRIT</button>
-        <select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
-            <option value="FR">FR 🇫🇷</option>
-            <option value="EN">EN 🇺🇸</option>
-            <option value="CN">CN 🇨🇳</option>
-            <option value="ES">ES 🇪🇸</option>
-        </select>
-    </nav>
+   <nav>
+    <button id="nav-market" class="active" onclick="location.reload()" data-key="nav_market">MARKETPLACE</button>
+    <button id="nav-ledger" onclick="openLedger()">PANNEAU DE CONTROLE</button>
+    <button id="nav-forum" onclick="openForum()">FORUM</button>
+    <button id="nav-account" onclick="openAccount()" data-key="nav_account">MON COMPTE</button>
+    <button id="nav-func" onclick="openSecurity()">SÉCURITÉ</button>
+    <button id="nav-sav" onclick="openSupport()">SUPPORT SPIRIT</button>
+    
+    <select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange);">
+        <option value="FR">FR</option>
+        <option value="EN">EN</option>
+        <option value="CN">CN</option>
+        <option value="ES">ES</option>
+    </select>
+</nav>
+
+
     <div style="display:flex; gap:10px;">
         <button id="btn-reg" class="btn-action" style="background:#222; color:white;" onclick="openRegister()" data-key="btn_reg">INSCRIPTION</button>
         <button id="btn-sell" class="btn-action" onclick="startCertification()" data-key="btn_sell">VENDRE & CERTIFIER</button>
