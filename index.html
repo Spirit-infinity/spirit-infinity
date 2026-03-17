@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
     <style>
-        #precommandes-hot-toys { display: none; min-height: 100vh; width: 100%; background: #050505 !important; position: relative; z-index: 9999; }
+        #precommandes-hot-toys { display: none; min-height: 100vh; width: 100%; background: #050505 !important; position: fixed; inset: 0; overflow-y: auto; z-index: 9999; }
         :root {
             --bg-dark: #050505;
             --card-bg:rgb(26, 26, 24);
@@ -46,17 +46,17 @@
         .badge { position: absolute; top: 10px; left: 10px; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; }
         .native { background: var(--spirit-green); color: black; }
         .legacy { background: #0066ff; color: white; }
-        /* PRÉCOMMANDES HOT TOYS */
-        #precommandes-hot-toys {
+        /* PRÉCOMMANDES HOT TOYS (grille interne) */
+        #hot-toys-static-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 20px;
         }
         @media (max-width: 1100px) {
-            #precommandes-hot-toys { grid-template-columns: repeat(2, 1fr); }
+            #hot-toys-static-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 700px) {
-            #precommandes-hot-toys { grid-template-columns: 1fr; }
+            #hot-toys-static-grid { grid-template-columns: 1fr; }
         }
         .preorder-card {
             background: linear-gradient(180deg, #070707 0%, #000 100%);
