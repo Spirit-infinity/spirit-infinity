@@ -2465,80 +2465,46 @@ window.generateSpiritLabel = async function(transactionId) {
     } catch (e) { alert("Erreur système"); }
 };
 
- // (c) 2026 Spirit Infinity - Tous droits réservés
+// (c) 2026 Spirit Infinity - Tous droits réservés
 ​async function fetchMarketplaceFromSupabase() {
 console.log("[SPIRIT MARKET] Initialisation du flux Ledger...");
-​// AJOUT : On prépare l'interface à recevoir les nouvelles données
 const gridNative = document.getElementById('marketGridNative');
 const gridLegacy = document.getElementById('marketGridLegacy');
-if (gridNative || gridLegacy) console.log("[SPIRIT MARKET] Grilles Marketplace détectées (Native/Legacy).");
 ​try {
-// STRICT: table = products_live ; tri = id (created_at n'existe pas)
 let data, error;
-try {
 const res = await _spirit
 .from('products_live')
 .select('id, uuid, title, price, currency, image_url, status, ia_score, description, scale, owner_id, seller_id')
 .order('id', { ascending: false });
 data = res.data;
 error = res.error;
-} catch (e) {
-error = e;
-}
 ​if (error) throw error;
-​// AJOUT : Vérification de sécurité pour ne pas écraser si vide
-if (!data || data.length === 0) {
-console.warn("[SPIRIT MARKET] Aucune annonce trouvée dans products_live");
-// AJOUT : Feedback visuel si la base est vide
-if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#444;'>AUCUNE ANNONCE (NATIVE)</div>";
-if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#444;'>AUCUNE ANNONCE (LEGACY)</div>";
-try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+​if (!data || data.length === 0) {
+if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#444;'>AUCUNE ANNONCE</div>";
 return;
 }
 ​marketData = data;
-console.log("[SPIRIT MARKET] Flux synchronisé :", marketData.length, "annonces.");
-​// AJOUT : Logique de forçage du rendu (Mapping des données)
-if (Array.isArray(marketData)) {
-console.log("[SPIRIT DEBUG] Préparation du rendu pour ID actuel:", window.MY_TEST_ID || MY_TEST_ID);
-}
-​// DÉCLENCHEUR : On relance le rendu visuel
 if (typeof renderMarket === 'function') {
-// AJOUT : On vide le conteneur avant de rendre pour éviter les doublons ou les anciens affichages
 if (gridNative) gridNative.innerHTML = '';
 if (gridLegacy) gridLegacy.innerHTML = '';
 renderMarket();
-console.log("[SPIRIT MARKET] Rendu visuel terminé à 110%.");
 }
-​// Mes annonces (onglet compte) s'appuie sur marketData
-try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
-​} catch (err) {
-console.error("[SPIRIT ERROR] Échec du flux Marketplace :", err);
-// AJOUT : Alerte visuelle en cas d'erreur de connexion
-if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:red;'>ERREUR DE LIAISON LEDGER</div>";
-if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:red;'>ERREUR DE LIAISON LEDGER</div>";
+} catch (err) {
+console.error("[SPIRIT ERROR] Echec du flux Marketplace :", err);
 }
 }
-​// FONCTION CRITIQUE : Affichage forcé du menu Précommandes
-function showPrecommandesHotToys() {
-console.log("[SPIRIT] Ouverture du menu PRÉCOMMANDES HOT TOYS");
-​// Cache toutes les autres sections si la fonction existe
-if (typeof hideAllSections === 'function') {
-hideAllSections();
-}
+​function showPrecommandesHotToys() {
+console.log("[SPIRIT] Ouverture du menu PRECOMMANDES");
+if (typeof hideAllSections === 'function') hideAllSections();
 ​const precoSection = document.getElementById('precommandes-hot-toys');
 if (precoSection) {
 precoSection.style.setProperty('display', 'block', 'important');
-precoSection.innerHTML = <div style="padding:40px; background:#050505; color:white; min-height:100vh; border-top:2px solid #ff6600;"> <h1 style="color:#ff6600; text-align:center; font-family:Impact, sans-serif; letter-spacing:2px;"> (c) 2026 Spirit Infinity - Nouveautés Hot Toys </h1> <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px; margin-top:40px;"> <div style="border:2px solid #ff6600; padding:20px; background:#0a0a0a; text-align:center; box-shadow: 0 0 15px rgba(255,102,0,0.3);"> <img src="[https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg](https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg)" style="width:100%; border-bottom:1px solid #ff6600; margin-bottom:15px;"> <h3 style="color:white; text-transform:uppercase;">Iron Man Mark LXXXV</h3> <p style="color:#ff6600; font-weight:bold; font-size:1.5em;">425€</p> <p style="font-size:0.8em; color:#888;">Échelle 1/6 - Spirit Infinity Certified</p> <button style="width:100%; background:#ff6600; color:black; font-weight:bold; padding:15px; border:none; margin-top:15px; cursor:pointer;">RÉSERVER VIA LA FIRME</button> </div> <div style="border:2px solid #ff6600; padding:20px; background:#0a0a0a; text-align:center; box-shadow: 0 0 15px rgba(255,102,0,0.3);"> <img src="[https://www.hottoys.com.hk/photos/PD1600854652y7q.jpg](https://www.hottoys.com.hk/photos/PD1600854652y7q.jpg)" style="width:100%; border-bottom:1px solid #ff6600; margin-bottom:15px;"> <h3 style="color:white; text-transform:uppercase;">The Batman (2022)</h3> <p style="color:#ff6600; font-weight:bold; font-size:1.5em;">385€</p> <p style="font-size:0.8em; color:#888;">Échelle 1/6 - Spirit Infinity Certified</p> <button style="width:100%; background:#ff6600; color:black; font-weight:bold; padding:15px; border:none; margin-top:15px; cursor:pointer;">RÉSERVER VIA LA FIRME</button> </div> </div> </div>;
-} else {
-console.error("[SPIRIT ERROR] Section precommandes-hot-toys introuvable dans le HTML");
+precoSection.innerHTML = '<div style="padding:40px; background:#050505; color:white; min-height:100vh; border-top:2px solid #ff6600;"><h1 style="color:#ff6600; text-align:center; font-family:Impact, sans-serif;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1><div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px; margin-top:40px;"><div style="border:2px solid #ff6600; padding:20px; background:#0a0a0a; text-align:center;"><img src="[https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg](https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg)" style="width:100%;"><h3 style="color:white; margin-top:10px;">IRON MAN MARK LXXXV</h3><p style="color:#ff6600; font-weight:bold; font-size:1.5em;">425€</p><button style="width:100%; background:#ff6600; color:black; font-weight:bold; padding:15px; border:none; margin-top:15px;">RESERVER VIA LA FIRME</button></div></div></div>';
 }
 }
-​// BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
-document.addEventListener('DOMContentLoaded', () => {
+​document.addEventListener('DOMContentLoaded', () => {
 try { fetchMarketplaceFromSupabase(); } catch (e) {}
-try { if (typeof renderMarket === 'function') renderMarket(); } catch (e) {}
 });
-
 
 </script>
 
