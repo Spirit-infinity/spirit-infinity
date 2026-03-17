@@ -2456,51 +2456,54 @@ window.generateSpiritLabel = async function(transactionId) {
                     </div>
                     <p style="text-align:center; font-size:0.8rem; margin-top:20px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
                 </div>
-                <script>window.print();<\/script>
-            </body>
-            </html>
-            
-        w.document.write(html);
-        w.document.close();
-    } catch (e) { alert("Erreur système"); }
-};
+                <script>window.print();</script>
+    </body>
+</html>
 
-​// (c) 2026 Spirit Infinity - Tous droits réservés
-​async function fetchMarketplaceFromSupabase() {
-console.log("[SPIRIT MARKET] Initialisation du flux Ledger...");
-const gridNative = document.getElementById('marketGridNative');
-const gridLegacy = document.getElementById('marketGridLegacy');
-​try {
-const res = await _spirit
-.from('products_live')
-.select('id, uuid, title, price, currency, image_url, status, ia_score, description, scale, owner_id, seller_id')
-.order('id', { ascending: false });
-​if (res.error) throw res.error;
-​if (!res.data || res.data.length === 0) {
-if (gridNative) gridNative.innerHTML = "<div>AUCUNE ANNONCE</div>";
-return;
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+async function fetchMarketplaceFromSupabase() {
+    console.log("[SPIRIT MARKET] Initialisation du flux Ledger...");
+    const gridNative = document.getElementById('marketGridNative');
+    const gridLegacy = document.getElementById('marketGridLegacy');
+    
+    try {
+        const res = await _spirit
+            .from('products_live')
+            .select('id, uuid, title, price, currency, image_url, status, ia_score, description, owner_id')
+            .order('id', { ascending: false });
+
+        if (res.error) throw res.error;
+
+        if (!res.data || res.data.length === 0) {
+            if (gridNative) gridNative.innerHTML = "<div>AUCUNE ANNONCE</div>";
+            return;
+        }
+
+        marketData = res.data; 
+        if (typeof renderMarket === 'function') {
+            if (gridNative) gridNative.innerHTML = '';
+            if (gridLegacy) gridLegacy.innerHTML = '';
+            renderMarket();
+        }
+    } catch (err) {
+        console.error("[SPIRIT ERROR] Echec du flux Marketplace :", err);
+    }
 }
-​marketData = res.data;
-if (typeof renderMarket === 'function') {
-if (gridNative) gridNative.innerHTML = '';
-if (gridLegacy) gridLegacy.innerHTML = '';
-renderMarket();
+
+function showPrecommandesHotToys() {
+    console.log("[SPIRIT] Ouverture du menu PRECOMMANDES");
+    if (typeof hideAllSections === 'function') hideAllSections();
+    
+    const precoSection = document.getElementById('precommandes-hot-toys');
+    if (precoSection) {
+        precoSection.style.setProperty('display', 'block', 'important');
+        precoSection.innerHTML = '<div style="padding:40px; background:#050505; color:white; min-height:100vh; border-top:2px solid #ff6600;"><h1 style="color:#ff6600; text-align:center;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1><div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px; margin-top:40px;"><div style="border:2px solid #ff6600; padding:20px; background:#0a0a0a; text-align:center;"><img src="https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg" style="width:100%;"><h3 style="color:white; margin-top:10px;">IRON MAN MARK LXXXV</h3><p style="color:#ff6600; font-weight:bold; font-size:1.5em;">425€</p><button style="width:100%; background:#ff6600; color:black; font-weight:bold; padding:15px; border:none; margin-top:15px;">RESERVER VIA LA FIRME</button></div></div></div>';
+    }
 }
-} catch (err) {
-console.error("[SPIRIT ERROR] Echec du flux Marketplace :", err);
-}
-}
-​function showPrecommandesHotToys() {
-console.log("[SPIRIT] Ouverture du menu PRECOMMANDES");
-if (typeof hideAllSections === 'function') hideAllSections();
-​const precoSection = document.getElementById('precommandes-hot-toys');
-if (precoSection) {
-precoSection.style.setProperty('display', 'block', 'important');
-precoSection.innerHTML = '<div style="padding:40px; background:#050505; color:white; min-height:100vh; border-top:2px solid #ff6600;"><h1 style="color:#ff6600; text-align:center;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1><div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px; margin-top:40px;"><div style="border:2px solid #ff6600; padding:20px; background:#0a0a0a; text-align:center;"><img src="[https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg](https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg)" style="width:100%;"><h3 style="color:white; margin-top:10px;">IRON MAN MARK LXXXV</h3><p style="color:#ff6600; font-weight:bold; font-size:1.5em;">425€</p><button style="width:100%; background:#ff6600; color:black; font-weight:bold; padding:15px; border:none; margin-top:15px;">RESERVER VIA LA FIRME</button></div></div></div>';
-}
-}
-​document.addEventListener('DOMContentLoaded', () => {
-fetchMarketplaceFromSupabase();
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchMarketplaceFromSupabase();
 });
 </script>
 
