@@ -503,38 +503,38 @@
 
 
 
-<div id="ledgerModal" class="overlay">
-    <div class="modal-content">
-        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <h2 style="color:var(--neon-orange)">PANNEAU DE CONTROLE HARDWARE</h2>
-        <div id="realTimeData" class="ledger-status">
-            [ STATUT : CONNECTÉ AU RÉSEAU SPIRIT ]
-        </div>
-        <div class="control-grid">
-            <div class="control-item">
-                <p>Niveau de Batterie</p>
-                <div class="control-val" id="ctrl-batt">92% (4.1V)</div>
-            </div>
-            <div class="control-item">
-                <p>Santé Puce Spirit</p>
-                <div class="control-val" id="ctrl-diag" style="color:var(--spirit-green)">OK - 100% FONCTIONNEL</div>
-            </div>
-            <div class="control-item">
-                <p>Néon Bas (Pulse-ID)</p>
-                <div class="control-val" id="ctrl-neon-low">142 Heures d'utilisation</div>
-            </div>
-            <div class="control-item">
-                <p>Néon Haut (Halo)</p>
-                <div class="control-val" id="ctrl-neon-high">88 Heures d'utilisation</div>
-            </div>
-            <div class="control-item">
-                <p>Figurine LED</p>
-                <div class="control-val" id="ctrl-fig">210 Heures d'utilisation</div>
-            </div>
-        </div>
-        <button class="btn-action" style="width:100%; margin-top:20px;" onclick="transferToSale()">TRANSFERER POUR VENTE & CERTIFICATION</button>
-    </div>
-</div>
+/**
+ * (c) 2026 Spirit Infinity - Tous droits réservés
+ */
+
+function openLedger() {
+    // On cible précisément l'ID de ton bloc Panneau de Contrôle Hardware
+    const modal = document.getElementById('ledgerModal');
+    
+    if (modal) {
+        modal.style.display = 'flex';
+        // On s'assure que le statut est bien visible à l'ouverture
+        console.log("[SPIRIT] Panneau de Contrôle Hardware (Ledger) : Affichage activé.");
+    } else {
+        console.error("[SPIRIT ERROR] L'élément 'ledgerModal' est introuvable dans le DOM.");
+    }
+}
+
+function closeModals() {
+    // Cette fonction ferme ton panneau hardware comme demandé par ton bouton ✕
+    const ledger = document.getElementById('ledgerModal');
+    const account = document.getElementById('accountModal');
+    
+    if (ledger) ledger.style.display = 'none';
+    if (account) account.style.display = 'none';
+}
+
+function transferToSale() {
+    // Fonction déclenchée par ton bouton en bas du panneau
+    console.log("[SPIRIT] Lancement de la procédure de transfert pour vente & certification...");
+    // Ici on ajoutera la logique de certification Spirit Ledger plus tard
+}
+
 
 <div id="supportModal" class="overlay">
     <div class="modal-content">
