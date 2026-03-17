@@ -1538,22 +1538,27 @@ function forceDisplaySpirit(id) {
 function openLedger() {
     console.log("FORCE START - LEDGER");
     
-    // 1. On bloque la navigation auto en nettoyant les classes 'active'
-    document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('nav-ledger').classList.add('active');
-
-    // 2. On ferme tout le reste
+    // 1. ON DESACTIVE LA NAVIGATION AUTO POUR EVITER LE CONFLIT
+    if (typeof currentView !== 'undefined') currentView = 'none'; 
+    
+    // 2. ON FORCE LA FERMETURE DES AUTRES SANS NAVIGUER
     closeModals();
     
     const m = document.getElementById('ledgerModal');
     if(m) {
-        // 3. ON FORCE LE CALQUE AU-DESSUS DE LA NAVIGATION
-        // On utilise cssText pour être sûr qu'aucun autre script ne puisse l'annuler
-        m.style.cssText = "display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999999 !important; position: fixed !important; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9);";
+        // 3. ON FORCE L'AFFICHAGE SANS AUCUNE CONDITION
+        m.style.setProperty('display', 'flex', 'important');
+        m.style.setProperty('opacity', '1', 'important');
+        m.style.setProperty('visibility', 'visible', 'important');
+        m.style.zIndex = "999999"; 
         
-        console.log("FORCE END - Si rien ne s'affiche, c'est l'ID ledgerModal qui est faux.");
+        console.log("FORCE END - Ledger affiché et navigation bloquée.");
+    } else {
+        alert("ERREUR : L'élément 'ledgerModal' est introuvable dans ton HTML !");
     }
 }
+
+
 
 function openSecurity() { 
     closeModals(); 
