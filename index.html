@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
     <style>
+        #precommandes-hot-toys { display: none; min-height: 100vh; width: 100%; background: #050505 !important; position: relative; z-index: 9999; }
         :root {
             --bg-dark: #050505;
             --card-bg:rgb(26, 26, 24);
@@ -834,7 +835,7 @@ async function loadUserPurchases() {
         .from('transactions')
         .select('*')
         .eq('buyer_id', String(MY_TEST_ID)) // Remplace '12345' par String(MY_TEST_ID)
-        .order('created_at', { ascending: false });
+        // .order('created_at', { ascending: false });
 
     if (error) {
         console.error("Erreur de chargement des achats:", error);
@@ -1018,7 +1019,7 @@ async function loadMySales() {
             .from('transactions')
             .select('*')
             .eq('seller_id', currentID) 
-            .order('created_at', { ascending: false });
+            // .order('created_at', { ascending: false });
 
         if (error) throw error;
 
@@ -1815,12 +1816,16 @@ async function confirmPayment(method) {
     window.showForum = function () { navigateTo('forum'); };
     window.showMonCompte = function () { navigateTo('account'); };
     window.showSecurite = function () { navigateTo('security'); };
-    window.showPrecommandesHotToys = function () { navigateTo('preorders'); };
+    window.showPrecommandesHotToys = function () { showPrecommandes(); };
     // Alias demandé: showPrecommandes()
-    window.showPrecommandes = function () {
-        hideAllSections();
-        document.getElementById('precommandes-hot-toys').style.display = 'block';
-    };
+    function showPrecommandes() {
+      hideAllSections();
+      const sect = document.getElementById('precommandes-hot-toys');
+      sect.style.setProperty('display', 'block', 'important');
+      window.scrollTo(0,0);
+      console.log('Affichage Section Hot Toys Forcé');
+    }
+    window.showPrecommandes = showPrecommandes;
     window.showSupport = function () { navigateTo('support'); };
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -2014,7 +2019,7 @@ async function loadMyPurchases() {
             .from('transactions')
             .select('*')
             .eq('buyer_id', MY_TEST_ID)
-            .order('created_at', { ascending: false });
+            // .order('created_at', { ascending: false });
 
         // Correction : Vérification que data existe avant le rendu pour éviter "data is not defined"
         if (error) throw error;
@@ -2472,7 +2477,7 @@ async function fetchMarketplaceFromSupabase() {
             const res = await _spirit
                 .from('products_live')
                 .select('*')
-                .order('created_at', { ascending: false });
+                // .order('created_at', { ascending: false });
             data = res.data;
             error = res.error;
         } catch (e) {
