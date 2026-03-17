@@ -1514,12 +1514,16 @@ function openForum() { window.location.hash = 'forum'; closeModals(); document.g
 function openRegister() { window.location.hash = 'register'; closeModals(); document.getElementById('registerModal').style.display = 'flex'; }
 function openSupport() { window.location.hash = 'support'; closeModals(); document.getElementById('supportModal').style.display = 'flex'; }
 
-function openLedger() { 
-    closeModals(); 
+/** (c) 2026 Spirit Infinity - Tous droits réservés */
+function openLedger() {
+    console.log("Tentative d'ouverture directe...");
     const m = document.getElementById('ledgerModal');
     if(m) {
         m.style.setProperty('display', 'flex', 'important');
-        m.style.zIndex = "10001"; // On le force au premier plan
+        m.style.zIndex = "20000"; 
+        alert("La fonction Ledger est lancée !"); // Si l'alerte s'affiche, le code s'exécute.
+    } else {
+        console.error("ERREUR: ledgerModal introuvable dans le HTML");
     }
 }
 
