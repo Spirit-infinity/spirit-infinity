@@ -224,7 +224,7 @@
     </div>
     <nav>
         <button id="nav-market" class="active" onclick="showMarketplace()" data-key="nav_market">MARKETPLACE</button>
-        <button class="nav-item" onclick="showLedgerModal()"> <i class="fas fa-microchip"></i> 02. PANNEAU DE CONTROLE</button>
+        <button id="nav-ledger" class="nav-item" onclick="showLedgerModal()" data-key="nav_ledger"> <i class="fas fa-microchip"></i>PANNEAU DE CONTROLE</button>
         <button id="nav-forum" onclick="showForum()" data-key="nav_forum">FORUM</button>
         <button id="nav-account" onclick="showMonCompte()" data-key="nav_account">MON COMPTE</button>
         <button id="nav-func" onclick="showSecurite()" data-key="nav_security">SÉCURITÉ</button>
@@ -575,7 +575,7 @@
 
 
 <div id="ledgerModal" class="overlay">
-        <button class="nav-item" onclick="showLedgerModal()">02. PANNEAU DE CONTROLE</button>
+        <button class="nav-item" onclick="showLedgerModal()"> PANNEAU DE CONTROLE</button>
     <div class="modal-content">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <h2 style="color:var(--neon-orange)">PANNEAU DE CONTROLE HARDWARE</h2>
