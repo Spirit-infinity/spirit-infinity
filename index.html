@@ -1535,19 +1535,27 @@ function forceDisplaySpirit(id) {
     }
 }
 
-
 /** (c) 2026 Spirit Infinity - Tous droits réservés */
 function openLedger() {
-    console.log("Tentative d'ouverture directe...");
+    closeModals();
     const m = document.getElementById('ledgerModal');
     if(m) {
-        m.style.setProperty('display', 'flex', 'important');
-        m.style.zIndex = "20000"; 
-        alert("La fonction Ledger est lancée !"); // Si l'alerte s'affiche, le code s'exécute.
-    } else {
-        console.error("ERREUR: ledgerModal introuvable dans le HTML");
+        // 1. On force l'affichage
+        m.style.display = 'flex';
+        m.style.zIndex = '100002';
+        
+        // 2. LE TRUC MAGIQUE : On force le navigateur à "reflow" (recalculer la page)
+        m.offsetHeight; 
+        
+        // 3. On confirme visuellement
+        m.style.opacity = '1';
+        m.style.visibility = 'visible';
+        
+        console.log("SPIRIT : Ledger forcé avec Reflow.");
     }
 }
+
+// Fais la même chose pour openSecurity et openAccount en ajoutant "m.offsetHeight;"
 
 function openSecurity() { 
     closeModals(); 
