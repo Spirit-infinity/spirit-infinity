@@ -2481,7 +2481,7 @@ async function fetchMarketplaceFromSupabase() {
         try {
             const res = await _spirit
                 .from('products_live')
-                .select('*')
+                .select('id, uuid, title, price, currency, image_url, status, ia_score, description, owner_id')
                 .order('id', { ascending: false });
             data = res.data;
             error = res.error;
