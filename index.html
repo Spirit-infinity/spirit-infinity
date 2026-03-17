@@ -1506,13 +1506,27 @@ async function confirmPayment() {
         document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
         hideTopicEditor();
     }
-   function openForum() { closeModals(); document.getElementById('forumModal').style.display = 'flex'; }
+   /** (c) 2026 Spirit Infinity - Tous droits réservés */
+    function openForum() { closeModals(); document.getElementById('forumModal').style.display = 'flex'; }
     function openRegister() { closeModals(); document.getElementById('registerModal').style.display = 'flex'; }
-    function openLedger() { closeModals(); document.getElementById('ledgerModal').style.display = 'flex'; }
+    function openLedger() { 
+        closeModals(); 
+        const m = document.getElementById('ledgerModal'); 
+        if(m) m.style.setProperty('display', 'flex', 'important'); 
+    }
     function openSupport() { closeModals(); document.getElementById('supportModal').style.display = 'flex'; }
-    function openSecurity() { closeModals(); document.getElementById('securityModal').style.display = 'flex'; }
-    function openAccount() { closeModals(); document.getElementById('accountModal').style.display = 'flex'; if(typeof showAccountTab === 'function') showAccountTab('achats'); }
-  
+    function openSecurity() { 
+        closeModals(); 
+        const m = document.getElementById('securityModal'); 
+        if(m) m.style.setProperty('display', 'flex', 'important'); 
+    }
+    function openAccount() { 
+        closeModals(); 
+        const m = document.getElementById('accountModal'); 
+        if(m) { m.style.setProperty('display', 'flex', 'important'); showAccountTab('achats'); } 
+    }
+
+
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
 function showAccountTab(tab) {
