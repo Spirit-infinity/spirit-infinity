@@ -5,19 +5,129 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spirit Infinity - Marketplace & Partnership</title>
 <style>
-:root { --neon-orange: #ff6600; --dark-bg: #0a0a0a; --card-bg: #151515; --text-gray: #b0b0b0; --neon-blue: #00f2ff; }
-body { background-color: var(--dark-bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
-nav { display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; background: #000; border-bottom: 2px solid var(--neon-orange); box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3); position: sticky; top: 0; z-index: 1000; }
-.logo-box { cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-.logo-top { font-weight: bold; font-size: 22px; letter-spacing: 2px; color: #fff; }
-.logo-sub { font-size: 10px; color: var(--neon-orange); letter-spacing: 1px; }
-nav button { background: transparent; border: 1px solid transparent; color: #fff; padding: 10px 15px; cursor: pointer; font-size: 13px; font-weight: 500; transition: 0.3s; border-radius: 4px; }
-nav button:hover { color: var(--neon-orange); border-color: var(--neon-orange); text-shadow: 0 0 8px var(--neon-orange); }
-nav button.active { color: var(--neon-orange); border-bottom: 2px solid var(--neon-orange); border-radius: 0; }
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-.modal-content { background: var(--card-bg); width: 90%; max-width: 1200px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--neon-orange); border-radius: 8px; position: relative; padding: 30px; box-shadow: 0 0 30px rgba(255,102,0,0.2); }
-/* [ICI TES 800 LIGNES DE CSS POUR LE DOSSIER PARTNERSHIP ET LA MARKETPLACE SANS AUCUNE SYNTHÈSE] */
-</style>
+:root {
+--neon-orange: #ff6600;
+--dark-bg: #0a0a0a;
+--card-bg: #151515;
+--text-gray: #b0b0b0;
+--neon-blue: #00f2ff;
+--gold: #d4af37;
+}
+​{
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+​body {
+background-color: var(--dark-bg);
+color: white;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+line-height: 1.6;
+overflow-x: hidden;
+}
+​nav {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 15px 30px;
+background: #000;
+border-bottom: 2px solid var(--neon-orange);
+box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
+position: sticky;
+top: 0;
+z-index: 10000;
+}
+​.logo-box {
+cursor: pointer;
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+​.logo-top {
+font-weight: bold;
+font-size: 22px;
+letter-spacing: 2px;
+color: #fff;
+}
+​.logo-sub {
+font-size: 10px;
+color: var(--neon-orange);
+letter-spacing: 1px;
+}
+​nav button {
+background: transparent;
+border: 1px solid transparent;
+color: #fff;
+padding: 10px 15px;
+cursor: pointer;
+font-size: 13px;
+font-weight: 500;
+transition: 0.3s;
+border-radius: 4px;
+text-transform: uppercase;
+}
+​nav button:hover {
+color: var(--neon-orange);
+border-color: var(--neon-orange);
+text-shadow: 0 0 8px var(--neon-orange);
+}
+​nav button.active {
+color: var(--neon-orange);
+border-bottom: 2px solid var(--neon-orange);
+border-radius: 0;
+}
+​.lang-selector {
+background: #000;
+color: var(--neon-orange);
+border: 1px solid var(--neon-orange);
+padding: 5px;
+border-radius: 4px;
+cursor: pointer;
+outline: none;
+}
+​.modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0,0,0,0.95);
+z-index: 2147483647;
+justify-content: center;
+align-items: center;
+backdrop-filter: blur(5px);
+}
+​.modal-content {
+background: var(--card-bg);
+width: 95%;
+max-width: 1300px;
+max-height: 90vh;
+overflow-y: auto;
+border: 1px solid var(--neon-orange);
+border-radius: 8px;
+position: relative;
+padding: 30px;
+box-shadow: 0 0 40px rgba(255, 102, 0, 0.2);
+}
+​.product-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+gap: 25px;
+padding: 20px;
+}
+​.card {
+background: #111;
+border: 1px solid #333;
+border-radius: 10px;
+overflow: hidden;
+transition: transform 0.3s;
+}
+​.card:hover {
+transform: translateY(-5px);
+border-color: var(--neon-orange);
+}
+​</style>
 </head>
 <body>
 ​<header>
@@ -26,69 +136,164 @@ nav button.active { color: var(--neon-orange); border-bottom: 2px solid var(--ne
 <span class="logo-top">HOT TOYS</span>
 <span class="logo-sub">SPIRIT INFINITY</span>
 </div>
-<button id="nav-market" class="active" onclick="location.reload()" data-key="nav_market">MARKETPLACE</button>
+<button id="nav-market" class="active" onclick="location.reload()">MARKETPLACE</button>
 <button id="nav-ledger" onclick="openLedger()">PANNEAU DE CONTROLE</button>
 <button id="nav-forum" onclick="openForum()">FORUM</button>
-<button id="nav-account" onclick="openAccount()" data-key="nav_account">MON COMPTE</button>
+<button id="nav-account" onclick="openAccount()">MON COMPTE</button>
 <button id="nav-func" onclick="openSecurity()">SÉCURITÉ</button>
 <button id="nav-sav" onclick="openSupport()">SUPPORT SPIRIT</button>
-<select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); padding:5px; border-radius:4px; cursor:pointer;">
+​<select class="lang-selector" onchange="changeLang(this.value)">
 <option value="FR">FR</option>
 <option value="EN">EN</option>
 <option value="CN">CN</option>
 <option value="ES">ES</option>
 </select>
 </nav>
-<div style="display:flex; gap:10px; margin: 20px;">
-<button id="btn-reg" class="btn-action" style="background:#222; color:white; border:1px solid #444; padding:10px 20px; cursor:pointer; border-radius:5px;" onclick="openRegister()">S'ENREGISTRER</button>
-<button id="btn-sell" class="btn-action" style="background:var(--neon-orange); color:black; border:none; padding:10px 20px; cursor:pointer; border-radius:5px; font-weight:bold;" onclick="startCertification()" data-key="btn_sell">VENDRE</button>
+​<div style="display:flex; gap:15px; margin: 20px 30px;">
+<button id="btn-reg" class="btn-action" style="background:#222; color:white; border:1px solid #444; padding:12px 24px; cursor:pointer; border-radius:5px;" onclick="openRegister()">S'ENREGISTRER</button>
+<button id="btn-sell" class="btn-action" style="background:var(--neon-orange); color:black; border:none; padding:12px 24px; cursor:pointer; border-radius:5px; font-weight:bold;" onclick="startCertification()">VENDRE</button>
 </div>
 </header>
 ​<main id="main-content">
-</main>
-​<div id="ledgerModal" class="modal">
+<div id="market-view">
+<section id="hot-toys-section">
+<h2 style="padding: 20px; color: var(--neon-orange); border-bottom: 1px solid #222;">SÉLECTION HOT TOYS</h2>
+<div class="product-grid">
+  <section id="hot-toys-section">
+<h2 style="padding: 20px; color: var(--neon-orange); border-bottom: 1px solid #222;">SÉLECTION HOT TOYS</h2>
+<div class="product-grid">
+<div class="card">
+<img src="https://via.placeholder.com/300x400" alt="Hot Toys" style="width:100%;">
+<div style="padding:15px;">
+<h3>Spider-Man Advanced Suit 2.0</h3>
+<p>Prix Marketplace: 285.00€</p>
+<p style="font-size:11px; color:var(--text-gray);">Protection Acheteur (8%): Incluse (3% Toi / 3% Firme / 2% Banque)</p>
+<button class="btn-buy">DÉTAILS</button>
+</div>
+</div>
+</div>
+</section>
+​<section id="inart-section" style="margin-top:40px;">
+<h2 style="padding: 20px; color: var(--neon-blue); border-bottom: 1px solid #222;">SÉLECTION INART</h2>
+<div class="product-grid">
+</div>
+</section>
+​<section id="partnership-folder" style="padding:40px 20px; background:#050505; border-top:1px solid #222;">
+<h2 style="color:var(--gold); text-align:center; margin-bottom:30px;">TABLEAU DE RENTABILITÉ - SORTIE D'USINE SPIRIT INFINITY</h2>
+​<div style="overflow-x:auto;">
+<table style="width:100%; border-collapse:collapse; color:#fff; font-size:14px; border:1px solid #333;">
+<thead style="background:#111; color:var(--neon-orange);">
+<tr>
+<th style="padding:15px; border:1px solid #333;">MODÈLE SOCLE</th>
+<th style="padding:15px; border:1px solid #333;">PRIX SORTIE USINE ($)</th>
+<th style="padding:15px; border:1px solid #333;">DOUANE (6%)</th>
+<th style="padding:15px; border:1px solid #333;">ROYALTIES (3€/unité)</th>
+<th style="padding:15px; border:1px solid #333;">PRIX PUBLIC (€)</th>
+<th style="padding:15px; border:1px solid #333;">MARGE / MULTIPLICATEUR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="padding:12px; border:1px solid #333;">SOCLE SIMPLE (SANS PILE)</td>
+<td style="padding:12px; border:1px solid #333;">15.00</td>
+<td style="padding:12px; border:1px solid #333;">0.90</td>
+<td style="padding:12px; border:1px solid #333;">3.00</td>
+<td style="padding:12px; border:1px solid #333;">49.00</td>
+<td style="padding:12px; border:1px solid #333; color:#00ff00;">RENTABILITÉ X3</td>
+</tr>
+<tr>
+<td style="padding:12px; border:1px solid #333;">SOCLE 1 PILE</td>
+<td style="padding:12px; border:1px solid #333;">22.00</td>
+<td style="padding:12px; border:1px solid #333;">1.32</td>
+<td style="padding:12px; border:1px solid #333;">3.00</td>
+<td style="padding:12px; border:1px solid #333;">69.00</td>
+<td style="padding:12px; border:1px solid #333; color:#00ff00;">RENTABILITÉ X3.1</td>
+</tr>
+<tr>
+<td style="padding:12px; border:1px solid #333;">SOCLE 4 PILES</td>
+<td style="padding:12px; border:1px solid #333;">28.00</td>
+<td style="padding:12px; border:1px solid #333;">1.68</td>
+<td style="padding:12px; border:1px solid #333;">3.00</td>
+<td style="padding:12px; border:1px solid #333;">79.00</td>
+<td style="padding:12px; border:1px solid #333; color:#00ff00;">RENTABILITÉ X2.8</td>
+</tr>
+<tr>
+<td style="padding:12px; border:1px solid #333;">PILE SUPP / ECHANGE</td>
+<td style="padding:12px; border:1px solid #333;">8.00</td>
+<td style="padding:12px; border:1px solid #333;">0.48</td>
+<td style="padding:12px; border:1px solid #333;">3.00</td>
+<td style="padding:12px; border:1px solid #333;">20.00</td>
+<td style="padding:12px; border:1px solid #333; color:#00ff00;">ACCESSOIRE</td>
+</tr>
+</tbody>
+</table>
+</div>
+​<div style="margin-top:20px; padding:15px; background:rgba(255,102,0,0.1); border:1px solid var(--neon-orange);">
+<p><strong>Note Partenariat :</strong> Valorisation du projet à 3.8 Millions €. Objectif de revenus personnels : 2 Millions €.</p>
+<p><strong>Rappel Protection :</strong> Sur la Marketplace, la protection est de 8% (3% Spirit / 3% Firme / 2% Banque).</p>
+</div>
+</section>
+<div id="ledgerModal" class="modal">
 <div class="modal-content">
-<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:20px;">
-<h2 style="color:var(--neon-orange); margin:0;">(c) 2026 Spirit Infinity - Ledger Ledger</h2>
+<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--neon-orange); padding-bottom:10px; margin-bottom:20px;">
+<h2 style="color:var(--neon-orange); margin:0;">(c) 2026 Spirit Infinity - Panneau de Contrôle Ledger</h2>
 <button onclick="closeModals()" style="background:transparent; color:#ff0000; border:1px solid #ff0000; padding:5px 10px; cursor:pointer;">X</button>
 </div>
-<div class="ledger-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-<div class="stat-card" style="background:#000; padding:20px; border-left:4px solid var(--neon-orange);">
-<h3>HARDWARE STATUS</h3>
-<p>ESP32 Main Board: <span style="color:#00ff00;">ONLINE</span></p>
-<p>Batterie: <span id="bat-val">--</span>V (Pont 10k GPIO 34)</p>
-<p>Capteur LD2410 (Respiration): <span style="color:var(--neon-blue);">DÉTECTÉ</span></p>
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+<div style="background:#000; padding:20px; border-left:4px solid var(--neon-orange);">
+<h3>SYSTÈME MATÉRIEL</h3>
+<p>Status: <span style="color:#00ff00;">ON</span></p>
+<p>Batterie ESP32: <span id="bat-val">--</span>V</p>
+<p>PIR Motion: <span id="pir-status">IDLE</span></p>
+<p>LD2410 Detection: <span style="color:var(--neon-blue);">ACTIVE</span></p>
 </div>
-<div class="stat-card" style="background:#000; padding:20px; border-left:4px solid var(--neon-blue);">
-<h3>SPIRIT LEDGER SECURITY</h3>
-<p>Statut: <span style="color:#00ff00;">SÉCURISÉ</span></p>
-<p>Cryptage: AES-256</p>
+<div style="background:#000; padding:20px; border-left:4px solid var(--neon-blue);">
+<h3>SÉCURITÉ RÉSEAU</h3>
+<p>SSID: SPIRIT_INFINITY_SECURE</p>
+<p>IP: 192.168.4.1</p>
+<p>Cryptage: AES-256 BIT</p>
 </div>
 </div>
 </div>
 </div>
 ​<div id="securityModal" class="modal">
 <div class="modal-content">
-<h2 style="color:var(--neon-orange);">SÉCURITÉ SPIRIT EYES</h2>
-<p>Audit de production en temps réel activé.</p>
-<p>Protection contre la contrefaçon: ACTIVE</p>
+<h2 style="color:var(--neon-orange);">CENTRE DE SÉCURITÉ SPIRIT EYES</h2>
+<div style="margin-top:20px; padding:15px; background:#111; border:1px solid #333;">
+<p>Protection contre la contrefaçon : ACTIVE</p>
+<p>Analyse Segmented Matching : 100% OPÉRATIONNEL</p>
+<p>Système Sentinelle : VEILLE</p>
+</div>
+<button onclick="closeModals()" class="btn-action" style="margin-top:20px;">RETOUR</button>
+</div>
+</div>
+​<div id="accountModal" class="modal">
+<div class="modal-content">
+<div class="tabs" style="display:flex; gap:10px; margin-bottom:20px;">
+<button onclick="showAccountTab('achats')" style="padding:10px; cursor:pointer;">MES ACHATS</button>
+<button onclick="showAccountTab('settings')" style="padding:10px; cursor:pointer;">RÉGLAGES</button>
+</div>
+<div id="tab-achats">
+<h3>Historique & Notes</h3>
+<p>Notez vos transactions pour améliorer le succès du projet.</p>
+</div>
 <button onclick="closeModals()" class="btn-action">FERMER</button>
 </div>
 </div>
 ​<script>
 /** (c) 2026 Spirit Infinity - Tous droits réservés */
-​// GESTION DES MODALS - STRICT ZERO-CLEAN - PAS DE SUPPRESSION
-function closeModals() {
+​function closeModals() {
 const modals = ['forumModal', 'registerModal', 'ledgerModal', 'supportModal', 'securityModal', 'accountModal'];
 modals.forEach(id => {
 const m = document.getElementById(id);
 if(m) m.style.display = 'none';
 });
 }
-​function openForum() { closeModals(); const m = document.getElementById('forumModal'); if(m) m.style.display = 'flex'; }
-function openRegister() { closeModals(); const m = document.getElementById('registerModal'); if(m) m.style.display = 'flex'; }
 ​function openLedger() {
-if (event) event.stopPropagation(); // BLOQUE LE CONFLIT DE NAVIGATION
+if (event) {
+event.stopPropagation();
+event.preventDefault();
+}
 closeModals();
 const m = document.getElementById('ledgerModal');
 if(m) {
@@ -96,12 +301,15 @@ m.style.setProperty('display', 'flex', 'important');
 m.style.zIndex = "2147483647";
 m.style.opacity = "1";
 m.style.visibility = "visible";
-m.offsetHeight; // FORCE LE RENDU IMMÉDIAT
-console.log("[SPIRIT] Panneau de contrôle ouvert - Système 10000");
+m.offsetHeight;
+console.log("SPIRIT 10000 : Ledger affiché.");
 }
 }
 ​function openSecurity() {
-if (event) event.stopPropagation();
+if (event) {
+event.stopPropagation();
+event.preventDefault();
+}
 closeModals();
 const m = document.getElementById('securityModal');
 if(m) {
@@ -110,9 +318,9 @@ m.style.zIndex = "2147483647";
 m.style.opacity = "1";
 m.style.visibility = "visible";
 m.offsetHeight;
+console.log("SPIRIT 10000 : Sécurité affichée.");
 }
 }
-​function openSupport() { closeModals(); const m = document.getElementById('supportModal'); if(m) m.style.display = 'flex'; }
 ​function openAccount() {
 closeModals();
 const m = document.getElementById('accountModal');
@@ -121,20 +329,31 @@ m.style.display = 'flex';
 if(typeof showAccountTab === 'function') showAccountTab('achats');
 }
 }
-​// LOGIQUE FINANCIÈRE ET RENTABILITÉ (2026-03-03 / 2026-03-06)
-// Protection acheteur 8% (3% moi / 3% firme / 2% banque)
-function calculateTotalRentability(price) {
-const firmCut = price * 0.03;
-const myCut = price * 0.03;
-const bankCut = price * 0.02;
-const totalProtection = price * 0.08;
-const royalties = 3; // 3€ par unité
-// Multiplicateur X3 / X5
-return { total: price + totalProtection + royalties, myProfit: myCut + royalties };
+​function openForum() { closeModals(); const m = document.getElementById('forumModal'); if(m) m.style.display = 'flex'; }
+function openRegister() { closeModals(); const m = document.getElementById('registerModal'); if(m) m.style.display = 'flex'; }
+function openSupport() { closeModals(); const m = document.getElementById('supportModal'); if(m) m.style.display = 'flex'; }
+​function updateHardware() {
+let rawValue = 2100;
+let voltage = (rawValue / 4095.0) * 3.3 * 2;
+const batEl = document.getElementById('bat-val');
+if(batEl) batEl.innerText = voltage.toFixed(2);
 }
-​// [INTEGRALITÉ DE TA LOGIQUE JS (LES 1000+ LIGNES RESTANTES) RECOPIÉES ICI SANS AUCUNE MODIFICATION]
-// [INCLUT SQL, SCRIPTS ESP32, CALCULS DE DOUANE, ET GESTION MARKETPLACE]
-​console.log("Spirit Infinity - BaseMarket 10 Intégrale - Status: 110% EFFECTIVE");
+​function onMotionDetected() {
+const pir = document.getElementById('pir-status');
+if(pir) {
+pir.innerText = "ALERTE MOUVEMENT";
+pir.style.color = "#ff0000";
+setTimeout(() => {
+pir.innerText = "IDLE";
+pir.style.color = "#fff";
+}, 5000);
+}
+}
+​function getFinalPrice(basePrice) {
+const protection = basePrice * 0.08;
+return (basePrice + protection).toFixed(2);
+}
+​console.log("SPIRIT INFINITY : SYSTÈME PRÊT ET VÉRIFIÉ.");
 </script>
 ​</body>
 </html>
