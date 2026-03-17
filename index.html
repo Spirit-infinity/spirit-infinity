@@ -153,12 +153,12 @@
         <span class="logo-sub">SPIRIT INFINITY</span>
     </div>
     <nav>
-        <button id="nav-market" class="active" onclick="location.reload()" data-key="nav_market">MARKETPLACE</button>
-        <button id="nav-ledger" onclick="openLedger()" data-key="nav_ledger">PANNEAU DE CONTROLE</button>
-        <button id="nav-forum" onclick="openForum()" data-key="nav_forum">FORUM</button>
-        <button id="nav-account" onclick="openAccount()" data-key="nav_account">MON COMPTE</button>
-        <button id="nav-func" onclick="openSecurity()" data-key="nav_security">SÉCURITÉ</button>
-        <button id="nav-sav" onclick="openSupport()" data-key="nav_support">SUPPORT SPIRIT</button>
+        <button id="nav-market" class="active" onclick="navigateTo('market')" data-key="nav_market">MARKETPLACE</button>
+        <button id="nav-ledger" onclick="navigateTo('ledger')" data-key="nav_ledger">PANNEAU DE CONTROLE</button>
+        <button id="nav-forum" onclick="navigateTo('forum')" data-key="nav_forum">FORUM</button>
+        <button id="nav-account" onclick="navigateTo('account')" data-key="nav_account">MON COMPTE</button>
+        <button id="nav-func" onclick="navigateTo('security')" data-key="nav_security">SÉCURITÉ</button>
+        <button id="nav-sav" onclick="navigateTo('support')" data-key="nav_support">SUPPORT SPIRIT</button>
         <select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
             <option value="FR">FR 🇫🇷</option>
             <option value="EN">EN 🇺🇸</option>
@@ -1524,11 +1524,86 @@ async function confirmPayment(method) {
         document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
         hideTopicEditor();
     }
-    function openForum() { document.getElementById('forumModal').style.display = 'flex'; }
-    function openRegister() { document.getElementById('registerModal').style.display = 'flex'; }
-    function openLedger() { document.getElementById('ledgerModal').style.display = 'flex'; }
-    function openSupport() { document.getElementById('supportModal').style.display = 'flex'; }
-    function openSecurity() { document.getElementById('securityModal').style.display = 'flex'; }
+
+    // --- NAVIGATION SPIRIT : 1 MENU = 1 SECTION (sans reload) ---
+    function hideAllSections() {
+        // Cache toutes les overlays (Compte, Ledger, Forum, Support, Sécurité, Modals...)
+        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
+        // Cache lightbox image si ouverte
+        const lb = document.getElementById('lightbox');
+        if (lb) lb.style.display = 'none';
+        // Réinitialise l'éditeur forum si présent
+        try { hideTopicEditor(); } catch (e) {}
+    }
+
+    function setActiveNav(navId) {
+        document.querySelectorAll('header nav button').forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById(navId);
+        if (btn) btn.classList.add('active');
+    }
+
+    function navigateTo(section) {
+        hideAllSections();
+
+        switch (String(section)) {
+            case 'market':
+                setActiveNav('nav-market');
+                // Marketplace = page de base (pas d'overlay à afficher)
+                // On resynchronise le flux Supabase pour éviter tout besoin de reload (F5)
+                try { if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase(); } catch (e) {}
+                // Rendu léger en fallback immédiat (si Supabase met un peu de temps)
+                try { if (typeof renderMarket === 'function') renderMarket(); } catch (e) {}
+                break;
+
+            case 'ledger':
+                setActiveNav('nav-ledger');
+                const ledger = document.getElementById('ledgerModal');
+                if (ledger) ledger.style.display = 'flex';
+                break;
+
+            case 'forum':
+                setActiveNav('nav-forum');
+                const forum = document.getElementById('forumModal');
+                if (forum) forum.style.display = 'flex';
+                break;
+
+            case 'account':
+                setActiveNav('nav-account');
+                // On s'assure que les données compte sont à jour
+                try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+                try { if (typeof loadMyPurchases === 'function') loadMyPurchases(); } catch (e) {}
+                try { if (typeof loadMySales === 'function') loadMySales(); } catch (e) {}
+                const account = document.getElementById('accountModal');
+                if (account) account.style.display = 'flex';
+                // On conserve ton choix actuel par défaut: achats
+                try { if (typeof showAccountTab === 'function') showAccountTab('achats'); } catch (e) {}
+                break;
+
+            case 'security':
+                setActiveNav('nav-func');
+                const sec = document.getElementById('securityModal');
+                if (sec) sec.style.display = 'flex';
+                break;
+
+            case 'support':
+                setActiveNav('nav-sav');
+                const sup = document.getElementById('supportModal');
+                if (sup) sup.style.display = 'flex';
+                break;
+
+            default:
+                // fallback
+                setActiveNav('nav-market');
+                break;
+        }
+    }
+
+    // Compat: on garde les fonctions existantes, mais elles passent par la navigation centrale
+    function openForum() { navigateTo('forum'); }
+    function openRegister() { hideAllSections(); setActiveNav('nav-market'); document.getElementById('registerModal').style.display = 'flex'; }
+    function openLedger() { navigateTo('ledger'); }
+    function openSupport() { navigateTo('support'); }
+    function openSecurity() { navigateTo('security'); }
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -1676,18 +1751,8 @@ function hideTopicEditor() {
 }
 
 function openAccount() {
-    // On s'assure que les données sont fraîches à l'ouverture
-    if (typeof updateUserAnnonces === 'function') updateUserAnnonces();
-    loadMyPurchases(); 
-    loadMySales();
-    
-    const accountModal = document.getElementById('accountModal');
-    if (accountModal) {
-        accountModal.style.display = 'flex';
-    }
-    
-    // Par défaut, on affiche l'onglet achats à l'ouverture
-    showAccountTab('achats');
+    // Navigation centralisée (cache tout le reste + affiche uniquement le compte)
+    navigateTo('account');
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
