@@ -2063,14 +2063,20 @@ msg.innerHTML = `
     }
 }
 
+
 // (c) 2026 Spirit Infinity - Tous droits réservés
 document.addEventListener('click', function (e) {
+    // On vérifie si la cible existe pour éviter les erreurs null
+    if (!e.target) return;
+
     if (e.target.classList.contains('btn-recu-action')) {
         confirmReceipt(e.target.getAttribute('data-id'));
     }
+    
     if (e.target.classList.contains('btn-litige-action')) {
         openDispute(e.target.getAttribute('data-id'));
     }
+    // On ne met RIEN d'autre ici pour ne pas bloquer les boutons de navigation
 });
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
