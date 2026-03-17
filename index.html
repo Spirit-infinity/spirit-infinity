@@ -49,7 +49,7 @@
         .card.sold { opacity: 0.5; filter: grayscale(1); }
         .badge-sold { background: var(--danger); color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); padding: 10px 20px; font-weight: 900; font-size: 1.2rem; border: 3px solid white; z-index: 20; text-transform: uppercase; pointer-events: none; }
         /* MODALS & OVERLAYS */
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000; overflow-y: auto; padding: 40px 5%; }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 9000; overflow-y: auto; padding: 40px 5%; }
         .modal-content { background: #0a0a0a; border: 1px solid var(--border); padding: 30px; max-width: 900px; margin: auto; position: relative; }
         input, select, textarea { width: 100%; background: #111; border: 1px solid #333; color: white; padding: 12px; margin: 10px 0; border-radius: 4px; box-sizing: border-box; }
         /* DASHBOARD XL STYLE */
@@ -153,12 +153,12 @@
         <span class="logo-sub">SPIRIT INFINITY</span>
     </div>
     <nav>
-        <button id="nav-market" class="active" onclick="navigateTo('market')" data-key="nav_market">MARKETPLACE</button>
-        <button id="nav-ledger" onclick="navigateTo('ledger')" data-key="nav_ledger">PANNEAU DE CONTROLE</button>
-        <button id="nav-forum" onclick="navigateTo('forum')" data-key="nav_forum">FORUM</button>
-        <button id="nav-account" onclick="navigateTo('account')" data-key="nav_account">MON COMPTE</button>
-        <button id="nav-func" onclick="navigateTo('security')" data-key="nav_security">SÉCURITÉ</button>
-        <button id="nav-sav" onclick="navigateTo('support')" data-key="nav_support">SUPPORT SPIRIT</button>
+        <button id="nav-market" class="active" onclick="showMarketplace()" data-key="nav_market">MARKETPLACE</button>
+        <button id="nav-ledger" onclick="showPanneau()" data-key="nav_ledger">PANNEAU DE CONTROLE</button>
+        <button id="nav-forum" onclick="showForum()" data-key="nav_forum">FORUM</button>
+        <button id="nav-account" onclick="showMonCompte()" data-key="nav_account">MON COMPTE</button>
+        <button id="nav-func" onclick="showSecurite()" data-key="nav_security">SÉCURITÉ</button>
+        <button id="nav-sav" onclick="showSupport()" data-key="nav_support">SUPPORT SPIRIT</button>
         <select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
             <option value="FR">FR 🇫🇷</option>
             <option value="EN">EN 🇺🇸</option>
@@ -172,7 +172,7 @@
     </div>
 </header>
 
-<div class="container">
+<div id="marketplaceSection" class="container">
     <div class="sidebar">
         <h4 id="filter-title" style="color:var(--neon-orange); margin-top:0;" data-key="filter_title">FILTRES DE RECHERCHE</h4>      
         <label data-key="lbl_price_range">Tranche de Prix (€)</label>
@@ -1533,6 +1533,7 @@ async function confirmPayment(method) {
 
         // Redondance volontaire : on force aussi certains IDs connus
         [
+            'marketplaceSection',
             'ledgerModal',
             'forumModal',
             'accountModal',
@@ -1565,7 +1566,9 @@ async function confirmPayment(method) {
         switch (String(section)) {
             case 'market':
                 setActiveNav('nav-market');
-                // Marketplace = page de base (pas d'overlay à afficher)
+                // Marketplace = section de base
+                const market = document.getElementById('marketplaceSection');
+                if (market) market.style.display = 'flex';
                 // On resynchronise le flux Supabase pour éviter tout besoin de reload (F5)
                 try { if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase(); } catch (e) {}
                 // Rendu léger en fallback immédiat (si Supabase met un peu de temps)
@@ -1621,6 +1624,15 @@ async function confirmPayment(method) {
     function openLedger() { navigateTo('ledger'); }
     function openSupport() { navigateTo('support'); }
     function openSecurity() { navigateTo('security'); }
+
+    // Accès menus (globaux) — utilisés par la barre de navigation
+    window.navigateTo = navigateTo;
+    window.showMarketplace = function () { navigateTo('market'); };
+    window.showPanneau = function () { navigateTo('ledger'); };
+    window.showForum = function () { navigateTo('forum'); };
+    window.showMonCompte = function () { navigateTo('account'); };
+    window.showSecurite = function () { navigateTo('security'); };
+    window.showSupport = function () { navigateTo('support'); };
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
