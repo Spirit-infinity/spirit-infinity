@@ -10,7 +10,7 @@
     <style>
         :root {
             --bg-dark: #050505;
-            --card-bg: #0f0f0f;
+            --card-bg:rgb(230, 227, 24);
             --neon-orange: #ff6600;
             --text-gray: #777;
             --spirit-green: #00ffaa;
@@ -158,6 +158,7 @@
         <button id="nav-forum" onclick="showForum()" data-key="nav_forum">FORUM</button>
         <button id="nav-account" onclick="showMonCompte()" data-key="nav_account">MON COMPTE</button>
         <button id="nav-func" onclick="showSecurite()" data-key="nav_security">SÉCURITÉ</button>
+        <button id="nav-preorders" onclick="showPrecommandesHotToys()" data-key="nav_preorders">PRÉCOMMANDES HOT TOYS</button>
         <button id="nav-sav" onclick="showSupport()" data-key="nav_support">SUPPORT SPIRIT</button>
         <select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
             <option value="FR">FR 🇫🇷</option>
@@ -559,6 +560,19 @@
     </div>
 </div>
 
+<div id="preordersModal" class="overlay">
+    <div class="modal-content" style="max-width:1200px;">
+        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <div style="border:1px solid #222; background:rgba(255,102,0,0.06); padding:10px 12px; margin-bottom:15px; color:var(--neon-orange); font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase;">
+            Partenaire Officiel - Nouveautés Hot Toys
+        </div>
+        <div class="grid-layout" id="preordersGrid"></div>
+        <div style="margin-top:14px; font-size:0.65rem; color:#666;">
+            Les précommandes sont une vitrine partenaire. Les achats se font uniquement sur le site du fabricant.
+        </div>
+    </div>
+</div>
+
 <div id="securityModal" class="overlay">
     <div class="modal-content" style="max-width:800px;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -600,7 +614,7 @@
     const translations = {
         'FR': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANNEAU DE CONTROLE', 'nav_forum': 'FORUM', 'nav_account': 'MON COMPTE',
-            'nav_support': 'SUPPORT SPIRIT', 'nav_security': 'SÉCURITÉ', 'btn_reg': 'INSCRIPTION', 'btn_sell': 'VENDRE & CERTIFIER',
+            'nav_support': 'SUPPORT SPIRIT', 'nav_security': 'SÉCURITÉ', 'nav_preorders': 'PRÉCOMMANDES HOT TOYS', 'btn_reg': 'INSCRIPTION', 'btn_sell': 'VENDRE & CERTIFIER',
             'filter_title': 'FILTRES DE RECHERCHE', 'lbl_price_range': 'Tranche de Prix (€)', 'opt_all_prices': 'Tous les prix',
             'lbl_zone': "Zone d'expédition", 'opt_all_zones': 'Toutes les zones', 'lbl_brand': 'Marque', 'opt_all_brands': 'Toutes les marques',
             'lbl_cat': 'Échelle / Format', 'opt_all_formats': 'Tous les formats', 'lbl_cond': "État de l'objet", 'opt_all_conds': 'Tous les états',
@@ -627,6 +641,77 @@
         { id: 5, title: "Captain America Endgame", price: 280, type: 'native', country: 'France', cond: 'Bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Très bon état.", status: 'available', chat: [] },
         { id: 6, title: "Darth Vader OBW", price: 450, type: 'native', country: 'Europe', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Scellé.", status: 'available', chat: [] }
     ];
+
+    // --- PRÉCOMMANDES HOT TOYS (PARTENAIRE OFFICIEL) ---
+    // Vitrine indépendante du Marketplace (pas d'achat in-app)
+    const hotToysPreorders = [
+        {
+            id: 'HT-2026-001',
+            title: 'NOUVEAUTÉ HOT TOYS - ÉDITION 2026',
+            priceLabel: 'PRÉCOMMANDE',
+            image_url: null,
+            manufacturer_url: 'https://www.hottoys.com.hk/'
+        },
+        {
+            id: 'HT-2026-002',
+            title: 'HOT TOYS - EXCLUSIVITÉ PARTENAIRE',
+            priceLabel: 'PRÉCOMMANDE',
+            image_url: null,
+            manufacturer_url: 'https://www.hottoys.com.hk/'
+        },
+        {
+            id: 'HT-2026-003',
+            title: 'HOT TOYS - SÉRIE LIMITÉE (ANNONCE)',
+            priceLabel: 'Bientôt',
+            image_url: null,
+            manufacturer_url: 'https://www.hottoys.com.hk/'
+        }
+    ];
+
+    function openManufacturer(url) {
+        if (!url) return;
+        try { window.open(String(url), '_blank', 'noopener,noreferrer'); } catch (e) {}
+    }
+
+    function renderHotToysPreorders() {
+        const grid = document.getElementById('preordersGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        const items = Array.isArray(hotToysPreorders) ? hotToysPreorders : [];
+        if (items.length === 0) {
+            grid.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#444;'>AUCUNE PRÉCOMMANDE DISPONIBLE</div>";
+            return;
+        }
+
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const displayImg = item.image_url;
+            const imgContent = displayImg
+                ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">`
+                : `<div style="color:#333; font-size:10px; text-align:center; padding:10px;">VISUEL OFFICIEL À VENIR</div>`;
+
+            card.innerHTML = `
+                <div class="badge native">HOT TOYS</div>
+                <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
+                <div class="card-info">
+                    <div class="price" style="color:var(--neon-orange);">${item.priceLabel || 'PRÉCOMMANDE'}</div>
+                    <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title || 'NOUVEAUTÉ HOT TOYS'}</div>
+                    <div class="legende"><span>Partenaire</span><span>Officiel</span></div>
+                    <button class="btn-action" style="width:100%; margin-top:10px; background:#111; border:1px solid var(--neon-orange); color:var(--neon-orange);" onclick="openManufacturer('${String(item.manufacturer_url || '').replace(/'/g, '&#39;')}')">
+                        VOIR CHEZ LE FABRICANT
+                    </button>
+                </div>
+            `;
+
+            grid.appendChild(card);
+        });
+    }
+
+    window.renderHotToysPreorders = renderHotToysPreorders;
+    window.openManufacturer = openManufacturer;
 
     let currentMethod = '';
     let previewPhotos = [null, null, null, null, null];
@@ -1538,6 +1623,7 @@ async function confirmPayment(method) {
             'forumModal',
             'accountModal',
             'securityModal',
+            'preordersModal',
             'supportModal',
             'registerModal',
             'productModal',
@@ -1605,6 +1691,13 @@ async function confirmPayment(method) {
                 if (sec) sec.style.display = 'flex';
                 break;
 
+            case 'preorders':
+                setActiveNav('nav-preorders');
+                const pre = document.getElementById('preordersModal');
+                if (pre) pre.style.display = 'flex';
+                try { if (typeof renderHotToysPreorders === 'function') renderHotToysPreorders(); } catch (e) {}
+                break;
+
             case 'support':
                 setActiveNav('nav-sav');
                 const sup = document.getElementById('supportModal');
@@ -1632,6 +1725,7 @@ async function confirmPayment(method) {
     window.showForum = function () { navigateTo('forum'); };
     window.showMonCompte = function () { navigateTo('account'); };
     window.showSecurite = function () { navigateTo('security'); };
+    window.showPrecommandesHotToys = function () { navigateTo('preorders'); };
     window.showSupport = function () { navigateTo('support'); };
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
