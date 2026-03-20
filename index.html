@@ -2552,30 +2552,27 @@ document.addEventListener('DOMContentLoaded', () => {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 // Fonction de navigation corrigée pour le Panneau de Contrôle
 
-function showSection(sectionId) {
-    // 1. On cache toutes les sections d'abord
-    const sections = ['marketplace-section', 'dashboard-section', 'sales-section', 'purchases-section', 'wallet-section'];
-    sections.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
+// (c) 2026 Spirit Infinity - Tous droits réservés
+// Correction de l'erreur ReferenceError du Panneau de Contrôle
 
-    // 2. On affiche la section demandée
-    const target = document.getElementById(sectionId);
-    if (target) {
-        target.style.display = 'block';
-        console.log("Spirit Infinity : Affichage de la section " + sectionId);
+function showDashboard() {
+    // 1. On récupère les éléments par leur ID réel
+    const dashboard = document.getElementById('dashboard-section');
+    const marketplace = document.getElementById('marketplace-section');
+
+    // 2. Vérification de sécurité (pour ne pas faire planter le code)
+    if (dashboard && marketplace) {
+        // On cache le marché, on affiche le panneau
+        marketplace.style.display = 'none';
+        dashboard.style.display = 'block';
+        console.log("Spirit Infinity : Panneau de Contrôle Activé");
     } else {
-        console.error("Erreur : Section " + sectionId + " introuvable.");
+        console.error("Erreur : Les IDs 'dashboard-section' ou 'marketplace-section' sont introuvables dans le HTML.");
     }
 }
 
-// 3. Liaison des boutons du menu
-document.getElementById('menu-marketplace').addEventListener('click', () => showSection('marketplace-section'));
-document.getElementById('menu-dashboard').addEventListener('click', () => showSection('dashboard-section'));
-document.getElementById('menu-sales').addEventListener('click', () => showSection('sales-section'));
-document.getElementById('menu-purchases').addEventListener('click', () => showSection('purchases-section'));
-document.getElementById('menu-wallet').addEventListener('click', () => showSection('wallet-section'));
+// 3. On lie le bouton "PANNEAU DE CONTRÔLE" (menu-dashboard) à cette fonction
+document.getElementById('menu-dashboard').addEventListener('click', showDashboard);
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
