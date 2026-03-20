@@ -2550,30 +2550,24 @@ document.addEventListener('DOMContentLoaded', () => {
     try { renderMarket(); } catch (e) {}
 });
 // (c) 2026 Spirit Infinity - Tous droits réservés
-// Fonction de navigation corrigée pour le Panneau de Contrôle
 
-// (c) 2026 Spirit Infinity - Tous droits réservés
-// Correction de l'erreur ReferenceError du Panneau de Contrôle
-
-function showDashboard() {
-    // 1. On récupère les éléments par leur ID réel
-    const dashboard = document.getElementById('dashboard-section');
-    const marketplace = document.getElementById('marketplace-section');
-
-    // 2. Vérification de sécurité (pour ne pas faire planter le code)
-    if (dashboard && marketplace) {
-        // On cache le marché, on affiche le panneau
-        marketplace.style.display = 'none';
-        dashboard.style.display = 'block';
-        console.log("Spirit Infinity : Panneau de Contrôle Activé");
+function showLedgerModal() {
+    console.log("[SPIRIT] Ouverture du Panneau de Contrôle Hardware...");
+    const modal = document.getElementById('ledgerModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Simulation des données temps réel de la puce (Santé, Batterie, Néons)
+        console.log("[SPIRIT] Statut : Connecté au Réseau Spirit");
     } else {
-        console.error("Erreur : Les IDs 'dashboard-section' ou 'marketplace-section' sont introuvables dans le HTML.");
+        console.error("[SPIRIT ERROR] La modale ledgerModal est introuvable dans le HTML.");
     }
 }
 
-// 3. On lie le bouton "PANNEAU DE CONTRÔLE" (menu-dashboard) à cette fonction
-document.getElementById('menu-dashboard').addEventListener('click', showDashboard);
-
+function closeModals() {
+    const modals = document.querySelectorAll('.overlay');
+    modals.forEach(m => m.style.display = 'none');
+    console.log("[SPIRIT] Fermeture des modales.");
+}
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function transferToSale() {
