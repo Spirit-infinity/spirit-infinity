@@ -2550,24 +2550,33 @@ document.addEventListener('DOMContentLoaded', () => {
     try { renderMarket(); } catch (e) {}
 });
 // (c) 2026 Spirit Infinity - Tous droits réservés
+// Fonction de navigation corrigée pour le Panneau de Contrôle
 
-function showLedgerModal() {
-    console.log("[SPIRIT] Ouverture du Panneau de Contrôle Hardware...");
-    const modal = document.getElementById('ledgerModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        // Simulation des données temps réel de la puce (Santé, Batterie, Néons)
-        console.log("[SPIRIT] Statut : Connecté au Réseau Spirit");
+function showSection(sectionId) {
+    // 1. On cache toutes les sections d'abord
+    const sections = ['marketplace-section', 'dashboard-section', 'sales-section', 'purchases-section', 'wallet-section'];
+    sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+
+    // 2. On affiche la section demandée
+    const target = document.getElementById(sectionId);
+    if (target) {
+        target.style.display = 'block';
+        console.log("Spirit Infinity : Affichage de la section " + sectionId);
     } else {
-        console.error("[SPIRIT ERROR] La modale ledgerModal est introuvable dans le HTML.");
+        console.error("Erreur : Section " + sectionId + " introuvable.");
     }
 }
 
-function closeModals() {
-    const modals = document.querySelectorAll('.overlay');
-    modals.forEach(m => m.style.display = 'none');
-    console.log("[SPIRIT] Fermeture des modales.");
-}
+// 3. Liaison des boutons du menu
+document.getElementById('menu-marketplace').addEventListener('click', () => showSection('marketplace-section'));
+document.getElementById('menu-dashboard').addEventListener('click', () => showSection('dashboard-section'));
+document.getElementById('menu-sales').addEventListener('click', () => showSection('sales-section'));
+document.getElementById('menu-purchases').addEventListener('click', () => showSection('purchases-section'));
+document.getElementById('menu-wallet').addEventListener('click', () => showSection('wallet-section'));
+
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function transferToSale() {
