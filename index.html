@@ -119,7 +119,32 @@
             position: relative;
         }
         input, select, textarea { width: 100%; background: #111; border: 1px solid #333; color: white; padding: 12px; margin: 10px 0; border-radius: 4px; box-sizing: border-box; }
-        /* DASHBOARD XL STYLE */
+        /* DASHBOARD XL STYLE — scroll compte (Mes Ventes / listes) */
+        #accountModal .modal-content {
+            max-height: 100vh;
+            overflow: hidden;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        #accountModal .dash-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+            min-height: 0;
+            max-height: calc(100vh - 88px);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        #accountModal .dash-content {
+            min-height: 0;
+            max-height: calc(100vh - 88px);
+            overflow-y: auto;
+        }
+        #tab-ventes #my-sales-list {
+            max-height: min(50vh, 420px);
+            overflow-y: auto;
+        }
         .dash-container { display: grid; grid-template-columns: 250px 1fr; gap: 30px; min-height: 70vh; }
         .dash-nav { border-right: 1px solid #222; padding-right: 20px; }
         .dash-nav button { width: 100%; text-align: left; padding: 15px; background: none; border: 1px solid transparent; color: #777; cursor: pointer; margin-bottom: 10px; transition: 0.3s; font-weight: bold; }
@@ -944,6 +969,14 @@ async function loadUserPurchases() {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
+/** owner_id Supabase / local : évite "undefined" / "null" en string pour filtre invité & cartes */
+function spiritOwnerId(v) {
+    if (v == null || v === '') return '';
+    const s = String(v).trim();
+    if (s === 'undefined' || s === 'null') return '';
+    return s;
+}
+
 function renderMarket(filteredData = null) {
 
         const gn = document.getElementById('marketGridNative');
@@ -967,7 +1000,9 @@ function renderMarket(filteredData = null) {
         // AJOUT : Vérification si les données sont bien chargées depuis Supabase
         if (!dataToRender || dataToRender.length === 0) {
             console.warn("[SPIRIT MARKET] Aucune donnée à afficher dans le flux.");
-            gn.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:50px; color:#444;">SYNCHRONISATION DU FLUX SPIRIT...</div>';
+            const emptyMsg = '<div style="grid-column: 1/-1; text-align:center; padding:50px; color:#888;">Aucune annonce</div>';
+            gn.innerHTML = emptyMsg;
+            gl.innerHTML = emptyMsg;
             return;
         }
 
@@ -975,8 +1010,9 @@ function renderMarket(filteredData = null) {
             const card = document.createElement('div');
             
             // CORRECTION : Mapping strict avec tes colonnes Supabase 'status' (available / sold)
-            const isSold = String(item.status).toLowerCase() === 'sold';
-            const isAvailable = String(item.status).toLowerCase() === 'available';
+            const st = item.status != null && String(item.status).trim() !== '' ? String(item.status).toLowerCase() : 'available';
+            const isSold = st === 'sold';
+            const isAvailable = st === 'available' || st === 'en_ligne' || st === 'live';
             
             card.className = 'card' + (isSold ? ' sold' : '');
             card.onclick = () => openProduct(item);
@@ -988,9 +1024,11 @@ function renderMarket(filteredData = null) {
             
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
             
-            // STRICT mapping figurines (catalogue live)
+            // STRICT mapping products_lives (catalogue)
             const displayImg = item.image_url;
-            const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `<div style="color:#333; font-size:10px;">PHOTO ${item.title}</div>`;
+            const safeTitle = (item.title || item.name || 'Annonce').trim() || 'Annonce';
+            const safePrice = (item.price != null && item.price !== '') ? item.price : '—';
+            const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `<div style="color:#333; font-size:10px;">PHOTO ${safeTitle}</div>`;
             
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
             const displayCountry = item.country || "France";
@@ -998,7 +1036,8 @@ function renderMarket(filteredData = null) {
 
             // AJOUT / CORRECTION : owner_id est stocké en texte (Image 2). 
             // AJOUT : .trim() pour éviter les échecs de comparaison dus à des espaces invisibles.
-            const isMine = String(item.owner_id).trim() === String(MY_TEST_ID).trim();
+            const oid = spiritOwnerId(item.owner_id);
+            const isMine = oid !== '' && oid === String(MY_TEST_ID).trim();
             const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.5); color:#0f0; font-size:10px; padding:2px 6px; border:1px solid #0f0; border-radius:2px; z-index:10; font-weight:bold;">MES ANNONCES</div>` : '';
 
             card.innerHTML = `
@@ -1007,8 +1046,8 @@ function renderMarket(filteredData = null) {
                 <div class="badge ${badgeClass}">${badgeText}</div>
                 <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
                 <div class="card-info">
-                    <div class="price">${item.price} €</div>
-                    <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title || "SANS TITRE"}</div>
+                    <div class="price">${safePrice} €</div>
+                    <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
                     <div style="font-size:0.6rem; color:#555; font-family:monospace; margin-top:6px;">SPIRIT-ID: ${item.uuid || "---"}</div>
                     <div class="legende"><span>${displayCountry}</span><span>${displayDiag}</span></div>
                 </div>
@@ -1054,28 +1093,28 @@ async function loadMySales() {
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">LECTURE DU LEDGER SPIRIT...</div>';
 
     try {
-        // STABILISATION : On force la récupération de la valeur globale la plus récente
-        // et on s'assure qu'elle est traitée comme du texte pur pour Supabase
+        if (!_spirit) {
+            listBody.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">Supabase indisponible.</div>';
+            return;
+        }
         const currentID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
         
         console.log("[SPIRIT LEDGER] Synchronisation des Ventes pour l'ID :", currentID);
 
-        // CORRECTION : Sélection élargie pour inclure les colonnes de photos nécessaires aux litiges
         const { data, error } = await _spirit
             .from('transactions')
             .select('*')
-            .eq('seller_id', currentID) 
-            // .order('created_at', { ascending: false });
+            .eq('seller_id', currentID);
 
         if (error) throw error;
 
-        // AJOUT : Log de confirmation visuelle dans la console
-        console.log(`[SPIRIT LEDGER] ${data.length} vente(s) trouvée(s) pour ${currentID}`);
+        const rows = Array.isArray(data) ? data : [];
+        console.log(`[SPIRIT LEDGER] ${rows.length} vente(s) trouvée(s) pour ${currentID}`);
 
         listBody.innerHTML = ''; 
 
-        if (data && data.length > 0) {
-            data.forEach(tr => {
+        if (rows.length > 0) {
+            rows.forEach(tr => {
                 const saleDiv = document.createElement('div');
                 // AJOUT : Design Industrial Dark avec bordure néon orange
                 saleDiv.style = "border: 1px solid var(--neon-orange); padding: 15px; margin-bottom: 15px; background: rgba(0,0,0,0.9); border-radius: 4px; box-shadow: 0 4px 15px rgba(255,102,0,0.1);";
@@ -1092,7 +1131,7 @@ async function loadMySales() {
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                 <div>
                                     <small style="color: #666; font-family: monospace;">LEDGER-ID: ${tr.id}</small>
-                                    <h3 style="margin: 2px 0; color: white; text-transform: uppercase; letter-spacing:1px; font-size:0.9rem;">${tr.figurine_name || 'OBJET SPIRIT'}</h3>
+                                    <h3 style="margin: 2px 0; color: white; text-transform: uppercase; letter-spacing:1px; font-size:0.9rem;">${(tr.figurine_name || tr.listing_title || tr.title || 'OBJET SPIRIT')}</h3>
                                     <p style="margin: 0; color: var(--spirit-green); font-weight: bold; font-size:1.1rem;">${tr.amount} €</p>
                                 </div>
                                 <div style="text-align:right;">
@@ -1315,7 +1354,7 @@ async function saveSpiritAudit(title, detected, score, status, detailNote) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 /**
- * Poster une annonce : figurines + ledger_items uniquement (pas de transactions).
+ * Poster une annonce : products_lives + spirit_ledger + ledger_items (pas de transactions).
  */
 async function publierAnnonce() {
     const title = document.getElementById('inputTitle').value;
@@ -1349,8 +1388,18 @@ async function publierAnnonce() {
             return;
         }
 
-        const { error } = await _spirit.from('figurines').insert([newItem]);
+        const { error } = await _spirit.from('products_lives').insert([newItem]);
         if (error) throw error;
+
+        const ledgerRow = {
+            listing_title: title,
+            detected_object: 'PUBLISH_LIVE',
+            ia_score: scoreIA || 0,
+            status: 'CERTIFIED_LIVE',
+            seller_name: typeof currentUser !== 'undefined' ? currentUser : 'Spirit'
+        };
+        const { error: slErr } = await _spirit.from('spirit_ledger').insert([ledgerRow]);
+        if (slErr) console.warn('[SPIRIT] spirit_ledger (annonce):', slErr.message);
 
         const macID = typeof currentMacAddress !== 'undefined' ? currentMacAddress : "XX:XX:XX:XX:XX:XX";
         const liRow = {
@@ -1392,9 +1441,9 @@ function updateUserAnnonces() {
     
     // CORRECTION : Filtrer par owner_id (Supabase) pour correspondre à ton ID utilisateur actuel
     const myAnnonces = marketData.filter(m => {
-        // AJOUT : Comparaison stricte en String pour owner_id et support de l'ancien format owner
-        const isOwner = (String(m.owner_id).trim() === currentUserID || m.owner === currentUser);
-        // CORRECTION : On affiche les annonces 'available' mais aussi 'sold' pour que l'utilisateur voit son historique
+        const oid = spiritOwnerId(m.owner_id);
+        const isOwner = (oid === currentUserID) ||
+            (currentUser && String(m.owner || '').trim() === String(currentUser).trim());
         return isOwner;
     });
     
@@ -1422,7 +1471,7 @@ function updateUserAnnonces() {
                 <div style="flex:1;">
                     <div style="font-weight:bold; color:white; text-transform:uppercase; font-size:0.85rem;">${a.title || a.name || "SANS TITRE"}</div>
                     <div style="display:flex; align-items:center; gap:10px; margin-top:2px;">
-                        <span style="font-weight:bold; color:var(--neon-orange);">${a.price} €</span>
+                        <span style="font-weight:bold; color:var(--neon-orange);">${(a.price != null && a.price !== '') ? a.price : '—'} €</span>
                         ${statusBadge}
                     </div>
                 </div>
@@ -1470,9 +1519,9 @@ async function deleteAnnonce(id) {
         try {
             console.log("[SPIRIT LEDGER] Suppression en cours de l'ID:", id);
             
-            // On supprime d'abord sur Supabase (table figurines)
+            // On supprime d'abord sur Supabase (table products_lives)
             const { error } = await _spirit
-                .from('figurines')
+                .from('products_lives')
                 .delete()
                 .eq('id', id);
 
@@ -1542,7 +1591,7 @@ function addToMySales(product, carrierName) {
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 /**
- * Paiement validé : insert transactions (split 3% / 3% / 2%) + maj figurines vendu.
+ * Paiement validé : insert transactions (split 3% / 3% / 2%) + maj products_lives vendu.
  */
 async function enregistrerVente(method) {
 
@@ -1572,7 +1621,7 @@ async function enregistrerVente(method) {
                 firm_profit: fProfit, 
                 bank_share: bShare, 
                 status: 'SÉQUESTRE ACTIF', 
-                figurine_name: selectedProduct.title,
+                figurine_name: selectedProduct.title || selectedProduct.name || 'Produit',
                 currency: 'EUR',
             }]);
 
@@ -1581,14 +1630,14 @@ async function enregistrerVente(method) {
         let figSoldErr = null;
         const hasFigId = selectedProduct.id != null && String(selectedProduct.id).trim() !== '';
         if (hasFigId) {
-            const r1 = await _spirit.from('figurines').update({ status: 'sold' }).eq('id', selectedProduct.id);
+            const r1 = await _spirit.from('products_lives').update({ status: 'sold' }).eq('id', selectedProduct.id);
             figSoldErr = r1.error;
         }
         if (!hasFigId || figSoldErr) {
-            const r2 = await _spirit.from('figurines').update({ status: 'sold' }).eq('title', selectedProduct.title);
+            const r2 = await _spirit.from('products_lives').update({ status: 'sold' }).eq('title', selectedProduct.title);
             figSoldErr = r2.error;
         }
-        if (figSoldErr) console.warn('[SPIRIT] figurines (statut vendu):', figSoldErr.message);
+        if (figSoldErr) console.warn('[SPIRIT] products_lives (statut vendu):', figSoldErr.message);
 
         const buyRep = {
             ia_score: Math.round(Number(selectedProduct.ia_score)) || 0,
@@ -1705,6 +1754,7 @@ async function confirmPayment(method) {
         chooseMethod('hot_native');
         document.getElementById('diag-link').style.display = 'block';
     }
+    try { window.transferToSale = transferToSale; } catch (e) {}
 
     function handleRegister() {
         const u = document.getElementById('regUser').value;
@@ -1768,13 +1818,6 @@ async function confirmPayment(method) {
         document.getElementById('sumCarrierName').innerText = carrierName;
         document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
         document.getElementById('sumTotal').innerText = (selectedProduct.price + shipCost + prot).toFixed(2) + " €";
-    }
-
-    function closeModals() {
-        document.querySelectorAll('.overlay').forEach(function (o) {
-            o.style.setProperty('display', 'none', 'important');
-        });
-        hideTopicEditor();
     }
 
     // --- NAVIGATION SPIRIT : 1 MENU = 1 SECTION (sans reload) ---
@@ -1843,8 +1886,7 @@ async function confirmPayment(method) {
                 try { if (typeof loadMySales === 'function') loadMySales(); } catch (e) {}
                 const account = document.getElementById('accountModal');
                 if (account) account.style.setProperty('display', 'flex', 'important');
-                // On conserve ton choix actuel par défaut: achats
-                try { if (typeof showAccountTab === 'function') showAccountTab('achats'); } catch (e) {}
+                try { if (typeof showAccountTab === 'function') showAccountTab('dashboard'); } catch (e) {}
                 break;
 
             case 'security':
@@ -1918,7 +1960,7 @@ async function confirmPayment(method) {
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
-function showAccountTab(tab) {
+window.showAccountTab = function showAccountTab(tab) {
    
     // AJOUT : Sécurité ID avant chargement
     if (typeof MY_TEST_ID !== 'undefined') {
@@ -1971,9 +2013,11 @@ function showAccountTab(tab) {
         }
     }
 
-    // AJOUT : Support pour l'onglet Dashboard/Paramètres si nécessaire
-    if (tab === 'dashboard' || tab === 'parametres') {
-        console.log("[SPIRIT SYSTEM] Accès zone :", tab);
+    if (tab === 'dashboard') {
+        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+    }
+    if (tab === 'params') {
+        console.log("[SPIRIT SYSTEM] Accès paramètres");
     }
 
 
@@ -2028,8 +2072,8 @@ function switchUser(newId, label) {
         updateUserAnnonces(); 
     }
     
-    // AJOUT : Relance le rendu du Marketplace pour mettre à jour les badges "Propriétaire" si nécessaire
     if (typeof renderMarket === 'function') renderMarket();
+    try { if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase(); } catch (e) {}
 
     console.log("[SPIRIT LEDGER] Synchronisation terminée pour " + label);
 }
@@ -2540,11 +2584,11 @@ async function fetchMarketplaceFromSupabase() {
     if (gridNative || gridLegacy) console.log("[SPIRIT MARKET] Grilles Marketplace détectées (Native/Legacy).");
     
     try {
-        // STRICT: catalogue live = table figurines ; tri = id (created_at n'existe pas)
+        // STRICT: catalogue live = table products_lives ; tri = id (created_at n'existe pas)
         let data, error;
         try {
             const res = await _spirit
-                .from('figurines')
+                .from('products_lives')
                 .select('id, uuid, title, price, currency, image_url, status, ia_score, description, owner_id, is_native')
                 .order('id', { ascending: false });
             data = res.data;
@@ -2557,10 +2601,10 @@ async function fetchMarketplaceFromSupabase() {
 
         // AJOUT : Vérification de sécurité pour ne pas écraser si vide
         if (!data || data.length === 0) {
-            console.warn("[SPIRIT MARKET] Aucune annonce trouvée dans figurines");
-            // AJOUT : Feedback visuel si la base est vide
-            if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#444;'>AUCUNE ANNONCE (NATIVE)</div>";
-            if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#444;'>AUCUNE ANNONCE (LEGACY)</div>";
+            console.warn("[SPIRIT MARKET] Aucune annonce dans products_lives");
+            marketData = [];
+            if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
+            if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
             try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
             return;
         }
@@ -2673,47 +2717,11 @@ function closeModals() {
     document.querySelectorAll('.overlay').forEach(function (m) {
         m.style.setProperty('display', 'none', 'important');
     });
+    try { if (typeof hideTopicEditor === 'function') hideTopicEditor(); } catch (e) {}
     console.log("[SPIRIT] Fermeture des modales.");
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
-
-async function transferToSale() {
-    console.log("[SPIRIT LEDGER] Certification de l'item Hardware...");
-
-    if (!_spirit) {
-        alert("ERREUR : Supabase indisponible.");
-        return;
-    }
-
-    // On récupère l'adresse MAC (doit être définie dans ton code)
-    const macID = typeof currentMacAddress !== 'undefined' ? currentMacAddress : "XX:XX:XX:XX:XX:XX"; 
-
-    // Préparation des données pour les colonnes : battery_health, last_seen, is_certified, needs_pulse_alert
-    const hardwareUpdate = {
-        is_certified: true,
-        battery_health: (typeof batteryLevelPercent === 'number' ? Math.round(batteryLevelPercent) : (parseInt(document.getElementById('ctrl-batt').innerText, 10) || 0)),
-        last_seen: new Date().toISOString(),
-        needs_pulse_alert: false 
-    };
-
-    try {
-        const { data, error } = await _spirit
-            .from('ledger_items')
-            .update(hardwareUpdate)
-            .eq('mac_address', macID);
-
-        if (error) throw error;
-
-        alert("TRANSFERT RÉUSSI\nL'item " + macID + " est certifié sur le Ledger.");
-        
-        closeModals();
-
-    } catch (err) {
-        console.error("[SPIRIT ERROR] Échec Supabase Ledger :", err);
-        alert("ERREUR : Liaison avec ledger_items impossible.");
-    }
-}
-
+/* Panneau : transferToSale() → certif modal uniquement ; succès annonce = publierAnnonce() après validation */
 
 </script>
 
