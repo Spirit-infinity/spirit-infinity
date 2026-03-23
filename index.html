@@ -1360,15 +1360,29 @@ async function publierAnnonce() {
     const price = parseFloat(document.getElementById('inputPrice').value);
     const desc = document.getElementById('inputDesc').value;
     const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore, 10) || 0;
+    const category = document.getElementById('saleCat') ? document.getElementById('saleCat').value : '';
+    const shipSize = document.getElementById('saleShip') ? document.getElementById('saleShip').value : 'Moyen';
+    const fromHardwarePanneau = (typeof currentMethod !== 'undefined' && currentMethod === 'hot_native');
+    const uuidVal = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+        ? crypto.randomUUID()
+        : ('SPIRIT-' + Date.now());
 
     const photoUrl = (typeof previewPhotos !== 'undefined' && previewPhotos.length > 0) ? previewPhotos[0] : null;
 
     const newItem = {
+        uuid: uuidVal,
         title: title,
         price: price,
         description: desc,
+        ia_score: scoreIA || 0,
         owner_id: String(MY_TEST_ID),
-        image_url: photoUrl
+        image_url: photoUrl,
+        category: category || 'Collection',
+        brand: 'Spirit Infinity',
+        ship_size: shipSize,
+        status: 'available',
+        currency: 'EUR',
+        is_native: fromHardwarePanneau
     };
 
     try {
@@ -1403,9 +1417,13 @@ async function publierAnnonce() {
 
         alert("ANNONCE PUBLIÉE !");
 
-        try { await fetchMarketplaceFromSupabase(); } catch (e) {}
-        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
         try { closeModals(); } catch (e) {}
+        try { await fetchMarketplaceFromSupabase(); } catch (e) {}
+        try {
+            if (typeof navigateTo === 'function') navigateTo('market');
+            else if (typeof window.navigateTo === 'function') window.navigateTo('market');
+        } catch (e) {}
+        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
 
     } catch (err) {
         alert("ERREUR : " + err.message + " (Appuie sur CTRL+F5)");
