@@ -1447,9 +1447,21 @@ async function updateUserAnnonces() {
     let myAnnonces = [];
     if (_spirit) {
         try {
-            const res = await _spirit.from('products_live').select('*').eq('owner_id', currentUserID);
-            if (!res.error && Array.isArray(res.data)) myAnnonces = res.data;
-        } catch (e) { console.warn('[SPIRIT] updateUserAnnonces products_live:', e); }
+            const { data, error } = await _spirit.from('products_live').select('*');
+            if (error) {
+                console.error('[SPIRIT] Mes annonces products_live erreur exacte:', error.message || String(error),
+                    error.code != null ? ('code=' + error.code) : '',
+                    error.details != null ? ('details=' + error.details) : '',
+                    error.hint != null ? ('hint=' + error.hint) : '',
+                    error);
+            } else if (Array.isArray(data)) {
+                myAnnonces = data.filter(m => {
+                    const oid = spiritOwnerId(m.owner_id);
+                    return oid === currentUserID ||
+                        (currentUser && String(m.owner || '').trim() === String(currentUser).trim());
+                });
+            }
+        } catch (e) { console.error('[SPIRIT] updateUserAnnonces products_live exception:', e && e.message ? e.message : e, e); }
     }
     if (myAnnonces.length === 0) {
         myAnnonces = marketData.filter(m => {
@@ -2595,56 +2607,64 @@ async function fetchMarketplaceFromSupabase() {
     const gridLegacy = document.getElementById('marketGridLegacy');
     if (gridNative || gridLegacy) console.log("[SPIRIT MARKET] Grilles Marketplace détectées (Native/Legacy).");
     
+    if (!_spirit) {
+        marketData = [];
+        if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
+        if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
+        return;
+    }
+
+    let data = null;
+    let reqError = null;
     try {
-        if (!_spirit) {
-            marketData = [];
-            if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
-            if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
-            return;
-        }
-        let data, error;
-        try {
-            ({ data, error } = await _spirit.from('products_live').select('*').order('id', { ascending: false }));
-        } catch (e) {
-            error = e;
-        }
+        const out = await _spirit.from('products_live').select('*');
+        data = out.data;
+        reqError = out.error;
+    } catch (e) {
+        reqError = e;
+        console.error('[SPIRIT MARKET] products_live exception:', e && e.message ? e.message : e, e);
+    }
 
-        if (error) throw error;
-
-        if (!data || data.length === 0) {
-            console.warn("[SPIRIT MARKET] Aucune annonce dans products_live");
-            marketData = [];
-            if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
-            if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
-            try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
-            return;
-        }
-
-        marketData = data; 
-        console.log("[SPIRIT MARKET] Flux synchronisé :", marketData.length, "annonces.");
-        
-        // AJOUT : Logique de forçage du rendu (Mapping des données)
-        if (Array.isArray(marketData)) {
-             console.log("[SPIRIT DEBUG] Préparation du rendu pour ID actuel:", window.MY_TEST_ID || MY_TEST_ID);
-        }
-
-        // DÉCLENCHEUR : On relance le rendu visuel
+    if (reqError) {
+        console.error('[SPIRIT MARKET] products_live erreur exacte:', reqError.message || String(reqError),
+            reqError.code != null ? ('code=' + reqError.code) : '',
+            reqError.details != null ? ('details=' + reqError.details) : '',
+            reqError.hint != null ? ('hint=' + reqError.hint) : '',
+            reqError);
+        if (!Array.isArray(marketData)) marketData = [];
         if (typeof renderMarket === 'function') {
-            // AJOUT : On vide le conteneur avant de rendre pour éviter les doublons ou les anciens affichages
             if (gridNative) gridNative.innerHTML = '';
             if (gridLegacy) gridLegacy.innerHTML = '';
-            renderMarket();
-            console.log("[SPIRIT MARKET] Rendu visuel terminé à 110%.");
+            try { renderMarket(); } catch (e) { console.error('[SPIRIT MARKET] renderMarket:', e); }
         }
-        
-        // Mes annonces (onglet compte) s'appuie sur marketData
         try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
-
-    } catch (err) {
-        console.error("[SPIRIT ERROR] Échec du flux Marketplace (products_live) :", err);
-        if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:red;'>ERREUR DE LIAISON LEDGER</div>";
-        if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:red;'>ERREUR DE LIAISON LEDGER</div>";
+        return;
     }
+
+    if (!data || data.length === 0) {
+        console.warn("[SPIRIT MARKET] Aucune annonce dans products_live");
+        marketData = [];
+        if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
+        if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
+        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+        return;
+    }
+
+    marketData = data;
+    console.log("[SPIRIT MARKET] Flux synchronisé :", marketData.length, "annonces.");
+
+    if (Array.isArray(marketData)) {
+         console.log("[SPIRIT DEBUG] Préparation du rendu pour ID actuel:", window.MY_TEST_ID || MY_TEST_ID);
+    }
+
+    if (typeof renderMarket === 'function') {
+        if (gridNative) gridNative.innerHTML = '';
+        if (gridLegacy) gridLegacy.innerHTML = '';
+        try { renderMarket(); } catch (e) { console.error('[SPIRIT MARKET] renderMarket:', e); }
+        console.log("[SPIRIT MARKET] Rendu visuel terminé à 110%.");
+    }
+
+    try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
 }
 
 async function fetchAnnonces() {
