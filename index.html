@@ -2604,10 +2604,7 @@ async function fetchMarketplaceFromSupabase() {
         }
         let data, error;
         try {
-            const res = await _spirit
-                .from('products_live')
-                .select('id, uuid, title, price, currency, image_url, status, ia_score, description, owner_id, is_native, is_spirit_hardware')
-                .order('id', { ascending: false });
+            const res = await _spirit.from('products_live').select('*').order('id', { ascending: false });
             data = res.data;
             error = res.error;
         } catch (e) {
