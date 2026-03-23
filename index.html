@@ -1447,7 +1447,7 @@ async function updateUserAnnonces() {
     let myAnnonces = [];
     if (_spirit) {
         try {
-            const { data, error } = await _spirit.from('products_live').select('*').order('created_at', { ascending: false });
+            const { data, error } = await _spirit.from('products_live').select('*');
             if (error) {
                 console.error('[SPIRIT] Mes annonces products_live erreur exacte:', error.message || String(error),
                     error.code != null ? ('code=' + error.code) : '',
@@ -2617,7 +2617,7 @@ async function fetchMarketplaceFromSupabase() {
     let data = null;
     let reqError = null;
     try {
-        const out = await _spirit.from('products_live').select('*').order('created_at', { ascending: false });
+        const out = await _spirit.from('products_live').select('*');
         data = out.data;
         reqError = out.error;
     } catch (e) {
