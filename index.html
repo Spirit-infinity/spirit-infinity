@@ -1017,10 +1017,14 @@ function renderMarket(filteredData = null) {
             card.className = 'card' + (isSold ? ' sold' : '');
             card.onclick = () => openProduct(item);
             
-            // CORRECTION : is_native est un booléen (true/false) dans ta base Supabase
             const isNative = item.is_native === true || item.is_native === "true" || item.type === 'native';
-            const badgeClass = isNative ? 'native' : 'legacy';
-            const badgeText = isNative ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
+            const isSpiritHardware = item.is_spirit_hardware === true || item.is_spirit_hardware === 'true' || item.is_spirit_hardware === 1;
+            let useHardwareLedgerSection;
+            if (isSpiritHardware) useHardwareLedgerSection = true;
+            else if (item.is_spirit_hardware === false || item.is_spirit_hardware === 'false' || item.is_spirit_hardware === 0) useHardwareLedgerSection = false;
+            else useHardwareLedgerSection = isNative;
+            const badgeClass = useHardwareLedgerSection ? 'native' : 'legacy';
+            const badgeText = useHardwareLedgerSection ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
             
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
             
@@ -1032,7 +1036,7 @@ function renderMarket(filteredData = null) {
             
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
             const displayCountry = item.country || "France";
-            const displayDiag = isNative ? 'Hardware Ledger' : 'IA Scan';
+            const displayDiag = useHardwareLedgerSection ? 'Hardware Ledger' : 'IA Scan';
 
             // AJOUT / CORRECTION : owner_id est stocké en texte (Image 2). 
             // AJOUT : .trim() pour éviter les échecs de comparaison dus à des espaces invisibles.
@@ -1057,8 +1061,7 @@ function renderMarket(filteredData = null) {
 
             // 1. Affichage Global : On montre ce qui est 'available' OU ce qui m'appartient (pour voir mes ventes même finies)
             if (isAvailable || isMine) {
-                // CORRECTION CRITIQUE : Séparation stricte Native vs Legacy (sinon la grille Native absorbe tout).
-                if (isNative) {
+                if (useHardwareLedgerSection) {
                     gn.appendChild(card);
                 } else {
                     gl.appendChild(card);
@@ -1072,13 +1075,14 @@ function renderMarket(filteredData = null) {
             
             // AJOUT : Injection spécifique dans la grille Legacy si besoin (maintien de ta structure)
             // NOTE : La séparation Native/Legacy est déjà gérée ci-dessus. On bloque la duplication.
-            if(isNative === false && gl !== gn && isAvailable && false) {
+            if(useHardwareLedgerSection === false && gl !== gn && isAvailable && false) {
                  gl.appendChild(card.cloneNode(true));
             }
         });
         
         console.log(`[SPIRIT MARKET] Rendu de ${dataToRender.length} objets terminé.`);
 }
+var renderMarketplace = renderMarket;
 /**
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
@@ -1365,6 +1369,7 @@ async function publierAnnonce() {
     const category = document.getElementById('saleCat')?.value || "Collection";
     const shipSize = document.getElementById('saleShip')?.value || "Moyen";
     const photoUrl = (typeof previewPhotos !== 'undefined' && previewPhotos.length > 0) ? previewPhotos[0] : null;
+    const fromHardwarePanneau = (typeof currentMethod !== 'undefined' && currentMethod === 'hot_native');
 
     const newItem = {
         uuid: "SPIRIT-" + Date.now(),
@@ -1375,7 +1380,8 @@ async function publierAnnonce() {
         owner_id: String(MY_TEST_ID),
         status: "available", 
         currency: "EUR", 
-        is_native: true,
+        is_native: fromHardwarePanneau,
+        is_spirit_hardware: fromHardwarePanneau,
         category: category,
         ship_size: shipSize,
         image_url: photoUrl,
@@ -1431,21 +1437,28 @@ function publishFinal() {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 
-function updateUserAnnonces() {
+async function updateUserAnnonces() {
     const container = document.getElementById('user-annonces-list');
     if (!container) return;
     container.innerHTML = '';
     
-    // STABILISATION : On force l'ID actuel en texte pour éviter les échecs de filtrage
     const currentUserID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
     
-    // CORRECTION : Filtrer par owner_id (Supabase) pour correspondre à ton ID utilisateur actuel
-    const myAnnonces = marketData.filter(m => {
-        const oid = spiritOwnerId(m.owner_id);
-        const isOwner = (oid === currentUserID) ||
-            (currentUser && String(m.owner || '').trim() === String(currentUser).trim());
-        return isOwner;
-    });
+    let myAnnonces = [];
+    if (_spirit) {
+        try {
+            const res = await _spirit.from('products_live').select('*').eq('owner_id', currentUserID);
+            if (!res.error && Array.isArray(res.data)) myAnnonces = res.data;
+        } catch (e) { console.warn('[SPIRIT] updateUserAnnonces products_live:', e); }
+    }
+    if (myAnnonces.length === 0) {
+        myAnnonces = marketData.filter(m => {
+            const oid = spiritOwnerId(m.owner_id);
+            const isOwner = (oid === currentUserID) ||
+                (currentUser && String(m.owner || '').trim() === String(currentUser).trim());
+            return isOwner;
+        });
+    }
     
     if (myAnnonces.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE ANNONCE EN LIGNE (ID: ${currentUserID})</div>`;
@@ -1519,9 +1532,9 @@ async function deleteAnnonce(id) {
         try {
             console.log("[SPIRIT LEDGER] Suppression en cours de l'ID:", id);
             
-            // On supprime d'abord sur Supabase (table products_lives)
+            // On supprime d'abord sur Supabase (table products_live)
             const { error } = await _spirit
-                .from('products_lives')
+                .from('products_live')
                 .delete()
                 .eq('id', id);
 
@@ -1630,14 +1643,14 @@ async function enregistrerVente(method) {
         let figSoldErr = null;
         const hasFigId = selectedProduct.id != null && String(selectedProduct.id).trim() !== '';
         if (hasFigId) {
-            const r1 = await _spirit.from('products_lives').update({ status: 'sold' }).eq('id', selectedProduct.id);
+            const r1 = await _spirit.from('products_live').update({ status: 'sold' }).eq('id', selectedProduct.id);
             figSoldErr = r1.error;
         }
         if (!hasFigId || figSoldErr) {
-            const r2 = await _spirit.from('products_lives').update({ status: 'sold' }).eq('title', selectedProduct.title);
+            const r2 = await _spirit.from('products_live').update({ status: 'sold' }).eq('title', selectedProduct.title);
             figSoldErr = r2.error;
         }
-        if (figSoldErr) console.warn('[SPIRIT] products_lives (statut vendu):', figSoldErr.message);
+        if (figSoldErr) console.warn('[SPIRIT] products_live (statut vendu):', figSoldErr.message);
 
         const buyRep = {
             ia_score: Math.round(Number(selectedProduct.ia_score)) || 0,
@@ -2578,18 +2591,22 @@ window.generateSpiritLabel = async function(transactionId) {
 async function fetchMarketplaceFromSupabase() {
     console.log("[SPIRIT MARKET] Initialisation du flux Ledger...");
     
-    // AJOUT : On prépare l'interface à recevoir les nouvelles données
     const gridNative = document.getElementById('marketGridNative');
     const gridLegacy = document.getElementById('marketGridLegacy');
     if (gridNative || gridLegacy) console.log("[SPIRIT MARKET] Grilles Marketplace détectées (Native/Legacy).");
     
     try {
-        // STRICT: catalogue live = table products_lives ; tri = id (created_at n'existe pas)
+        if (!_spirit) {
+            marketData = [];
+            if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
+            if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
+            return;
+        }
         let data, error;
         try {
             const res = await _spirit
-                .from('products_lives')
-                .select('id, uuid, title, price, currency, image_url, status, ia_score, description, owner_id, is_native')
+                .from('products_live')
+                .select('id, uuid, title, price, currency, image_url, status, ia_score, description, owner_id, is_native, is_spirit_hardware')
                 .order('id', { ascending: false });
             data = res.data;
             error = res.error;
@@ -2599,9 +2616,8 @@ async function fetchMarketplaceFromSupabase() {
 
         if (error) throw error;
 
-        // AJOUT : Vérification de sécurité pour ne pas écraser si vide
         if (!data || data.length === 0) {
-            console.warn("[SPIRIT MARKET] Aucune annonce dans products_lives");
+            console.warn("[SPIRIT MARKET] Aucune annonce dans products_live");
             marketData = [];
             if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
             if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
@@ -2630,12 +2646,15 @@ async function fetchMarketplaceFromSupabase() {
         try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
 
     } catch (err) {
-        console.error("[SPIRIT ERROR] Échec du flux Marketplace :", err);
-        // AJOUT : Alerte visuelle en cas d'erreur de connexion
+        console.error("[SPIRIT ERROR] Échec du flux Marketplace (products_live) :", err);
         if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:red;'>ERREUR DE LIAISON LEDGER</div>";
         if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:red;'>ERREUR DE LIAISON LEDGER</div>";
     }
-}   
+}
+
+async function fetchAnnonces() {
+    return fetchMarketplaceFromSupabase();
+}
 
 // BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
 document.addEventListener('DOMContentLoaded', () => {
