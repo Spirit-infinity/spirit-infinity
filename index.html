@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
     <style>
+        #precommandes-hot-toys { display: none !important; min-height: 100vh; width: 100%; background: #050505 !important; position: fixed; inset: 0; overflow-y: auto; z-index: 9999; }
         :root {
             --bg-dark: #050505;
             --card-bg:rgb(26, 26, 24);
@@ -45,17 +46,17 @@
         .badge { position: absolute; top: 10px; left: 10px; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; }
         .native { background: var(--spirit-green); color: black; }
         .legacy { background: #0066ff; color: white; }
-        /* PRÉCOMMANDES HOT TOYS */
-        #precommandes-hot-toys {
+        /* PRÉCOMMANDES HOT TOYS (grille interne) */
+        #hot-toys-static-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 20px;
         }
         @media (max-width: 1100px) {
-            #precommandes-hot-toys { grid-template-columns: repeat(2, 1fr); }
+            #hot-toys-static-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 700px) {
-            #precommandes-hot-toys { grid-template-columns: 1fr; }
+            #hot-toys-static-grid { grid-template-columns: 1fr; }
         }
         .preorder-card {
             background: linear-gradient(180deg, #070707 0%, #000 100%);
@@ -105,7 +106,20 @@
         .badge-sold { background: var(--danger); color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); padding: 10px 20px; font-weight: 900; font-size: 1.2rem; border: 3px solid white; z-index: 20; text-transform: uppercase; pointer-events: none; }
         /* MODALS & OVERLAYS */
         .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 9000; overflow-y: auto; padding: 40px 5%; }
-        .modal-content { background: #0a0a0a; border: 1px solid var(--border); padding: 30px; max-width: 900px; margin: auto; position: relative; }
+        /* (c) 2026 Spirit Infinity - Tous droits réservés */
+        .modal-content {
+            background: #000;
+            border: 2px solid #ff6600;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 102, 0, 0.6);
+            color: white;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            margin: auto;
+            position: relative;
+        }
         input, select, textarea { width: 100%; background: #111; border: 1px solid #333; color: white; padding: 12px; margin: 10px 0; border-radius: 4px; box-sizing: border-box; }
         /* DASHBOARD XL STYLE */
         .dash-container { display: grid; grid-template-columns: 250px 1fr; gap: 30px; min-height: 70vh; }
@@ -175,7 +189,11 @@
         }
         /* PANNEAU CONTROLE STYLE */
         .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .control-item { background: #111; border: 1px solid #333; padding: 15px; border-radius: 4px; }
+        .control-item { background: #111; border: 1px solid rgba(255, 102, 0, 0.45); padding: 15px; border-radius: 4px; }
+        .mosfet-panel { margin-top: 18px; text-align: left; border: 1px solid rgba(255, 102, 0, 0.35); border-radius: 8px; padding: 14px; background: #0a0a0a; }
+        .mosfet-panel h3 { color: var(--neon-orange); font-size: 0.75rem; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 1px; }
+        .mosfet-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.8rem; color: #ccc; margin-bottom: 10px; }
+        .mosfet-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--neon-orange); cursor: pointer; }
         .control-val { color: var(--neon-orange); font-weight: bold; font-size: 1.1rem; }
         .pillier-box { border: 1px solid #222; padding: 15px; margin-bottom: 10px; background: rgba(255,102,0,0.02); }
         .pillier-title { color: var(--neon-orange); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 5px; display: block; }
@@ -192,6 +210,20 @@
         .btn-shield-bad { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 5px 10px; font-weight: bold; cursor: pointer; font-size: 0.7rem; border-radius: 2px; margin-left: 5px; }
         .btn-shield-ok:hover { opacity: 0.8; }
         .btn-shield-bad:hover { background: var(--danger); color: white; }
+
+        /* (c) 2026 Spirit Infinity - Tous droits réservés */
+.overlay {
+    display: none; 
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.95) !important; /* Noir presque total */
+    z-index: 999999 !important; /* Force le passage devant TOUT */
+    justify-content: center;
+    align-items: center;
+}
     </style>
 </head>
 
@@ -209,7 +241,7 @@
     </div>
     <nav>
         <button id="nav-market" class="active" onclick="showMarketplace()" data-key="nav_market">MARKETPLACE</button>
-        <button id="nav-ledger" onclick="showPanneau()" data-key="nav_ledger">PANNEAU DE CONTROLE</button>
+        <button id="nav-ledger" class="nav-item" onclick="showLedgerModal()" data-key="nav_ledger"> <i class="fas fa-microchip"></i>PANNEAU DE CONTROLE</button>
         <button id="nav-forum" onclick="showForum()" data-key="nav_forum">FORUM</button>
         <button id="nav-account" onclick="showMonCompte()" data-key="nav_account">MON COMPTE</button>
         <button id="nav-func" onclick="showSecurite()" data-key="nav_security">SÉCURITÉ</button>
@@ -292,7 +324,7 @@
 </div>
 
 <div id="registerModal" class="overlay">
-    <div class="modal-content" style="max-width:400px;">
+    <div class="modal-content" style="max-width:400px;text-align:left;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <h2 style="text-align:center; color:var(--neon-orange);" data-key="modal_reg_title">CREER UN COMPTE</h2>
         <input type="text" id="regUser" placeholder="Nom d'utilisateur">
@@ -303,7 +335,7 @@
 </div>
 
 <div id="productModal" class="overlay">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width:900px;text-align:left;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer; font-size:1.2rem;">✕</button>
         <div style="display:flex; gap:30px; flex-wrap:wrap;">
             <div style="flex:1; min-width:300px;">
@@ -351,7 +383,7 @@
 </div>
 
 <div id="paymentModal" class="overlay">
-    <div class="modal-content" style="max-width:500px;">
+    <div class="modal-content" style="max-width:500px;text-align:left;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <h2 style="text-align:center; color:var(--neon-orange);">FINALISER LE PAIEMENT</h2>
         <div class="summary-box" style="margin-bottom:20px;">
@@ -373,7 +405,7 @@
 </div>
 
 <div id="certifModal" class="overlay">
-    <div class="modal-content" style="max-width:600px;">
+    <div class="modal-content" style="max-width:600px;text-align:left;">
         <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">PHOTOS & INFOS</span><span class="step" id="s3">ANALYSE IA</span><span class="step" id="s4">PUBLICATION</span></div>
         <div id="stepMethod">
             <h2 id="sell-title" style="text-align:center;" data-key="btn_sell">VENDRE & CERTIFIER</h2>
@@ -433,7 +465,7 @@
 </div>
 
 <div id="forumModal" class="overlay">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width:900px;text-align:left;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h2 id="forum-main-title" data-key="nav_forum" style="margin:0;">FORUM SPIRIT INFINITY</h2>
@@ -560,7 +592,7 @@
 
 
 <div id="ledgerModal" class="overlay">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width:640px;text-align:left;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <h2 style="color:var(--neon-orange)">PANNEAU DE CONTROLE HARDWARE</h2>
         <div id="realTimeData" class="ledger-status">
@@ -588,12 +620,18 @@
                 <div class="control-val" id="ctrl-fig">210 Heures d'utilisation</div>
             </div>
         </div>
+        <div class="mosfet-panel">
+            <h3>Commandes MOSFET (Néons / Figurine)</h3>
+            <label class="mosfet-row"><span>Néon Bas (Pulse-ID)</span><input type="checkbox" id="toggle-mosfet-neon-bas" onchange="spiritPanneauMosfetChanged('neon_bas')"></label>
+            <label class="mosfet-row"><span>Néon Haut (Halo)</span><input type="checkbox" id="toggle-mosfet-neon-haut" onchange="spiritPanneauMosfetChanged('neon_haut')"></label>
+            <label class="mosfet-row"><span>Figurine LED</span><input type="checkbox" id="toggle-mosfet-figurine" onchange="spiritPanneauMosfetChanged('figurine')"></label>
+        </div>
         <button class="btn-action" style="width:100%; margin-top:20px;" onclick="transferToSale()">TRANSFERER POUR VENTE & CERTIFICATION</button>
     </div>
 </div>
 
 <div id="supportModal" class="overlay">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width:900px;text-align:left;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <h2 style="color:var(--neon-orange)">CENTRE DE SUPPORT & PROTECTION ACHETEUR</h2>
         <div class="support-grid">
@@ -615,83 +653,21 @@
     </div>
 </div>
 
-<div id="preordersModal" class="overlay">
-    <div class="modal-content" style="max-width:1200px;">
-        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <h2 style="margin:0 0 12px 0; color:white; font-weight:900; letter-spacing:1px; text-transform:uppercase; text-shadow: 0 0 18px rgba(255,102,0,0.35);">
-            NOUVEAUTÉS HOT TOYS EN PRÉCOMMANDE
-        </h2>
-        <div style="border:1px solid #222; background:rgba(255,102,0,0.06); padding:10px 12px; margin-bottom:15px; color:var(--neon-orange); font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase;">
-            Partenaire Officiel - Nouveautés Hot Toys
-        </div>
-        <div id="precommandes-hot-toys">
-            <div class="hot-toys-container" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 20px;">
-                <div style="border:2px solid #ff6600; background:#0a0a0a; border-radius:8px; overflow:hidden; position:relative;">
-                    <div style="position:absolute; top:12px; left:12px; border:1px solid #ff6600; color:#ff6600; padding:6px 10px; font-size:0.65rem; font-weight:900; letter-spacing:0.7px; text-transform:uppercase; background:rgba(0,0,0,0.75); border-radius:6px;">
-                        OFFICIEL HOT TOYS
-                    </div>
-                    <div style="position:absolute; top:12px; right:12px; color:#ff6600; font-weight:900; background:rgba(0,0,0,0.75); border:1px solid #ff6600; padding:6px 10px; border-radius:6px;">
-                        320€
-                    </div>
-                    <div style="height:210px; background:#050505; border-bottom:1px solid #111; display:flex; align-items:center; justify-content:center;">
-                        <img src="https://placehold.co/900x600/png/000000/ff6600?text=HOT+TOYS+IRON+MAN+MK85" alt="Iron Man Mark LXXXV" style="width:100%; height:100%; object-fit:cover; opacity:0.95;">
-                    </div>
-                    <div style="padding:16px;">
-                        <div style="color:white; font-weight:900; letter-spacing:0.3px; margin-bottom:6px;">Iron Man Mark LXXXV (Diecast)</div>
-                        <div style="color:#ff6600; font-weight:900; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:12px;">Précommande</div>
-                        <button class="btn-action" style="width:100%; background:#050505; border:1px solid #ff6600; color:#ff6600;" onclick="openManufacturer('https://www.hottoys.com.hk/')">
-                            RÉSERVER SUR LE SITE DE LA FIRME
-                        </button>
-                    </div>
-                </div>
-
-                <div style="border:2px solid #ff6600; background:#0a0a0a; border-radius:8px; overflow:hidden; position:relative;">
-                    <div style="position:absolute; top:12px; left:12px; border:1px solid #ff6600; color:#ff6600; padding:6px 10px; font-size:0.65rem; font-weight:900; letter-spacing:0.7px; text-transform:uppercase; background:rgba(0,0,0,0.75); border-radius:6px;">
-                        OFFICIEL HOT TOYS
-                    </div>
-                    <div style="position:absolute; top:12px; right:12px; color:#ff6600; font-weight:900; background:rgba(0,0,0,0.75); border:1px solid #ff6600; padding:6px 10px; border-radius:6px;">
-                        320€
-                    </div>
-                    <div style="height:210px; background:#050505; border-bottom:1px solid #111; display:flex; align-items:center; justify-content:center;">
-                        <img src="https://placehold.co/900x600/png/000000/ff6600?text=HOT+TOYS+BATMAN" alt="Batman The Batman" style="width:100%; height:100%; object-fit:cover; opacity:0.95;">
-                    </div>
-                    <div style="padding:16px;">
-                        <div style="color:white; font-weight:900; letter-spacing:0.3px; margin-bottom:6px;">Batman (The Batman - Robert Pattinson)</div>
-                        <div style="color:#ff6600; font-weight:900; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:12px;">Précommande</div>
-                        <button class="btn-action" style="width:100%; background:#050505; border:1px solid #ff6600; color:#ff6600;" onclick="openManufacturer('https://www.hottoys.com.hk/')">
-                            RÉSERVER SUR LE SITE DE LA FIRME
-                        </button>
-                    </div>
-                </div>
-
-                <div style="border:2px solid #ff6600; background:#0a0a0a; border-radius:8px; overflow:hidden; position:relative;">
-                    <div style="position:absolute; top:12px; left:12px; border:1px solid #ff6600; color:#ff6600; padding:6px 10px; font-size:0.65rem; font-weight:900; letter-spacing:0.7px; text-transform:uppercase; background:rgba(0,0,0,0.75); border-radius:6px;">
-                        OFFICIEL HOT TOYS
-                    </div>
-                    <div style="position:absolute; top:12px; right:12px; color:#ff6600; font-weight:900; background:rgba(0,0,0,0.75); border:1px solid #ff6600; padding:6px 10px; border-radius:6px;">
-                        320€
-                    </div>
-                    <div style="height:210px; background:#050505; border-bottom:1px solid #111; display:flex; align-items:center; justify-content:center;">
-                        <img src="https://placehold.co/900x600/png/000000/ff6600?text=HOT+TOYS+SPIDER-MAN" alt="Spider-Man Friendly Neighborhood" style="width:100%; height:100%; object-fit:cover; opacity:0.95;">
-                    </div>
-                    <div style="padding:16px;">
-                        <div style="color:white; font-weight:900; letter-spacing:0.3px; margin-bottom:6px;">Spider-Man (Friendly Neighborhood)</div>
-                        <div style="color:#ff6600; font-weight:900; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:12px;">Précommande</div>
-                        <button class="btn-action" style="width:100%; background:#050505; border:1px solid #ff6600; color:#ff6600;" onclick="openManufacturer('https://www.hottoys.com.hk/')">
-                            RÉSERVER SUR LE SITE DE LA FIRME
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div style="margin-top:14px; font-size:0.65rem; color:#666;">
-            Les précommandes sont une vitrine partenaire. Les achats se font uniquement sur le site du fabricant.
+<section id="precommandes-hot-toys" class="overlay">
+<div style="padding: 40px; background: #050505; color: white;">
+    <h1 style="color: #ff6600; text-align: center; text-shadow: 0 0 10px #ff6600;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 30px;">
+        <div style="border: 2px solid #ff6600; padding: 15px; background: #0a0a0a; text-align: center;">
+            <img src="https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg" style="width: 100%;">
+            <h3 style="color:white;">IRON MAN MARK LXXXV</h3>
+            <button style="width: 100%; background: #ff6600; color: black; font-weight: bold; padding: 10px; border: none;">RÉSERVER VIA LA FIRME</button>
         </div>
     </div>
 </div>
+</section>
 
 <div id="securityModal" class="overlay">
-    <div class="modal-content" style="max-width:800px;">
+    <div class="modal-content" style="max-width:800px;text-align:left;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <h2 style="color:var(--spirit-green)">PROTOCOLE DE SÉCURITÉ SPIRIT INFINITY</h2>
         <div style="font-size:0.85rem; line-height:1.4; color:#ccc;">
@@ -726,7 +702,16 @@
 <script>
     const SUPABASE_URL = 'https://eagmxrbtcajqlhivvpww.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
-    const _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Hardening: si Supabase plante, on n'arrête pas tout le JS (menus/UI doivent rester OK)
+    let _spirit = null;
+    try {
+        if (typeof supabase !== 'undefined' && supabase && typeof supabase.createClient === 'function') {
+            _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+    } catch (e) {
+        _spirit = null;
+        console.warn('[SPIRIT] Supabase indisponible, UI en mode statique.', e);
+    }
     
     const translations = {
         'FR': {
@@ -846,6 +831,16 @@
     let diagActive = false;
     let editingId = null;
 
+    /* Lecture batterie & MOSFETs : valeurs pilotées par le firmware / ledger (écrasables avant ouverture du panneau) */
+    var batteryLevelPercent = 92;
+    var batteryVoltageReading = 4.1;
+    var neonLowHoursReading = 142;
+    var neonHighHoursReading = 88;
+    var figurineLedHoursReading = 210;
+    var mosfetNeonBas = false;
+    var mosfetNeonHaut = false;
+    var mosfetFigurine = false;
+
     // CALCUL DU SPLIT FINANCIER 3% / 3% / 2%
     function calculateSpiritSplit(price) {
         const totalFee = price * 0.08;
@@ -874,7 +869,7 @@ async function loadUserPurchases() {
         .from('transactions')
         .select('*')
         .eq('buyer_id', String(MY_TEST_ID)) // Remplace '12345' par String(MY_TEST_ID)
-        .order('created_at', { ascending: false });
+        // .order('created_at', { ascending: false });
 
     if (error) {
         console.error("Erreur de chargement des achats:", error);
@@ -982,8 +977,8 @@ function renderMarket(filteredData = null) {
             
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
             
-            // CORRECTION : image_url est la colonne qui contient ton base64 ou URL (Image 5 de tes captures)
-            const displayImg = item.image_url || item.img1 || item.img;
+            // STRICT mapping products_live
+            const displayImg = item.image_url;
             const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `<div style="color:#333; font-size:10px;">PHOTO ${item.title}</div>`;
             
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
@@ -1002,7 +997,8 @@ function renderMarket(filteredData = null) {
                 <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
                 <div class="card-info">
                     <div class="price">${item.price} €</div>
-                    <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title || item.name || "SANS TITRE"}</div>
+                    <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title || "SANS TITRE"}</div>
+                    <div style="font-size:0.6rem; color:#555; font-family:monospace; margin-top:6px;">SPIRIT-ID: ${item.uuid || "---"}</div>
                     <div class="legende"><span>${displayCountry}</span><span>${displayDiag}</span></div>
                 </div>
             `;
@@ -1058,7 +1054,7 @@ async function loadMySales() {
             .from('transactions')
             .select('*')
             .eq('seller_id', currentID) 
-            .order('created_at', { ascending: false });
+            // .order('created_at', { ascending: false });
 
         if (error) throw error;
 
@@ -1279,19 +1275,23 @@ async function goToScan() {
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
-async function saveSpiritAudit(title, detected, score, status) {
+async function saveSpiritAudit(title, detected, score, status, detailNote) {
     console.log("[SPIRIT LEDGER] Tentative d'archivage...");
     
-    // On s'assure que _spirit (Supabase) est bien initialisé
-    const { data, error } = await _spirit
-        .from('spirit_ledger') // Assure-toi que la table s'appelle bien comme ça
-        .insert([{
+    if (!_spirit) {
+        console.warn("[SPIRIT] Supabase indisponible, audit non archivé.");
+        return;
+    }
+    const row = {
             listing_title: title,
-            detected_object: detected,
-            ia_score: parseInt(score),
-            status: status, // 'CERTIFIED' ou 'REJECTED'
+            detected_object: detected + (detailNote ? " | " + String(detailNote) : ""),
+            ia_score: parseInt(score, 10),
+            status: status,
             seller_name: currentUser
-        }]);
+        };
+    const { data, error } = await _spirit
+        .from('spirit_ledger')
+        .insert([row]);
 
     if (error) {
         console.error("❌ Erreur SQL Ledger:", error.message);
@@ -1307,7 +1307,7 @@ async function publishFinal() {
     const title = document.getElementById('inputTitle').value;
     const price = parseFloat(document.getElementById('inputPrice').value);
     const desc = document.getElementById('inputDesc').value;
-    const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore);
+    const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore, 10) || 0;
 
     // CORRECTION : On récupère les valeurs des menus pour remplir les colonnes NULL de Supabase
     const category = document.getElementById('saleCat')?.value || "Collection";
@@ -1333,11 +1333,73 @@ async function publishFinal() {
     };
 
     try {
+        if (!_spirit) {
+            alert("ERREUR : Supabase indisponible, publication impossible.");
+            return;
+        }
+
         const { error } = await _spirit
             .from('products_live') 
             .insert([newItem]);
 
         if (error) throw error;
+
+        const listSplit = calculateSpiritSplit(price);
+        const protection8 = parseFloat(listSplit.totalFee);
+        const amountListingLog = (Number(price) + protection8).toFixed(2);
+        const macID = typeof currentMacAddress !== 'undefined' ? currentMacAddress : "XX:XX:XX:XX:XX:XX";
+        const isNativeListing = (typeof currentMethod !== 'undefined' && currentMethod === 'hot_native');
+        const certSmoke = isNativeListing;
+        const certLight = isNativeListing;
+        const certFirst = isNativeListing;
+
+        const txListing = {
+                amount: amountListingLog,
+                buyer_id: String(MY_TEST_ID),
+                seller_id: String(MY_TEST_ID),
+                user_profit: listSplit.myShare,
+                firm_profit: listSplit.firmShare,
+                bank_share: listSplit.bankShare,
+                status: 'MISE_EN_VENTE',
+                figurine_name: title,
+                currency: 'EUR'
+            };
+        const { error: txErr } = await _spirit.from('transactions').insert([txListing]);
+        if (txErr) console.warn('[SPIRIT] transactions (listing):', txErr.message);
+
+        const ledgerRow = {
+                listing_title: title,
+                detected_object: 'PUBLISH_LIVE',
+                ia_score: scoreIA || 0,
+                status: 'CERTIFIED_LIVE',
+                seller_name: typeof currentUser !== 'undefined' ? currentUser : 'Spirit'
+            };
+        const { error: ledErr } = await _spirit.from('spirit_ledger').insert([ledgerRow]);
+        if (ledErr) console.warn('[SPIRIT] spirit_ledger:', ledErr.message);
+
+        const liRow = {
+                mac_address: macID,
+                battery_health: typeof batteryLevelPercent === 'number' ? Math.round(batteryLevelPercent) : parseInt(String(document.getElementById('ctrl-batt') && document.getElementById('ctrl-batt').innerText), 10) || 0,
+                last_seen: new Date().toISOString(),
+                is_certified: true,
+                needs_pulse_alert: false
+            };
+        const { error: liErr } = await _spirit.from('ledger_items').upsert([liRow], { onConflict: 'mac_address' });
+        if (liErr) console.warn('[SPIRIT] ledger_items:', liErr.message);
+
+        const repRow = {
+                ia_score: scoreIA || 0,
+                is_smoke_free: certSmoke,
+                is_light_protect: certLight,
+                is_first_hand: certFirst,
+                listing_title: title,
+                inventory_uuid: newItem.uuid
+            };
+        const { error: repErr } = await _spirit.from('spirit_authenticity_reports').insert([repRow]);
+        if (repErr) console.warn('[SPIRIT] spirit_authenticity_reports:', repErr.message);
+
+        const { error: figErr } = await _spirit.from('figurines').update({ status: 'available' }).eq('title', title);
+        if (figErr) console.warn('[SPIRIT] figurines (optionnel):', figErr.message);
 
         alert("ANNONCE PUBLIÉE !");
         
@@ -1558,12 +1620,31 @@ async function confirmPayment(method) {
 
         // AJOUT : Mise à jour automatique de la table products_live pour passer en "sold"
         // Cela évite que l'objet reste disponible après l'achat
-        const { error: errorUpdate } = await _spirit
-            .from('products_live')
-            .update({ status: 'sold' })
-            .eq('title', selectedProduct.title);
-
+        let errorUpdate = null;
+        const hasProdId = selectedProduct.id != null && String(selectedProduct.id).trim() !== '';
+        if (hasProdId) {
+            const r1 = await _spirit.from('products_live').update({ status: 'sold' }).eq('id', selectedProduct.id);
+            errorUpdate = r1.error;
+        }
+        if (!hasProdId || errorUpdate) {
+            const r2 = await _spirit.from('products_live').update({ status: 'sold' }).eq('title', selectedProduct.title);
+            errorUpdate = r2.error;
+        }
         if (errorUpdate) console.warn("Note: Statut produit non mis à jour", errorUpdate.message);
+
+        const { error: figSoldErr } = await _spirit.from('figurines').update({ status: 'sold' }).eq('title', selectedProduct.title);
+        if (figSoldErr) console.warn('[SPIRIT] figurines (vente, optionnel):', figSoldErr.message);
+
+        const buyRep = {
+            ia_score: Math.round(Number(selectedProduct.ia_score)) || 0,
+            is_smoke_free: true,
+            is_light_protect: true,
+            is_first_hand: (selectedProduct.is_native === true || selectedProduct.type === 'native'),
+            listing_title: selectedProduct.title,
+            transaction_note: 'ACHAT_CONFIRME'
+        };
+        const { error: buyRepErr } = await _spirit.from('spirit_authenticity_reports').insert([buyRep]);
+        if (buyRepErr) console.warn('[SPIRIT] spirit_authenticity_reports (achat):', buyRepErr.message);
 
         alert(`✅ SPIRIT SECURE : ${totalAcheteur} € enregistrés.`);
         // Rafraîchissement doux: resync marketplace + listes compte
@@ -1749,7 +1830,7 @@ async function confirmPayment(method) {
             'forumModal',
             'accountModal',
             'securityModal',
-            'preordersModal',
+            'precommandes-hot-toys',
             'supportModal',
             'registerModal',
             'productModal',
@@ -1819,7 +1900,7 @@ async function confirmPayment(method) {
 
             case 'preorders':
                 setActiveNav('nav-preorders');
-                const pre = document.getElementById('preordersModal');
+                const pre = document.getElementById('precommandes-hot-toys');
                 if (pre) pre.style.display = 'flex';
                 // FORCE AFFICHAGE : contenu est en DUR dans le HTML (ne pas vider au clic)
                 try {
@@ -1855,9 +1936,34 @@ async function confirmPayment(method) {
     window.showForum = function () { navigateTo('forum'); };
     window.showMonCompte = function () { navigateTo('account'); };
     window.showSecurite = function () { navigateTo('security'); };
-    window.showPrecommandesHotToys = function () { navigateTo('preorders'); };
+    function showPrecommandesHotToys() {
+        hideAllSections();
+        const precoSection = document.getElementById('precommandes-hot-toys');
+        precoSection.style.setProperty('display', 'block', 'important');
+        precoSection.innerHTML = `
+<div style="padding:40px; background:#050505; color:white; min-height:100vh;">
+    <p style="text-align:center; color:#444; margin:0 0 18px 0;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
+    <h1 style="color:#ff6600; text-align:center;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px; margin-top:30px;">
+        <div style="border:2px solid #ff6600; padding:15px; background:#0a0a0a; text-align:center; border-radius:10px;">
+            <img src="https://www.hottoys.com.hk/photos/PD1553584852n6r.jpg" style="width:100%; border-radius:5px;">
+            <h3 style="color:white; margin-top:10px;">IRON MAN MARK LXXXV</h3>
+            <p style="color:#ff6600; font-weight:bold; font-size:1.2em;">425€</p>
+            <button style="width:100%; background:#ff6600; color:black; font-weight:bold; padding:12px; border:none; margin-top:10px;">RÉSERVER VIA LA FIRME</button>
+        </div>
+    </div>
+</div>`;
+    }
+    window.showPrecommandesHotToys = showPrecommandesHotToys;
     // Alias demandé: showPrecommandes()
-    window.showPrecommandes = function () { navigateTo('preorders'); };
+    function showPrecommandes() {
+      hideAllSections();
+      const sect = document.getElementById('precommandes-hot-toys');
+      sect.style.setProperty('display', 'block', 'important');
+      window.scrollTo(0,0);
+      console.log('Affichage Section Hot Toys Forcé');
+    }
+    window.showPrecommandes = showPrecommandes;
     window.showSupport = function () { navigateTo('support'); };
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -2012,24 +2118,6 @@ function openAccount() {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// CALCUL DU SPLIT FINANCIER 8% (3% MOI / 3% FIRME / 2% BANQUE)
-function calculateSpiritSplit(price) {
-    const totalFee = price * 0.08; // Total protection de 8%
-    const myShare = price * 0.03; // Tes 3% (Marketplace)
-    const firmShare = price * 0.03; // Les 3% Partenaire (Royalties)
-    const bankShare = price * 0.02; // Les 2% pour la Banque
-    
-    return {
-        totalFee: totalFee.toFixed(2),
-        myShare: myShare.toFixed(2),
-        firmShare: firmShare.toFixed(2),
-        bankShare: bankShare.toFixed(2),
-        sellerNet: (price - totalFee).toFixed(2)
-    };
-}
-
-// (c) 2026 Spirit Infinity - Tous droits réservés
-
 // On utilise 'let' pour pouvoir changer d'utilisateur avec le simulateur
 let MY_TEST_ID = "12345";
 
@@ -2051,7 +2139,7 @@ async function loadMyPurchases() {
             .from('transactions')
             .select('*')
             .eq('buyer_id', MY_TEST_ID)
-            .order('created_at', { ascending: false });
+            // .order('created_at', { ascending: false });
 
         // Correction : Vérification que data existe avant le rendu pour éviter "data is not defined"
         if (error) throw error;
@@ -2502,28 +2590,17 @@ async function fetchMarketplaceFromSupabase() {
     if (gridNative || gridLegacy) console.log("[SPIRIT MARKET] Grilles Marketplace détectées (Native/Legacy).");
     
     try {
-        // CORRECTION SQL : la colonne `created_at` peut ne pas exister sur `products_live`.
-        // On tente le tri, puis fallback sans tri si Supabase renvoie "does not exist".
+        // STRICT: table = products_live ; tri = id (created_at n'existe pas)
         let data, error;
         try {
             const res = await _spirit
                 .from('products_live')
-                .select('*')
-                .order('created_at', { ascending: false });
+                .select('id, uuid, title, price, currency, image_url, status, ia_score, description, owner_id')
+                .order('id', { ascending: false });
             data = res.data;
             error = res.error;
         } catch (e) {
             error = e;
-        }
-
-        const errMsg = String((error && (error.message || error.error_description || error.details)) || error || "");
-        if (error && /created_at/i.test(errMsg) && /(does not exist|not exist|unknown column|column)/i.test(errMsg)) {
-            console.warn("[SPIRIT MARKET] Colonne created_at absente sur products_live → suppression du tri.");
-            const res2 = await _spirit
-                .from('products_live')
-                .select('*'); // pas de tri, on affiche enfin les annonces
-            data = res2.data;
-            error = res2.error;
         }
 
         if (error) throw error;
@@ -2571,6 +2648,112 @@ document.addEventListener('DOMContentLoaded', () => {
     try { fetchMarketplaceFromSupabase(); } catch (e) {}
     try { renderMarket(); } catch (e) {}
 });
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+function spiritPanneauMosfetChanged(which) {
+    const elB = document.getElementById('toggle-mosfet-neon-bas');
+    const elH = document.getElementById('toggle-mosfet-neon-haut');
+    const elF = document.getElementById('toggle-mosfet-figurine');
+    if (which === 'neon_bas' && elB) mosfetNeonBas = !!elB.checked;
+    if (which === 'neon_haut' && elH) mosfetNeonHaut = !!elH.checked;
+    if (which === 'figurine' && elF) mosfetFigurine = !!elF.checked;
+    try {
+        if (typeof spiritMosfetBridge === 'function') {
+            spiritMosfetBridge({ which: which, mosfetNeonBas: mosfetNeonBas, mosfetNeonHaut: mosfetNeonHaut, mosfetFigurine: mosfetFigurine });
+        }
+    } catch (e) { console.warn('[SPIRIT] spiritMosfetBridge', e); }
+}
+
+async function refreshSpiritPanneauHardwareUI() {
+    const macID = typeof currentMacAddress !== 'undefined' ? currentMacAddress : null;
+    if (_spirit && macID && macID !== 'XX:XX:XX:XX:XX:XX') {
+        try {
+            const { data, error } = await _spirit.from('ledger_items').select('*').eq('mac_address', macID).maybeSingle();
+            if (!error && data) {
+                if (data.battery_health != null && !isNaN(Number(data.battery_health))) batteryLevelPercent = Number(data.battery_health);
+                if (data.neon_low_hours != null) neonLowHoursReading = Number(data.neon_low_hours);
+                if (data.neon_high_hours != null) neonHighHoursReading = Number(data.neon_high_hours);
+                if (data.figurine_led_hours != null) figurineLedHoursReading = Number(data.figurine_led_hours);
+            }
+        } catch (e) { console.warn('[SPIRIT] refreshSpiritPanneauHardwareUI', e); }
+    }
+
+    const battEl = document.getElementById('ctrl-batt');
+    if (battEl) {
+        const pct = typeof batteryLevelPercent === 'number' ? Math.round(batteryLevelPercent) : 92;
+        const v = typeof batteryVoltageReading === 'number' ? batteryVoltageReading : 4.1;
+        battEl.textContent = pct + '% (' + v.toFixed(1) + 'V)';
+    }
+    const lowEl = document.getElementById('ctrl-neon-low');
+    const highEl = document.getElementById('ctrl-neon-high');
+    const figEl = document.getElementById('ctrl-fig');
+    if (lowEl) lowEl.textContent = neonLowHoursReading + " Heures d'utilisation";
+    if (highEl) highEl.textContent = neonHighHoursReading + " Heures d'utilisation";
+    if (figEl) figEl.textContent = figurineLedHoursReading + " Heures d'utilisation";
+
+    const tb = document.getElementById('toggle-mosfet-neon-bas');
+    const th = document.getElementById('toggle-mosfet-neon-haut');
+    const tf = document.getElementById('toggle-mosfet-figurine');
+    if (tb) tb.checked = !!mosfetNeonBas;
+    if (th) th.checked = !!mosfetNeonHaut;
+    if (tf) tf.checked = !!mosfetFigurine;
+}
+
+function showLedgerModal() {
+    console.log("[SPIRIT] Ouverture du Panneau de Contrôle Hardware...");
+    const modal = document.getElementById('ledgerModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        try { refreshSpiritPanneauHardwareUI().catch(function (e) { console.warn(e); }); } catch (e) { console.warn(e); }
+        console.log("[SPIRIT] Statut : Connecté au Réseau Spirit");
+    } else {
+        console.error("[SPIRIT ERROR] La modale ledgerModal est introuvable dans le HTML.");
+    }
+}
+
+function closeModals() {
+    const modals = document.querySelectorAll('.overlay');
+    modals.forEach(m => m.style.display = 'none');
+    console.log("[SPIRIT] Fermeture des modales.");
+}
+// (c) 2026 Spirit Infinity - Tous droits réservés
+
+async function transferToSale() {
+    console.log("[SPIRIT LEDGER] Certification de l'item Hardware...");
+
+    if (!_spirit) {
+        alert("ERREUR : Supabase indisponible.");
+        return;
+    }
+
+    // On récupère l'adresse MAC (doit être définie dans ton code)
+    const macID = typeof currentMacAddress !== 'undefined' ? currentMacAddress : "XX:XX:XX:XX:XX:XX"; 
+
+    // Préparation des données pour les colonnes : battery_health, last_seen, is_certified, needs_pulse_alert
+    const hardwareUpdate = {
+        is_certified: true,
+        battery_health: (typeof batteryLevelPercent === 'number' ? Math.round(batteryLevelPercent) : (parseInt(document.getElementById('ctrl-batt').innerText, 10) || 0)),
+        last_seen: new Date().toISOString(),
+        needs_pulse_alert: false 
+    };
+
+    try {
+        const { data, error } = await _spirit
+            .from('ledger_items')
+            .update(hardwareUpdate)
+            .eq('mac_address', macID);
+
+        if (error) throw error;
+
+        alert("TRANSFERT RÉUSSI\nL'item " + macID + " est certifié sur le Ledger.");
+        
+        closeModals();
+
+    } catch (err) {
+        console.error("[SPIRIT ERROR] Échec Supabase Ledger :", err);
+        alert("ERREUR : Liaison avec ledger_items impossible.");
+    }
+}
 
 
 </script>
@@ -2589,7 +2772,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
