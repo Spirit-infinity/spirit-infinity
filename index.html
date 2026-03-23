@@ -1388,7 +1388,7 @@ async function publierAnnonce() {
             return;
         }
 
-        const { error } = await _spirit.from('products_lives').insert([newItem]);
+        const { error } = await _spirit.from('products_live').insert([newItem]);
         if (error) throw error;
 
         const ledgerRow = {
