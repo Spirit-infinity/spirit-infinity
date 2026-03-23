@@ -1018,13 +1018,8 @@ function renderMarket(filteredData = null) {
             card.onclick = () => openProduct(item);
             
             const isNative = item.is_native === true || item.is_native === "true" || item.type === 'native';
-            const isSpiritHardware = item.is_spirit_hardware === true || item.is_spirit_hardware === 'true' || item.is_spirit_hardware === 1;
-            let useHardwareLedgerSection;
-            if (isSpiritHardware) useHardwareLedgerSection = true;
-            else if (item.is_spirit_hardware === false || item.is_spirit_hardware === 'false' || item.is_spirit_hardware === 0) useHardwareLedgerSection = false;
-            else useHardwareLedgerSection = isNative;
-            const badgeClass = useHardwareLedgerSection ? 'native' : 'legacy';
-            const badgeText = useHardwareLedgerSection ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
+            const badgeClass = isNative ? 'native' : 'legacy';
+            const badgeText = isNative ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
             
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
             
@@ -1036,7 +1031,7 @@ function renderMarket(filteredData = null) {
             
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
             const displayCountry = item.country || "France";
-            const displayDiag = useHardwareLedgerSection ? 'Hardware Ledger' : 'IA Scan';
+            const displayDiag = isNative ? 'Hardware Ledger' : 'IA Scan';
 
             // AJOUT / CORRECTION : owner_id est stocké en texte (Image 2). 
             // AJOUT : .trim() pour éviter les échecs de comparaison dus à des espaces invisibles.
@@ -1061,7 +1056,7 @@ function renderMarket(filteredData = null) {
 
             // 1. Affichage Global : On montre ce qui est 'available' OU ce qui m'appartient (pour voir mes ventes même finies)
             if (isAvailable || isMine) {
-                if (useHardwareLedgerSection) {
+                if (isNative) {
                     gn.appendChild(card);
                 } else {
                     gl.appendChild(card);
@@ -1075,7 +1070,7 @@ function renderMarket(filteredData = null) {
             
             // AJOUT : Injection spécifique dans la grille Legacy si besoin (maintien de ta structure)
             // NOTE : La séparation Native/Legacy est déjà gérée ci-dessus. On bloque la duplication.
-            if(useHardwareLedgerSection === false && gl !== gn && isAvailable && false) {
+            if(isNative === false && gl !== gn && isAvailable && false) {
                  gl.appendChild(card.cloneNode(true));
             }
         });
@@ -1366,26 +1361,14 @@ async function publierAnnonce() {
     const desc = document.getElementById('inputDesc').value;
     const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore, 10) || 0;
 
-    const category = document.getElementById('saleCat')?.value || "Collection";
-    const shipSize = document.getElementById('saleShip')?.value || "Moyen";
     const photoUrl = (typeof previewPhotos !== 'undefined' && previewPhotos.length > 0) ? previewPhotos[0] : null;
-    const fromHardwarePanneau = (typeof currentMethod !== 'undefined' && currentMethod === 'hot_native');
 
     const newItem = {
-        uuid: "SPIRIT-" + Date.now(),
-        title: title, 
-        price: price, 
-        description: desc, 
-        ia_score: scoreIA, 
+        title: title,
+        price: price,
+        description: desc,
         owner_id: String(MY_TEST_ID),
-        status: "available", 
-        currency: "EUR", 
-        is_native: fromHardwarePanneau,
-        is_spirit_hardware: fromHardwarePanneau,
-        category: category,
-        ship_size: shipSize,
-        image_url: photoUrl,
-        brand: "Spirit Infinity"
+        image_url: photoUrl
     };
 
     try {
@@ -1447,7 +1430,8 @@ async function updateUserAnnonces() {
     let myAnnonces = [];
     if (_spirit) {
         try {
-            const { data, error } = await _spirit.from('products_live').select('*');
+            const { data, error } = await _spirit.from('products_live').select('*').eq('owner_id', currentUserID);
+            console.log("Données reçues brute :", data);
             if (error) {
                 console.error('[SPIRIT] Mes annonces products_live erreur exacte:', error.message || String(error),
                     error.code != null ? ('code=' + error.code) : '',
@@ -1455,11 +1439,7 @@ async function updateUserAnnonces() {
                     error.hint != null ? ('hint=' + error.hint) : '',
                     error);
             } else if (Array.isArray(data)) {
-                myAnnonces = data.filter(m => {
-                    const oid = spiritOwnerId(m.owner_id);
-                    return oid === currentUserID ||
-                        (currentUser && String(m.owner || '').trim() === String(currentUser).trim());
-                });
+                myAnnonces = data;
             }
         } catch (e) { console.error('[SPIRIT] updateUserAnnonces products_live exception:', e && e.message ? e.message : e, e); }
     }
@@ -2620,6 +2600,7 @@ async function fetchMarketplaceFromSupabase() {
         const out = await _spirit.from('products_live').select('*');
         data = out.data;
         reqError = out.error;
+        console.log("Données reçues brute :", data);
     } catch (e) {
         reqError = e;
         console.error('[SPIRIT MARKET] products_live exception:', e && e.message ? e.message : e, e);
