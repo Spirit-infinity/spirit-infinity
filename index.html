@@ -1394,7 +1394,7 @@ async function publierAnnonce() {
             return;
         }
 
-        const { error } = await _spirit.from('products_live').insert([newItem]);
+        const { data, error } = await _spirit.from('products_live').insert([newItem]);
         if (error) throw error;
 
         const ledgerRow = {
@@ -2604,9 +2604,7 @@ async function fetchMarketplaceFromSupabase() {
         }
         let data, error;
         try {
-            const res = await _spirit.from('products_live').select('*').order('id', { ascending: false });
-            data = res.data;
-            error = res.error;
+            ({ data, error } = await _spirit.from('products_live').select('*').order('id', { ascending: false }));
         } catch (e) {
             error = e;
         }
