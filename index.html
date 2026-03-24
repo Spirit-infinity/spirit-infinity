@@ -2906,14 +2906,28 @@ async function addSanctuaryPiece() {
                 }
                 const pub = _spirit.storage.from(SPIRIT_SANCT_BUCKET).getPublicUrl(path);
                 var url = pub && pub.data ? pub.data.publicUrl : '';
-                photos.push(url || path);
+                if (url && /^https?:\/\//i.test(url)) photos.push(url);
+                else {
+                    console.error('[SPIRIT SANCT] URL publique invalide après upload:', { path: path, publicUrl: url });
+                }
             } catch (e) {
                 console.error('[SPIRIT SANCT] Upload exception:', e && e.message ? e.message : e, { bucket: SPIRIT_SANCT_BUCKET, path: path, file: f && f.name ? f.name : 'n/a' });
             }
         }
+        if (!Array.isArray(photos) || photos.length === 0) {
+            if (upStatus) { upStatus.textContent = "Aucune URL publique valide générée."; upStatus.style.color = 'var(--danger)'; }
+            alert("Upload terminé mais aucune URL publique valide n'a été générée.");
+            return;
+        }
     }
     if (_spirit) {
         try {
+            console.log('[SPIRIT SANCT] Payload insert sanctuary_pieces:', {
+                owner_id: ownerId,
+                user_id: authUid || ownerId,
+                title: title,
+                photos_jsonb: photos
+            });
             const ins = await _spirit.from('sanctuary_pieces').insert([{
                 owner_id: ownerId,
                 user_id: authUid || ownerId,
@@ -2957,6 +2971,12 @@ async function publierDansLeSanctuaire() {
     return addSanctuaryPiece();
 }
 try { window.publierDansLeSanctuaire = publierDansLeSanctuaire; } catch (e) {}
+async function relancerUploadGambit() {
+    var titleEl = document.getElementById('sanctuaryTitle');
+    if (titleEl && String(titleEl.value || '').trim() === '') titleEl.value = 'GAMBIT';
+    await addSanctuaryPiece();
+}
+try { window.relancerUploadGambit = relancerUploadGambit; } catch (e) {}
 async function toggleSanctuaryFollow() {
     await spiritLoadSession();
     var s = await spiritFetchSanctuaire();
