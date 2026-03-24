@@ -219,6 +219,39 @@
             box-shadow: 0 0 12px rgba(57, 255, 20, 0.5), inset 0 0 8px rgba(57, 255, 20, 0.12);
             text-shadow: 0 0 8px rgba(57, 255, 20, 0.85);
         }
+        .spirit-card-fav-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 25;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 7px;
+            background: rgba(0, 0, 0, 0.82);
+            border: 1px solid #333;
+            border-radius: 4px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .spirit-card-fav-btn .spirit-fav-count { font-size: 0.68rem; font-weight: 800; color: #888; }
+        .spirit-card-fav-btn .spirit-fav-heart { width: 15px; height: 15px; flex-shrink: 0; fill: #666; }
+        .spirit-card-fav-btn.is-fav { border-color: #ff6600; box-shadow: 0 0 10px rgba(255, 102, 0, 0.35); }
+        .spirit-card-fav-btn.is-fav .spirit-fav-heart { fill: #ff6600; }
+        .spirit-card-fav-btn.is-fav .spirit-fav-count { color: #ff6600; }
+        #btn-favoris { position: relative; }
+        .spirit-tab-notif {
+            display: none;
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e22;
+            box-shadow: 0 0 6px rgba(255, 50, 50, 0.9);
+        }
+        .spirit-fav-row-alert { border-left: 3px solid #e22 !important; box-shadow: 0 0 12px rgba(238, 34, 34, 0.25); }
         .native { background: var(--spirit-green); color: black; }
         .legacy { background: #0066ff; color: white; }
         /* PRÉCOMMANDES HOT TOYS (grille interne) */
@@ -988,6 +1021,7 @@
                 <button id="btn-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
                 <button id="btn-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
                 <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
+                <button type="button" id="btn-favoris" onclick="showAccountTab('favoris')" data-key="account_favorites">MES FAVORIS<span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
             
@@ -1042,6 +1076,12 @@
     <div id="user-annonces-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
         <p style="font-size:0.8rem; color:#777;">Aucune annonce active.</p>
     </div>
+</div>
+
+<div id="tab-favoris" class="account-page">
+    <h3 data-key="account_favorites_title">MES FAVORIS</h3>
+    <p style="font-size:0.7rem; color:#666; margin-top:0;" data-key="account_favorites_hint">Alerte si le prix baisse ou si l’annonce est vendue.</p>
+    <div id="user-favorites-list" style="display:flex; flex-direction:column; gap:12px; margin-top:12px;"></div>
 </div>
 
 <div id="tab-params" class="account-page">
@@ -1241,7 +1281,10 @@
             'lbl_coa_switch': "Certificat d'Authenticité (COA)", 'coa_no': 'Non', 'coa_yes': 'Oui',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFIED', 'badge_with_coa': 'AVEC CERTIFICAT',
             'fig_scale_1_6': '1/6 Action Figure', 'fig_scale_1_12': '1/12', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Échelle réelle (1/1)',
-            'btn_load_more': 'Charger plus'
+            'btn_load_more': 'Charger plus',
+            'account_favorites': 'MES FAVORIS', 'account_favorites_title': 'MES FAVORIS',
+            'account_favorites_hint': 'Alerte si le prix baisse ou si l’annonce est vendue.',
+            'account_favorites_empty': 'Aucun favori enregistré.', 'fav_price_drop': 'PRIX EN BAISSE', 'fav_sold': 'VENDU', 'fav_open': 'Voir'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -1267,7 +1310,10 @@
             'lbl_coa_switch': 'Certificate of Authenticity (COA)', 'coa_no': 'No', 'coa_yes': 'Yes',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI CERTIFIED', 'badge_with_coa': 'WITH COA',
             'fig_scale_1_6': '1/6 Scale Figure', 'fig_scale_1_12': '1/12', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Life-size (1/1)',
-            'btn_load_more': 'Load more'
+            'btn_load_more': 'Load more',
+            'account_favorites': 'MY FAVORITES', 'account_favorites_title': 'MY FAVORITES',
+            'account_favorites_hint': 'Alert if the price drops or the listing is sold.',
+            'account_favorites_empty': 'No favorites yet.', 'fav_price_drop': 'PRICE DROP', 'fav_sold': 'SOLD', 'fav_open': 'View'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -1293,7 +1339,10 @@
             'lbl_coa_switch': 'Certificado de autenticidad (COA)', 'coa_no': 'No', 'coa_yes': 'Sí',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFICADO', 'badge_with_coa': 'CON COA',
             'fig_scale_1_6': 'Figura 1/6', 'fig_scale_1_12': '1/12', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Escala real (1/1)',
-            'btn_load_more': 'Cargar más'
+            'btn_load_more': 'Cargar más',
+            'account_favorites': 'MIS FAVORITOS', 'account_favorites_title': 'MIS FAVORITOS',
+            'account_favorites_hint': 'Aviso si baja el precio o el anuncio se vende.',
+            'account_favorites_empty': 'Sin favoritos.', 'fav_price_drop': 'PRECIO A LA BAJA', 'fav_sold': 'VENDIDO', 'fav_open': 'Ver'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -1319,7 +1368,10 @@
             'lbl_coa_switch': '真伪证书（COA）', 'coa_no': '否', 'coa_yes': '是',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI 认证', 'badge_with_coa': '含 COA',
             'fig_scale_1_6': '1/6 可动人偶', 'fig_scale_1_12': '1/12', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': '等身比例（1/1）',
-            'btn_load_more': '加载更多'
+            'btn_load_more': '加载更多',
+            'account_favorites': '我的收藏', 'account_favorites_title': '我的收藏',
+            'account_favorites_hint': '降价或已售出时将提醒。',
+            'account_favorites_empty': '暂无收藏。', 'fav_price_drop': '降价', 'fav_sold': '已售', 'fav_open': '查看'
         }
     };
 
@@ -1354,6 +1406,8 @@
     };
     var spiritRenderMarketSig = '';
     var spiritMarketScrollObserver = null;
+    var spiritUserFavoriteSet = new Set();
+    var spiritFavoriteCountMap = {};
 
     // --- PRÉCOMMANDES HOT TOYS (PARTENAIRE OFFICIEL) ---
     // Vitrine indépendante du Marketplace (pas d'achat in-app)
@@ -1684,6 +1738,182 @@ function spiritMarketInitScrollObserver() {
     if (ss) spiritMarketScrollObserver.observe(ss);
 }
 
+function spiritProductId(item) {
+    if (!item) return '';
+    var v = item.id != null ? item.id : (item.uuid != null ? item.uuid : '');
+    return String(v);
+}
+function spiritReadFavSnap() {
+    try { return JSON.parse(localStorage.getItem('spirit_fav_snap_v2') || '{}'); } catch (e) { return {}; }
+}
+function spiritWriteFavSnap(o) {
+    try { localStorage.setItem('spirit_fav_snap_v2', JSON.stringify(o)); } catch (e) {}
+}
+function spiritBootstrapFavoriteSnapshots() {
+    var snap = spiritReadFavSnap();
+    var changed = false;
+    if (!spiritUserFavoriteSet || typeof spiritUserFavoriteSet.forEach !== 'function') return;
+    spiritUserFavoriteSet.forEach(function (pid) {
+        if (snap[pid]) return;
+        var p = (marketData || []).find(function (m) { return spiritProductId(m) === pid; });
+        if (!p) return;
+        snap[pid] = {
+            amount: Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0),
+            status: String(p.status || 'available').toLowerCase()
+        };
+        changed = true;
+    });
+    if (changed) spiritWriteFavSnap(snap);
+}
+function spiritEvaluateFavoriteAlerts() {
+    var dot = document.getElementById('favorites-tab-dot');
+    if (!spiritUserFavoriteSet || spiritUserFavoriteSet.size === 0) {
+        if (dot) dot.style.display = 'none';
+        return;
+    }
+    var snap = spiritReadFavSnap();
+    var alertAny = false;
+    spiritUserFavoriteSet.forEach(function (pid) {
+        var prev = snap[pid];
+        if (!prev) return;
+        var p = (marketData || []).find(function (m) { return spiritProductId(m) === pid; });
+        if (!p) return;
+        var curAmt = Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0);
+        var st = String(p.status || 'available').toLowerCase();
+        if (curAmt < Number(prev.amount)) alertAny = true;
+        if (st === 'sold' && String(prev.status || '').toLowerCase() !== 'sold') alertAny = true;
+    });
+    if (dot) dot.style.display = alertAny ? 'inline-block' : 'none';
+}
+function spiritAcknowledgeFavoriteTab() {
+    var snap = spiritReadFavSnap();
+    (marketData || []).forEach(function (p) {
+        var pid = spiritProductId(p);
+        if (!pid || !spiritUserFavoriteSet.has(pid)) return;
+        snap[pid] = {
+            amount: Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0),
+            status: String(p.status || 'available').toLowerCase()
+        };
+    });
+    spiritWriteFavSnap(snap);
+    var dot = document.getElementById('favorites-tab-dot');
+    if (dot) dot.style.display = 'none';
+}
+/* Supabase: create table public.favorites (user_id text not null, product_id text not null, primary key (user_id, product_id)); activer RLS + policies insert/select/delete pour user_id = auth.uid() ou test ID selon ta politique. */
+async function spiritLoadFavoriteData() {
+    if (!_spirit) return;
+    try {
+        var out = await _spirit.from('favorites').select('user_id, product_id');
+        if (out.error) return;
+        var uid = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+        spiritUserFavoriteSet = new Set();
+        spiritFavoriteCountMap = {};
+        (out.data || []).forEach(function (r) {
+            var p = String(r.product_id);
+            spiritFavoriteCountMap[p] = (spiritFavoriteCountMap[p] || 0) + 1;
+            if (String(r.user_id) === uid) spiritUserFavoriteSet.add(p);
+        });
+    } catch (e) { /* table favorites ou RLS */ }
+    spiritBootstrapFavoriteSnapshots();
+    spiritEvaluateFavoriteAlerts();
+}
+async function spiritToggleFavorite(productId, ev) {
+    if (ev) {
+        ev.stopPropagation();
+        ev.preventDefault();
+    }
+    if (!_spirit) return;
+    var uid = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+    var pid = String(productId);
+    try {
+        if (spiritUserFavoriteSet.has(pid)) {
+            var del = await _spirit.from('favorites').delete().eq('user_id', uid).eq('product_id', pid);
+            if (del.error) throw del.error;
+            spiritUserFavoriteSet.delete(pid);
+            spiritFavoriteCountMap[pid] = Math.max(0, (spiritFavoriteCountMap[pid] || 1) - 1);
+        } else {
+            var ins = await _spirit.from('favorites').insert([{ user_id: uid, product_id: pid }]);
+            if (ins.error) throw ins.error;
+            spiritUserFavoriteSet.add(pid);
+            spiritFavoriteCountMap[pid] = (spiritFavoriteCountMap[pid] || 0) + 1;
+        }
+    } catch (err) {
+        console.warn('[SPIRIT] favorites:', err);
+        return;
+    }
+    spiritRenderMarketSig = '';
+    try {
+        if (typeof applyFilters === 'function') applyFilters();
+        else if (typeof renderMarket === 'function') renderMarket();
+    } catch (x) {}
+    spiritBootstrapFavoriteSnapshots();
+    spiritEvaluateFavoriteAlerts();
+}
+function spiritInitFavoriteClickDelegation() {
+    if (spiritInitFavoriteClickDelegation.done) return;
+    spiritInitFavoriteClickDelegation.done = true;
+    document.body.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest && e.target.closest('.spirit-card-fav-btn');
+        if (!btn) return;
+        e.stopPropagation();
+        e.preventDefault();
+        var p = btn.getAttribute('data-spirit-fav');
+        if (p) spiritToggleFavorite(p, e);
+    }, true);
+}
+async function renderUserFavorites() {
+    var box = document.getElementById('user-favorites-list');
+    if (!box) return;
+    box.innerHTML = '';
+    await spiritLoadFavoriteData();
+    if (!spiritUserFavoriteSet || spiritUserFavoriteSet.size === 0) {
+        var em = (typeof spiritT === 'function') ? spiritT('account_favorites_empty') : '—';
+        box.innerHTML = '<div style="text-align:center;padding:20px;color:#555;" data-key="account_favorites_empty">' + em + '</div>';
+        spiritAcknowledgeFavoriteTab();
+        return;
+    }
+    var ids = Array.from(spiritUserFavoriteSet);
+    var rows = [];
+    if (_spirit) {
+        try {
+            var out = await _spirit.from('products_live').select('*').in('id', ids);
+            if (!out.error && Array.isArray(out.data)) rows = out.data;
+        } catch (e) {}
+    }
+    if (rows.length === 0) {
+        rows = (marketData || []).filter(function (m) { return spiritUserFavoriteSet.has(spiritProductId(m)); });
+    }
+    var snap = spiritReadFavSnap();
+    rows.forEach(function (p) {
+        var pid = spiritProductId(p);
+        if (!pid) return;
+        var curAmt = Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0);
+        var st = String(p.status || '').toLowerCase();
+        var prev = snap[pid];
+        var alertRow = false;
+        var tags = '';
+        if (prev) {
+            if (curAmt < Number(prev.amount)) {
+                alertRow = true;
+                tags += '<span style="color:#e22;font-size:0.65rem;font-weight:800;margin-left:8px;" data-key="fav_price_drop">' + spiritT('fav_price_drop') + '</span>';
+            }
+            if (st === 'sold' && String(prev.status || '').toLowerCase() !== 'sold') {
+                alertRow = true;
+                tags += '<span style="color:#e22;font-size:0.65rem;font-weight:800;margin-left:8px;" data-key="fav_sold">' + spiritT('fav_sold') + '</span>';
+            }
+        }
+        var div = document.createElement('div');
+        div.className = (alertRow ? 'spirit-fav-row-alert ' : '') + 'spirit-fav-account-row';
+        div.style.cssText = 'background:#111;border:1px solid #333;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;';
+        var titleEsc = String(p.title || p.name || '—').replace(/</g, '&lt;');
+        div.innerHTML = '<div><div style="font-weight:bold;color:#fff;font-size:0.85rem;">' + titleEsc + '</div><div style="color:var(--neon-orange);font-size:0.8rem;margin-top:4px;">' + curAmt.toFixed(2) + ' ' + String(p.currency || 'EUR') + tags + '</div></div><button type="button" class="btn-action" style="font-size:0.6rem;padding:8px;" data-key="fav_open">' + spiritT('fav_open') + '</button>';
+        var bt = div.querySelector('button');
+        bt.onclick = function (ev) { if (ev) { ev.stopPropagation(); } try { openProduct(p); } catch (x) {} };
+        box.appendChild(div);
+    });
+    spiritAcknowledgeFavoriteTab();
+}
+
 function renderMarket(filteredData = null) {
         const sourceData = filteredData || marketData;
         const dataToRender = Array.isArray(sourceData) ? sourceData.filter(item => {
@@ -1699,22 +1929,19 @@ function renderMarket(filteredData = null) {
 
         if (!gn) return;
 
+        gn.innerHTML = '';
+        if (gl) gl.innerHTML = '';
+        if (gMine) gMine.innerHTML = '';
+
         var idsKey = dataToRender.map(function (it) {
             if (!it) return '';
             var v = it.id != null ? it.id : (it.uuid != null ? it.uuid : '');
             return String(v);
         }).join(',');
         var renderSig = [marketKindMode, marketCurrencyMode, spiritUiLang(), String(typeof MY_TEST_ID !== 'undefined' ? MY_TEST_ID : ''), idsKey, filteredData != null ? 'f' : 'a'].join('|');
-        if (renderSig === spiritRenderMarketSig) {
-            spiritUpdateLoadMoreUI();
-            return;
-        }
 
         if (!dataToRender || dataToRender.length === 0) {
             spiritRenderMarketSig = renderSig;
-            gn.innerHTML = '';
-            if (gl) gl.innerHTML = '';
-            if (gMine) gMine.innerHTML = '';
             var emptyMsg = 'Aucune annonce';
             if (filteredData != null && Array.isArray(marketData) && marketData.length > 0) emptyMsg = 'Aucun résultat pour ces filtres.';
             gn.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888;">' + emptyMsg + '</div>';
@@ -1723,9 +1950,6 @@ function renderMarket(filteredData = null) {
         }
 
         spiritRenderMarketSig = renderSig;
-
-        gn.innerHTML = ''; if (gl) gl.innerHTML = '';
-        if (gMine) gMine.innerHTML = '';
 
         dataToRender.forEach(item => {
             const card = document.createElement('div');
@@ -1744,6 +1968,11 @@ function renderMarket(filteredData = null) {
             const hasCoa = item.has_coa === true || item.has_coa === 'true' || item.has_coa === 1 || String(item.has_coa).toLowerCase() === 't';
             
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
+            const pidStr = spiritProductId(item);
+            const pidAttr = pidStr.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+            var fc = (pidStr && spiritFavoriteCountMap[pidStr] != null) ? spiritFavoriteCountMap[pidStr] : 0;
+            const isFav = !!(pidStr && spiritUserFavoriteSet && spiritUserFavoriteSet.has(pidStr));
+            const favBlock = pidStr ? ('<button type="button" class="spirit-card-fav-btn' + (isFav ? ' is-fav' : '') + '" data-spirit-fav="' + pidAttr + '" aria-pressed="' + (isFav ? 'true' : 'false') + '"><span class="spirit-fav-count">' + fc + '</span><svg class="spirit-fav-heart" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 20.35l-1.45-1.32C5.4 13.36 2 10.28 2 6.5 2 4.42 3.42 3 5.5 3c1.74 0 3.41 1.01 4.5 2.59C11.09 4.01 12.76 3 14.5 3 16.58 3 18 4.42 18 6.5c0 3.78-3.4 6.86-8.55 12.54L12 20.35z"/></svg></button>') : '';
             
             const _urls = spiritImageUrlList(item);
             const displayImg = _urls.length ? _urls[0] : null;
@@ -1781,6 +2010,7 @@ function renderMarket(filteredData = null) {
             const firstTxt = item.is_first_hand ? '1ere main' : 'Multi-mains';
             card.innerHTML = `
                 ${soldBadge}
+                ${favBlock}
                 ${ownerTag}
                 <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#050505; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
                 <div class="card-info">
@@ -2240,6 +2470,8 @@ async function updateUserAnnonces() {
         return;
     }
 
+    container.innerHTML = '';
+
     myAnnonces.forEach(a => {
         const div = document.createElement('div');
         // AJOUT : Style Industrial Dark avec distinction si vendu
@@ -2273,6 +2505,10 @@ async function updateUserAnnonces() {
         container.appendChild(div);
     });
     console.log(`[SPIRIT SYSTEM] Mise à jour liste utilisateur : ${myAnnonces.length} annonces affichées.`);
+}
+
+async function renderUserAds() {
+    await updateUserAnnonces();
 }
 
 function editAnnonce(id) {
@@ -3059,6 +3295,8 @@ window.showAccountTab = function showAccountTab(tab) {
         if (typeof updateUserAnnonces === 'function') {
             updateUserAnnonces();
         }
+    } else if (tab === 'favoris') {
+        if (typeof renderUserFavorites === 'function') renderUserFavorites();
     }
 
     if (tab === 'dashboard') {
@@ -3108,6 +3346,7 @@ function switchUser(newId, label) {
     if(document.getElementById('my-sales-list')) document.getElementById('my-sales-list').innerHTML = '';
     if(document.getElementById('my-purchases-list')) document.getElementById('my-purchases-list').innerHTML = '';
     if(document.getElementById('user-annonces-list')) document.getElementById('user-annonces-list').innerHTML = '';
+    if(document.getElementById('user-favorites-list')) document.getElementById('user-favorites-list').innerHTML = '';
 
     if (activeBtn) {
         // Si un onglet est déjà ouvert, on le relance avec le nouvel ID
@@ -3816,6 +4055,7 @@ async function fetchMarketplaceFromSupabase(opts) {
 
     setSpiritMarketLoading(false);
     spiritUpdateLoadMoreUI();
+    try { await spiritLoadFavoriteData(); } catch (eF) {}
     try { if (typeof applyFilters === 'function') applyFilters(); }
     catch (e) { try { renderMarket(); } catch (e2) { console.error('[SPIRIT MARKET] renderMarket:', e2); } }
     try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e3) {}
@@ -3834,6 +4074,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {}
     try { fetchMarketplaceFromSupabase({ reset: true }); } catch (e) {}
     try { spiritMarketInitScrollObserver(); } catch (e) {}
+    try { spiritInitFavoriteClickDelegation(); } catch (e) {}
 });
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
