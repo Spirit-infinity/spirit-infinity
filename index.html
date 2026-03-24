@@ -668,11 +668,178 @@
             text-shadow: 0 0 18px rgba(255,102,0,0.35);
         }
         #heroSection.spirit-hero p { color: #777; font-size: 0.9rem; margin: 0 0 24px; max-width: 520px; margin-left: auto; margin-right: auto; }
+        /* --- Profil public & Sanctuaire (Industrial Dark) --- */
+        body.spirit-public-active #spiritSimulatorBar,
+        body.spirit-public-active header,
+        body.spirit-public-active #heroSection,
+        body.spirit-public-active #marketplaceSection,
+        body.spirit-public-active .container { display: none !important; }
+        #spiritPublicProfileSection {
+            display: none; position: fixed; inset: 0; z-index: 100300; flex-direction: column;
+            background: #0a0a0a; color: #eaeaea; overflow: auto; font-family: system-ui, sans-serif;
+        }
+        #spiritPublicProfileSection .spirit-public-topbar {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+            padding: 14px 20px; border-bottom: 2px solid rgba(255,102,0,0.45); background: linear-gradient(180deg,#111,#080808);
+        }
+        #spiritPublicProfileSection .spirit-public-topbar .spirit-public-brand {
+            color: var(--neon-orange); font-weight: 900; letter-spacing: 2px; font-size: 0.75rem; text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(255,102,0,0.35);
+        }
+        #spiritPublicProfileSection .spirit-public-hero {
+            display: flex; flex-wrap: wrap; gap: 24px; padding: 28px 20px; align-items: flex-start;
+            border-bottom: 1px solid #222; background: radial-gradient(ellipse at 20% 0%, rgba(255,102,0,0.08), transparent 55%);
+        }
+        #spiritPublicProfileSection .spirit-public-avatar-wrap {
+            position: relative; width: 120px; height: 120px; flex-shrink: 0;
+            border: 3px solid var(--neon-orange); box-shadow: 0 0 24px rgba(255,102,0,0.25); background: #000;
+        }
+        #spiritPublicProfileSection .spirit-public-avatar-wrap img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        #spiritPublicProfileSection .spirit-public-badges {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px;
+        }
+        #spiritPublicProfileSection .spirit-pub-badge {
+            padding: 8px 14px; border: 1px solid #333; background: #111; font-size: 0.65rem; font-weight: 800;
+            letter-spacing: 0.5px; text-transform: uppercase; min-width: 100px; text-align: center;
+        }
+        #spiritPublicProfileSection .spirit-pub-badge b { display: block; color: var(--neon-orange); font-size: 1.1rem; margin-top: 4px; }
+        #spiritPublicProfileSection .spirit-public-subnav {
+            display: flex; gap: 0; padding: 0 20px; border-bottom: 1px solid #222; background: #050505;
+        }
+        #spiritPublicProfileSection .spirit-public-subnav button {
+            flex: 1; max-width: 220px; padding: 14px 18px; border: none; background: transparent; color: #666;
+            font-weight: 800; font-size: 0.7rem; letter-spacing: 1px; cursor: pointer; border-bottom: 3px solid transparent;
+        }
+        #spiritPublicProfileSection .spirit-public-subnav button.active {
+            color: var(--neon-orange); border-bottom-color: var(--neon-orange);
+        }
+        #spiritPublicProfileSection .spirit-public-pane { padding: 20px; min-height: 120px; }
+        #spiritSanctuaryRoot {
+            background: #000000; margin: 0 -20px -20px; padding: 20px; min-height: 42vh;
+            border-top: 2px solid rgba(255,102,0,0.35);
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-toolbar {
+            display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-toolbar label { font-size: 0.65rem; color: #888; margin-right: 6px; }
+        #spiritSanctuaryRoot .spirit-sanctuary-toolbar select, #spiritSanctuaryRoot .spirit-sanctuary-toolbar button {
+            background: #111; border: 1px solid #333; color: #ccc; font-size: 0.65rem; padding: 8px 12px; cursor: pointer;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-toolbar button.active { border-color: var(--neon-orange); color: var(--neon-orange); }
+        #spiritSanctuaryGrid.spirit-san-mode-list { display: flex; flex-direction: column; gap: 16px; }
+        #spiritSanctuaryGrid.spirit-san-mode-list .spirit-san-card {
+            display: flex; gap: 16px; align-items: flex-start; background: #0a0a0a; border: 1px solid #222; padding: 12px;
+        }
+        #spiritSanctuaryGrid.spirit-san-mode-icons-lg {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px;
+        }
+        #spiritSanctuaryGrid.spirit-san-mode-icons-sm {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px;
+        }
+        #spiritSanctuaryGrid .spirit-san-add-tile {
+            aspect-ratio: 1; min-height: 72px; border: 2px dashed rgba(255,102,0,0.5); background: #0d0d0d;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--neon-orange);
+            font-size: 2rem; font-weight: 300; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #spiritSanctuaryGrid .spirit-san-add-tile:hover { border-color: var(--neon-orange); box-shadow: 0 0 16px rgba(255,102,0,0.2); }
+        #spiritSanctuaryGrid .spirit-san-thumb-wrap {
+            position: relative; overflow: hidden; background: #000;
+        }
+        #spiritSanctuaryGrid.spirit-san-mode-list .spirit-san-thumb-wrap { width: 140px; flex-shrink: 0; aspect-ratio: 1; }
+        #spiritSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap { aspect-ratio: 1; }
+        #spiritSanctuaryGrid.spirit-san-mode-icons-sm .spirit-san-thumb-wrap { aspect-ratio: 1; }
+        #spiritSanctuaryGrid .spirit-san-thumb-wrap img.spirit-sanctuary-img {
+            width: 100%; height: 100%; object-fit: cover; display: block; cursor: crosshair;
+        }
+        #spiritSanctuaryGrid .spirit-san-meta { flex: 1; font-size: 0.75rem; color: #aaa; }
+        #spiritSanctuaryGrid .spirit-san-meta input[type="text"] {
+            width: 100%; max-width: 420px; margin-top: 6px; padding: 8px; background: #111; border: 1px solid #333; color: #eee; font-size: 0.7rem;
+        }
+        #spiritSanctuaryGrid .spirit-san-del {
+            margin-top: 8px; font-size: 0.6rem; padding: 6px 10px; background: transparent; border: 1px solid #522; color: #f66; cursor: pointer;
+        }
+        .spirit-sanctuary-chat {
+            margin-top: 28px; padding-top: 20px; border-top: 1px solid #222; background: #030303; padding: 16px; border: 1px solid #1a1a1a;
+        }
+        .spirit-sanctuary-chat h4 { margin: 0 0 10px; font-size: 0.7rem; color: var(--neon-orange); letter-spacing: 1px; }
+        .spirit-sanctuary-chat .spirit-san-chat-msgs { max-height: 200px; overflow-y: auto; margin-bottom: 10px; font-size: 0.72rem; }
+        .spirit-sanctuary-chat .spirit-san-chat-line { padding: 6px 0; border-bottom: 1px solid #151515; }
+        .spirit-sanctuary-chat .spirit-san-chat-line .who { color: var(--spirit-green); font-weight: 700; }
+        #nav-account { position: relative; }
+        #nav-account-sanctuary-dot {
+            display: none; position: absolute; top: 2px; right: 2px; width: 9px; height: 9px; border-radius: 50%;
+            background: #e22; box-shadow: 0 0 8px #f00; pointer-events: none;
+        }
+        #spiritSanctuaryNotifDot {
+            display: none; position: fixed; top: 12px; right: 14px; width: 11px; height: 11px; border-radius: 50%;
+            background: #e22; box-shadow: 0 0 10px rgba(255,0,0,0.85); z-index: 100400; pointer-events: none;
+        }
+        body.spirit-public-active #spiritSanctuaryNotifDot { display: none !important; }
+        #spiritPublicView.spirit-public-visitor #spiritPublicIAScore { display: none !important; }
+        #spiritAccountSanctuaryRoot {
+            background: #000000; padding: 0; min-height: 36vh; border: none;
+        }
+        #spiritAccountSanctuaryRoot .spirit-sanctuary-toolbar {
+            display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px;
+        }
+        #spiritAccountSanctuaryRoot .spirit-sanctuary-toolbar label { font-size: 0.65rem; color: #888; margin-right: 6px; }
+        #spiritAccountSanctuaryRoot .spirit-sanctuary-toolbar select,
+        #spiritAccountSanctuaryRoot .spirit-sanctuary-toolbar button.spirit-san-view-acc {
+            background: #111; border: 1px solid #333; color: #ccc; font-size: 0.65rem; padding: 8px 12px; cursor: pointer;
+        }
+        #spiritAccountSanctuaryRoot .spirit-sanctuary-toolbar button.spirit-san-view-acc.active { border-color: var(--neon-orange); color: var(--neon-orange); }
+        #spiritSanctuaryGrid.spirit-san-mode-details .spirit-san-card,
+        #spiritAccountSanctuaryGrid.spirit-san-mode-details .spirit-san-card {
+            flex-direction: column; align-items: stretch;
+        }
+        #spiritSanctuaryGrid.spirit-san-mode-details .spirit-san-thumb-wrap,
+        #spiritAccountSanctuaryGrid.spirit-san-mode-details .spirit-san-thumb-wrap {
+            width: 100%; max-width: 320px;
+        }
+        #spiritSanctuaryGrid.spirit-san-mode-details .spirit-san-meta,
+        #spiritAccountSanctuaryGrid.spirit-san-mode-details .spirit-san-meta {
+            font-size: 0.85rem;
+        }
+        #spiritSanctuaryGrid.spirit-san-mode-details .spirit-san-meta input[type="text"],
+        #spiritAccountSanctuaryGrid.spirit-san-mode-details .spirit-san-meta input[type="text"] {
+            max-width: 100%; font-size: 0.8rem; padding: 10px;
+        }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-list { display: flex; flex-direction: column; gap: 16px; }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-card {
+            display: flex; gap: 16px; align-items: flex-start; background: #0a0a0a; border: 1px solid #222; padding: 12px;
+        }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px;
+        }
+        #spiritAccountSanctuaryGrid .spirit-san-add-tile {
+            aspect-ratio: 1; min-height: 72px; border: 2px dashed rgba(255,102,0,0.5); background: #000;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--neon-orange);
+            font-size: 2rem; font-weight: 300; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #spiritAccountSanctuaryGrid .spirit-san-add-tile:hover { border-color: var(--neon-orange); box-shadow: 0 0 16px rgba(255,102,0,0.2); }
+        #spiritAccountSanctuaryGrid .spirit-san-thumb-wrap {
+            position: relative; overflow: hidden; background: #000;
+        }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-thumb-wrap { width: 140px; flex-shrink: 0; aspect-ratio: 1; }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap { aspect-ratio: 1; }
+        #spiritAccountSanctuaryGrid .spirit-san-thumb-wrap img.spirit-sanctuary-img {
+            width: 100%; height: 100%; object-fit: cover; display: block; cursor: crosshair;
+        }
+        #spiritAccountSanctuaryGrid .spirit-san-meta { flex: 1; font-size: 0.75rem; color: #aaa; }
+        #spiritAccountSanctuaryGrid .spirit-san-meta input[type="text"] {
+            width: 100%; max-width: 420px; margin-top: 6px; padding: 8px; background: #111; border: 1px solid #333; color: #eee; font-size: 0.7rem;
+        }
+        #spiritAccountSanctuaryGrid .spirit-san-del {
+            margin-top: 8px; font-size: 0.6rem; padding: 6px 10px; background: transparent; border: 1px solid #522; color: #f66; cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
-<div style="display:flex; gap:10px; padding:10px; background:#111; border-bottom:1px solid #222; justify-content:center;">
+<div id="spiritSanctuaryNotifDot" aria-hidden="true" title="Message Sanctuaire"></div>
+<div id="spiritSimulatorBar" style="display:flex; gap:10px; padding:10px; background:#111; border-bottom:1px solid #222; justify-content:center;">
     <span style="color:#555; font-size:0.8rem; align-self:center;">SIMULATEUR :</span>
     <button onclick="switchUser('12345', 'MOI')" id="btn-user-moi" style="background:var(--spirit-green); color:black; border:none; padding:5px 10px; cursor:pointer; font-weight:bold;">COMPTE MOI</button>
     <button onclick="switchUser('67890', 'INVITÉ')" id="btn-user-guest" style="background:#222; color:white; border:none; padding:5px 10px; cursor:pointer;">COMPTE INVITÉ</button>
@@ -687,7 +854,7 @@
         <button id="nav-market" class="active" onclick="showMarketplace()" data-key="nav_market">MARKETPLACE</button>
         <button id="nav-ledger" class="nav-item" onclick="showLedgerModal()" data-key="nav_ledger"> <i class="fas fa-microchip"></i>PANNEAU DE CONTROLE</button>
         <button id="nav-forum" onclick="showForum()" data-key="nav_forum">FORUM</button>
-        <button id="nav-account" onclick="showMonCompte()" data-key="nav_account">MON COMPTE</button>
+        <button id="nav-account" onclick="showMonCompte()" data-key="nav_account">MON COMPTE<span id="nav-account-sanctuary-dot" aria-hidden="true"></span></button>
         <button id="nav-func" onclick="showSecurite()" data-key="nav_security">SÉCURITÉ</button>
         <button id="nav-preorders" onclick="showPrecommandesHotToys()" data-key="nav_preorders">PRÉCOMMANDES HOT TOYS</button>
         <button id="nav-sav" onclick="showSupport()" data-key="nav_support">SUPPORT SPIRIT</button>
@@ -1093,6 +1260,7 @@
                 <button id="btn-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
                 <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
                 <button type="button" id="btn-favoris" onclick="showAccountTab('favoris')"><span data-key="account_favorites">MES FAVORIS</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button type="button" id="btn-sanctuary" onclick="showAccountTab('sanctuary')">SANCTUAIRE</button>
                 <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
             
@@ -1100,6 +1268,13 @@
                 <div id="tab-dashboard" class="account-page active">
                     <h2>🏠 TABLEAU DE BORD</h2>
                     <p>C'est ici que s'affiche ton résumé.</p>
+                    <div style="margin-top:16px;padding:14px;border:1px solid rgba(255,102,0,0.35);background:#0c0c0c;">
+                        <p style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">PROFIL PUBLIC &amp; SANCTUAIRE</p>
+                        <p style="margin:0 0 10px;font-size:0.65rem;color:#777;">URL unique (partage) :</p>
+                        <code id="spirit-dashboard-public-url" style="display:block;font-size:0.6rem;color:#aaa;word-break:break-all;margin-bottom:10px;">—</code>
+                        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;margin-right:8px;" onclick="spiritCopyMyPublicUrl()">COPIER L’URL</button>
+                        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#222;color:var(--neon-orange);border:1px solid var(--neon-orange);" onclick="spiritOpenMyPublicProfile()">OUVRIR MON PROFIL PUBLIC</button>
+                    </div>
                 </div>
 
             <div id="tab-achats" class="account-page">
@@ -1155,6 +1330,40 @@
     <div id="user-favorites-list" style="display:flex; flex-direction:column; gap:12px; margin-top:12px;"></div>
 </div>
 
+<div id="tab-sanctuary" class="account-page">
+    <h3 style="color:var(--neon-orange);letter-spacing:2px;font-size:0.85rem;">SANCTUAIRE</h3>
+    <p style="font-size:0.65rem;color:#666;margin-top:0;">Galerie noire &amp; néon — jusqu’à 15 pièces (bucket Storage <code>sanctuary</code>).</p>
+    <div id="spiritAccountSanctuaryRoot" style="background:#000000;border:1px solid rgba(255,102,0,0.4);padding:16px;margin-top:12px;">
+        <div class="spirit-sanctuary-toolbar">
+            <span style="font-size:0.65rem;color:#888;">Néon (nouvelle photo)</span>
+            <select id="spiritAccountSanctuaryNeonSelect" aria-label="Couleur néon">
+                <option value="#ff6600">Orange Spirit</option>
+                <option value="#00ff88">Vert</option>
+                <option value="#00ccff">Cyan</option>
+                <option value="#ff00aa">Magenta</option>
+                <option value="#ffffff">Blanc</option>
+                <option value="#ffcc00">Or</option>
+            </select>
+            <span style="flex:1"></span>
+            <label style="font-size:0.65rem;color:#888;">Affichage</label>
+            <button type="button" class="spirit-san-view-acc active" data-sanview="list" onclick="spiritAccountSanctuarySetView('list')">Liste</button>
+            <button type="button" class="spirit-san-view-acc" data-sanview="details" onclick="spiritAccountSanctuarySetView('details')">Détails</button>
+            <button type="button" class="spirit-san-view-acc" data-sanview="icons-lg" onclick="spiritAccountSanctuarySetView('icons-lg')">Grandes icônes</button>
+        </div>
+        <input type="file" id="spiritAccountSanctuaryFileInput" accept="image/*" style="display:none;" />
+        <div id="spiritAccountSanctuaryGrid" class="spirit-san-mode-list"></div>
+        <div class="spirit-sanctuary-chat" style="margin-top:20px;">
+            <h4 style="color:var(--neon-orange);font-size:0.7rem;">CHAT DU SANCTUAIRE</h4>
+            <p style="font-size:0.6rem;color:#555;margin:0 0 8px;">Téléphones, e-mails et noms de paiement externes sont bloqués.</p>
+            <div class="spirit-san-chat-msgs" id="spiritAccountSanctuaryChatMsgs"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;">
+                <input type="text" id="spiritAccountSanctuaryChatInput" placeholder="Message…" style="flex:1;min-width:160px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
+                <button type="button" class="btn-action" style="font-size:0.6rem;padding:10px 14px;" onclick="spiritAccountSanctuarySendChat()">ENVOYER</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="tab-params" class="account-page">
     <h3>PARAMÈTRES DU COMPTE</h3>
     
@@ -1175,6 +1384,79 @@
         </div>
     </div>
 </div>
+
+<section id="spiritPublicProfileSection" aria-label="Profil public Spirit">
+    <div class="spirit-public-topbar">
+        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 14px;background:#111;border:1px solid #444;color:#eee;" onclick="spiritExitPublicProfile()">← MARKETPLACE</button>
+        <span class="spirit-public-brand">Profil public — Spirit Infinity</span>
+        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 14px;" onclick="spiritCopyPublicProfileUrl()">COPIER L’URL</button>
+    </div>
+    <div id="spiritPublicView">
+    <div class="spirit-public-hero">
+        <div class="spirit-public-avatar-wrap">
+            <img id="spiritPublicAvatarImg" src="" alt="" style="display:none;" />
+            <div id="spiritPublicAvatarPlaceholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#333;font-size:0.65rem;text-align:center;padding:8px;">AVATAR</div>
+            <input type="file" id="spiritPublicAvatarFile" accept="image/*" style="display:none;" />
+        </div>
+        <div style="flex:1;min-width:200px;">
+            <h1 id="spiritPublicPseudo" style="margin:0 0 8px;color:#fff;font-size:1.35rem;letter-spacing:1px;">—</h1>
+            <p id="spiritPublicCountryRow" style="margin:0;font-size:0.8rem;color:#888;"><span id="spiritPublicCountry">—</span></p>
+            <p id="spiritPublicIAScore" style="margin:10px 0 0;font-size:0.85rem;color:var(--spirit-green);font-weight:700;">IA Score : —</p>
+            <button type="button" id="spiritPublicAvatarBtn" class="btn-action" style="display:none;margin-top:12px;font-size:0.6rem;padding:6px 12px;" onclick="document.getElementById('spiritPublicAvatarFile').click()">CHANGER LA PHOTO</button>
+            <div style="margin-top:12px;display:none;align-items:center;gap:8px;flex-wrap:wrap;" id="spiritPublicCountryEdit">
+                <label style="font-size:0.65rem;color:#666;">Pays (visible publiquement)</label>
+                <input type="text" id="spiritPublicCountryInput" placeholder="France" style="padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;max-width:200px;" />
+                <button type="button" class="btn-action" style="font-size:0.55rem;padding:6px 10px;" onclick="spiritPublicSaveMeta()">ENREGISTRER</button>
+            </div>
+            <div class="spirit-public-badges" id="spiritPublicBadges">
+                <div class="spirit-pub-badge">Achat<b id="spiritBadgeAchat">0</b></div>
+                <div class="spirit-pub-badge">Vente<b id="spiritBadgeVente">0</b></div>
+                <div class="spirit-pub-badge">Livraison<b id="spiritBadgeLivr">0</b></div>
+                <div class="spirit-pub-badge">Litige<b id="spiritBadgeLit">0</b></div>
+            </div>
+        </div>
+    </div>
+    <div class="spirit-public-subnav">
+        <button type="button" id="spiritPublicBtnAnnonces" class="active" onclick="spiritPublicSetTab('annonces')">ANNONCES</button>
+        <button type="button" id="spiritPublicBtnSanctuary" onclick="spiritPublicSetTab('sanctuary')">SANCTUAIRE</button>
+    </div>
+    <div class="spirit-public-pane" id="spiritPublicPaneAnnonces">
+        <p style="font-size:0.7rem;color:#666;margin-top:0;">Annonces publiques (products_live)</p>
+        <div id="spiritPublicAnnoncesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;"></div>
+    </div>
+    <div class="spirit-public-pane" id="spiritPublicPaneSanctuary" style="display:none;">
+        <div id="spiritSanctuaryRoot">
+            <div class="spirit-sanctuary-toolbar">
+                <span style="font-size:0.65rem;color:#888;">Bordure néon (nouvelle photo)</span>
+                <select id="spiritSanctuaryNeonSelect" aria-label="Couleur néon">
+                    <option value="#ff6600">Orange Spirit</option>
+                    <option value="#00ff88">Vert</option>
+                    <option value="#00ccff">Cyan</option>
+                    <option value="#ff00aa">Magenta</option>
+                    <option value="#ffffff">Blanc</option>
+                    <option value="#ffcc00">Or</option>
+                </select>
+                <span style="flex:1"></span>
+                <label style="font-size:0.65rem;color:#888;">Affichage</label>
+                <button type="button" class="spirit-san-view active" data-sanview="list" onclick="spiritSanctuarySetView('list')">Liste</button>
+                <button type="button" class="spirit-san-view" data-sanview="details" onclick="spiritSanctuarySetView('details')">Détails</button>
+                <button type="button" class="spirit-san-view" data-sanview="icons-lg" onclick="spiritSanctuarySetView('icons-lg')">Grandes icônes</button>
+            </div>
+            <input type="file" id="spiritSanctuaryFileInput" accept="image/*" style="display:none;" />
+            <div id="spiritSanctuaryGrid" class="spirit-san-mode-list"></div>
+            <div class="spirit-sanctuary-chat">
+                <h4>CHAT DU SANCTUAIRE</h4>
+                <p style="font-size:0.62rem;color:#555;margin:0 0 8px;">Téléphones, e-mails et noms de plateformes de paiement externes sont bloqués — marketplace Spirit uniquement.</p>
+                <div class="spirit-san-chat-msgs" id="spiritSanctuaryChatMsgs"></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <input type="text" id="spiritSanctuaryChatInput" placeholder="Message…" style="flex:1;min-width:180px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
+                    <button type="button" class="btn-action" style="font-size:0.65rem;padding:10px 16px;" onclick="spiritSanctuarySendChat('public')">ENVOYER</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</section>
 
 <div id="ledgerModal" class="overlay">
     <div class="modal-content" style="max-width:640px;text-align:left;">
@@ -3465,13 +3747,15 @@ async function confirmPayment(method) {
             'paymentModal',
             'certifModal',
             'labelPreview',
-            'lightbox'
+            'lightbox',
+            'spiritPublicProfileSection'
         ].forEach(function (id) {
             var el = document.getElementById(id);
             if (el) el.style.setProperty('display', 'none', 'important');
         });
         try { hideTopicEditor(); } catch (e) {}
     }
+    try { window.hideAllSections = hideAllSections; } catch (e) {}
 
     function setActiveNav(navId) {
         document.querySelectorAll('.menu-center button').forEach(b => b.classList.remove('active'));
@@ -3523,6 +3807,7 @@ async function confirmPayment(method) {
                 const account = document.getElementById('accountModal');
                 if (account) account.style.setProperty('display', 'flex', 'important');
                 try { if (typeof showAccountTab === 'function') showAccountTab('dashboard'); } catch (e) {}
+                try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
                 break;
 
             case 'security':
@@ -3646,6 +3931,14 @@ window.showAccountTab = function showAccountTab(tab) {
     }
 
     try {
+        var p = (typeof spiritParsePublicHash === 'function') ? spiritParsePublicHash() : null;
+        var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params')) {
+            tab = 'dashboard';
+        }
+    } catch (e) {}
+
+    try {
         if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
     } catch (e) {}
 
@@ -3695,10 +3988,14 @@ window.showAccountTab = function showAccountTab(tab) {
         }
     } else if (tab === 'favoris') {
         if (typeof renderUserFavorites === 'function') renderUserFavorites();
+    } else if (tab === 'sanctuary') {
+        try { if (typeof spiritAccountSanctuaryTabEnter === 'function') void spiritAccountSanctuaryTabEnter(); } catch (e) {}
+        try { if (typeof spiritSanctuaryWireOnce === 'function') spiritSanctuaryWireOnce(); } catch (e) {}
     }
 
     if (tab === 'dashboard') {
         try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+        try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
     }
     if (tab === 'params') {
         console.log("[SPIRIT SYSTEM] Accès paramètres");
@@ -3768,6 +4065,9 @@ function switchUser(newId, label) {
     } catch (e) {}
 
     console.log("[SPIRIT LEDGER] Synchronisation terminée pour " + label);
+    try { if (typeof spiritUpdateNavSanctuaryDot === 'function') spiritUpdateNavSanctuaryDot(); } catch (e) {}
+    try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
+    try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
 }
 
 var spiritLoupeCleanup = null;
@@ -3835,6 +4135,686 @@ function spiritAttachProductLoupe(img) {
 try { window.spiritDetachProductLoupe = spiritDetachProductLoupe; } catch (e) {}
 try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
 
+/* ========== Profil public & Sanctuaire (Supabase — plus de localStorage) ==========
+   SQL à exécuter dans Supabase (schéma indicatif + RLS à adapter) :
+   ---------------------------------------------------------------------------
+   create table if not exists public.user_profiles (
+     user_id text primary key,
+     pseudo text,
+     avatar_url text,
+     country text default 'France',
+     badge_achat int default 0,
+     badge_vente int default 0,
+     badge_livr int default 0,
+     badge_lit int default 0,
+     ia_score numeric,
+     updated_at timestamptz default now()
+   );
+   create table if not exists public.sanctuary_items (
+     id bigint primary key generated always as identity,
+     user_id text not null,
+     image_url text not null,
+     neon_color text default '#ff6600',
+     description text default '',
+     sort_order int not null default 0,
+     created_at timestamptz default now()
+   );
+   create index if not exists idx_sanctuary_items_user on public.sanctuary_items(user_id);
+   create table if not exists public.sanctuary_chat (
+     id bigint primary key generated always as identity,
+     recipient_id text not null,
+     sender_id text not null,
+     sender_label text,
+     body text not null,
+     is_read boolean default false,
+     created_at timestamptz default now()
+   );
+   create index if not exists idx_sanctuary_chat_rec on public.sanctuary_chat(recipient_id);
+   Buckets Storage publics : "avatars", "sanctuary" (ou ajuster les noms dans le code).
+   --------------------------------------------------------------------------- */
+var spiritPublicViewUserId = null;
+var spiritSanctuaryViewMode = 'list';
+var spiritSanctuaryViewModeAccount = 'list';
+var spiritSanctuaryPollTimer = null;
+var SPIRIT_BUCKET_AVATAR = 'avatars';
+var SPIRIT_BUCKET_SANCTUARY = 'sanctuary';
+function spiritPublicDefaultLabel(uid) {
+    var u = String(uid);
+    if (u === '12345') return 'MOI';
+    if (u === '67890') return 'INVITÉ';
+    return 'Spirit Collector';
+}
+function spiritParsePublicHash() {
+    var h = (location.hash || '').replace(/^#/, '').trim();
+    var m = /^spirit-public\/([^\/]+)(?:\/(sanctuary))?$/i.exec(h);
+    if (!m) return null;
+    return { userId: decodeURIComponent(m[1]).trim(), sanctuary: !!m[2] };
+}
+function spiritSyncAccountTabsForPublicVisitor() {
+    var hide = false;
+    try {
+        var p = spiritParsePublicHash();
+        var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+        hide = !!(p && p.userId && me && String(p.userId) !== me);
+    } catch (e) {}
+    ['btn-achats', 'btn-ventes', 'btn-params'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (hide) el.style.setProperty('display', 'none', 'important');
+        else el.style.removeProperty('display');
+    });
+    var view = document.getElementById('spiritPublicView');
+    if (view) view.classList.toggle('spirit-public-visitor', hide);
+}
+function spiritSanctuaryDom(ctx) {
+    if (ctx === 'account') {
+        return {
+            grid: 'spiritAccountSanctuaryGrid',
+            file: 'spiritAccountSanctuaryFileInput',
+            neon: 'spiritAccountSanctuaryNeonSelect',
+            chatMsgs: 'spiritAccountSanctuaryChatMsgs',
+            chatIn: 'spiritAccountSanctuaryChatInput',
+            viewSel: '#spiritAccountSanctuaryRoot .spirit-san-view-acc'
+        };
+    }
+    return {
+        grid: 'spiritSanctuaryGrid',
+        file: 'spiritSanctuaryFileInput',
+        neon: 'spiritSanctuaryNeonSelect',
+        chatMsgs: 'spiritSanctuaryChatMsgs',
+        chatIn: 'spiritSanctuaryChatInput',
+        viewSel: '#spiritSanctuaryRoot .spirit-san-view'
+    };
+}
+function spiritSanctuaryUid(ctx) {
+    if (ctx === 'account') {
+        return (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : null;
+    }
+    return spiritPublicViewUserId;
+}
+function spiritSanctuaryViewModeGet(ctx) {
+    return ctx === 'account' ? spiritSanctuaryViewModeAccount : spiritSanctuaryViewMode;
+}
+function spiritSanctuaryViewModeSet(ctx, m) {
+    if (ctx === 'account') spiritSanctuaryViewModeAccount = m;
+    else spiritSanctuaryViewMode = m;
+}
+async function spiritStorageUploadPublic(bucket, path, file) {
+    if (typeof _spirit === 'undefined' || !_spirit) throw new Error('Supabase indisponible');
+    var up = await _spirit.storage.from(bucket).upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+    if (up.error) throw up.error;
+    var pub = _spirit.storage.from(bucket).getPublicUrl(path);
+    return pub.data.publicUrl;
+}
+function spiritPublicBuildUrl(uid) {
+    return location.origin + location.pathname + location.search + '#spirit-public/' + encodeURIComponent(String(uid));
+}
+function spiritClipboardCopy(t) {
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(t).then(function () { alert('URL copiée dans le presse-papiers.'); }, function () { window.prompt('Copier cette URL :', t); });
+            return;
+        }
+    } catch (e) {}
+    try {
+        var ta = document.createElement('textarea');
+        ta.value = t;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert('URL copiée.');
+    } catch (e2) { window.prompt('Copier cette URL :', t); }
+}
+function spiritCopyPublicProfileUrl() {
+    if (!spiritPublicViewUserId) return;
+    spiritClipboardCopy(spiritPublicBuildUrl(spiritPublicViewUserId));
+}
+function spiritCopyMyPublicUrl() {
+    var uid = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (!uid) return;
+    spiritClipboardCopy(spiritPublicBuildUrl(uid));
+}
+function spiritOpenMyPublicProfile() {
+    var uid = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (!uid) return;
+    location.hash = 'spirit-public/' + encodeURIComponent(uid);
+}
+function spiritRefreshDashboardPublicUrl() {
+    var el = document.getElementById('spirit-dashboard-public-url');
+    if (!el) return;
+    var uid = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    el.textContent = uid ? spiritPublicBuildUrl(uid) : '—';
+}
+function spiritExitPublicProfile() {
+    spiritPublicViewUserId = null;
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    document.body.classList.remove('spirit-public-active');
+    var sec = document.getElementById('spiritPublicProfileSection');
+    if (sec) sec.style.setProperty('display', 'none', 'important');
+    try { spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
+    if (typeof navigateTo === 'function') navigateTo('market');
+    else if (typeof window.navigateTo === 'function') window.navigateTo('market');
+    else if (typeof spiritShowHeroHome === 'function') spiritShowHeroHome();
+}
+function spiritPublicSetTab(which) {
+    var a = document.getElementById('spiritPublicPaneAnnonces');
+    var s = document.getElementById('spiritPublicPaneSanctuary');
+    var ba = document.getElementById('spiritPublicBtnAnnonces');
+    var bs = document.getElementById('spiritPublicBtnSanctuary');
+    var isS = which === 'sanctuary';
+    if (a) a.style.display = isS ? 'none' : 'block';
+    if (s) s.style.display = isS ? 'block' : 'none';
+    if (ba) ba.classList.toggle('active', !isS);
+    if (bs) bs.classList.toggle('active', isS);
+    if (isS) {
+        void spiritSanctuaryTabEnter();
+    }
+}
+async function spiritPublicFetchUserProfile(uid) {
+    if (typeof _spirit === 'undefined' || !_spirit) return null;
+    try {
+        var out = await _spirit.from('user_profiles').select('*').eq('user_id', String(uid)).maybeSingle();
+        if (out.error) return null;
+        return out.data || null;
+    } catch (e) { return null; }
+}
+function spiritPublicApplyBadgesFromRow(row) {
+    function z(id, v) { var el = document.getElementById(id); if (el) el.textContent = String(v); }
+    var zv = function (n) { return (n != null && Number.isFinite(Number(n))) ? Math.max(0, Math.round(Number(n))) : 0; };
+    z('spiritBadgeAchat', row ? zv(row.badge_achat) : 0);
+    z('spiritBadgeVente', row ? zv(row.badge_vente) : 0);
+    z('spiritBadgeLivr', row ? zv(row.badge_livr) : 0);
+    z('spiritBadgeLit', row ? zv(row.badge_lit) : 0);
+}
+async function spiritOpenPublicProfileUI(userId, opts) {
+    opts = opts || {};
+    spiritPublicViewUserId = String(userId).trim();
+    if (typeof window.hideAllSections === 'function') window.hideAllSections();
+    document.body.classList.add('spirit-public-active');
+    var sec = document.getElementById('spiritPublicProfileSection');
+    if (sec) sec.style.setProperty('display', 'flex', 'important');
+    var row = await spiritPublicFetchUserProfile(spiritPublicViewUserId);
+    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    var isOwner = me === spiritPublicViewUserId;
+    var pseudoEl = document.getElementById('spiritPublicPseudo');
+    if (pseudoEl) {
+        var dispName = (row && row.pseudo) ? String(row.pseudo) : spiritPublicDefaultLabel(spiritPublicViewUserId);
+        if (isOwner && typeof currentUser !== 'undefined' && currentUser && String(currentUser).trim() !== '')
+            dispName = String(currentUser).toUpperCase();
+        pseudoEl.textContent = dispName;
+    }
+    var cEl = document.getElementById('spiritPublicCountry');
+    if (cEl) cEl.textContent = 'Pays : ' + ((row && row.country) ? String(row.country) : '—');
+    var cIn = document.getElementById('spiritPublicCountryInput');
+    if (cIn) cIn.value = (row && row.country) ? String(row.country) : 'France';
+    var cEd = document.getElementById('spiritPublicCountryEdit');
+    if (cEd) cEd.style.display = isOwner ? 'flex' : 'none';
+    var avBtn = document.getElementById('spiritPublicAvatarBtn');
+    if (avBtn) avBtn.style.display = isOwner ? 'inline-block' : 'none';
+    var imgEl = document.getElementById('spiritPublicAvatarImg');
+    var ph = document.getElementById('spiritPublicAvatarPlaceholder');
+    if (row && row.avatar_url && imgEl && ph) {
+        imgEl.src = String(row.avatar_url);
+        imgEl.style.display = 'block';
+        ph.style.display = 'none';
+    } else if (imgEl && ph) {
+        imgEl.removeAttribute('src');
+        imgEl.style.display = 'none';
+        ph.style.display = 'flex';
+    }
+    spiritPublicApplyBadgesFromRow(row);
+    await spiritPublicLoadIaScore(spiritPublicViewUserId, row);
+    spiritPublicWireAvatarOnce();
+    await spiritPublicLoadAnnonces(spiritPublicViewUserId);
+    spiritPublicSetTab(opts.sanctuary ? 'sanctuary' : 'annonces');
+    spiritSanctuaryWireOnce();
+    try { spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
+}
+async function spiritPublicSaveMeta() {
+    var uid = spiritPublicViewUserId;
+    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (!uid || me !== String(uid) || typeof _spirit === 'undefined' || !_spirit) return;
+    var c = (document.getElementById('spiritPublicCountryInput') && document.getElementById('spiritPublicCountryInput').value.trim()) || 'France';
+    var up = { user_id: String(uid), country: c, updated_at: new Date().toISOString() };
+    var ex = await spiritPublicFetchUserProfile(uid);
+    if (ex) {
+        if (ex.pseudo) up.pseudo = ex.pseudo;
+        if (ex.avatar_url) up.avatar_url = ex.avatar_url;
+        ['badge_achat', 'badge_vente', 'badge_livr', 'badge_lit', 'ia_score'].forEach(function (k) {
+            if (ex[k] != null) up[k] = ex[k];
+        });
+    }
+    var ins = await _spirit.from('user_profiles').upsert(up, { onConflict: 'user_id' });
+    if (ins.error) { alert('Erreur Supabase : ' + ins.error.message); return; }
+    var cEl = document.getElementById('spiritPublicCountry');
+    if (cEl) cEl.textContent = 'Pays : ' + c;
+    alert('Profil public mis à jour.');
+}
+function spiritPublicWireAvatarOnce() {
+    if (spiritPublicWireAvatarOnce.done) return;
+    spiritPublicWireAvatarOnce.done = true;
+    var inp = document.getElementById('spiritPublicAvatarFile');
+    if (!inp) return;
+    inp.addEventListener('change', function () {
+        var f = inp.files && inp.files[0];
+        if (!f || !spiritPublicViewUserId) return;
+        var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+        if (me !== String(spiritPublicViewUserId)) return;
+        void (async function () {
+            try {
+                var ext = (f.name && f.name.split('.').pop()) || 'jpg';
+                var path = String(spiritPublicViewUserId) + '/avatar_' + Date.now() + '.' + ext;
+                var url = await spiritStorageUploadPublic(SPIRIT_BUCKET_AVATAR, path, f);
+                var ex = await spiritPublicFetchUserProfile(spiritPublicViewUserId);
+                var up = { user_id: String(spiritPublicViewUserId), avatar_url: url, updated_at: new Date().toISOString() };
+                if (ex && ex.pseudo) up.pseudo = ex.pseudo;
+                if (ex && ex.country) up.country = ex.country;
+                var r = await _spirit.from('user_profiles').upsert(up, { onConflict: 'user_id' });
+                if (r.error) throw r.error;
+                var imgEl = document.getElementById('spiritPublicAvatarImg');
+                var ph = document.getElementById('spiritPublicAvatarPlaceholder');
+                if (imgEl) { imgEl.src = url; imgEl.style.display = 'block'; }
+                if (ph) ph.style.display = 'none';
+            } catch (err) {
+                alert('Upload avatar impossible (bucket Storage « ' + SPIRIT_BUCKET_AVATAR + ' » ou RLS) : ' + (err && err.message ? err.message : err));
+            }
+            inp.value = '';
+        })();
+    });
+}
+async function spiritPublicLoadIaScore(uid, row) {
+    var el = document.getElementById('spiritPublicIAScore');
+    if (!el) return;
+    if (row && row.ia_score != null && row.ia_score !== '' && Number.isFinite(Number(row.ia_score))) {
+        el.textContent = 'IA Score : ' + Math.round(Number(row.ia_score));
+        return;
+    }
+    if (typeof _spirit === 'undefined' || !_spirit) { el.textContent = 'IA Score : —'; return; }
+    try {
+        var out = await _spirit.from('products_live').select('ia_score').eq('owner_id', String(uid));
+        if (out.error || !out.data || !out.data.length) { el.textContent = 'IA Score : —'; return; }
+        var sum = 0, n = 0;
+        out.data.forEach(function (r) {
+            var v = Number(r.ia_score);
+            if (Number.isFinite(v)) { sum += v; n++; }
+        });
+        el.textContent = n ? ('IA Score moy. : ' + Math.round(sum / n)) : 'IA Score : —';
+    } catch (e) { el.textContent = 'IA Score : —'; }
+}
+async function spiritPublicLoadAnnonces(uid) {
+    var box = document.getElementById('spiritPublicAnnoncesList');
+    if (!box) return;
+    box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Chargement…</p>';
+    var rows = [];
+    if (typeof _spirit !== 'undefined' && _spirit) {
+        try {
+            var out = await _spirit.from('products_live').select('*').eq('owner_id', String(uid)).order('id', { ascending: false }).limit(48);
+            if (!out.error && Array.isArray(out.data)) rows = out.data;
+        } catch (e) {}
+    }
+    if (!rows.length) {
+        box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Aucune annonce publique.</p>';
+        return;
+    }
+    box.innerHTML = '';
+    rows.forEach(function (p) {
+        var t = String(p.title || p.name || 'Sans titre').replace(/</g, '&lt;');
+        var price = (typeof spiritProductsLivePriceEUR === 'function') ? spiritProductsLivePriceEUR(p) : Number(p.price || 0);
+        var st = String(p.status || '').toLowerCase();
+        var sold = st === 'sold' || st === 'vendu';
+        var div = document.createElement('div');
+        div.style.cssText = 'background:#111;border:1px solid #333;padding:12px;display:flex;flex-direction:column;gap:8px;';
+        var urls = (typeof spiritImageUrlList === 'function') ? spiritImageUrlList(p) : [];
+        if (urls[0]) {
+            var im = document.createElement('img');
+            im.src = urls[0];
+            im.alt = '';
+            im.style.cssText = 'width:100%;max-height:140px;object-fit:cover;border:1px solid #333;';
+            div.appendChild(im);
+        }
+        var info = document.createElement('div');
+        info.innerHTML = '<div style="font-weight:800;color:#fff;font-size:0.8rem;">' + t + '</div>' +
+            '<div style="color:var(--neon-orange);font-size:0.85rem;">' + price.toFixed(2) + ' EUR</div>' +
+            (sold ? '<span style="color:#e22;font-size:0.65rem;font-weight:800;">VENDU</span>' : '<span style="color:#696;font-size:0.65rem;">DISPONIBLE</span>');
+        div.appendChild(info);
+        box.appendChild(div);
+    });
+}
+async function spiritSanctuaryFetchItems(uid) {
+    if (typeof _spirit === 'undefined' || !_spirit) return [];
+    try {
+        var out = await _spirit.from('sanctuary_items').select('*').eq('user_id', String(uid)).order('sort_order', { ascending: true }).limit(15);
+        if (out.error || !out.data) return [];
+        return out.data.map(function (r) {
+            return {
+                id: r.id,
+                src: r.image_url,
+                neon: r.neon_color || '#ff6600',
+                desc: r.description || '',
+                sort_order: r.sort_order
+            };
+        });
+    } catch (e) { return []; }
+}
+async function spiritSanctuaryMarkReadForOwner(uid) {
+    if (typeof _spirit === 'undefined' || !_spirit) return;
+    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (me !== String(uid)) return;
+    try {
+        await _spirit.from('sanctuary_chat').update({ is_read: true }).eq('recipient_id', String(uid)).eq('is_read', false);
+    } catch (e) {}
+    void spiritUpdateNavSanctuaryDot();
+}
+async function spiritSanctuaryTabEnter() {
+    var uid = spiritSanctuaryUid('public');
+    if (!uid) return;
+    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (me === String(uid)) await spiritSanctuaryMarkReadForOwner(uid);
+    await spiritSanctuaryRender('public');
+    await spiritSanctuaryRenderChat('public');
+}
+async function spiritAccountSanctuaryTabEnter() {
+    var uid = spiritSanctuaryUid('account');
+    if (!uid) return;
+    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (me === String(uid)) await spiritSanctuaryMarkReadForOwner(uid);
+    await spiritSanctuaryRender('account');
+    await spiritSanctuaryRenderChat('account');
+}
+function spiritAccountSanctuarySetView(mode) {
+    spiritSanctuarySetView(mode, 'account');
+}
+function spiritAccountSanctuarySendChat() {
+    void spiritSanctuarySendChat('account');
+}
+function spiritSanctuarySetView(mode, ctx) {
+    ctx = ctx === 'account' ? 'account' : 'public';
+    spiritSanctuaryViewModeSet(ctx, mode);
+    var d = spiritSanctuaryDom(ctx);
+    document.querySelectorAll(d.viewSel).forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-sanview') === mode);
+    });
+    void spiritSanctuaryRender(ctx);
+}
+async function spiritSanctuaryRender(ctx) {
+    ctx = ctx === 'account' ? 'account' : 'public';
+    var uid = spiritSanctuaryUid(ctx);
+    var d = spiritSanctuaryDom(ctx);
+    var grid = document.getElementById(d.grid);
+    if (!grid || !uid) return;
+    try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
+    var items = await spiritSanctuaryFetchItems(uid);
+    var vm = spiritSanctuaryViewModeGet(ctx);
+    if (vm === 'random' || vm === 'icons-sm') {
+        vm = 'list';
+        spiritSanctuaryViewModeSet(ctx, 'list');
+    }
+    var modeClass = 'spirit-san-mode-list';
+    if (vm === 'details') modeClass = 'spirit-san-mode-list spirit-san-mode-details';
+    else if (vm === 'icons-lg') modeClass = 'spirit-san-mode-icons-lg';
+    grid.className = modeClass;
+    grid.innerHTML = '';
+    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    var isOwner = me === String(uid);
+    if (isOwner && items.length < 15) {
+        var add = document.createElement('div');
+        add.className = 'spirit-san-add-tile';
+        add.setAttribute('title', 'Ajouter une photo');
+        add.innerHTML = '+';
+        add.onclick = function () { document.getElementById(d.file).click(); };
+        grid.appendChild(add);
+    }
+    var listLike = vm === 'list' || vm === 'details';
+    items.forEach(function (it, idx) {
+        var neon = it.neon || '#ff6600';
+        var wrap = document.createElement('div');
+        wrap.className = 'spirit-san-thumb-wrap';
+        wrap.style.border = '3px solid ' + neon;
+        wrap.style.boxShadow = '0 0 14px ' + neon + '44';
+        var img = document.createElement('img');
+        img.className = 'spirit-sanctuary-img';
+        img.src = it.src || '';
+        img.alt = '';
+        wrap.appendChild(img);
+        if (listLike) {
+            var card = document.createElement('div');
+            card.className = 'spirit-san-card';
+            card.appendChild(wrap);
+            var meta = document.createElement('div');
+            meta.className = 'spirit-san-meta';
+            var inp = document.createElement('input');
+            inp.type = 'text';
+            inp.value = it.desc || '';
+            inp.placeholder = 'Description';
+            inp.disabled = !isOwner;
+            var rowId = it.id;
+            inp.onchange = function () {
+                if (!rowId || typeof _spirit === 'undefined' || !_spirit) return;
+                void _spirit.from('sanctuary_items').update({ description: inp.value }).eq('id', rowId);
+            };
+            meta.appendChild(document.createTextNode('Œuvre #' + (idx + 1)));
+            meta.appendChild(inp);
+            if (isOwner) {
+                var styleRow = document.createElement('div');
+                styleRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
+                var stLab = document.createElement('span');
+                stLab.textContent = 'Style';
+                stLab.style.cssText = 'font-size:0.6rem;color:#666;text-transform:uppercase;letter-spacing:1px;';
+                var stSel = document.createElement('select');
+                stSel.setAttribute('aria-label', 'Néon');
+                stSel.style.cssText = 'padding:6px 8px;background:#111;border:1px solid #333;color:#eee;font-size:0.65rem;';
+                [['#ff6600', 'Orange Spirit'], ['#00ff88', 'Vert'], ['#00ccff', 'Cyan'], ['#ff00aa', 'Magenta'], ['#ffffff', 'Blanc'], ['#ffcc00', 'Or']].forEach(function (opt) {
+                    var o = document.createElement('option');
+                    o.value = opt[0];
+                    o.textContent = opt[1];
+                    stSel.appendChild(o);
+                });
+                stSel.value = neon;
+                stSel.onchange = function () {
+                    if (!rowId || typeof _spirit === 'undefined' || !_spirit) return;
+                    var c = stSel.value;
+                    void (async function () {
+                        await _spirit.from('sanctuary_items').update({ neon_color: c }).eq('id', rowId);
+                        wrap.style.border = '3px solid ' + c;
+                        wrap.style.boxShadow = '0 0 14px ' + c + '44';
+                    })();
+                };
+                styleRow.appendChild(stLab);
+                styleRow.appendChild(stSel);
+                meta.appendChild(styleRow);
+                var del = document.createElement('button');
+                del.type = 'button';
+                del.className = 'spirit-san-del';
+                del.textContent = 'SUPPRIMER';
+                del.onclick = function () {
+                    if (!rowId || typeof _spirit === 'undefined' || !_spirit) return;
+                    void (async function () {
+                        await _spirit.from('sanctuary_items').delete().eq('id', rowId);
+                        await spiritSanctuaryRender(ctx);
+                    })();
+                };
+                meta.appendChild(del);
+            }
+            card.appendChild(meta);
+            grid.appendChild(card);
+        } else {
+            grid.appendChild(wrap);
+        }
+        try { if (typeof spiritAttachProductLoupe === 'function') spiritAttachProductLoupe(img); } catch (e) {}
+    });
+}
+function spiritSanctuaryBindFileInput(ctx) {
+    var key = '_bound_' + ctx;
+    if (spiritSanctuaryWireOnce[key]) return;
+    spiritSanctuaryWireOnce[key] = true;
+    var d = spiritSanctuaryDom(ctx);
+    var fin = document.getElementById(d.file);
+    if (!fin) return;
+    fin.addEventListener('change', function () {
+        var f = fin.files && fin.files[0];
+        var uid = spiritSanctuaryUid(ctx);
+        var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+        if (!f || !uid || me !== String(uid)) { fin.value = ''; return; }
+        var sel = document.getElementById(d.neon);
+        var neon = sel && sel.value ? sel.value : '#ff6600';
+        void (async function () {
+            try {
+                if (typeof _spirit === 'undefined' || !_spirit) return;
+                var cur = await spiritSanctuaryFetchItems(uid);
+                if (cur.length >= 15) { alert('Maximum 15 photos dans le Sanctuaire.'); return; }
+                var ext = (f.name && f.name.split('.').pop()) || 'jpg';
+                var path = String(uid) + '/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
+                var url = await spiritStorageUploadPublic(SPIRIT_BUCKET_SANCTUARY, path, f);
+                var so = 0;
+                var mx = await _spirit.from('sanctuary_items').select('sort_order').eq('user_id', String(uid)).order('sort_order', { ascending: false }).limit(1);
+                if (!mx.error && mx.data && mx.data[0] && mx.data[0].sort_order != null) so = Number(mx.data[0].sort_order) + 1;
+                var ins = await _spirit.from('sanctuary_items').insert({
+                    user_id: String(uid),
+                    image_url: url,
+                    neon_color: neon,
+                    description: '',
+                    sort_order: so
+                });
+                if (ins.error) throw ins.error;
+                await spiritSanctuaryRender(ctx);
+            } catch (err) {
+                alert('Import Sanctuaire impossible (bucket « ' + SPIRIT_BUCKET_SANCTUARY + ' » / RLS) : ' + (err && err.message ? err.message : err));
+            }
+            fin.value = '';
+        })();
+    });
+}
+function spiritSanctuaryWireOnce() {
+    spiritSanctuaryBindFileInput('public');
+    spiritSanctuaryBindFileInput('account');
+    if (spiritSanctuaryWireOnce._chat) return;
+    spiritSanctuaryWireOnce._chat = true;
+    var pubIn = document.getElementById('spiritSanctuaryChatInput');
+    if (pubIn) pubIn.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); void spiritSanctuarySendChat('public'); }
+    });
+    var accIn = document.getElementById('spiritAccountSanctuaryChatInput');
+    if (accIn) accIn.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); void spiritSanctuarySendChat('account'); }
+    });
+}
+function spiritSanctuarySanitizeChat(text) {
+    var raw = String(text || '').trim();
+    if (!raw) return { ok: false, reason: 'empty' };
+    var lower = raw.toLowerCase();
+    if (/\S+@\S+\.\S+/.test(raw) || /@[a-z0-9.-]+\.[a-z]{2,}/i.test(raw)) return { ok: false, reason: 'email' };
+    if (/(\+?\d[\d\s.\-()]{8,}\d)/.test(raw) && /\d{7,}/.test(raw.replace(/\D/g, ''))) return { ok: false, reason: 'phone' };
+    if (/\bwhatsapp\b|\btelegram\b|\bsignal\b|\binstagram\b|\bdiscord\b/i.test(lower)) return { ok: false, reason: 'contact' };
+    if (/\bpaypal\b|\bemail\b|\btéléphone\b|\btelephone\b|\bmail\b|\bgsm\b|\bphone\b/i.test(lower)) return { ok: false, reason: 'contact' };
+    if (/paypal|virement\s+entre|envoi\s+entre\s+proches|iban|bic\s*:|numéro\s+de\s+téléphone|no\s+tel|mailto:/i.test(lower)) return { ok: false, reason: 'contact' };
+    if (/\b(stripe|revolut|wise|transferwise|venmo|zelle|skrill|payoneer|western\s+union|moneygram|n26|bunq|klarna|mollie|adyen|sumup|paysend|remitly|xoom|binance|coinbase|cryptocom|crypto\s*dot\s*com|google\s*pay|apple\s*pay)\b/i.test(lower)) return { ok: false, reason: 'payment' };
+    if (/\bcash\s*app\b/i.test(lower)) return { ok: false, reason: 'payment' };
+    return { ok: true, text: raw };
+}
+async function spiritSanctuaryRenderChat(ctx) {
+    ctx = ctx === 'account' ? 'account' : 'public';
+    var uid = spiritSanctuaryUid(ctx);
+    var d = spiritSanctuaryDom(ctx);
+    var box = document.getElementById(d.chatMsgs);
+    if (!box || !uid || typeof _spirit === 'undefined' || !_spirit) return;
+    var out = await _spirit.from('sanctuary_chat').select('*').eq('recipient_id', String(uid)).order('created_at', { ascending: true }).limit(200);
+    if (out.error || !out.data) { box.innerHTML = '<p style="color:#555;font-size:0.65rem;">—</p>'; return; }
+    box.innerHTML = out.data.map(function (m) {
+        var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
+        var tx = String(m.body || '').replace(/</g, '&lt;');
+        return '<div class="spirit-san-chat-line"><span class="who">' + who + '</span> — ' + tx + '</div>';
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+}
+async function spiritSanctuarySendChat(ctx) {
+    ctx = ctx === 'account' ? 'account' : 'public';
+    var uid = spiritSanctuaryUid(ctx);
+    var d = spiritSanctuaryDom(ctx);
+    var inp = document.getElementById(d.chatIn);
+    if (!uid || !inp || typeof _spirit === 'undefined' || !_spirit) return;
+    var chk = spiritSanctuarySanitizeChat(inp.value);
+    if (!chk.ok) {
+        if (chk.reason === 'empty') return;
+        alert('Message refusé : téléphone, e-mail, PayPal et autres plateformes de paiement externes sont interdits (marketplace Spirit uniquement).');
+        return;
+    }
+    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    var label = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
+    var ins = await _spirit.from('sanctuary_chat').insert({
+        recipient_id: String(uid),
+        sender_id: me,
+        sender_label: label,
+        body: chk.text,
+        is_read: me === String(uid)
+    });
+    if (ins.error) { alert('Erreur chat : ' + ins.error.message); return; }
+    inp.value = '';
+    await spiritSanctuaryRenderChat(ctx);
+    void spiritUpdateNavSanctuaryDot();
+}
+async function spiritUpdateNavSanctuaryDot() {
+    var dot = document.getElementById('nav-account-sanctuary-dot');
+    var fix = document.getElementById('spiritSanctuaryNotifDot');
+    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (!me || typeof _spirit === 'undefined' || !_spirit) {
+        if (dot) dot.style.display = 'none';
+        if (fix) fix.style.display = 'none';
+        return;
+    }
+    try {
+        var q = await _spirit.from('sanctuary_chat').select('id', { count: 'exact', head: true })
+            .eq('recipient_id', me)
+            .eq('is_read', false)
+            .neq('sender_id', me);
+        var n = (q && q.error) ? 0 : ((typeof q.count === 'number') ? q.count : 0);
+        var show = n > 0;
+        if (dot) dot.style.display = show ? 'block' : 'none';
+        if (fix) fix.style.display = show ? 'block' : 'none';
+    } catch (e) {
+        if (dot) dot.style.display = 'none';
+        if (fix) fix.style.display = 'none';
+    }
+}
+function spiritSanctuaryStartPoll() {
+    if (spiritSanctuaryPollTimer) clearInterval(spiritSanctuaryPollTimer);
+    spiritSanctuaryPollTimer = setInterval(function () {
+        if (document.body.classList.contains('spirit-public-active')) return;
+        void spiritUpdateNavSanctuaryDot();
+    }, 22000);
+}
+function spiritApplyPublicHashRoute() {
+    var p = spiritParsePublicHash();
+    if (!p) {
+        if (spiritPublicViewUserId) {
+            spiritPublicViewUserId = null;
+            document.body.classList.remove('spirit-public-active');
+            var sec = document.getElementById('spiritPublicProfileSection');
+            if (sec) sec.style.setProperty('display', 'none', 'important');
+            if (typeof navigateTo === 'function') navigateTo('market');
+            else if (typeof window.navigateTo === 'function') window.navigateTo('market');
+            else if (typeof spiritShowHeroHome === 'function') spiritShowHeroHome();
+        }
+        try { spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
+        return;
+    }
+    void spiritOpenPublicProfileUI(p.userId, { sanctuary: p.sanctuary });
+}
+try {
+    window.spiritExitPublicProfile = spiritExitPublicProfile;
+    window.spiritPublicSetTab = spiritPublicSetTab;
+    window.spiritSanctuarySetView = spiritSanctuarySetView;
+    window.spiritSanctuarySendChat = spiritSanctuarySendChat;
+    window.spiritAccountSanctuarySetView = spiritAccountSanctuarySetView;
+    window.spiritAccountSanctuarySendChat = spiritAccountSanctuarySendChat;
+    window.spiritCopyPublicProfileUrl = spiritCopyPublicProfileUrl;
+    window.spiritCopyMyPublicUrl = spiritCopyMyPublicUrl;
+    window.spiritOpenMyPublicProfile = spiritOpenMyPublicProfile;
+    window.spiritPublicSaveMeta = spiritPublicSaveMeta;
+    window.spiritApplyPublicHashRoute = spiritApplyPublicHashRoute;
+} catch (e) {}
+/* ========== /Profil public & Sanctuaire ========== */
+
 function zoomImg(src) {
     try { spiritHideProductLoupeVisual(); } catch (e) {}
     const lightboxImg = document.getElementById('lightbox-img');
@@ -3854,7 +4834,7 @@ function spiritShowHeroHome() {
     [
         'ledgerModal', 'forumModal', 'accountModal', 'securityModal',
         'precommandes-hot-toys', 'supportModal', 'registerModal',
-        'productModal', 'paymentModal', 'certifModal', 'labelPreview', 'lightbox'
+        'productModal', 'paymentModal', 'certifModal', 'labelPreview', 'lightbox', 'spiritPublicProfileSection'
     ].forEach(function (id) {
         var n = document.getElementById(id);
         if (n) n.style.setProperty('display', 'none', 'important');
@@ -3862,6 +4842,7 @@ function spiritShowHeroHome() {
     document.querySelectorAll('.overlay').forEach(function (o) {
         o.style.setProperty('display', 'none', 'important');
     });
+    try { document.body.classList.remove('spirit-public-active'); } catch (e) {}
     if (hero) hero.style.setProperty('display', 'block', 'important');
     try { if (typeof hideTopicEditor === 'function') hideTopicEditor(); } catch (e) {}
     try {
@@ -4477,6 +5458,12 @@ document.addEventListener('DOMContentLoaded', () => {
     try { fetchMarketplaceFromSupabase({ reset: true }); } catch (e) {}
     try { spiritMarketInitScrollObserver(); } catch (e) {}
     try { spiritInitFavoriteClickDelegation(); } catch (e) {}
+    try { window.addEventListener('hashchange', function () { spiritApplyPublicHashRoute(); }); } catch (e) {}
+    try { spiritApplyPublicHashRoute(); } catch (e) {}
+    try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
+    try { spiritUpdateNavSanctuaryDot(); } catch (e) {}
+    try { spiritRefreshDashboardPublicUrl(); } catch (e) {}
+    try { spiritSanctuaryStartPoll(); } catch (e) {}
 });
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
