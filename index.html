@@ -161,15 +161,34 @@
         .cat-title { color: var(--neon-orange); font-size: 1.2rem; font-weight: 900; margin: 30px 0 15px 0; border-left: 4px solid var(--neon-orange); padding-left: 15px; text-transform: uppercase; letter-spacing: 1px; }
         .market-title { text-align: center; border-left: none; padding-left: 0; }
         .grid-layout { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .grid-layout.list-view { display: block; }
         /* CARDS */
         .card { background: var(--card-bg); border: 1px solid var(--border); cursor: pointer; position: relative; transition: 0.3s; border-radius: 4px; overflow: hidden; }
         .card:hover { border-color: var(--neon-orange); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .grid-layout.list-view .card { display:flex; gap:14px; min-height:180px; margin-bottom:15px; transform:none !important; }
+        .grid-layout.list-view .img-placeholder { width:260px; min-width:260px; height:180px !important; border-right:1px solid #111; border-bottom:none; }
+        .grid-layout.list-view .card-info { width:100%; min-height:auto; }
         .img-placeholder { width: 100%; height: 200px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; border-bottom: 1px solid var(--border); text-align: center; padding: 10px; }
         .card-info { padding: 15px; display:flex; flex-direction:column; gap:8px; min-height:150px; }
         .price { font-size: 1.3rem; font-weight: 800; color: white; margin-bottom: 5px; }
         .title { font-size: 0.85rem; color: #ccc; margin-bottom: 0; height: 35px; overflow: hidden; }
         .legende { font-size: 0.7rem; color: var(--text-gray); border-top: 1px solid #222; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top:auto; }
         .badge { position: static; display:inline-block; align-self:flex-start; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; margin-top:6px; }
+        .market-toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin: 8px 0 16px 0; flex-wrap:wrap; }
+        .market-view-box { margin-left:auto; display:flex; align-items:center; gap:8px; color:#777; font-size:0.75rem; }
+        .market-view-box select { background:#0b0b0b; color:#fff; border:1px solid #ff6600; padding:8px 10px; border-radius:4px; }
+        .market-kind-toggle { display:flex; align-items:center; border:1px solid #ff6600; border-radius:999px; overflow:hidden; box-shadow:0 0 12px rgba(255,102,0,0.22); }
+        .market-kind-toggle button { border:none; background:#0a0a0a; color:#777; padding:10px 24px; font-weight:800; letter-spacing:0.8px; cursor:pointer; transition:0.2s ease; }
+        .market-kind-toggle button.active { color:#000; background:#ff6600; }
+        .market-signals { display:flex; gap:6px; flex-wrap:wrap; }
+        .market-chip { border:1px solid rgba(255,102,0,0.45); color:#bbb; font-size:0.62rem; padding:3px 8px; border-radius:999px; background:#0a0a0a; }
+        .switch-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:8px 0; font-size:0.78rem; color:#bbb; }
+        .switch { position:relative; display:inline-block; width:52px; height:28px; }
+        .switch input { opacity:0; width:0; height:0; }
+        .slider { position:absolute; cursor:pointer; inset:0; background:#222; border:1px solid #444; transition:.25s; border-radius:999px; }
+        .slider:before { content:""; position:absolute; height:20px; width:20px; left:3px; top:3px; background:#777; transition:.25s; border-radius:50%; }
+        .switch input:checked + .slider { background:rgba(255,102,0,0.2); border-color:#ff6600; }
+        .switch input:checked + .slider:before { transform:translateX(24px); background:#ff6600; }
         .native { background: var(--spirit-green); color: black; }
         .legacy { background: #0066ff; color: white; }
         /* PRÉCOMMANDES HOT TOYS (grille interne) */
@@ -621,6 +640,19 @@
 
     <div class="grid">
         <div id="spiritMarketLoader" class="spirit-market-loader" style="display:none;" aria-live="polite"></div>
+        <div class="market-toolbar">
+            <div class="market-kind-toggle" role="tablist" aria-label="Type de produit">
+                <button type="button" id="btn-kind-figurines" class="active" onclick="setMarketKind('figurines')">FIGURINES</button>
+                <button type="button" id="btn-kind-statues" onclick="setMarketKind('statues')">STATUES</button>
+            </div>
+            <div class="market-view-box">
+                <span>Vue</span>
+                <select id="marketViewSelect" onchange="setMarketView(this.value)">
+                    <option value="gallery">Galerie</option>
+                    <option value="list">Liste</option>
+                </select>
+            </div>
+        </div>
         <div class="cat-title market-title">MARKET SPIRIT</div>
         <div class="grid-layout" id="marketGridNative"></div>
         <div class="grid-layout" id="marketGridLegacy" style="display:none !important;"></div>
@@ -746,7 +778,21 @@
                 <option value="Resine">Statue Résine</option>
                 <option value="PVC">Statue PVC</option>
             </select>
+            <select id="saleBrand">
+                <option value="">-- MARQUE --</option>
+                <option value="Hot Toys">Hot Toys</option>
+                <option value="Sideshow">Sideshow</option>
+                <option value="InArt">InArt</option>
+                <option value="JND">JND</option>
+                <option value="Present Toys">Present Toys</option>
+                <option value="Prime 1 Studio">Prime 1 Studio</option>
+                <option value="Queen Studios">Queen Studios</option>
+                <option value="Autre">Autre</option>
+            </select>
             <input type="number" id="inputPrice" placeholder="Prix de vente (€)">
+            <div class="switch-row"><span>Environnement non-fumeur</span><label class="switch"><input type="checkbox" id="saleSmokeFree"><span class="slider"></span></label></div>
+            <div class="switch-row"><span>A l'abri de la lumiere</span><label class="switch"><input type="checkbox" id="saleLightProtect"><span class="slider"></span></label></div>
+            <div class="switch-row"><span>Premiere main</span><label class="switch"><input type="checkbox" id="saleFirstHand"><span class="slider"></span></label></div>
             <label style="font-size:0.7rem; color:var(--neon-orange);">TAILLE DU COLIS (DÉTERMINE LES TARIFS TRANSPORTEURS)</label>
             <select id="saleShip">
                 <option value="Petit">Petit (Accessoires / Têtes)</option>
@@ -1071,6 +1117,8 @@
     };
 
     let marketData = [];
+    let marketViewMode = 'gallery';
+    let marketKindMode = 'figurines';
 
     // --- PRÉCOMMANDES HOT TOYS (PARTENAIRE OFFICIEL) ---
     // Vitrine indépendante du Marketplace (pas d'achat in-app)
@@ -1306,7 +1354,12 @@ function setSpiritMarketLoading(on) {
 }
 
 function renderMarket(filteredData = null) {
-        const dataToRender = filteredData || marketData;
+        const sourceData = filteredData || marketData;
+        const dataToRender = Array.isArray(sourceData) ? sourceData.filter(item => {
+            const rawCat = String(item.category || item.cat || '').toLowerCase();
+            const isStatue = rawCat.includes('1/4') || rawCat.includes('resine') || rawCat.includes('résine') || rawCat.includes('pvc') || rawCat.includes('statue');
+            return marketKindMode === 'statues' ? isStatue : !isStatue;
+        }) : [];
         if (!dataToRender || dataToRender.length === 0) {
             console.warn("[SPIRIT MARKET] Attente des données Ledger avant rendu...");
             return;
@@ -1366,6 +1419,9 @@ function renderMarket(filteredData = null) {
             const isMine = oid !== '' && oid === String(MY_TEST_ID).trim();
             const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.5); color:#0f0; font-size:10px; padding:2px 6px; border:1px solid #0f0; border-radius:2px; z-index:10; font-weight:bold;">MES ANNONCES</div>` : '';
 
+            const smokeTxt = item.is_smoke_free ? 'Non-fumeur' : 'Fumeur?';
+            const lightTxt = item.is_light_protect ? 'Lumiere protegee' : 'Lumiere exposee';
+            const firstTxt = item.is_first_hand ? '1ere main' : 'Multi-mains';
             card.innerHTML = `
                 ${soldBadge}
                 ${ownerTag}
@@ -1374,6 +1430,11 @@ function renderMarket(filteredData = null) {
                     <div class="price">${safePrice} €</div>
                     <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
                     <div style="font-size:0.6rem; color:#555; font-family:monospace; margin-top:6px;">SPIRIT-ID: ${item.uuid || "---"}</div>
+                    <div class="market-signals">
+                        <span class="market-chip">${smokeTxt}</span>
+                        <span class="market-chip">${lightTxt}</span>
+                        <span class="market-chip">${firstTxt}</span>
+                    </div>
                     <div class="legende"><span>${displayCountry}</span><span>${displayDiag}</span></div>
                     <div class="badge ${badgeClass}">${badgeText}</div>
                 </div>
@@ -1684,6 +1745,10 @@ async function publierAnnonce() {
     const desc = document.getElementById('inputDesc').value;
     const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore, 10) || 0;
     const category = document.getElementById('saleCat') ? document.getElementById('saleCat').value : '';
+    const brand = document.getElementById('saleBrand') ? document.getElementById('saleBrand').value : '';
+    const isSmokeFree = !!(document.getElementById('saleSmokeFree') && document.getElementById('saleSmokeFree').checked);
+    const isLightProtect = !!(document.getElementById('saleLightProtect') && document.getElementById('saleLightProtect').checked);
+    const isFirstHand = !!(document.getElementById('saleFirstHand') && document.getElementById('saleFirstHand').checked);
     const shipSize = document.getElementById('saleShip') ? document.getElementById('saleShip').value : 'Moyen';
     const fromHardwarePanneau = (typeof currentMethod !== 'undefined' && currentMethod === 'hot_native');
     const uuidVal = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
@@ -1706,11 +1771,15 @@ async function publierAnnonce() {
         owner_id: String(MY_TEST_ID),
         image_url: imageUrlPayload,
         category: category || 'Collection',
-        brand: 'Spirit Infinity',
+        cat: category || 'Collection',
+        brand: brand || 'Spirit Infinity',
         ship_size: shipSize,
         status: 'available',
         currency: 'EUR',
-        is_native: fromHardwarePanneau
+        is_native: fromHardwarePanneau,
+        is_smoke_free: isSmokeFree,
+        is_light_protect: isLightProtect,
+        is_first_hand: isFirstHand
     };
 
     try {
@@ -1856,6 +1925,10 @@ function editAnnonce(id) {
     if(document.getElementById('inputPrice')) document.getElementById('inputPrice').value = item.price || 0;
     if(document.getElementById('inputDesc')) document.getElementById('inputDesc').value = item.description || item.desc || '';
     if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat || 'figurine';
+    if(document.getElementById('saleBrand')) document.getElementById('saleBrand').value = item.brand || '';
+    if(document.getElementById('saleSmokeFree')) document.getElementById('saleSmokeFree').checked = !!item.is_smoke_free;
+    if(document.getElementById('saleLightProtect')) document.getElementById('saleLightProtect').checked = !!item.is_light_protect;
+    if(document.getElementById('saleFirstHand')) document.getElementById('saleFirstHand').checked = !!item.is_first_hand;
     if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize || 'medium';
     
     if (typeof chooseMethod === 'function') {
@@ -2228,11 +2301,30 @@ async function confirmPayment(method) {
                 else matchPrice = (item.price >= min && item.price <= max);
             }
             return matchPrice && (country === 'all' || item.country === country) &&
-                   (brand === 'all' || item.brand === brand) && (cat === 'all' || item.cat === cat) &&
+                   (brand === 'all' || item.brand === brand) && (cat === 'all' || (item.cat || item.category) === cat) &&
                    (cond === 'all' || item.cond === cond);
         });
         renderMarket(filtered);
     }
+
+    function setMarketView(mode) {
+        marketViewMode = (mode === 'list') ? 'list' : 'gallery';
+        const gn = document.getElementById('marketGridNative');
+        if (!gn) return;
+        if (marketViewMode === 'list') gn.classList.add('list-view');
+        else gn.classList.remove('list-view');
+    }
+    window.setMarketView = setMarketView;
+
+    function setMarketKind(kind) {
+        marketKindMode = (kind === 'statues') ? 'statues' : 'figurines';
+        const bFig = document.getElementById('btn-kind-figurines');
+        const bSta = document.getElementById('btn-kind-statues');
+        if (bFig) bFig.classList.toggle('active', marketKindMode === 'figurines');
+        if (bSta) bSta.classList.toggle('active', marketKindMode === 'statues');
+        if (typeof applyFilters === 'function') applyFilters();
+    }
+    window.setMarketKind = setMarketKind;
 
     function updateTotalWithCarrier() {
         if(!selectedProduct) return;
@@ -3338,7 +3430,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
