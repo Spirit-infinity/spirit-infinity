@@ -1719,6 +1719,18 @@ function normalizeSpiritCat(rawCat) {
     return 'figurine';
 }
 
+/** Prix listing : priorité `amount` si la colonne existe côté Supabase, sinon `price` (schéma courant). Ne pas envoyer `amount` en insert/update tant que la colonne est absente. */
+function spiritProductsLivePriceEUR(row) {
+    if (!row) return 0;
+    var a = row.amount;
+    if (a != null && a !== '') {
+        var n = Number(a);
+        if (Number.isFinite(n)) return n;
+    }
+    var p = Number(row.price);
+    return Number.isFinite(p) ? p : 0;
+}
+
 function normalizeSpiritScale(rawScale) {
     const s = String(rawScale || '').toLowerCase().trim();
     if (!s) return '';
@@ -1764,6 +1776,14 @@ function spiritInvalidateMarketCache() {
     spiritMarketBucket.statue.serverCount = null;
     spiritMarketBucket.statue.hasMore = false;
     spiritRenderMarketSig = '';
+}
+/** Après publication : vide les deux buckets, recharge figurines + statues, puis ré-applique l’onglet actif (évite doublons / cache partiel). */
+async function spiritRefreshAllMarketBuckets() {
+    spiritInvalidateMarketCache();
+    var active = (typeof spiritBucketKeyFromMode === 'function') ? spiritBucketKeyFromMode() : 'figurine';
+    var other = active === 'statue' ? 'figurine' : 'statue';
+    await fetchMarketplaceFromSupabase({ reset: true, catKey: other, silentLoader: true });
+    await fetchMarketplaceFromSupabase({ reset: true, catKey: active });
 }
 function spiritUpdateLoadMoreUI() {
     var key = spiritBucketKeyFromMode();
@@ -1950,14 +1970,14 @@ async function checkGlobalNotifications() {
             if (soldLbl) soldLbl.style.display = 'none';
             return;
         }
-        var pl = await _spirit.from('products_live').select('id,status,amount,price,old_price').in('id', ids);
+        var pl = await _spirit.from('products_live').select('id,status,price,old_price').in('id', ids);
         if (pl.error) return;
         var anySold = false;
         var anyPriceDrop = false;
         (pl.data || []).forEach(function (row) {
             var x = String(row.status || '').toLowerCase();
             if (x === 'sold' || x === 'vendu') anySold = true;
-            var cur = Number(row.amount != null && row.amount !== '' ? row.amount : row.price || 0);
+            var cur = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(row) : Number(row.price || 0);
             var oldP = Number(row.old_price);
             if (Number.isFinite(cur) && Number.isFinite(oldP) && oldP > 0 && cur < oldP) anyPriceDrop = true;
         });
@@ -1980,9 +2000,12 @@ function spiritAcknowledgeFavoriteTab() {
     if (soldLbl) soldLbl.style.display = 'none';
 }
 /* Supabase: favorites.user_id = text ; product_id = bigint (FK products_live.id).
-   Colonne alerte prix : exécuter une fois dans l’éditeur SQL Supabase :
+   Colonnes recommandées (SQL Supabase, une fois chacune) :
    ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS old_price numeric;
-   (ancien prix enregistré à chaque changement de prix vendeur — voir publierAnnonce / édition) */
+   -- Optionnel (si vous alignez le schéma sur `amount`) :
+   -- ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS amount numeric;
+   -- Après ajout de `amount`, vous pourrez ré-inclure amount dans les insert/update et dans les .select() ciblés.
+   Ancien prix : enregistré à chaque changement de prix vendeur (publierAnnonce / édition). */
 async function spiritLoadFavoriteData() {
     if (!_spirit) return;
     try {
@@ -2089,7 +2112,7 @@ async function renderUserFavorites() {
     rows.forEach(function (p) {
         var pid = spiritFavoriteProductId(p);
         if (pid == null) return;
-        var curAmt = Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0);
+        var curAmt = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(p) : Number(p.price || 0);
         var st = String(p.status || '').toLowerCase();
         var isSold = (st === 'sold' || st === 'vendu');
         var oldP = Number(p.old_price);
@@ -2188,7 +2211,7 @@ function renderMarket(filteredData = null) {
             const _urls = spiritImageUrlList(item);
             const displayImg = _urls.length ? _urls[0] : null;
             const safeTitle = (item.title || item.name || 'Annonce').trim() || 'Annonce';
-            const amountBase = (item.amount != null && item.amount !== '') ? Number(item.amount) : Number(item.price || 0);
+            const amountBase = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0);
             const itemCurrency = String(item.currency || 'EUR').toUpperCase();
             const safePrice = spiritConvertCurrency(amountBase, itemCurrency, marketCurrencyMode);
             var imgContent;
@@ -2568,11 +2591,11 @@ async function publierAnnonce() {
     if (photoUrls.length === 1) imageUrlPayload = photoUrls[0];
     else if (photoUrls.length > 1) imageUrlPayload = JSON.stringify(photoUrls);
 
+    /* products_live : prix = colonne `price` (la colonne `amount` est optionnelle côté SQL — ne pas l’envoyer si absente, sinon 400). */
     const newItem = {
         uuid: uuidVal,
         title: title,
         price: price,
-        amount: price,
         description: desc,
         ia_score: scoreIA || 0,
         owner_id: String(MY_TEST_ID),
@@ -2587,8 +2610,7 @@ async function publierAnnonce() {
         is_smoke_free: isSmokeFree,
         is_light_protect: isLightProtect,
         is_first_hand: isFirstHand,
-        has_coa: hasCoa,
-        old_price: null
+        has_coa: hasCoa
     };
 
     try {
@@ -2599,18 +2621,17 @@ async function publierAnnonce() {
 
         if (typeof editingId !== 'undefined' && editingId != null && String(editingId).trim() !== '') {
             var eid = editingId;
-            var selExisting = await _spirit.from('products_live').select('id,price,amount,old_price').eq('id', eid).maybeSingle();
+            var selExisting = await _spirit.from('products_live').select('id,price,old_price').eq('id', eid).maybeSingle();
             if (selExisting.error) throw selExisting.error;
             if (!selExisting.data) {
                 alert('ANNONCE INTROUVABLE (édition).');
                 return;
             }
             var ex = selExisting.data;
-            var prevEff = Number(ex.amount != null && ex.amount !== '' ? ex.amount : ex.price || 0);
+            var prevEff = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(ex) : Number(ex.price || 0);
             var updateRow = {
                 title: title,
                 price: price,
-                amount: price,
                 description: desc,
                 ia_score: scoreIA || 0,
                 category: category || 'Collection',
@@ -2636,8 +2657,7 @@ async function publierAnnonce() {
             alert('ANNONCE MISE À JOUR !');
             try { closeModals(); } catch (e) {}
             try {
-                spiritInvalidateMarketCache();
-                await fetchMarketplaceFromSupabase({ reset: true });
+                await spiritRefreshAllMarketBuckets();
             } catch (e) {}
             try {
                 if (typeof navigateTo === 'function') navigateTo('market');
@@ -2675,8 +2695,7 @@ async function publierAnnonce() {
 
         try { closeModals(); } catch (e) {}
         try {
-            spiritInvalidateMarketCache();
-            await fetchMarketplaceFromSupabase({ reset: true });
+            await spiritRefreshAllMarketBuckets();
         } catch (e) {}
         try {
             if (typeof navigateTo === 'function') navigateTo('market');
@@ -2797,7 +2816,7 @@ async function editAnnonce(id) {
     
     // AJOUT : Sécurité sur les champs pour éviter les erreurs si l'élément n'existe pas encore dans le DOM
     if(document.getElementById('inputTitle')) document.getElementById('inputTitle').value = item.title || item.name || '';
-    var pEd = item.amount != null && item.amount !== '' ? item.amount : item.price;
+    var pEd = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : (item.price != null ? item.price : 0);
     if(document.getElementById('inputPrice')) document.getElementById('inputPrice').value = pEd != null ? pEd : 0;
     if(document.getElementById('inputDesc')) document.getElementById('inputDesc').value = item.description || item.desc || '';
     if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat || 'figurine';
@@ -2979,7 +2998,7 @@ async function enregistrerVente(method) {
 
     if (!selectedProduct) return;
 
-    const prixFigurine = parseFloat(selectedProduct.price);
+    const prixFigurine = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(selectedProduct) : parseFloat(selectedProduct.price);
     const fraisLivraison = parseFloat(document.getElementById('sumShip').innerText) || 0;
     
     const split = calculateSpiritSplit(prixFigurine);
@@ -3304,7 +3323,7 @@ async function confirmPayment(method) {
         const cond = document.getElementById('sCond') ? document.getElementById('sCond').value : 'all';
         const filtered = (Array.isArray(marketData) ? marketData : []).filter(item => {
             if (normalizeSpiritCat(item.cat || item.category) !== 'statue') return false;
-            const itemPrice = spiritConvertCurrency((item.amount != null ? Number(item.amount) : Number(item.price || 0)), String(item.currency || 'EUR').toUpperCase(), marketCurrencyMode);
+            const itemPrice = spiritConvertCurrency((typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0)), String(item.currency || 'EUR').toUpperCase(), marketCurrencyMode);
             let matchPrice = true;
             if (pRange !== 'all') {
                 if (pRange === '2000+') matchPrice = itemPrice >= 2000;
@@ -3416,13 +3435,14 @@ async function confirmPayment(method) {
             carrierName = document.getElementById('pCarrierSelect').options[document.getElementById('pCarrierSelect').selectedIndex].text;
         }
         // PROTECTION ACHETEUR STRICTE 8% (3% Moi / 3% Firme / 2% Banque)
-        const split = (typeof calculateSpiritSplit === 'function') ? calculateSpiritSplit(parseFloat(selectedProduct.price)) : null;
-        const prot = split ? parseFloat(split.totalFee) : (selectedProduct.price * 0.08);
-        document.getElementById('sumPrice').innerText = selectedProduct.price + " €";
+        var basePx = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(selectedProduct) : parseFloat(selectedProduct.price || 0);
+        const split = (typeof calculateSpiritSplit === 'function') ? calculateSpiritSplit(basePx) : null;
+        const prot = split ? parseFloat(split.totalFee) : (basePx * 0.08);
+        document.getElementById('sumPrice').innerText = basePx + " €";
         document.getElementById('sumShip').innerText = shipCost.toFixed(2) + " €";
         document.getElementById('sumCarrierName').innerText = carrierName;
         document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
-        document.getElementById('sumTotal').innerText = (selectedProduct.price + shipCost + prot).toFixed(2) + " €";
+        document.getElementById('sumTotal').innerText = (basePx + shipCost + prot).toFixed(2) + " €";
     }
 
     // --- NAVIGATION SPIRIT : 1 MENU = 1 SECTION (sans reload) ---
