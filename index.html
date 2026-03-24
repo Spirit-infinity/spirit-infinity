@@ -168,7 +168,7 @@
         .grid-layout.list-view .card { display:flex; gap:14px; min-height:180px; margin-bottom:15px; transform:none !important; }
         .grid-layout.list-view .img-placeholder { width:260px; min-width:260px; height:180px !important; border-right:1px solid #111; border-bottom:none; }
         .grid-layout.list-view .card-info { width:100%; min-height:auto; }
-        .img-placeholder { width: 100%; height: 200px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; border-bottom: 1px solid var(--border); text-align: center; padding: 10px; }
+        .img-placeholder { width: 100%; height: 200px; background: #050505; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; border-bottom: 1px solid var(--border); text-align: center; padding: 10px; }
         .card-info { padding: 15px; display:flex; flex-direction:column; gap:8px; min-height:150px; }
         .price { font-size: 1.3rem; font-weight: 800; color: white; margin-bottom: 5px; }
         .title { font-size: 0.85rem; color: #ccc; margin-bottom: 0; height: 35px; overflow: hidden; }
@@ -203,6 +203,19 @@
         .slider:before { content:""; position:absolute; height:20px; width:20px; left:3px; top:3px; background:#777; transition:.25s; border-radius:50%; }
         .switch input:checked + .slider { background:rgba(255,102,0,0.2); border-color:#ff6600; }
         .switch input:checked + .slider:before { transform:translateX(24px); background:#ff6600; }
+        .switch-wide { width: 64px; height: 30px; }
+        .switch-wide .slider:before { width: 22px; height: 22px; top: 4px; left: 4px; }
+        .switch-wide input:checked + .slider:before { transform: translateX(32px); }
+        .switch-row-coa { flex-wrap: wrap; align-items: center; }
+        .switch-row-coa .coa-yes-no { font-size: 0.65rem; color: #666; white-space: nowrap; }
+        .market-badges-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .badge-coa {
+            background: rgba(0, 0, 0, 0.55);
+            color: #39ff14;
+            border: 1px solid #39ff14;
+            box-shadow: 0 0 12px rgba(57, 255, 20, 0.5), inset 0 0 8px rgba(57, 255, 20, 0.12);
+            text-shadow: 0 0 8px rgba(57, 255, 20, 0.85);
+        }
         .native { background: var(--spirit-green); color: black; }
         .legacy { background: #0066ff; color: white; }
         /* PRÉCOMMANDES HOT TOYS (grille interne) */
@@ -537,7 +550,18 @@
             width: 100%;
             height: 100%;
             min-height: 180px;
-            background: #0d0d0d;
+            background: #050505;
+            overflow: hidden;
+        }
+        .spirit-card-img-wrap img {
+            position: relative;
+            z-index: 1;
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            background: #050505;
         }
         #heroSection.spirit-hero {
             display: none;
@@ -873,6 +897,12 @@
             <div class="switch-row" style="margin:6px 0;"><span>Environnement non-fumeur</span><label class="switch"><input type="checkbox" id="saleSmokeFree"><span class="slider"></span></label></div>
             <div class="switch-row" style="margin:6px 0;"><span>A l'abri de la lumiere</span><label class="switch"><input type="checkbox" id="saleLightProtect"><span class="slider"></span></label></div>
             <div class="switch-row" style="margin:6px 0;"><span>Premiere main</span><label class="switch"><input type="checkbox" id="saleFirstHand"><span class="slider"></span></label></div>
+            <div class="switch-row switch-row-coa" style="margin:10px 0;">
+                <span style="flex:1; min-width:140px;" data-key="lbl_coa_switch">Certificat d'Authenticité (COA)</span>
+                <span class="coa-yes-no" data-key="coa_no">Non</span>
+                <label class="switch switch-wide"><input type="checkbox" id="saleHasCoa"><span class="slider"></span></label>
+                <span class="coa-yes-no" data-key="coa_yes">Oui</span>
+            </div>
             <label style="font-size:0.65rem; color:var(--neon-orange);">TAILLE DU COLIS (DÉTERMINE LES TARIFS TRANSPORTEURS)</label>
             <select id="saleShip">
                 <option value="Petit">Petit (Accessoires / Têtes)</option>
@@ -1196,7 +1226,9 @@
             'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
             'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
             'scale_1_6_resine': '1/6 (Resine)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
-            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Buste'
+            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Buste',
+            'lbl_coa_switch': "Certificat d'Authenticité (COA)", 'coa_no': 'Non', 'coa_yes': 'Oui',
+            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFIED', 'badge_with_coa': 'AVEC CERTIFICAT'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -1218,7 +1250,9 @@
             'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
             'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
             'scale_1_6_resine': '1/6 (Resin)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
-            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Bust'
+            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Bust',
+            'lbl_coa_switch': 'Certificate of Authenticity (COA)', 'coa_no': 'No', 'coa_yes': 'Yes',
+            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI CERTIFIED', 'badge_with_coa': 'WITH COA'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -1240,7 +1274,9 @@
             'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
             'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
             'scale_1_6_resine': '1/6 (Resina)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
-            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Busto'
+            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Busto',
+            'lbl_coa_switch': 'Certificado de autenticidad (COA)', 'coa_no': 'No', 'coa_yes': 'Sí',
+            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFICADO', 'badge_with_coa': 'CON COA'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -1262,9 +1298,24 @@
             'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
             'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
             'scale_1_6_resine': '1/6（树脂）', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
-            'scale_1_2': '1/2', 'scale_life_size': '等身（1/1）', 'scale_bust': '胸像'
+            'scale_1_2': '1/2', 'scale_life_size': '等身（1/1）', 'scale_bust': '胸像',
+            'lbl_coa_switch': '真伪证书（COA）', 'coa_no': '否', 'coa_yes': '是',
+            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI 认证', 'badge_with_coa': '含 COA'
         }
     };
+
+    function spiritUiLang() {
+        var sel = document.querySelector('.lang-selector');
+        var raw = (sel && sel.value) ? String(sel.value).toUpperCase() : 'FR';
+        if (raw === 'CN') raw = 'ZH';
+        return ['FR', 'EN', 'ES', 'ZH'].indexOf(raw) >= 0 ? raw : 'FR';
+    }
+    function spiritT(key) {
+        var L = spiritUiLang();
+        var set = translations[L] || translations['FR'];
+        if (set && set[key]) return set[key];
+        return (translations['FR'] && translations['FR'][key]) ? translations['FR'][key] : key;
+    }
 
     const shippingRates = {
         "Petit": { "mr": 4.90, "cl": 6.50, "dh": 12.00 },
@@ -1466,6 +1517,9 @@ async function loadUserPurchases() {
             if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = set[key];
             else el.textContent = set[key];
         });
+        try {
+            if (typeof renderMarket === 'function' && Array.isArray(marketData) && marketData.length) renderMarket();
+        } catch (e) { /* ignore */ }
     }
     function changeLang(lang) { switchLanguage(lang); }
 
@@ -1578,7 +1632,8 @@ function renderMarket(filteredData = null) {
             
             const isNative = item.is_native === true || item.is_native === "true" || item.type === 'native';
             const badgeClass = isNative ? 'native' : 'legacy';
-            const badgeText = isNative ? 'SPIRIT NATIVE' : 'IA CERTIFIED';
+            const badgeText = isNative ? spiritT('badge_native') : spiritT('badge_legacy');
+            const hasCoa = item.has_coa === true || item.has_coa === 'true' || item.has_coa === 1 || String(item.has_coa).toLowerCase() === 't';
             
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
             
@@ -1591,9 +1646,9 @@ function renderMarket(filteredData = null) {
             var imgContent;
             if (displayImg) {
                 var sEsc = String(displayImg).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-                imgContent = '<div class="spirit-card-img-wrap"><div class="spirit-img-skeleton" aria-hidden="true"></div><img src="' + sEsc + '" alt="" loading="lazy" decoding="async" style="position:relative;z-index:1;width:100%;height:100%;object-fit:cover;background:#000;opacity:0;transition:opacity 0.22s ease;" onload="this.style.opacity=1;var s=this.previousElementSibling;if(s&amp;&amp;s.classList.contains(\'spirit-img-skeleton\'))s.style.display=\'none\';" onerror="this.style.display=\'none\';var sk=this.previousElementSibling;if(sk&amp;&amp;sk.classList.contains(\'spirit-img-skeleton\')){sk.style.display=\'flex\';sk.style.alignItems=\'center\';sk.style.justifyContent=\'center\';sk.style.color=\'#555\';sk.style.fontSize=\'10px\';sk.textContent=\'IMG\';}" /></div>';
+                imgContent = '<div class="spirit-card-img-wrap"><div class="spirit-img-skeleton" aria-hidden="true"></div><img src="' + sEsc + '" alt="" loading="lazy" decoding="async" style="opacity:0;transition:opacity 0.22s ease;" onload="this.style.opacity=1;var s=this.previousElementSibling;if(s&amp;&amp;s.classList.contains(\'spirit-img-skeleton\'))s.style.display=\'none\';" onerror="this.style.display=\'none\';var sk=this.previousElementSibling;if(sk&amp;&amp;sk.classList.contains(\'spirit-img-skeleton\')){sk.style.display=\'flex\';sk.style.alignItems=\'center\';sk.style.justifyContent=\'center\';sk.style.color=\'#555\';sk.style.fontSize=\'10px\';sk.textContent=\'IMG\';}" /></div>';
             } else {
-                imgContent = '<div style="color:#333; font-size:10px;">PHOTO ' + safeTitle.replace(/</g, '&lt;') + '</div>';
+                imgContent = '<div style="color:#333; font-size:10px; width:100%; height:100%; min-height:160px; display:flex; align-items:center; justify-content:center; background:#050505;">PHOTO ' + safeTitle.replace(/</g, '&lt;') + '</div>';
             }
             
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
@@ -1619,8 +1674,11 @@ function renderMarket(filteredData = null) {
             card.innerHTML = `
                 ${soldBadge}
                 ${ownerTag}
-                <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
+                <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#050505; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
                 <div class="card-info">
+                    <div class="market-badges-row">
+                        <span class="badge ${badgeClass}">${badgeText}</span>${hasCoa ? `<span class="badge badge-coa">${spiritT('badge_with_coa')}</span>` : ''}
+                    </div>
                     <div class="price">${safePrice.toFixed(2)} ${marketCurrencyMode}</div>
                     ${isImport ? `<div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}">Estimation Import : ${customs.toFixed(2)} ${marketCurrencyMode} | Total estimé à l'arrivée : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>` : ''}
                     <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
@@ -1631,7 +1689,6 @@ function renderMarket(filteredData = null) {
                         <span class="market-chip">${firstTxt}</span>
                     </div>
                     <div class="legende"><span>${displayCountry}</span><span>${displayDiag}</span></div>
-                    <div class="badge ${badgeClass}">${badgeText}</div>
                 </div>
             `;
             
@@ -1759,6 +1816,7 @@ async function loadMySales() {
             document.getElementById('pBox' + i).innerHTML = 'PHOTO ' + i;
         }
         document.getElementById('diag-link').style.display = 'none';
+        if (document.getElementById('saleHasCoa')) document.getElementById('saleHasCoa').checked = false;
         document.getElementById('stepMethod').style.display = 'block';
         document.getElementById('stepInfo').style.display = 'none';
         document.getElementById('stepScan').style.display = 'none';
@@ -1945,6 +2003,7 @@ async function publierAnnonce() {
     const isSmokeFree = !!(document.getElementById('saleSmokeFree') && document.getElementById('saleSmokeFree').checked);
     const isLightProtect = !!(document.getElementById('saleLightProtect') && document.getElementById('saleLightProtect').checked);
     const isFirstHand = !!(document.getElementById('saleFirstHand') && document.getElementById('saleFirstHand').checked);
+    const hasCoa = !!(document.getElementById('saleHasCoa') && document.getElementById('saleHasCoa').checked);
     const shipSize = document.getElementById('saleShip') ? document.getElementById('saleShip').value : 'Moyen';
     const fromHardwarePanneau = (typeof currentMethod !== 'undefined' && currentMethod === 'hot_native');
     const uuidVal = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
@@ -1975,7 +2034,8 @@ async function publierAnnonce() {
         is_native: fromHardwarePanneau,
         is_smoke_free: isSmokeFree,
         is_light_protect: isLightProtect,
-        is_first_hand: isFirstHand
+        is_first_hand: isFirstHand,
+        has_coa: hasCoa
     };
 
     try {
@@ -2125,6 +2185,7 @@ function editAnnonce(id) {
     if(document.getElementById('saleSmokeFree')) document.getElementById('saleSmokeFree').checked = !!item.is_smoke_free;
     if(document.getElementById('saleLightProtect')) document.getElementById('saleLightProtect').checked = !!item.is_light_protect;
     if(document.getElementById('saleFirstHand')) document.getElementById('saleFirstHand').checked = !!item.is_first_hand;
+    if(document.getElementById('saleHasCoa')) document.getElementById('saleHasCoa').checked = !!(item.has_coa === true || item.has_coa === 'true' || item.has_coa === 1);
     if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize || 'medium';
     
     if (typeof chooseMethod === 'function') {
@@ -3718,7 +3779,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
