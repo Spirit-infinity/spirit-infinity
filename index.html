@@ -901,6 +901,7 @@
                         <textarea id="sanctuaryStory" placeholder="Storytelling optionnel"></textarea>
                         <input id="sanctuaryPhotos" type="file" accept="image/*" multiple>
                         <button class="btn-action" style="margin-top:8px; font-size:0.68rem;" onclick="addSanctuaryPiece()">Publier dans le Sanctuaire</button>
+                        <div id="sanctuaryUploadStatus" style="margin-top:8px; font-size:0.72rem; color:#888;">Prêt à publier.</div>
                     </div>
 
                     <div id="sanctuary-owner-lock" class="account-private-lock" style="display:none;">
@@ -2481,7 +2482,7 @@ async function confirmPayment(method) {
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
 let SPIRIT_SANCT_OWNER_ID = '12345';
-const SPIRIT_SANCT_BUCKET = 'sanctuary';
+const SPIRIT_SANCT_BUCKET = 'sanctuary_photos';
 const spiritSession = { loaded: false, user: null, userId: '', publicId: '', profileOwnerId: '', hasActiveSession: false, profileRow: null };
 const SPIRIT_SANCT_SQL = `
 -- (c) 2026 Spirit Infinity - Tous droits réservés
@@ -2844,6 +2845,29 @@ async function sanctuaryChatPost(pieceId) {
     input.value = '';
     await renderSanctuaryGallery();
 }
+async function spiritEnsureSanctuaryBucket() {
+    if (!_spirit || !_spirit.storage) return { ok: false, error: 'storage indisponible' };
+    try {
+        if (typeof _spirit.storage.listBuckets === 'function') {
+            const b = await _spirit.storage.listBuckets();
+            if (b && b.error) {
+                console.error('[SPIRIT SANCT] listBuckets error:', b.error);
+                return { ok: false, error: b.error.message || String(b.error) };
+            }
+            const arr = b && b.data ? b.data : [];
+            const has = Array.isArray(arr) && arr.some(function (x) { return String(x && x.name) === SPIRIT_SANCT_BUCKET; });
+            if (!has) {
+                console.error('[SPIRIT SANCT] bucket manquant:', SPIRIT_SANCT_BUCKET);
+                return { ok: false, error: 'Bucket introuvable: ' + SPIRIT_SANCT_BUCKET };
+            }
+            return { ok: true };
+        }
+        return { ok: true };
+    } catch (e) {
+        console.error('[SPIRIT SANCT] ensure bucket exception:', e && e.message ? e.message : e);
+        return { ok: false, error: e && e.message ? e.message : String(e) };
+    }
+}
 async function addSanctuaryPiece() {
     if (!spiritIsAccountOwner()) {
         alert("Accès propriétaire requis pour publier.");
@@ -2852,6 +2876,7 @@ async function addSanctuaryPiece() {
     var titleEl = document.getElementById('sanctuaryTitle');
     var storyEl = document.getElementById('sanctuaryStory');
     var photosEl = document.getElementById('sanctuaryPhotos');
+    var upStatus = document.getElementById('sanctuaryUploadStatus');
     var title = titleEl ? String(titleEl.value || '').trim() : '';
     if (!title) { alert('Titre requis pour la pièce.'); return; }
     var files = photosEl && photosEl.files ? Array.from(photosEl.files) : [];
@@ -2859,8 +2884,15 @@ async function addSanctuaryPiece() {
     await spiritLoadSession();
     var ownerId = spiritProfileOwnerId();
     var authUid = spiritSession.userId || '';
+    if (upStatus) { upStatus.textContent = 'Publication en cours...'; upStatus.style.color = 'var(--neon-orange)'; }
     var photos = files.map(function (f) { return f.name; });
     if (_spirit && files.length > 0 && _spirit.storage) {
+        const bucketCheck = await spiritEnsureSanctuaryBucket();
+        if (!bucketCheck.ok) {
+            if (upStatus) { upStatus.textContent = 'Erreur bucket: ' + bucketCheck.error; upStatus.style.color = 'var(--danger)'; }
+            alert("Erreur upload : bucket '" + SPIRIT_SANCT_BUCKET + "' introuvable ou inaccessible.");
+            return;
+        }
         photos = [];
         for (var i = 0; i < files.length; i++) {
             var f = files[i];
@@ -2869,14 +2901,14 @@ async function addSanctuaryPiece() {
             try {
                 const up = await _spirit.storage.from(SPIRIT_SANCT_BUCKET).upload(path, f, { upsert: false });
                 if (up.error) {
-                    console.error('[SPIRIT SANCT] Upload bucket error:', up.error);
+                    console.error('[SPIRIT SANCT] Upload bucket error:', up.error, { bucket: SPIRIT_SANCT_BUCKET, path: path, file: f && f.name ? f.name : 'n/a' });
                     continue;
                 }
                 const pub = _spirit.storage.from(SPIRIT_SANCT_BUCKET).getPublicUrl(path);
                 var url = pub && pub.data ? pub.data.publicUrl : '';
                 photos.push(url || path);
             } catch (e) {
-                console.error('[SPIRIT SANCT] Upload exception:', e && e.message ? e.message : e);
+                console.error('[SPIRIT SANCT] Upload exception:', e && e.message ? e.message : e, { bucket: SPIRIT_SANCT_BUCKET, path: path, file: f && f.name ? f.name : 'n/a' });
             }
         }
     }
@@ -2891,10 +2923,23 @@ async function addSanctuaryPiece() {
                 is_public: true
             }]);
             if (ins.error) {
-                console.error('[SPIRIT SANCT] Insert sanctuary_pieces error:', ins.error);
+                console.error('[SPIRIT SANCT] Erreur insertion:', ins.error, {
+                    owner_id: ownerId,
+                    user_id: authUid || ownerId,
+                    photos_count: Array.isArray(photos) ? photos.length : 0
+                });
+                if (upStatus) { upStatus.textContent = "Échec insertion : " + (ins.error.message || 'erreur inconnue'); upStatus.style.color = 'var(--danger)'; }
+                alert("Échec publication Sanctuaire.");
+                return;
             }
         } catch (e) {
-            console.error('[SPIRIT SANCT] piece insert exception:', e && e.message ? e.message : e);
+            console.error('[SPIRIT SANCT] piece insert exception:', e && e.message ? e.message : e, {
+                owner_id: ownerId,
+                user_id: authUid || ownerId
+            });
+            if (upStatus) { upStatus.textContent = "Exception publication : " + (e && e.message ? e.message : 'inconnue'); upStatus.style.color = 'var(--danger)'; }
+            alert("Exception publication Sanctuaire.");
+            return;
         }
     } else {
         var s = spiritReadSanctCache();
@@ -2904,6 +2949,8 @@ async function addSanctuaryPiece() {
     if (titleEl) titleEl.value = '';
     if (storyEl) storyEl.value = '';
     if (photosEl) photosEl.value = '';
+    if (upStatus) { upStatus.textContent = 'Photo publiée avec succès !'; upStatus.style.color = 'var(--spirit-green)'; }
+    alert("Photo publiée avec succès !");
     await renderSanctuaryGallery();
 }
 async function publierDansLeSanctuaire() {
