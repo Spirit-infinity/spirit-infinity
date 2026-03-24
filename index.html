@@ -26,15 +26,15 @@
             padding: 9px 5%;
             background: #050505;
             border-bottom: 1px solid rgba(255, 102, 0, 0.45);
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 1000;
             gap: 16px;
         }
-        .logo-box { display: flex; flex-direction: column; line-height: 1; cursor: pointer; flex: 0 0 auto; }
+        .logo-box { display: flex; flex-direction: column; line-height: 1; cursor: pointer; flex: 0 0 auto; justify-self: start; }
         .logo-top { font-weight: 900; font-size: 1.8rem; letter-spacing: 1px; color: white; }
         .logo-sub { font-weight: 700; font-size: 0.8rem; color: var(--neon-orange); letter-spacing: 4px; text-transform: uppercase; }
         header nav {
@@ -42,9 +42,11 @@
             align-items: center;
             justify-content: center;
             flex-wrap: nowrap;
-            gap: 10px;
-            margin-left: 0;
+            width: 100%;
+            gap: 15px;
+            margin: 0;
             white-space: nowrap;
+            justify-self: center;
         }
         header nav button {
             background: transparent;
@@ -83,15 +85,17 @@
         }
         @media (max-width: 980px) {
             header {
-                align-items: flex-start;
-                flex-wrap: wrap;
+                grid-template-columns: 1fr;
+                align-items: center;
                 gap: 10px;
             }
+            .logo-box { justify-self: center; }
+            header > div:last-child { justify-self: center; }
             header nav {
-                width: auto;
+                width: 100%;
                 justify-content: center;
                 flex-wrap: nowrap;
-                gap: 10px;
+                gap: 12px;
             }
             header nav button {
                 font-size: 11px;
