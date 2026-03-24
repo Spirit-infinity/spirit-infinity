@@ -208,6 +208,9 @@
         .switch-wide input:checked + .slider:before { transform: translateX(32px); }
         .switch-row-coa { flex-wrap: wrap; align-items: center; }
         .switch-row-coa .coa-yes-no { font-size: 0.65rem; color: #666; white-space: nowrap; }
+        .spirit-market-pager { grid-column: 1 / -1; width: 100%; text-align: center; padding: 18px 12px 8px; }
+        .spirit-market-pager .btn-load-more { min-width: 200px; }
+        .spirit-market-scroll-sentinel { height: 2px; width: 100%; pointer-events: none; visibility: hidden; }
         .market-badges-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
         .badge-coa {
             background: rgba(0, 0, 0, 0.55);
@@ -699,6 +702,10 @@
         </div>
         <div class="cat-title market-title">MARKET SPIRIT</div>
         <div class="grid-layout" id="marketGridNative"></div>
+        <div id="spiritMarketPagerFigurines" class="spirit-market-pager" style="display:none;">
+            <button type="button" id="spiritMarketLoadMoreFig" class="btn-action btn-load-more" onclick="spiritMarketLoadMore()" data-key="btn_load_more">Charger plus</button>
+            <div id="spiritMarketScrollSentinelFig" class="spirit-market-scroll-sentinel" aria-hidden="true"></div>
+        </div>
         <div class="grid-layout" id="marketGridLegacy" style="display:none !important;"></div>
         <div id="marketStatuesView" class="statues-market-view">
             <div class="statues-layout">
@@ -757,6 +764,10 @@
                 <div class="statues-grid-wrap">
                     <div class="cat-title market-title" data-i18n="market_statues_title">MARKET STATUES</div>
                     <div class="grid-layout" id="marketGridStatues"></div>
+                    <div id="spiritMarketPagerStatues" class="spirit-market-pager" style="display:none;">
+                        <button type="button" id="spiritMarketLoadMoreSta" class="btn-action btn-load-more" onclick="spiritMarketLoadMore()" data-key="btn_load_more">Charger plus</button>
+                        <div id="spiritMarketScrollSentinelSta" class="spirit-market-scroll-sentinel" aria-hidden="true"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1124,33 +1135,33 @@
     <div class="hottoys-grid">
         <div class="hottoys-card">
             <div class="hottoys-main-wrap">
-                <img src="HotToys/1.jpeg" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)">
+                <img loading="lazy" decoding="async" src="HotToys/1.jpeg" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)">
             </div>
             <h3 style="color:#fff; margin-top:12px;">Neo (The Matrix Reloaded)</h3>
             <p style="color:#ff6600; font-weight:bold; margin:8px 0 12px 0;">Sortie : 1er Trimestre 2027</p>
             <div class="hottoys-thumbs-grid">
-                <div class="hottoys-thumb-wrap"><img src="HotToys/2.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/3.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/4.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/5.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/6.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/7.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/8.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/2.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/3.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/4.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/5.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/6.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/7.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/8.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
             </div>
         </div>
         <div class="hottoys-card">
             <div class="hottoys-main-wrap">
-                <img src="HotToys/9.jpeg" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)">
+                <img loading="lazy" decoding="async" src="HotToys/9.jpeg" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)">
             </div>
             <h3 style="color:#fff; margin-top:12px;">Jack Sparrow (Artisan Edition)</h3>
             <p style="color:#ff6600; font-weight:bold; margin:8px 0 12px 0;">Sortie : 2ème Trimestre 2027</p>
             <div class="hottoys-thumbs-grid">
-                <div class="hottoys-thumb-wrap"><img src="HotToys/10.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/11.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/12.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/13.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/14.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/15.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/10.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/11.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/12.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/13.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/14.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/15.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
             </div>
         </div>
     </div>
@@ -1228,7 +1239,8 @@
             'scale_1_6_resine': '1/6 (Resine)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
             'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Buste',
             'lbl_coa_switch': "Certificat d'Authenticité (COA)", 'coa_no': 'Non', 'coa_yes': 'Oui',
-            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFIED', 'badge_with_coa': 'AVEC CERTIFICAT'
+            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFIED', 'badge_with_coa': 'AVEC CERTIFICAT',
+            'btn_load_more': 'Charger plus'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -1252,7 +1264,8 @@
             'scale_1_6_resine': '1/6 (Resin)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
             'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Bust',
             'lbl_coa_switch': 'Certificate of Authenticity (COA)', 'coa_no': 'No', 'coa_yes': 'Yes',
-            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI CERTIFIED', 'badge_with_coa': 'WITH COA'
+            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI CERTIFIED', 'badge_with_coa': 'WITH COA',
+            'btn_load_more': 'Load more'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -1276,7 +1289,8 @@
             'scale_1_6_resine': '1/6 (Resina)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
             'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Busto',
             'lbl_coa_switch': 'Certificado de autenticidad (COA)', 'coa_no': 'No', 'coa_yes': 'Sí',
-            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFICADO', 'badge_with_coa': 'CON COA'
+            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFICADO', 'badge_with_coa': 'CON COA',
+            'btn_load_more': 'Cargar más'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -1300,7 +1314,8 @@
             'scale_1_6_resine': '1/6（树脂）', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
             'scale_1_2': '1/2', 'scale_life_size': '等身（1/1）', 'scale_bust': '胸像',
             'lbl_coa_switch': '真伪证书（COA）', 'coa_no': '否', 'coa_yes': '是',
-            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI 认证', 'badge_with_coa': '含 COA'
+            'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI 认证', 'badge_with_coa': '含 COA',
+            'btn_load_more': '加载更多'
         }
     };
 
@@ -1327,6 +1342,14 @@
     let marketViewMode = 'gallery';
     let marketKindMode = 'figurines';
     let marketCurrencyMode = 'EUR';
+
+    var SPIRIT_MARKET_PAGE_SIZE = 12;
+    var spiritMarketBucket = {
+        figurine: { rows: [], serverCount: null, hasMore: false, loading: false },
+        statue: { rows: [], serverCount: null, hasMore: false, loading: false }
+    };
+    var spiritRenderMarketSig = '';
+    var spiritMarketScrollObserver = null;
 
     // --- PRÉCOMMANDES HOT TOYS (PARTENAIRE OFFICIEL) ---
     // Vitrine indépendante du Marketplace (pas d'achat in-app)
@@ -1380,7 +1403,7 @@
 
             const displayImg = item.imageUrl;
             const imgContent = displayImg
-                ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">`
+                ? `<div class="spirit-card-img-wrap" style="min-height:180px;background:#050505;"><div class="spirit-img-skeleton" aria-hidden="true"></div><img src="${displayImg}" alt="" loading="lazy" decoding="async" style="opacity:0;transition:opacity 0.22s ease;width:100%;height:100%;object-fit:contain;background:#000;" onload="this.style.opacity=1;var s=this.previousElementSibling;if(s&amp;&amp;s.classList.contains('spirit-img-skeleton'))s.style.display='none';" /></div>`
                 : `<div style="color:#333; font-size:10px; text-align:center; padding:10px;">VISUEL OFFICIEL À VENIR</div>`;
 
             card.innerHTML = `
@@ -1578,17 +1601,83 @@ function setSpiritMarketLoading(on) {
     var el = document.getElementById('spiritMarketLoader');
     var gn = document.getElementById('marketGridNative');
     var gl = document.getElementById('marketGridLegacy');
+    var gs = document.getElementById('marketGridStatues');
     if (on) {
         if (el) {
             el.style.display = 'block';
             el.innerHTML = '<div class="spirit-pulse-inner">SPIRIT INFINITY — CHARGEMENT</div>';
         }
-        if (gn) gn.innerHTML = '';
+        if (typeof marketKindMode !== 'undefined' && marketKindMode === 'statues') {
+            if (gs) gs.innerHTML = '';
+        } else {
+            if (gn) gn.innerHTML = '';
+        }
         if (gl) gl.innerHTML = '';
     } else if (el) {
         el.style.display = 'none';
         el.innerHTML = '';
     }
+}
+
+function spiritBucketKeyFromMode() {
+    return marketKindMode === 'statues' ? 'statue' : 'figurine';
+}
+function spiritInvalidateMarketCache() {
+    spiritMarketBucket.figurine.rows = [];
+    spiritMarketBucket.figurine.serverCount = null;
+    spiritMarketBucket.figurine.hasMore = false;
+    spiritMarketBucket.statue.rows = [];
+    spiritMarketBucket.statue.serverCount = null;
+    spiritMarketBucket.statue.hasMore = false;
+    spiritRenderMarketSig = '';
+}
+function spiritUpdateLoadMoreUI() {
+    var key = spiritBucketKeyFromMode();
+    var b = spiritMarketBucket[key];
+    var figP = document.getElementById('spiritMarketPagerFigurines');
+    var staP = document.getElementById('spiritMarketPagerStatues');
+    if (figP) figP.style.display = (marketKindMode === 'figurines' && b.hasMore) ? 'block' : 'none';
+    if (staP) staP.style.display = (marketKindMode === 'statues' && b.hasMore) ? 'block' : 'none';
+    var busy = !!b.loading;
+    var btnF = document.getElementById('spiritMarketLoadMoreFig');
+    var btnS = document.getElementById('spiritMarketLoadMoreSta');
+    if (btnF) { btnF.disabled = busy; btnF.style.opacity = busy ? '0.65' : '1'; }
+    if (btnS) { btnS.disabled = busy; btnS.style.opacity = busy ? '0.65' : '1'; }
+}
+async function spiritMarketBackgroundVerify() {
+    if (!_spirit) return;
+    var key = spiritBucketKeyFromMode();
+    var cat = key === 'statue' ? 'statue' : 'figurine';
+    var b = spiritMarketBucket[key];
+    if (b.rows.length === 0) return;
+    try {
+        var out = await _spirit.from('products_live').select('*', { count: 'exact', head: true }).eq('cat', cat);
+        if (out.error) return;
+        var cnt = (typeof out.count === 'number') ? out.count : null;
+        if (cnt === null) return;
+        if (b.serverCount !== null && cnt !== b.serverCount) {
+            await fetchMarketplaceFromSupabase({ reset: true, catKey: key, silentLoader: true });
+        }
+    } catch (e) { /* ignore */ }
+}
+async function spiritMarketLoadMore() {
+    await fetchMarketplaceFromSupabase({ append: true });
+}
+try { window.spiritMarketLoadMore = spiritMarketLoadMore; } catch (e) {}
+function spiritMarketInitScrollObserver() {
+    if (spiritMarketScrollObserver || typeof IntersectionObserver === 'undefined') return;
+    spiritMarketScrollObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+            if (!en.isIntersecting) return;
+            var key = spiritBucketKeyFromMode();
+            var b = spiritMarketBucket[key];
+            if (b && b.hasMore && !b.loading) fetchMarketplaceFromSupabase({ append: true });
+        });
+    }, { root: null, rootMargin: '240px', threshold: 0 });
+    var sf = document.getElementById('spiritMarketScrollSentinelFig');
+    var ss = document.getElementById('spiritMarketScrollSentinelSta');
+    if (sf) spiritMarketScrollObserver.observe(sf);
+    if (ss) spiritMarketScrollObserver.observe(ss);
 }
 
 function renderMarket(filteredData = null) {
@@ -1597,27 +1686,42 @@ function renderMarket(filteredData = null) {
             const cat = normalizeSpiritCat(item.cat || item.category);
             return marketKindMode === 'statues' ? cat === 'statue' : cat === 'figurine';
         }) : [];
-        if (!dataToRender || dataToRender.length === 0) {
-            console.warn("[SPIRIT MARKET] Attente des données Ledger avant rendu...");
-            return;
-        }
 
         const gn = marketKindMode === 'statues'
             ? document.getElementById('marketGridStatues')
             : document.getElementById('marketGridNative');
         const gl = document.getElementById('marketGridLegacy');
-        
-        // AJOUT : Ciblage de la grille "Mes Annonces" si elle existe dans ton interface compte
         const gMine = marketKindMode === 'statues' ? null : document.getElementById('marketGridMines');
 
-        if (!gn) return; // Sécurité si les IDs n'existent pas
-        
-        gn.innerHTML = ''; if (gl) gl.innerHTML = '';
-        if (gMine) gMine.innerHTML = ''; // AJOUT : Nettoyage de la grille perso
+        if (!gn) return;
 
-        // AJOUT : Log pour vérifier l'ID utilisateur au moment du rendu (Aide au débug "Mes Ventes")
-        console.log("[SPIRIT DEBUG] Rendu Market avec ID Utilisateur actuel:", MY_TEST_ID);
-        console.log("[SPIRIT DEBUG] Nombre d'items à traiter:", dataToRender ? dataToRender.length : 0);
+        var idsKey = dataToRender.map(function (it) {
+            if (!it) return '';
+            var v = it.id != null ? it.id : (it.uuid != null ? it.uuid : '');
+            return String(v);
+        }).join(',');
+        var renderSig = [marketKindMode, marketCurrencyMode, spiritUiLang(), String(typeof MY_TEST_ID !== 'undefined' ? MY_TEST_ID : ''), idsKey, filteredData != null ? 'f' : 'a'].join('|');
+        if (renderSig === spiritRenderMarketSig) {
+            spiritUpdateLoadMoreUI();
+            return;
+        }
+
+        if (!dataToRender || dataToRender.length === 0) {
+            spiritRenderMarketSig = renderSig;
+            gn.innerHTML = '';
+            if (gl) gl.innerHTML = '';
+            if (gMine) gMine.innerHTML = '';
+            var emptyMsg = 'Aucune annonce';
+            if (filteredData != null && Array.isArray(marketData) && marketData.length > 0) emptyMsg = 'Aucun résultat pour ces filtres.';
+            gn.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888;">' + emptyMsg + '</div>';
+            spiritUpdateLoadMoreUI();
+            return;
+        }
+
+        spiritRenderMarketSig = renderSig;
+
+        gn.innerHTML = ''; if (gl) gl.innerHTML = '';
+        if (gMine) gMine.innerHTML = '';
 
         dataToRender.forEach(item => {
             const card = document.createElement('div');
@@ -1712,6 +1816,7 @@ function renderMarket(filteredData = null) {
         });
         
         console.log(`[SPIRIT MARKET] Rendu de ${dataToRender.length} objets terminé.`);
+        spiritUpdateLoadMoreUI();
 }
 var renderMarketplace = renderMarket;
 /**
@@ -1757,7 +1862,7 @@ async function loadMySales() {
                 // AJOUT : Gestion de la galerie (Mapping des 5 photos obligatoires Spirit Guard)
                 // On utilise image_url (principale) ou img1 si disponible
                 const mainImg = tr.image_url || tr.img1 || "";
-                const saleImg = mainImg ? `<img src="${mainImg}" style="width:60px; height:60px; object-fit:cover; border:1px solid #333; margin-right:15px; border-radius:2px;">` : `<div style="width:60px; height:60px; background:#222; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#555; border:1px solid #333;">NO IMG</div>`;
+                const saleImg = mainImg ? `<img src="${mainImg}" alt="" loading="lazy" decoding="async" style="width:60px; height:60px; object-fit:cover; border:1px solid #333; margin-right:15px; border-radius:2px;">` : `<div style="width:60px; height:60px; background:#222; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#555; border:1px solid #333;">NO IMG</div>`;
 
                 saleDiv.innerHTML = `
                     <div style="display: flex; align-items: center;">
@@ -2071,7 +2176,10 @@ async function publierAnnonce() {
         alert("ANNONCE PUBLIÉE !");
 
         try { closeModals(); } catch (e) {}
-        try { await fetchMarketplaceFromSupabase(); } catch (e) {}
+        try {
+            spiritInvalidateMarketCache();
+            await fetchMarketplaceFromSupabase({ reset: true });
+        } catch (e) {}
         try {
             if (typeof navigateTo === 'function') navigateTo('market');
             else if (typeof window.navigateTo === 'function') window.navigateTo('market');
@@ -2137,7 +2245,7 @@ async function updateUserAnnonces() {
         // AJOUT : Affichage de la miniature avec fallback img1/img
         const _annUrls = spiritImageUrlList(a);
         const displayImg = _annUrls.length ? _annUrls[0] : (a.img1 || a.img);
-        const imgHtml = displayImg ? `<img src="${displayImg}" style="width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:2px;">` : `<div style="width:50px; height:50px; background:#222; display:flex; align-items:center; justify-content:center; font-size:8px;">NO IMG</div>`;
+        const imgHtml = displayImg ? `<img src="${displayImg}" alt="" loading="lazy" decoding="async" style="width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:2px;">` : `<div style="width:50px; height:50px; background:#222; display:flex; align-items:center; justify-content:center; font-size:8px;">NO IMG</div>`;
         
         // AJOUT : Badge de statut
         const statusBadge = a.status === 'sold' ? `<span style="color:white; background:red; padding:2px 5px; font-size:0.6rem; font-weight:bold;">VENDU</span>` : `<span style="color:var(--spirit-green); font-size:0.6rem;">EN LIGNE</span>`;
@@ -2211,7 +2319,9 @@ async function deleteAnnonce(id) {
 
             // AJOUT : Mise à jour du cache local après succès
             marketData = marketData.filter(m => String(m.id) !== String(id));
-            
+            spiritMarketBucket.figurine.rows = spiritMarketBucket.figurine.rows.filter(function (m) { return String(m.id) !== String(id); });
+            spiritMarketBucket.statue.rows = spiritMarketBucket.statue.rows.filter(function (m) { return String(m.id) !== String(id); });
+            spiritRenderMarketSig = '';
             // AJOUT : Rafraîchissement global immédiat
             if (typeof renderMarket === 'function') renderMarket();
             updateUserAnnonces();
@@ -2334,7 +2444,10 @@ async function enregistrerVente(method) {
 
         alert('Achat Réussi — Spirit Infinity\n\n' + totalAcheteur + ' € enregistrés (Spirit Secure).');
         try { closeModals(); } catch (e) {}
-        try { await fetchMarketplaceFromSupabase(); } catch (e) {}
+        try {
+            spiritInvalidateMarketCache();
+            await fetchMarketplaceFromSupabase({ reset: true });
+        } catch (e) {}
         try {
             if (typeof navigateTo === 'function') navigateTo('market');
             else if (typeof window.navigateTo === 'function') window.navigateTo('market');
@@ -2490,6 +2603,8 @@ async function confirmPayment(method) {
             gUrls.forEach(function (u, idx) {
                 var t = document.createElement('img');
                 t.src = u;
+                t.loading = 'lazy';
+                t.decoding = 'async';
                 t.style.cssText = 'width:52px;height:52px;object-fit:cover;border:1px solid #333;cursor:pointer;border-radius:2px;';
                 t.onclick = function () {
                     window.spiritGalleryIndex = idx;
@@ -2625,8 +2740,15 @@ async function confirmPayment(method) {
         if (gridNative) gridNative.style.display = marketKindMode === 'statues' ? 'none' : '';
         if (statuesView) statuesView.style.display = marketKindMode === 'statues' ? 'block' : 'none';
         setMarketView(marketViewMode);
-        try { if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase(); } catch (e) {}
+        var mk = spiritBucketKeyFromMode();
+        marketData = spiritMarketBucket[mk].rows.slice();
         if (typeof applyFilters === 'function') applyFilters();
+        else if (typeof renderMarket === 'function') renderMarket();
+        if (spiritMarketBucket[mk].rows.length === 0 && !spiritMarketBucket[mk].loading) {
+            try { fetchMarketplaceFromSupabase({ reset: true, catKey: mk }); } catch (e) {}
+        } else {
+            setTimeout(function () { try { spiritMarketBackgroundVerify(); } catch (e2) {} }, 0);
+        }
     }
     window.setMarketKind = setMarketKind;
 
@@ -2733,10 +2855,17 @@ async function confirmPayment(method) {
                 if (heroNav) heroNav.style.setProperty('display', 'none', 'important');
                 const market = document.getElementById('marketplaceSection');
                 if (market) market.style.setProperty('display', 'flex', 'important');
-                // On resynchronise le flux Supabase pour éviter tout besoin de reload (F5)
-                try { if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase(); } catch (e) {}
-                // Rendu léger en fallback immédiat (si Supabase met un peu de temps)
-                try { if (typeof renderMarket === 'function') renderMarket(); } catch (e) {}
+                try { if (typeof spiritMarketInitScrollObserver === 'function') spiritMarketInitScrollObserver(); } catch (e) {}
+                try {
+                    if (typeof spiritBucketKeyFromMode === 'function' && typeof spiritMarketBucket !== 'undefined') {
+                        var _mk = spiritBucketKeyFromMode();
+                        marketData = spiritMarketBucket[_mk].rows.slice();
+                        if (typeof applyFilters === 'function') applyFilters();
+                        else if (typeof renderMarket === 'function') renderMarket();
+                        if (spiritMarketBucket[_mk].rows.length === 0) fetchMarketplaceFromSupabase({ reset: true });
+                        else setTimeout(function () { try { spiritMarketBackgroundVerify(); } catch (e) {} }, 0);
+                    } else if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase({ reset: true });
+                } catch (e) {}
                 break;
 
             case 'ledger':
@@ -2829,33 +2958,33 @@ async function confirmPayment(method) {
     <div class="hottoys-grid">
         <div class="hottoys-card">
             <div class="hottoys-main-wrap">
-                <img src="HotToys/1.jpeg" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)">
+                <img loading="lazy" decoding="async" src="HotToys/1.jpeg" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)">
             </div>
             <h3 style="color:#fff; margin-top:12px;">Neo (The Matrix Reloaded)</h3>
             <p style="color:#ff6600; font-weight:bold; margin:8px 0 12px 0;">Sortie : 1er Trimestre 2027</p>
             <div class="hottoys-thumbs-grid">
-                <div class="hottoys-thumb-wrap"><img src="HotToys/2.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/3.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/4.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/5.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/6.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/7.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/8.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/2.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/3.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/4.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/5.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/6.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/7.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/8.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
             </div>
         </div>
         <div class="hottoys-card">
             <div class="hottoys-main-wrap">
-                <img src="HotToys/9.jpeg" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)">
+                <img loading="lazy" decoding="async" src="HotToys/9.jpeg" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)">
             </div>
             <h3 style="color:#fff; margin-top:12px;">Jack Sparrow (Artisan Edition)</h3>
             <p style="color:#ff6600; font-weight:bold; margin:8px 0 12px 0;">Sortie : 2ème Trimestre 2027</p>
             <div class="hottoys-thumbs-grid">
-                <div class="hottoys-thumb-wrap"><img src="HotToys/10.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/11.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/12.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/13.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/14.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img src="HotToys/15.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/10.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/11.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/12.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/13.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/14.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
+                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/15.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
             </div>
         </div>
     </div>
@@ -2988,7 +3117,13 @@ function switchUser(newId, label) {
     }
     
     if (typeof renderMarket === 'function') renderMarket();
-    try { if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase(); } catch (e) {}
+    try {
+        if (typeof spiritBucketKeyFromMode === 'function' && typeof spiritMarketBucket !== 'undefined') {
+            var _mk2 = spiritBucketKeyFromMode();
+            if (spiritMarketBucket[_mk2].rows.length === 0) fetchMarketplaceFromSupabase({ reset: true });
+            else setTimeout(function () { try { spiritMarketBackgroundVerify(); } catch (e) {} }, 0);
+        } else if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase({ reset: true });
+    } catch (e) {}
 
     console.log("[SPIRIT LEDGER] Synchronisation terminée pour " + label);
 }
@@ -3360,8 +3495,6 @@ async function confirmReception(transactionId) {
     }
 }
 
-    renderMarket();
-
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
 async function startAIAnalysis() {
@@ -3593,35 +3726,62 @@ window.generateSpiritLabel = async function(transactionId) {
 
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
-async function fetchMarketplaceFromSupabase() {
-    console.log("[SPIRIT MARKET] Initialisation du flux Ledger...");
-    
-    const gridNative = document.getElementById('marketGridNative');
-    const gridLegacy = document.getElementById('marketGridLegacy');
-    if (gridNative || gridLegacy) console.log("[SPIRIT MARKET] Grilles Marketplace détectées (Native/Legacy).");
-    
-    setSpiritMarketLoading(true);
+async function fetchMarketplaceFromSupabase(opts) {
+    opts = opts || {};
+    if (opts.invalidateAll) spiritInvalidateMarketCache();
+
+    var key = opts.catKey || spiritBucketKeyFromMode();
+    var cat = key === 'statue' ? 'statue' : 'figurine';
+    var b = spiritMarketBucket[key];
+    var append = !!opts.append;
+    var silentLoader = !!opts.silentLoader;
 
     if (!_spirit) {
         marketData = [];
-        if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
-        if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
+        spiritRenderMarketSig = '';
+        var gn0 = document.getElementById('marketGridNative');
+        var gs0 = document.getElementById('marketGridStatues');
+        if (gn0) gn0.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:40px;color:#888;'>Aucune annonce</div>";
+        if (gs0) gs0.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:40px;color:#888;'>Aucune annonce</div>";
         setSpiritMarketLoading(false);
+        spiritUpdateLoadMoreUI();
         return;
     }
 
-    let data = null;
-    let reqError = null;
+    if (b.loading) return;
+    if (append && !b.hasMore) return;
+
+    if (!append && opts.reset !== false) {
+        b.rows = [];
+        spiritRenderMarketSig = '';
+    }
+
+    b.loading = true;
+    spiritUpdateLoadMoreUI();
+    if (!append && !silentLoader) setSpiritMarketLoading(true);
+
+    var from = append ? b.rows.length : 0;
+    var ps = SPIRIT_MARKET_PAGE_SIZE;
+    var to = from + ps - 1;
+
+    var data = null;
+    var reqError = null;
+    var totalCount = null;
     try {
-        const wantedCat = marketKindMode === 'statues' ? 'statue' : 'figurine';
-        const out = await _spirit.from('products_live').select('*').eq('cat', wantedCat);
+        var out = await _spirit.from('products_live')
+            .select('*', { count: 'exact' })
+            .eq('cat', cat)
+            .order('id', { ascending: false })
+            .range(from, to);
         data = out.data;
         reqError = out.error;
-        console.log("Données reçues brute :", data);
+        totalCount = (typeof out.count === 'number') ? out.count : null;
     } catch (e) {
         reqError = e;
         console.error('[SPIRIT MARKET] products_live exception:', e && e.message ? e.message : e, e);
     }
+
+    b.loading = false;
 
     if (reqError) {
         console.error('[SPIRIT MARKET] products_live erreur exacte:', reqError.message || String(reqError),
@@ -3630,46 +3790,35 @@ async function fetchMarketplaceFromSupabase() {
             reqError.hint != null ? ('hint=' + reqError.hint) : '',
             reqError);
         if (!Array.isArray(marketData)) marketData = [];
-        if (typeof renderMarket === 'function') {
-            if (gridNative) gridNative.innerHTML = '';
-            if (gridLegacy) gridLegacy.innerHTML = '';
-            try { renderMarket(); } catch (e) { console.error('[SPIRIT MARKET] renderMarket:', e); }
-        }
-        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
         setSpiritMarketLoading(false);
+        spiritUpdateLoadMoreUI();
+        try { if (typeof applyFilters === 'function') applyFilters(); } catch (e2) { try { renderMarket(); } catch (e3) {} }
+        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e4) {}
         return;
     }
 
-    if (!data || data.length === 0) {
-        console.warn("[SPIRIT MARKET] Aucune annonce dans products_live");
-        marketData = [];
-        if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
-        if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
-        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
-        setSpiritMarketLoading(false);
-        return;
+    var chunk = Array.isArray(data) ? data : [];
+    if (totalCount !== null) b.serverCount = totalCount;
+    if (append) {
+        b.rows = b.rows.concat(chunk);
+    } else {
+        b.rows = chunk;
+    }
+    b.hasMore = chunk.length === ps && (b.serverCount == null || b.rows.length < b.serverCount);
+
+    if (spiritBucketKeyFromMode() === key) {
+        marketData = b.rows.slice();
     }
 
-    marketData = data;
-    console.log("[SPIRIT MARKET] Flux synchronisé :", marketData.length, "annonces.");
-
-    if (Array.isArray(marketData)) {
-         console.log("[SPIRIT DEBUG] Préparation du rendu pour ID actuel:", window.MY_TEST_ID || MY_TEST_ID);
-    }
-
-    if (typeof renderMarket === 'function') {
-        if (gridNative) gridNative.innerHTML = '';
-        if (gridLegacy) gridLegacy.innerHTML = '';
-        try { renderMarket(); } catch (e) { console.error('[SPIRIT MARKET] renderMarket:', e); }
-        console.log("[SPIRIT MARKET] Rendu visuel terminé à 110%.");
-    }
-
-    try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
     setSpiritMarketLoading(false);
+    spiritUpdateLoadMoreUI();
+    try { if (typeof applyFilters === 'function') applyFilters(); }
+    catch (e) { try { renderMarket(); } catch (e2) { console.error('[SPIRIT MARKET] renderMarket:', e2); } }
+    try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e3) {}
 }
 
 async function fetchAnnonces() {
-    return fetchMarketplaceFromSupabase();
+    return fetchMarketplaceFromSupabase({ reset: true });
 }
 
 // BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
@@ -3679,7 +3828,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const ls = document.querySelector('.lang-selector');
         if (ls) switchLanguage(ls.value);
     } catch (e) {}
-    try { fetchMarketplaceFromSupabase(); } catch (e) {}
+    try { fetchMarketplaceFromSupabase({ reset: true }); } catch (e) {}
+    try { spiritMarketInitScrollObserver(); } catch (e) {}
 });
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -3779,7 +3929,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
