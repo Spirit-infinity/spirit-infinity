@@ -862,7 +862,8 @@
                     <div class="sanctuary-hero">
                         <div style="font-size:0.82rem;color:#aaa;">Vitrine publique partageable de collection</div>
                         <div class="sanctuary-url" id="sanctuary-public-url">https://spirit.infinity/u/12345/sanctuaire</div>
-                        <button class="btn-action" style="margin-top:10px; font-size:0.68rem;" onclick="toggleSanctuaryFollow()">S'ABONNER AU SANCTUAIRE</button>
+                        <button id="sanctuaryFollowBtn" class="btn-action" style="margin-top:10px; font-size:0.68rem;" onclick="toggleSanctuaryFollow()">S'ABONNER AU SANCTUAIRE</button>
+                        <button id="sanctuaryAdminLoginBtn" class="btn-action" style="margin-top:10px; margin-left:8px; font-size:0.68rem; background:#121212; color:var(--neon-orange); border:1px solid var(--neon-orange); display:none;" onclick="spiritAdminLogin()">CONNEXION ADMIN</button>
                         <span id="sanctuary-follow-state" style="margin-left:10px; font-size:0.75rem; color:#999;">Non abonné</span>
                     </div>
 
@@ -2481,7 +2482,7 @@ async function confirmPayment(method) {
 
 let SPIRIT_SANCT_OWNER_ID = '12345';
 const SPIRIT_SANCT_BUCKET = 'sanctuary';
-const spiritSession = { loaded: false, user: null, userId: '', publicId: '', profileOwnerId: '' };
+const spiritSession = { loaded: false, user: null, userId: '', publicId: '', profileOwnerId: '', hasActiveSession: false, profileRow: null };
 const SPIRIT_SANCT_SQL = `
 -- (c) 2026 Spirit Infinity - Tous droits réservés
 create extension if not exists "pgcrypto";
@@ -2590,28 +2591,38 @@ values
 async function spiritLoadSession() {
     if (spiritSession.loaded) return spiritSession;
     spiritSession.loaded = true;
-    if (!_spirit || !_spirit.auth || typeof _spirit.auth.getUser !== 'function') return spiritSession;
+    if (!_spirit || !_spirit.auth) return spiritSession;
     try {
-        const res = await _spirit.auth.getUser();
-        const u = res && res.data ? res.data.user : null;
+        let u = null;
+        if (typeof _spirit.auth.getSession === 'function') {
+            const ses = await _spirit.auth.getSession();
+            const active = ses && ses.data && ses.data.session ? ses.data.session : null;
+            spiritSession.hasActiveSession = !!active;
+            u = active && active.user ? active.user : null;
+        }
+        if (!u && typeof _spirit.auth.getUser === 'function') {
+            const res = await _spirit.auth.getUser();
+            u = res && res.data ? res.data.user : null;
+        }
         spiritSession.user = u || null;
         spiritSession.userId = u && u.id ? String(u.id) : '';
         spiritSession.publicId = u && u.user_metadata && u.user_metadata.public_id ? String(u.user_metadata.public_id) : '';
         if (_spirit && spiritSession.userId) {
             try {
-                const prof = await _spirit.from('profiles').select('id,owner_id,public_id').eq('id', spiritSession.userId).maybeSingle();
-                if (prof && prof.error) {
-                    console.warn('[SPIRIT SANCT] profiles check error:', prof.error.message || prof.error);
-                } else if (prof && prof.data) {
-                    spiritSession.profileOwnerId = String(prof.data.owner_id || prof.data.public_id || prof.data.id || '').trim();
-                } else {
-                    console.warn('[SPIRIT SANCT] profiles row missing for auth user:', spiritSession.userId);
+                let prof = await _spirit.from('profiles').select('id,user_id,owner_id,public_id').eq('user_id', spiritSession.userId).maybeSingle();
+                if (!prof || !prof.data) {
+                    prof = await _spirit.from('profiles').select('id,user_id,owner_id,public_id').eq('id', spiritSession.userId).maybeSingle();
                 }
+                if (prof && prof.error) console.warn('[SPIRIT SANCT] profiles check error:', prof.error.message || prof.error);
+                if (prof && prof.data) {
+                    spiritSession.profileRow = prof.data;
+                    spiritSession.profileOwnerId = String(prof.data.owner_id || prof.data.user_id || prof.data.public_id || prof.data.id || '').trim();
+                } else console.warn('[SPIRIT SANCT] profiles row missing for auth user:', spiritSession.userId);
             } catch (e) {
                 console.warn('[SPIRIT SANCT] profiles table check exception:', e && e.message ? e.message : e);
             }
         }
-        if (spiritSession.userId && !window.SPIRIT_PROFILE_OWNER_ID) {
+        if (spiritSession.hasActiveSession && spiritSession.userId && !window.SPIRIT_PROFILE_OWNER_ID) {
             SPIRIT_SANCT_OWNER_ID = spiritSession.userId;
         }
     } catch (e) {
@@ -2627,6 +2638,12 @@ function spiritViewerId() {
 }
 function spiritIsAccountOwner() {
     const ownerId = spiritProfileOwnerId();
+    if (spiritSession.hasActiveSession && spiritSession.profileRow) {
+        var p = spiritSession.profileRow;
+        var pu = String(p.user_id || p.id || '').trim();
+        var po = String(p.owner_id || '').trim();
+        if (spiritSession.userId && (spiritSession.userId === pu || spiritSession.userId === po)) return true;
+    }
     if (spiritSession.userId && spiritSession.userId === ownerId) return true;
     if (spiritSession.profileOwnerId && spiritSession.profileOwnerId === ownerId) return true;
     if (spiritSession.publicId && spiritSession.publicId === ownerId) return true;
@@ -2785,6 +2802,13 @@ function applyAccountVisibilityRules() {
     var lock = document.getElementById('sanctuary-owner-lock');
     if (tools) tools.style.display = isOwner ? 'block' : 'none';
     if (lock) lock.style.display = isOwner ? 'none' : 'block';
+    var adminBtn = document.getElementById('sanctuaryAdminLoginBtn');
+    var followBtn = document.getElementById('sanctuaryFollowBtn');
+    if (adminBtn) adminBtn.style.display = spiritSession.hasActiveSession ? 'none' : 'inline-block';
+    if (followBtn) {
+        if (isOwner) { followBtn.style.display = 'none'; }
+        else { followBtn.style.display = 'inline-block'; }
+    }
     var accountTitle = document.querySelector('#tab-sanctuaire h2');
     if (accountTitle) accountTitle.textContent = isOwner ? '🏛️ LE SANCTUAIRE (GESTION PROPRIÉTAIRE)' : '🏛️ LE SANCTUAIRE (PUBLIC)';
     var subBtn = document.querySelector('#tab-sanctuaire button.btn-action');
@@ -2821,7 +2845,10 @@ async function sanctuaryChatPost(pieceId) {
     await renderSanctuaryGallery();
 }
 async function addSanctuaryPiece() {
-    if (!spiritIsAccountOwner()) return;
+    if (!spiritIsAccountOwner()) {
+        alert("Accès propriétaire requis pour publier.");
+        return;
+    }
     var titleEl = document.getElementById('sanctuaryTitle');
     var storyEl = document.getElementById('sanctuaryStory');
     var photosEl = document.getElementById('sanctuaryPhotos');
@@ -2831,6 +2858,7 @@ async function addSanctuaryPiece() {
     if (files.length > 15) { alert('Maximum 15 photos par pièce.'); return; }
     await spiritLoadSession();
     var ownerId = spiritProfileOwnerId();
+    var authUid = spiritSession.userId || '';
     var photos = files.map(function (f) { return f.name; });
     if (_spirit && files.length > 0 && _spirit.storage) {
         photos = [];
@@ -2856,7 +2884,7 @@ async function addSanctuaryPiece() {
         try {
             const ins = await _spirit.from('sanctuary_pieces').insert([{
                 owner_id: ownerId,
-                user_id: spiritSession.userId || ownerId,
+                user_id: authUid || ownerId,
                 title: title,
                 story: storyEl ? String(storyEl.value || '').trim() : '',
                 photos: photos,
@@ -2887,7 +2915,7 @@ async function toggleSanctuaryFollow() {
     var s = await spiritFetchSanctuaire();
     var me = spiritViewerId();
     var ownerId = spiritProfileOwnerId();
-    if (!me) {
+    if (!spiritSession.hasActiveSession || !me) {
         alert("Connexion requise pour s'abonner au Sanctuaire.");
         return;
     }
@@ -2946,6 +2974,33 @@ async function renderSanctuaryHeader() {
     setTxt('trust-disputes', String(disputes));
     setTxt('trust-global', global + '%');
     setTxt('litige-open-count', disputes + ' litige(s) ouvert(s) pour ce compte.');
+}
+async function spiritAdminLogin() {
+    if (!_spirit || !_spirit.auth || typeof _spirit.auth.signInWithPassword !== 'function') {
+        alert("Auth Supabase indisponible.");
+        return;
+    }
+    var email = prompt("Email admin Supabase :");
+    if (!email) return;
+    var pass = prompt("Mot de passe :");
+    if (!pass) return;
+    try {
+        const out = await _spirit.auth.signInWithPassword({ email: String(email).trim(), password: String(pass) });
+        if (out && out.error) {
+            console.error('[SPIRIT SANCT] admin login error:', out.error);
+            alert("Échec connexion admin.");
+            return;
+        }
+        spiritSession.loaded = false;
+        await spiritLoadSession();
+        applyAccountVisibilityRules();
+        await renderSanctuaryHeader();
+        await renderSanctuaryGallery();
+        try { showAccountTab('dashboard'); } catch (e) {}
+    } catch (e) {
+        console.error('[SPIRIT SANCT] admin login exception:', e && e.message ? e.message : e);
+        alert("Erreur connexion admin.");
+    }
 }
 async function renderSanctuaryGallery() {
     var s = await spiritFetchSanctuaire();
