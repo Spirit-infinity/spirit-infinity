@@ -159,16 +159,17 @@
         .sidebar { width: 280px; background: var(--card-bg); padding: 20px; border: 1px solid var(--border); height: fit-content; }
         .grid { flex: 1; }
         .cat-title { color: var(--neon-orange); font-size: 1.2rem; font-weight: 900; margin: 30px 0 15px 0; border-left: 4px solid var(--neon-orange); padding-left: 15px; text-transform: uppercase; letter-spacing: 1px; }
-        .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .market-title { text-align: center; border-left: none; padding-left: 0; }
+        .grid-layout { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         /* CARDS */
         .card { background: var(--card-bg); border: 1px solid var(--border); cursor: pointer; position: relative; transition: 0.3s; border-radius: 4px; overflow: hidden; }
         .card:hover { border-color: var(--neon-orange); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .img-placeholder { width: 100%; height: 200px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; border-bottom: 1px solid var(--border); text-align: center; padding: 10px; }
-        .card-info { padding: 15px; }
+        .card-info { padding: 15px; display:flex; flex-direction:column; gap:8px; min-height:150px; }
         .price { font-size: 1.3rem; font-weight: 800; color: white; margin-bottom: 5px; }
-        .title { font-size: 0.85rem; color: #ccc; margin-bottom: 12px; height: 35px; overflow: hidden; }
-        .legende { font-size: 0.7rem; color: var(--text-gray); border-top: 1px solid #222; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .badge { position: absolute; top: 10px; left: 10px; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; }
+        .title { font-size: 0.85rem; color: #ccc; margin-bottom: 0; height: 35px; overflow: hidden; }
+        .legende { font-size: 0.7rem; color: var(--text-gray); border-top: 1px solid #222; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top:auto; }
+        .badge { position: static; display:inline-block; align-self:flex-start; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; margin-top:6px; }
         .native { background: var(--spirit-green); color: black; }
         .legacy { background: #0066ff; color: white; }
         /* PRÉCOMMANDES HOT TOYS (grille interne) */
@@ -620,10 +621,9 @@
 
     <div class="grid">
         <div id="spiritMarketLoader" class="spirit-market-loader" style="display:none;" aria-live="polite"></div>
-        <div class="cat-title" data-key="cat_native_title">1. Équipées Spirit (Hardware Ledger)</div>
+        <div class="cat-title market-title">MARKET SPIRIT</div>
         <div class="grid-layout" id="marketGridNative"></div>
-        <div class="cat-title" data-key="cat_legacy_title">2. Anciennes Collections & Multimarques (IA Scan)</div>
-        <div class="grid-layout" id="marketGridLegacy"></div>
+        <div class="grid-layout" id="marketGridLegacy" style="display:none !important;"></div>
     </div>
 </div>
 
@@ -1318,9 +1318,9 @@ function renderMarket(filteredData = null) {
         // AJOUT : Ciblage de la grille "Mes Annonces" si elle existe dans ton interface compte
         const gMine = document.getElementById('marketGridMines');
 
-        if (!gn || !gl) return; // Sécurité si les IDs n'existent pas
+        if (!gn) return; // Sécurité si les IDs n'existent pas
         
-        gn.innerHTML = ''; gl.innerHTML = '';
+        gn.innerHTML = ''; if (gl) gl.innerHTML = '';
         if (gMine) gMine.innerHTML = ''; // AJOUT : Nettoyage de la grille perso
 
         // AJOUT : Log pour vérifier l'ID utilisateur au moment du rendu (Aide au débug "Mes Ventes")
@@ -1351,7 +1351,7 @@ function renderMarket(filteredData = null) {
             var imgContent;
             if (displayImg) {
                 var sEsc = String(displayImg).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-                imgContent = '<div class="spirit-card-img-wrap"><div class="spirit-img-skeleton" aria-hidden="true"></div><img src="' + sEsc + '" alt="" loading="lazy" decoding="async" style="position:relative;z-index:1;width:100%;height:100%;object-fit:contain;background:#000;opacity:0;transition:opacity 0.22s ease;" onload="this.style.opacity=1;var s=this.previousElementSibling;if(s&amp;&amp;s.classList.contains(\'spirit-img-skeleton\'))s.style.display=\'none\';" onerror="this.style.display=\'none\';var sk=this.previousElementSibling;if(sk&amp;&amp;sk.classList.contains(\'spirit-img-skeleton\')){sk.style.display=\'flex\';sk.style.alignItems=\'center\';sk.style.justifyContent=\'center\';sk.style.color=\'#555\';sk.style.fontSize=\'10px\';sk.textContent=\'IMG\';}" /></div>';
+                imgContent = '<div class="spirit-card-img-wrap"><div class="spirit-img-skeleton" aria-hidden="true"></div><img src="' + sEsc + '" alt="" loading="lazy" decoding="async" style="position:relative;z-index:1;width:100%;height:100%;object-fit:cover;background:#000;opacity:0;transition:opacity 0.22s ease;" onload="this.style.opacity=1;var s=this.previousElementSibling;if(s&amp;&amp;s.classList.contains(\'spirit-img-skeleton\'))s.style.display=\'none\';" onerror="this.style.display=\'none\';var sk=this.previousElementSibling;if(sk&amp;&amp;sk.classList.contains(\'spirit-img-skeleton\')){sk.style.display=\'flex\';sk.style.alignItems=\'center\';sk.style.justifyContent=\'center\';sk.style.color=\'#555\';sk.style.fontSize=\'10px\';sk.textContent=\'IMG\';}" /></div>';
             } else {
                 imgContent = '<div style="color:#333; font-size:10px;">PHOTO ' + safeTitle.replace(/</g, '&lt;') + '</div>';
             }
@@ -1369,13 +1369,13 @@ function renderMarket(filteredData = null) {
             card.innerHTML = `
                 ${soldBadge}
                 ${ownerTag}
-                <div class="badge ${badgeClass}">${badgeText}</div>
                 <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
                 <div class="card-info">
                     <div class="price">${safePrice} €</div>
                     <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
                     <div style="font-size:0.6rem; color:#555; font-family:monospace; margin-top:6px;">SPIRIT-ID: ${item.uuid || "---"}</div>
                     <div class="legende"><span>${displayCountry}</span><span>${displayDiag}</span></div>
+                    <div class="badge ${badgeClass}">${badgeText}</div>
                 </div>
             `;
             
@@ -1383,11 +1383,7 @@ function renderMarket(filteredData = null) {
 
             // 1. Affichage Global : On montre ce qui est 'available' OU ce qui m'appartient (pour voir mes ventes même finies)
             if (isAvailable || isMine) {
-                if (isNative) {
-                    gn.appendChild(card);
-                } else {
-                    gl.appendChild(card);
-                }
+                gn.appendChild(card);
             }
             
             // 2. Affichage Compte : Si une grille "Mes Annonces" existe, on y injecte uniquement mes produits
@@ -3342,7 +3338,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
