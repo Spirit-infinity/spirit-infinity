@@ -234,8 +234,9 @@
             cursor: pointer;
             line-height: 1;
         }
-        .spirit-card-fav-btn .spirit-fav-count { font-size: 0.68rem; font-weight: 800; color: #888; }
-        .spirit-card-fav-btn .spirit-fav-heart { width: 15px; height: 15px; flex-shrink: 0; fill: #666; }
+        .spirit-card-fav-btn .spirit-fav-count { font-size: 0.68rem; font-weight: 800; color: #888; pointer-events: all; }
+        .spirit-card-fav-btn .spirit-fav-heart { width: 15px; height: 15px; flex-shrink: 0; fill: #666; pointer-events: all; }
+        .spirit-card-fav-btn .spirit-fav-heart path { pointer-events: all; }
         .spirit-card-fav-btn.is-fav { border-color: #ff6600; box-shadow: 0 0 10px rgba(255, 102, 0, 0.35); }
         .spirit-card-fav-btn.is-fav .spirit-fav-heart { fill: #ff6600; }
         .spirit-card-fav-btn.is-fav .spirit-fav-count { color: #ff6600; }
@@ -1709,6 +1710,7 @@ async function spiritMarketBackgroundVerify() {
     var b = spiritMarketBucket[key];
     if (b.rows.length === 0) return;
     try {
+        /* Même exigence : colonne `cat` sur products_live (Table Editor). */
         var out = await _spirit.from('products_live').select('*', { count: 'exact', head: true }).eq('cat', cat);
         if (out.error) return;
         var cnt = (typeof out.count === 'number') ? out.count : null;
@@ -1743,6 +1745,12 @@ function spiritProductId(item) {
     var v = item.id != null ? item.id : (item.uuid != null ? item.uuid : '');
     return String(v);
 }
+/** ID numérique products_live pour la table favorites (colonne product_id bigint/int). */
+function spiritFavoriteProductId(item) {
+    if (!item || item.id == null || item.id === '') return null;
+    var n = Number(item.id);
+    return (typeof n === 'number' && isFinite(n) && !isNaN(n)) ? n : null;
+}
 function spiritReadFavSnap() {
     try { return JSON.parse(localStorage.getItem('spirit_fav_snap_v2') || '{}'); } catch (e) { return {}; }
 }
@@ -1754,10 +1762,10 @@ function spiritBootstrapFavoriteSnapshots() {
     var changed = false;
     if (!spiritUserFavoriteSet || typeof spiritUserFavoriteSet.forEach !== 'function') return;
     spiritUserFavoriteSet.forEach(function (pid) {
-        if (snap[pid]) return;
-        var p = (marketData || []).find(function (m) { return spiritProductId(m) === pid; });
+        if (snap[String(pid)]) return;
+        var p = (marketData || []).find(function (m) { return spiritFavoriteProductId(m) === pid; });
         if (!p) return;
-        snap[pid] = {
+        snap[String(pid)] = {
             amount: Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0),
             status: String(p.status || 'available').toLowerCase()
         };
@@ -1774,9 +1782,9 @@ function spiritEvaluateFavoriteAlerts() {
     var snap = spiritReadFavSnap();
     var alertAny = false;
     spiritUserFavoriteSet.forEach(function (pid) {
-        var prev = snap[pid];
+        var prev = snap[String(pid)];
         if (!prev) return;
-        var p = (marketData || []).find(function (m) { return spiritProductId(m) === pid; });
+        var p = (marketData || []).find(function (m) { return spiritFavoriteProductId(m) === pid; });
         if (!p) return;
         var curAmt = Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0);
         var st = String(p.status || 'available').toLowerCase();
@@ -1788,9 +1796,9 @@ function spiritEvaluateFavoriteAlerts() {
 function spiritAcknowledgeFavoriteTab() {
     var snap = spiritReadFavSnap();
     (marketData || []).forEach(function (p) {
-        var pid = spiritProductId(p);
-        if (!pid || !spiritUserFavoriteSet.has(pid)) return;
-        snap[pid] = {
+        var pid = spiritFavoriteProductId(p);
+        if (pid == null || !spiritUserFavoriteSet.has(pid)) return;
+        snap[String(pid)] = {
             amount: Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0),
             status: String(p.status || 'available').toLowerCase()
         };
@@ -1799,7 +1807,7 @@ function spiritAcknowledgeFavoriteTab() {
     var dot = document.getElementById('favorites-tab-dot');
     if (dot) dot.style.display = 'none';
 }
-/* Supabase: create table public.favorites (user_id text not null, product_id text not null, primary key (user_id, product_id)); activer RLS + policies insert/select/delete pour user_id = auth.uid() ou test ID selon ta politique. */
+/* Supabase: favorites.product_id = bigint (FK products_live.id). RLS selon user_id. */
 async function spiritLoadFavoriteData() {
     if (!_spirit) return;
     try {
@@ -1809,9 +1817,11 @@ async function spiritLoadFavoriteData() {
         spiritUserFavoriteSet = new Set();
         spiritFavoriteCountMap = {};
         (out.data || []).forEach(function (r) {
-            var p = String(r.product_id);
-            spiritFavoriteCountMap[p] = (spiritFavoriteCountMap[p] || 0) + 1;
-            if (String(r.user_id) === uid) spiritUserFavoriteSet.add(p);
+            var n = Number(r.product_id);
+            if (!isFinite(n) || isNaN(n)) return;
+            var k = String(n);
+            spiritFavoriteCountMap[k] = (spiritFavoriteCountMap[k] || 0) + 1;
+            if (String(r.user_id) === uid) spiritUserFavoriteSet.add(n);
         });
     } catch (e) { /* table favorites ou RLS */ }
     spiritBootstrapFavoriteSnapshots();
@@ -1824,18 +1834,20 @@ async function spiritToggleFavorite(productId, ev) {
     }
     if (!_spirit) return;
     var uid = String(window.MY_TEST_ID || MY_TEST_ID).trim();
-    var pid = String(productId);
+    var pid = Number(productId);
+    if (!isFinite(pid) || isNaN(pid)) return;
+    var ks = String(pid);
     try {
         if (spiritUserFavoriteSet.has(pid)) {
             var del = await _spirit.from('favorites').delete().eq('user_id', uid).eq('product_id', pid);
             if (del.error) throw del.error;
             spiritUserFavoriteSet.delete(pid);
-            spiritFavoriteCountMap[pid] = Math.max(0, (spiritFavoriteCountMap[pid] || 1) - 1);
+            spiritFavoriteCountMap[ks] = Math.max(0, (spiritFavoriteCountMap[ks] || 1) - 1);
         } else {
             var ins = await _spirit.from('favorites').insert([{ user_id: uid, product_id: pid }]);
             if (ins.error) throw ins.error;
             spiritUserFavoriteSet.add(pid);
-            spiritFavoriteCountMap[pid] = (spiritFavoriteCountMap[pid] || 0) + 1;
+            spiritFavoriteCountMap[ks] = (spiritFavoriteCountMap[ks] || 0) + 1;
         }
     } catch (err) {
         console.warn('[SPIRIT] favorites:', err);
@@ -1858,7 +1870,7 @@ function spiritInitFavoriteClickDelegation() {
         e.stopPropagation();
         e.preventDefault();
         var p = btn.getAttribute('data-spirit-fav');
-        if (p) spiritToggleFavorite(p, e);
+        if (p != null && p !== '') spiritToggleFavorite(Number(p), e);
     }, true);
 }
 async function renderUserFavorites() {
@@ -1881,15 +1893,18 @@ async function renderUserFavorites() {
         } catch (e) {}
     }
     if (rows.length === 0) {
-        rows = (marketData || []).filter(function (m) { return spiritUserFavoriteSet.has(spiritProductId(m)); });
+        rows = (marketData || []).filter(function (m) {
+            var n = spiritFavoriteProductId(m);
+            return n != null && spiritUserFavoriteSet.has(n);
+        });
     }
     var snap = spiritReadFavSnap();
     rows.forEach(function (p) {
-        var pid = spiritProductId(p);
-        if (!pid) return;
+        var pid = spiritFavoriteProductId(p);
+        if (pid == null) return;
         var curAmt = Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0);
         var st = String(p.status || '').toLowerCase();
-        var prev = snap[pid];
+        var prev = snap[String(pid)];
         var alertRow = false;
         var tags = '';
         if (prev) {
@@ -1968,11 +1983,11 @@ function renderMarket(filteredData = null) {
             const hasCoa = item.has_coa === true || item.has_coa === 'true' || item.has_coa === 1 || String(item.has_coa).toLowerCase() === 't';
             
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
-            const pidStr = spiritProductId(item);
-            const pidAttr = pidStr.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-            var fc = (pidStr && spiritFavoriteCountMap[pidStr] != null) ? spiritFavoriteCountMap[pidStr] : 0;
-            const isFav = !!(pidStr && spiritUserFavoriteSet && spiritUserFavoriteSet.has(pidStr));
-            const favBlock = pidStr ? ('<button type="button" class="spirit-card-fav-btn' + (isFav ? ' is-fav' : '') + '" data-spirit-fav="' + pidAttr + '" aria-pressed="' + (isFav ? 'true' : 'false') + '"><span class="spirit-fav-count">' + fc + '</span><svg class="spirit-fav-heart" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 20.35l-1.45-1.32C5.4 13.36 2 10.28 2 6.5 2 4.42 3.42 3 5.5 3c1.74 0 3.41 1.01 4.5 2.59C11.09 4.01 12.76 3 14.5 3 16.58 3 18 4.42 18 6.5c0 3.78-3.4 6.86-8.55 12.54L12 20.35z"/></svg></button>') : '';
+            const favNum = spiritFavoriteProductId(item);
+            const favKey = favNum != null ? String(favNum) : '';
+            var fc = (favKey && spiritFavoriteCountMap[favKey] != null) ? spiritFavoriteCountMap[favKey] : 0;
+            const isFav = !!(favNum != null && spiritUserFavoriteSet && spiritUserFavoriteSet.has(favNum));
+            const favBlock = favNum != null ? ('<button type="button" class="spirit-card-fav-btn' + (isFav ? ' is-fav' : '') + '" data-spirit-fav="' + favNum + '" aria-pressed="' + (isFav ? 'true' : 'false') + '"><span class="spirit-fav-count">' + fc + '</span><svg class="spirit-fav-heart" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 20.35l-1.45-1.32C5.4 13.36 2 10.28 2 6.5 2 4.42 3.42 3 5.5 3c1.74 0 3.41 1.01 4.5 2.59C11.09 4.01 12.76 3 14.5 3 16.58 3 18 4.42 18 6.5c0 3.78-3.4 6.86-8.55 12.54L12 20.35z"/></svg></button>') : '';
             
             const _urls = spiritImageUrlList(item);
             const displayImg = _urls.length ? _urls[0] : null;
@@ -4011,6 +4026,7 @@ async function fetchMarketplaceFromSupabase(opts) {
     var reqError = null;
     var totalCount = null;
     try {
+        /* Requiert la colonne `cat` sur products_live (Table Editor) : valeurs figurine | statue pour ce filtre. */
         var out = await _spirit.from('products_live')
             .select('*', { count: 'exact' })
             .eq('cat', cat)
