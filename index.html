@@ -177,6 +177,8 @@
         .market-toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin: 8px 0 16px 0; flex-wrap:wrap; }
         .market-view-box { margin-left:auto; display:flex; align-items:center; gap:8px; color:#777; font-size:0.75rem; }
         .market-view-box select { background:#0b0b0b; color:#fff; border:1px solid #ff6600; padding:8px 10px; border-radius:4px; }
+        .market-fee-note { font-size:0.62rem; color:#9a9a9a; margin-top:4px; }
+        .market-fee-note.high { color:#ff9b7a; }
         .market-kind-toggle { display:flex; align-items:center; border:1px solid #ff6600; border-radius:999px; overflow:hidden; box-shadow:0 0 12px rgba(255,102,0,0.22); }
         .market-kind-toggle button { border:none; background:#0a0a0a; color:#777; padding:10px 24px; font-weight:800; letter-spacing:0.8px; cursor:pointer; transition:0.2s ease; }
         .market-kind-toggle button.active { color:#000; background:#ff6600; }
@@ -651,6 +653,12 @@
                     <option value="gallery">Galerie</option>
                     <option value="list">Liste</option>
                 </select>
+                <span>Devise</span>
+                <select id="marketCurrencySelect" onchange="setMarketCurrency(this.value)">
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="CNY">CNY</option>
+                </select>
             </div>
         </div>
         <div class="cat-title market-title">MARKET SPIRIT</div>
@@ -1119,6 +1127,7 @@
     let marketData = [];
     let marketViewMode = 'gallery';
     let marketKindMode = 'figurines';
+    let marketCurrencyMode = 'EUR';
 
     // --- PRÉCOMMANDES HOT TOYS (PARTENAIRE OFFICIEL) ---
     // Vitrine indépendante du Marketplace (pas d'achat in-app)
@@ -1400,7 +1409,9 @@ function renderMarket(filteredData = null) {
             const _urls = spiritImageUrlList(item);
             const displayImg = _urls.length ? _urls[0] : null;
             const safeTitle = (item.title || item.name || 'Annonce').trim() || 'Annonce';
-            const safePrice = (item.price != null && item.price !== '') ? item.price : '—';
+            const amountBase = (item.amount != null && item.amount !== '') ? Number(item.amount) : Number(item.price || 0);
+            const itemCurrency = String(item.currency || 'EUR').toUpperCase();
+            const safePrice = spiritConvertCurrency(amountBase, itemCurrency, marketCurrencyMode);
             var imgContent;
             if (displayImg) {
                 var sEsc = String(displayImg).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -1412,6 +1423,13 @@ function renderMarket(filteredData = null) {
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
             const displayCountry = item.country || "France";
             const displayDiag = isNative ? 'Hardware Ledger' : 'IA Scan';
+            const buyerCountry = spiritGetBuyerCountry();
+            const isImport = String(displayCountry).toLowerCase() !== String(buyerCountry).toLowerCase();
+            const customs = isImport ? (safePrice * 0.12) : 0;
+            const shipping = safePrice * (isImport ? 0.04 : 0.02);
+            const protection = safePrice * 0.08; // 3% Spirit + 3% Firme + 2% Banque
+            const totalArrival = safePrice + customs + shipping + protection;
+            const extraRate = safePrice > 0 ? ((customs + shipping + protection) / safePrice) : 0;
 
             // AJOUT / CORRECTION : owner_id est stocké en texte (Image 2). 
             // AJOUT : .trim() pour éviter les échecs de comparaison dus à des espaces invisibles.
@@ -1427,7 +1445,8 @@ function renderMarket(filteredData = null) {
                 ${ownerTag}
                 <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
                 <div class="card-info">
-                    <div class="price">${safePrice} €</div>
+                    <div class="price">${safePrice.toFixed(2)} ${marketCurrencyMode}</div>
+                    ${isImport ? `<div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}">Douanes estimées : ${customs.toFixed(2)} ${marketCurrencyMode} | Total estimé à l'arrivée : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>` : ''}
                     <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
                     <div style="font-size:0.6rem; color:#555; font-family:monospace; margin-top:6px;">SPIRIT-ID: ${item.uuid || "---"}</div>
                     <div class="market-signals">
@@ -2325,6 +2344,45 @@ async function confirmPayment(method) {
         if (typeof applyFilters === 'function') applyFilters();
     }
     window.setMarketKind = setMarketKind;
+
+    function setMarketCurrency(currency) {
+        marketCurrencyMode = ['EUR', 'USD', 'CNY'].includes(String(currency).toUpperCase()) ? String(currency).toUpperCase() : 'EUR';
+        if (typeof applyFilters === 'function') applyFilters();
+        else renderMarket();
+    }
+    window.setMarketCurrency = setMarketCurrency;
+
+    function spiritConvertCurrency(amount, fromCurrency, toCurrency) {
+        const rates = { EUR: 1, USD: 1.09, CNY: 7.85 };
+        const from = rates[String(fromCurrency || 'EUR').toUpperCase()] || 1;
+        const to = rates[String(toCurrency || 'EUR').toUpperCase()] || 1;
+        const eur = Number(amount || 0) / from;
+        return eur * to;
+    }
+
+    function spiritGetBuyerCountry() {
+        try {
+            const p = String(localStorage.getItem('spirit_buyer_country') || '').trim();
+            if (p) return p;
+        } catch (e) {}
+        const fc = document.getElementById('fCountry');
+        if (fc && fc.value && fc.value !== 'all') return String(fc.value);
+        return 'France';
+    }
+
+    function ensureMarketCurrencySelect() {
+        const box = document.querySelector('.market-view-box');
+        if (!box) return;
+        if (document.getElementById('marketCurrencySelect')) return;
+        const lbl = document.createElement('span');
+        lbl.textContent = 'Devise';
+        const sel = document.createElement('select');
+        sel.id = 'marketCurrencySelect';
+        sel.onchange = function () { setMarketCurrency(this.value); };
+        sel.innerHTML = '<option value="EUR">EUR</option><option value="USD">USD</option><option value="CNY">CNY</option>';
+        box.appendChild(lbl);
+        box.appendChild(sel);
+    }
 
     function updateTotalWithCarrier() {
         if(!selectedProduct) return;
@@ -3330,6 +3388,7 @@ async function fetchAnnonces() {
 
 // BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
 document.addEventListener('DOMContentLoaded', () => {
+    try { ensureMarketCurrencySelect(); } catch (e) {}
     try { fetchMarketplaceFromSupabase(); } catch (e) {}
 });
 // (c) 2026 Spirit Infinity - Tous droits réservés
