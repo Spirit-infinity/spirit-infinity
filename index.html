@@ -2479,9 +2479,9 @@ async function confirmPayment(method) {
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
-const SPIRIT_SANCT_OWNER_ID = '12345';
+let SPIRIT_SANCT_OWNER_ID = '12345';
 const SPIRIT_SANCT_BUCKET = 'sanctuary';
-const spiritSession = { loaded: false, user: null, userId: '', publicId: '' };
+const spiritSession = { loaded: false, user: null, userId: '', publicId: '', profileOwnerId: '' };
 const SPIRIT_SANCT_SQL = `
 -- (c) 2026 Spirit Infinity - Tous droits réservés
 create extension if not exists "pgcrypto";
@@ -2597,13 +2597,30 @@ async function spiritLoadSession() {
         spiritSession.user = u || null;
         spiritSession.userId = u && u.id ? String(u.id) : '';
         spiritSession.publicId = u && u.user_metadata && u.user_metadata.public_id ? String(u.user_metadata.public_id) : '';
+        if (_spirit && spiritSession.userId) {
+            try {
+                const prof = await _spirit.from('profiles').select('id,owner_id,public_id').eq('id', spiritSession.userId).maybeSingle();
+                if (prof && prof.error) {
+                    console.warn('[SPIRIT SANCT] profiles check error:', prof.error.message || prof.error);
+                } else if (prof && prof.data) {
+                    spiritSession.profileOwnerId = String(prof.data.owner_id || prof.data.public_id || prof.data.id || '').trim();
+                } else {
+                    console.warn('[SPIRIT SANCT] profiles row missing for auth user:', spiritSession.userId);
+                }
+            } catch (e) {
+                console.warn('[SPIRIT SANCT] profiles table check exception:', e && e.message ? e.message : e);
+            }
+        }
+        if (spiritSession.userId && !window.SPIRIT_PROFILE_OWNER_ID) {
+            SPIRIT_SANCT_OWNER_ID = spiritSession.userId;
+        }
     } catch (e) {
         console.warn('[SPIRIT SANCT] auth.getUser error:', e && e.message ? e.message : e);
     }
     return spiritSession;
 }
 function spiritProfileOwnerId() {
-    return String(window.SPIRIT_PROFILE_OWNER_ID || SPIRIT_SANCT_OWNER_ID || MY_TEST_ID).trim();
+    return String(window.SPIRIT_PROFILE_OWNER_ID || spiritSession.profileOwnerId || SPIRIT_SANCT_OWNER_ID || MY_TEST_ID).trim();
 }
 function spiritViewerId() {
     return spiritSession.userId || spiritSession.publicId || String(window.MY_TEST_ID || MY_TEST_ID).trim();
@@ -2611,6 +2628,7 @@ function spiritViewerId() {
 function spiritIsAccountOwner() {
     const ownerId = spiritProfileOwnerId();
     if (spiritSession.userId && spiritSession.userId === ownerId) return true;
+    if (spiritSession.profileOwnerId && spiritSession.profileOwnerId === ownerId) return true;
     if (spiritSession.publicId && spiritSession.publicId === ownerId) return true;
     return false;
 }
@@ -2635,7 +2653,8 @@ function spiritWriteSanctCache(s) {
 async function seedSanctuaireDemo() {
     if (window.__spiritSanctSeedDone) return;
     window.__spiritSanctSeedDone = true;
-    var ownerId = SPIRIT_SANCT_OWNER_ID;
+    await spiritLoadSession();
+    var ownerId = spiritProfileOwnerId();
     if (_spirit) {
         try {
             const check = await _spirit.from('sanctuary_pieces').select('id').eq('owner_id', ownerId).limit(1);
@@ -2766,6 +2785,8 @@ function applyAccountVisibilityRules() {
     var lock = document.getElementById('sanctuary-owner-lock');
     if (tools) tools.style.display = isOwner ? 'block' : 'none';
     if (lock) lock.style.display = isOwner ? 'none' : 'block';
+    var accountTitle = document.querySelector('#tab-sanctuaire h2');
+    if (accountTitle) accountTitle.textContent = isOwner ? '🏛️ LE SANCTUAIRE (GESTION PROPRIÉTAIRE)' : '🏛️ LE SANCTUAIRE (PUBLIC)';
     var subBtn = document.querySelector('#tab-sanctuaire button.btn-action');
     if (subBtn) {
         if (!spiritSession.userId) {
@@ -2784,7 +2805,7 @@ async function sanctuaryChatPost(pieceId) {
         try {
             await _spirit.from('sanctuary_chats').insert([{
                 piece_id: pieceId,
-                sender_id: String(window.MY_TEST_ID || MY_TEST_ID).trim(),
+                sender_id: spiritViewerId(),
                 sender_name: String(currentUser || 'INVITÉ'),
                 message: t
             }]);
@@ -2968,6 +2989,17 @@ async function initSanctuaireAccount() {
         console.log('[SPIRIT SANCT SQL] Exécuter ce script dans Supabase SQL Editor:\\n' + SPIRIT_SANCT_SQL);
         console.log('[SPIRIT SANCT SEED SQL] Seed démo (optionnel SQL Editor):\\n' + SPIRIT_SANCT_SEED_SQL);
     }
+    if (_spirit && _spirit.auth && typeof _spirit.auth.onAuthStateChange === 'function' && !window.__spiritAuthWatchBound) {
+        window.__spiritAuthWatchBound = true;
+        _spirit.auth.onAuthStateChange(async function () {
+            spiritSession.loaded = false;
+            await spiritLoadSession();
+            applyAccountVisibilityRules();
+            try { await renderSanctuaryHeader(); } catch (e) {}
+            try { await renderSanctuaryGallery(); } catch (e) {}
+            console.log('[SPIRIT SANCT] Auth state updated, UI resynchronised.');
+        });
+    }
     await renderSanctuaryHeader();
     await renderSanctuaryGallery();
 }
@@ -3052,6 +3084,7 @@ window.showAccountTab = function showAccountTab(tab) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 function switchUser(newId, label) {
+    console.warn("[SPIRIT AUTH] switchUser est un simulateur local. L'accès Sanctuaire dépend désormais de supabase.auth.");
     // STABILISATION : On force le type String pour garantir la correspondance Supabase
     MY_TEST_ID = String(newId).trim();
     // AJOUT : Synchronisation du nom d'utilisateur pour l'affichage et les annonces
@@ -3097,6 +3130,15 @@ function switchUser(newId, label) {
 
     console.log("[SPIRIT LEDGER] Synchronisation terminée pour " + label);
 }
+document.addEventListener('DOMContentLoaded', function () {
+    var b1 = document.getElementById('btn-user-moi');
+    var b2 = document.getElementById('btn-user-guest');
+    [b1, b2].forEach(function (b) {
+        if (!b) return;
+        b.style.opacity = '0.55';
+        b.title = 'Simulateur local uniquement - Auth Supabase prioritaire';
+    });
+});
 
 var spiritLoupeCleanup = null;
 function spiritDetachProductLoupe() {
