@@ -1306,6 +1306,11 @@ function setSpiritMarketLoading(on) {
 }
 
 function renderMarket(filteredData = null) {
+        const dataToRender = filteredData || marketData;
+        if (!dataToRender || dataToRender.length === 0) {
+            console.warn("[SPIRIT MARKET] Attente des données Ledger avant rendu...");
+            return;
+        }
 
         const gn = document.getElementById('marketGridNative');
         const gl = document.getElementById('marketGridLegacy');
@@ -1318,21 +1323,9 @@ function renderMarket(filteredData = null) {
         gn.innerHTML = ''; gl.innerHTML = '';
         if (gMine) gMine.innerHTML = ''; // AJOUT : Nettoyage de la grille perso
 
-        // CORRECTION : On s'assure que dataToRender contient les données brutes ou filtrées
-        const dataToRender = filteredData || marketData;
-        
         // AJOUT : Log pour vérifier l'ID utilisateur au moment du rendu (Aide au débug "Mes Ventes")
         console.log("[SPIRIT DEBUG] Rendu Market avec ID Utilisateur actuel:", MY_TEST_ID);
         console.log("[SPIRIT DEBUG] Nombre d'items à traiter:", dataToRender ? dataToRender.length : 0);
-
-        // AJOUT : Vérification si les données sont bien chargées depuis Supabase
-        if (!dataToRender || dataToRender.length === 0) {
-            console.warn("[SPIRIT MARKET] Aucune donnée à afficher dans le flux.");
-            const emptyMsg = '<div style="grid-column: 1/-1; text-align:center; padding:50px; color:#888;">Aucune annonce</div>';
-            gn.innerHTML = emptyMsg;
-            gl.innerHTML = emptyMsg;
-            return;
-        }
 
         dataToRender.forEach(item => {
             const card = document.createElement('div');
@@ -3349,7 +3342,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
