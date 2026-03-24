@@ -263,6 +263,32 @@
             background: #e22;
             box-shadow: 0 0 6px rgba(255, 50, 50, 0.9);
         }
+        #btn-favoris .spirit-fav-menu-sold {
+            display: none;
+            margin-left: 6px;
+            padding: 2px 7px;
+            font-size: 0.55rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            color: #fff;
+            background: #c00;
+            border: 1px solid #ff4444;
+            border-radius: 3px;
+            vertical-align: middle;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.45);
+        }
+        #productModal .modal-content.spirit-ad-statue {
+            border-color: #9a9aaa;
+            box-shadow: 0 0 28px rgba(180, 180, 200, 0.35);
+        }
+        #productModal .modal-content.spirit-ad-figurine {
+            border-color: #ff6600;
+            box-shadow: 0 0 30px rgba(255, 102, 0, 0.55);
+        }
+        .spirit-detail-statue-badge { background: #3a3a44 !important; color: #e8e8f0 !important; border: 1px solid #6a6a78 !important; }
+        .spirit-detail-figurine-badge { background: var(--spirit-green) !important; color: #000 !important; border: 1px solid var(--spirit-green) !important; }
+        .spirit-industrial-popup { text-align: center; border: 2px solid var(--neon-orange) !important; background: linear-gradient(180deg, #0a0a0a 0%, #000 100%) !important; box-shadow: 0 0 36px rgba(255, 102, 0, 0.35) !important; }
+        .spirit-industrial-popup-text { color: #ccc; font-size: 0.85rem; line-height: 1.45; margin: 16px 0 20px; text-align: left; }
         .spirit-fav-row-alert { border-left: 3px solid #e22 !important; box-shadow: 0 0 12px rgba(238, 34, 34, 0.25); }
         .native { background: var(--spirit-green); color: black; }
         .legacy { background: #0066ff; color: white; }
@@ -900,6 +926,24 @@
     </div>
 </div>
 
+<div id="spiritPurchaseSuccessModal" class="overlay" style="display:none !important; z-index:100200 !important;">
+    <div class="modal-content spirit-industrial-popup" style="max-width:440px;">
+        <button type="button" onclick="spiritCloseIndustrialPopup('spiritPurchaseSuccessModal')" style="position:absolute; top:16px; right:16px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2rem;">✕</button>
+        <h2 data-key="purchase_success_title" style="margin:0; color:var(--neon-orange); font-size:1rem; letter-spacing:2px;">SPIRIT SECURE</h2>
+        <p id="spiritPurchaseSuccessText" class="spirit-industrial-popup-text"></p>
+        <button type="button" class="btn-action" style="width:100%;" onclick="spiritCloseIndustrialPopup('spiritPurchaseSuccessModal')">OK</button>
+    </div>
+</div>
+<div id="spiritSellerPrepModal" class="overlay" style="display:none !important; z-index:100200 !important;">
+    <div class="modal-content spirit-industrial-popup" style="max-width:480px;">
+        <button type="button" onclick="spiritCloseIndustrialPopup('spiritSellerPrepModal')" style="position:absolute; top:16px; right:16px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2rem;">✕</button>
+        <h2 style="margin:0; color:var(--spirit-green); font-size:0.95rem; letter-spacing:1.5px;">PRÉPARER L'EXPÉDITION</h2>
+        <p class="spirit-industrial-popup-text" style="color:#888; font-size:0.72rem; margin-bottom:8px;">Un acheteur a validé le paiement — merci de préparer l'envoi.</p>
+        <div id="spiritSellerPrepText" class="spirit-industrial-popup-text" style="margin-top:0;"></div>
+        <button type="button" class="btn-action" style="width:100%; background:var(--spirit-green); color:#000;" onclick="spiritCloseIndustrialPopup('spiritSellerPrepModal')">COMPRIS</button>
+    </div>
+</div>
+
 <div id="certifModal" class="overlay">
     <div class="modal-content" style="max-width:600px;text-align:left;">
         <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">PHOTOS & INFOS</span><span class="step" id="s3">ANALYSE IA</span><span class="step" id="s4">PUBLICATION</span></div>
@@ -1033,7 +1077,7 @@
                 <button id="btn-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
                 <button id="btn-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
                 <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
-                <button type="button" id="btn-favoris" onclick="showAccountTab('favoris')" data-key="account_favorites">MES FAVORIS<span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button type="button" id="btn-favoris" onclick="showAccountTab('favoris')"><span data-key="account_favorites">MES FAVORIS</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
             
@@ -1296,7 +1340,8 @@
             'btn_load_more': 'Charger plus',
             'account_favorites': 'MES FAVORIS', 'account_favorites_title': 'MES FAVORIS',
             'account_favorites_hint': 'Alerte si le prix baisse ou si l’annonce est vendue.',
-            'account_favorites_empty': 'Aucun favori enregistré.', 'fav_price_drop': 'PRIX EN BAISSE', 'fav_sold': 'VENDU', 'fav_open': 'Voir'
+            'account_favorites_empty': 'Aucun favori enregistré.', 'fav_price_drop': 'PRIX EN BAISSE', 'fav_sold': 'VENDU', 'fav_open': 'Voir',
+            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Félicitations ! Votre achat est confirmé. L\'annonce a été retirée du marché. Montant en séquestre Spirit : {amount} €.'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -1325,7 +1370,8 @@
             'btn_load_more': 'Load more',
             'account_favorites': 'MY FAVORITES', 'account_favorites_title': 'MY FAVORITES',
             'account_favorites_hint': 'Alert if the price drops or the listing is sold.',
-            'account_favorites_empty': 'No favorites yet.', 'fav_price_drop': 'PRICE DROP', 'fav_sold': 'SOLD', 'fav_open': 'View'
+            'account_favorites_empty': 'No favorites yet.', 'fav_price_drop': 'PRICE DROP', 'fav_sold': 'SOLD', 'fav_open': 'View',
+            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Congratulations! Your purchase is confirmed. The listing has been removed from the market. Escrow amount: {amount} €.'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -1354,7 +1400,8 @@
             'btn_load_more': 'Cargar más',
             'account_favorites': 'MIS FAVORITOS', 'account_favorites_title': 'MIS FAVORITOS',
             'account_favorites_hint': 'Aviso si baja el precio o el anuncio se vende.',
-            'account_favorites_empty': 'Sin favoritos.', 'fav_price_drop': 'PRECIO A LA BAJA', 'fav_sold': 'VENDIDO', 'fav_open': 'Ver'
+            'account_favorites_empty': 'Sin favoritos.', 'fav_price_drop': 'PRECIO A LA BAJA', 'fav_sold': 'VENDIDO', 'fav_open': 'Ver',
+            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '¡Enhorabuena! Tu compra está confirmada. El anuncio se ha retirado del mercado. Importe en depósito: {amount} €.'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -1383,7 +1430,8 @@
             'btn_load_more': '加载更多',
             'account_favorites': '我的收藏', 'account_favorites_title': '我的收藏',
             'account_favorites_hint': '降价或已售出时将提醒。',
-            'account_favorites_empty': '暂无收藏。', 'fav_price_drop': '降价', 'fav_sold': '已售', 'fav_open': '查看'
+            'account_favorites_empty': '暂无收藏。', 'fav_price_drop': '降价', 'fav_sold': '已售', 'fav_open': '查看',
+            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '恭喜！购买已确认。该商品已从市场下架。托管金额：{amount} 欧元。'
         }
     };
 
@@ -1399,6 +1447,7 @@
         if (set && set[key]) return set[key];
         return (translations['FR'] && translations['FR'][key]) ? translations['FR'][key] : key;
     }
+    try { window.spiritT = spiritT; } catch (e) {}
 
     const shippingRates = {
         "Petit": { "mr": 4.90, "cl": 6.50, "dh": 12.00 },
@@ -1782,6 +1831,50 @@ function spiritParseFavoriteProductId(v) {
     if (String(n) !== s) return null;
     return n;
 }
+/** Cherche une ligne products_live dans les caches figurine / statue / marketData courant. */
+function spiritFindProductRowById(pid) {
+    var n = Number(pid);
+    if (!Number.isFinite(n)) return null;
+    function scan(rows) {
+        if (!Array.isArray(rows)) return null;
+        for (var i = 0; i < rows.length; i++) {
+            if (spiritFavoriteProductId(rows[i]) === n) return rows[i];
+        }
+        return null;
+    }
+    var a = scan(typeof spiritMarketBucket !== 'undefined' && spiritMarketBucket.figurine ? spiritMarketBucket.figurine.rows : null);
+    if (a) return a;
+    var b = scan(typeof spiritMarketBucket !== 'undefined' && spiritMarketBucket.statue ? spiritMarketBucket.statue.rows : null);
+    if (b) return b;
+    return scan(typeof marketData !== 'undefined' ? marketData : null);
+}
+var spiritShowProductDetailsLast = { id: null, t: 0 };
+/**
+ * Détail annonce par products_live.id (= product_id dans favorites).
+ * Template Statue / Figurine via openProduct ; anti-doublon clic.
+ */
+async function showProductDetails(productId) {
+    var pid = spiritParseFavoriteProductId(productId);
+    if (pid == null) pid = spiritParseFavoriteProductId(String(productId));
+    if (pid == null) return;
+    var pmChk = document.getElementById('productModal');
+    var vis = pmChk && (pmChk.style.display === 'flex' || pmChk.style.display === 'block');
+    if (vis && typeof selectedProduct !== 'undefined' && selectedProduct && spiritFavoriteProductId(selectedProduct) === pid) return;
+    var now = Date.now();
+    if (spiritShowProductDetailsLast.id === pid && now - spiritShowProductDetailsLast.t < 550) return;
+    spiritShowProductDetailsLast = { id: pid, t: now };
+    var item = spiritFindProductRowById(pid);
+    if (!item && typeof _spirit !== 'undefined' && _spirit) {
+        try {
+            var out = await _spirit.from('products_live').select('*').eq('id', pid).maybeSingle();
+            if (!out.error && out.data) item = out.data;
+        } catch (e) {}
+    }
+    if (!item) return;
+    var opFn = (typeof openProduct === 'function' ? openProduct : (typeof window !== 'undefined' ? window.openProduct : null));
+    if (typeof opFn === 'function') opFn(item);
+}
+try { window.showProductDetails = showProductDetails; window.openAdDetail = showProductDetails; } catch (e) {}
 /** Met à jour les cœurs visibles pour ce product_id sans re-render complet ; flash néon si flashBtn et favori actif. */
 function spiritSyncFavoriteButtonDOM(productIdInt, flashBtn) {
     var ks = String(productIdInt);
@@ -1803,61 +1896,59 @@ function spiritSyncFavoriteButtonDOM(productIdInt, flashBtn) {
         setTimeout(endFlash, 800);
     }
 }
-function spiritReadFavSnap() {
-    try { return JSON.parse(localStorage.getItem('spirit_fav_snap_v2') || '{}'); } catch (e) { return {}; }
-}
-function spiritWriteFavSnap(o) {
-    try { localStorage.setItem('spirit_fav_snap_v2', JSON.stringify(o)); } catch (e) {}
-}
-function spiritBootstrapFavoriteSnapshots() {
-    var snap = spiritReadFavSnap();
-    var changed = false;
-    if (!spiritUserFavoriteSet || typeof spiritUserFavoriteSet.forEach !== 'function') return;
-    spiritUserFavoriteSet.forEach(function (pid) {
-        if (snap[String(pid)]) return;
-        var p = (marketData || []).find(function (m) { return spiritFavoriteProductId(m) === pid; });
-        if (!p) return;
-        snap[String(pid)] = {
-            amount: Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0),
-            status: String(p.status || 'available').toLowerCase()
-        };
-        changed = true;
-    });
-    if (changed) spiritWriteFavSnap(snap);
-}
-function spiritEvaluateFavoriteAlerts() {
+/** Alertes favoris : uniquement Supabase (favorites × products_live), zéro localStorage. */
+async function checkGlobalNotifications() {
+    try { localStorage.removeItem('spirit_fav_snap_v2'); } catch (e) {}
     var dot = document.getElementById('favorites-tab-dot');
-    if (!spiritUserFavoriteSet || spiritUserFavoriteSet.size === 0) {
+    var soldLbl = document.getElementById('favorites-tab-sold');
+    if (!_spirit) {
         if (dot) dot.style.display = 'none';
+        if (soldLbl) soldLbl.style.display = 'none';
         return;
     }
-    var snap = spiritReadFavSnap();
-    var alertAny = false;
-    spiritUserFavoriteSet.forEach(function (pid) {
-        var prev = snap[String(pid)];
-        if (!prev) return;
-        var p = (marketData || []).find(function (m) { return spiritFavoriteProductId(m) === pid; });
-        if (!p) return;
-        var curAmt = Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0);
-        var st = String(p.status || 'available').toLowerCase();
-        if (curAmt < Number(prev.amount)) alertAny = true;
-        if (st === 'sold' && String(prev.status || '').toLowerCase() !== 'sold') alertAny = true;
-    });
-    if (dot) dot.style.display = alertAny ? 'inline-block' : 'none';
+    var uid = typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '';
+    if (!uid) {
+        if (dot) dot.style.display = 'none';
+        if (soldLbl) soldLbl.style.display = 'none';
+        return;
+    }
+    try {
+        var favOut = await _spirit.from('favorites').select('product_id').eq('user_id', uid);
+        if (favOut.error || !favOut.data || favOut.data.length === 0) {
+            if (dot) dot.style.display = 'none';
+            if (soldLbl) soldLbl.style.display = 'none';
+            return;
+        }
+        var ids = favOut.data.map(function (r) { return Number(r.product_id); }).filter(function (n) { return Number.isFinite(n); });
+        if (ids.length === 0) {
+            if (dot) dot.style.display = 'none';
+            if (soldLbl) soldLbl.style.display = 'none';
+            return;
+        }
+        var pl = await _spirit.from('products_live').select('id,status').in('id', ids);
+        if (pl.error) return;
+        var anySold = false;
+        (pl.data || []).forEach(function (row) {
+            var x = String(row.status || '').toLowerCase();
+            if (x === 'sold' || x === 'vendu') anySold = true;
+        });
+        if (soldLbl) {
+            if (typeof window.spiritT === 'function') soldLbl.textContent = window.spiritT('fav_sold');
+            soldLbl.style.display = anySold ? 'inline' : 'none';
+        }
+        if (dot) dot.style.display = anySold ? 'inline-block' : 'none';
+    } catch (e) {
+        if (dot) dot.style.display = 'none';
+        if (soldLbl) soldLbl.style.display = 'none';
+    }
 }
+try { window.checkGlobalNotifications = checkGlobalNotifications; } catch (e) {}
+/** Masque pastilles menu favoris après consultation (sans stockage local). */
 function spiritAcknowledgeFavoriteTab() {
-    var snap = spiritReadFavSnap();
-    (marketData || []).forEach(function (p) {
-        var pid = spiritFavoriteProductId(p);
-        if (pid == null || !spiritUserFavoriteSet.has(pid)) return;
-        snap[String(pid)] = {
-            amount: Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0),
-            status: String(p.status || 'available').toLowerCase()
-        };
-    });
-    spiritWriteFavSnap(snap);
     var dot = document.getElementById('favorites-tab-dot');
     if (dot) dot.style.display = 'none';
+    var soldLbl = document.getElementById('favorites-tab-sold');
+    if (soldLbl) soldLbl.style.display = 'none';
 }
 /* Supabase: favorites.user_id = text ; product_id = bigint (FK products_live.id). */
 async function spiritLoadFavoriteData() {
@@ -1876,8 +1967,7 @@ async function spiritLoadFavoriteData() {
             if (String(r.user_id) === uid) spiritUserFavoriteSet.add(n);
         });
     } catch (e) { /* table favorites ou RLS */ }
-    spiritBootstrapFavoriteSnapshots();
-    spiritEvaluateFavoriteAlerts();
+    await checkGlobalNotifications();
 }
 async function spiritToggleFavorite(productId, ev, favBtn) {
     if (ev) {
@@ -1925,8 +2015,7 @@ async function spiritToggleFavorite(productId, ev, favBtn) {
     if (flashNeon && !btnFlash)
         btnFlash = document.querySelector('.spirit-card-fav-btn[data-spirit-fav="' + ks + '"]');
     spiritSyncFavoriteButtonDOM(pid, flashNeon ? btnFlash : null);
-    spiritBootstrapFavoriteSnapshots();
-    spiritEvaluateFavoriteAlerts();
+    checkGlobalNotifications().catch(function () {});
 }
 function spiritInitFavoriteClickDelegation() {
     if (spiritInitFavoriteClickDelegation.done) return;
@@ -1946,7 +2035,7 @@ async function renderUserFavorites() {
     box.innerHTML = '';
     await spiritLoadFavoriteData();
     if (!spiritUserFavoriteSet || spiritUserFavoriteSet.size === 0) {
-        var em = (typeof spiritT === 'function') ? spiritT('account_favorites_empty') : '—';
+        var em = (typeof window.spiritT === 'function') ? window.spiritT('account_favorites_empty') : ((typeof spiritT === 'function') ? spiritT('account_favorites_empty') : '—');
         box.innerHTML = '<div style="text-align:center;padding:20px;color:#555;" data-key="account_favorites_empty">' + em + '</div>';
         spiritAcknowledgeFavoriteTab();
         return;
@@ -1965,32 +2054,32 @@ async function renderUserFavorites() {
             return n != null && spiritUserFavoriteSet.has(n);
         });
     }
-    var snap = spiritReadFavSnap();
     rows.forEach(function (p) {
         var pid = spiritFavoriteProductId(p);
         if (pid == null) return;
         var curAmt = Number(p.amount != null && p.amount !== '' ? p.amount : p.price || 0);
         var st = String(p.status || '').toLowerCase();
-        var prev = snap[String(pid)];
-        var alertRow = false;
+        var isSold = (st === 'sold' || st === 'vendu');
         var tags = '';
-        if (prev) {
-            if (curAmt < Number(prev.amount)) {
-                alertRow = true;
-                tags += '<span style="color:#e22;font-size:0.65rem;font-weight:800;margin-left:8px;" data-key="fav_price_drop">' + spiritT('fav_price_drop') + '</span>';
-            }
-            if (st === 'sold' && String(prev.status || '').toLowerCase() !== 'sold') {
-                alertRow = true;
-                tags += '<span style="color:#e22;font-size:0.65rem;font-weight:800;margin-left:8px;" data-key="fav_sold">' + spiritT('fav_sold') + '</span>';
-            }
+        if (isSold) {
+            var soldTxt = (typeof window.spiritT === 'function') ? window.spiritT('fav_sold') : 'VENDU';
+            tags += '<span style="color:#e22;font-size:0.65rem;font-weight:800;margin-left:8px;" data-key="fav_sold">' + soldTxt + '</span>';
         }
         var div = document.createElement('div');
-        div.className = (alertRow ? 'spirit-fav-row-alert ' : '') + 'spirit-fav-account-row';
-        div.style.cssText = 'background:#111;border:1px solid #333;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;';
+        div.className = (isSold ? 'spirit-fav-row-alert ' : '') + 'spirit-fav-account-row';
+        div.style.cssText = 'background:#111;border:1px solid #333;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;';
         var titleEsc = String(p.title || p.name || '—').replace(/</g, '&lt;');
-        div.innerHTML = '<div><div style="font-weight:bold;color:#fff;font-size:0.85rem;">' + titleEsc + '</div><div style="color:var(--neon-orange);font-size:0.8rem;margin-top:4px;">' + curAmt.toFixed(2) + ' ' + String(p.currency || 'EUR') + tags + '</div></div><button type="button" class="btn-action" style="font-size:0.6rem;padding:8px;" data-key="fav_open">' + spiritT('fav_open') + '</button>';
+        var openTxt = (typeof window.spiritT === 'function') ? window.spiritT('fav_open') : 'Voir';
+        div.innerHTML = '<div><div style="font-weight:bold;color:#fff;font-size:0.85rem;">' + titleEsc + '</div><div style="color:var(--neon-orange);font-size:0.8rem;margin-top:4px;">' + curAmt.toFixed(2) + ' ' + String(p.currency || 'EUR') + tags + '</div></div><button type="button" class="btn-action" style="font-size:0.6rem;padding:8px;" data-key="fav_open">' + openTxt + '</button>';
         var bt = div.querySelector('button');
-        bt.onclick = function (ev) { if (ev) { ev.stopPropagation(); } try { openProduct(p); } catch (x) {} };
+        bt.onclick = function (ev) {
+            if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+            showProductDetails(pid);
+        };
+        div.addEventListener('click', function (ev) {
+            if (ev.target && ev.target.closest && ev.target.closest('button')) return;
+            showProductDetails(pid);
+        });
         box.appendChild(div);
     });
     spiritAcknowledgeFavoriteTab();
@@ -2222,6 +2311,7 @@ async function loadMySales() {
         console.error("[SPIRIT ERROR] Échec loadMySales:", err); 
         listBody.innerHTML = "<div style='color:var(--danger); text-align:center; padding:20px; border:1px solid var(--danger);'>ERREUR DE SYNCHRONISATION LEDGER</div>";
     }
+    try { spiritDrainSellerPrepNotices(); } catch (e) {}
 }
 
     function resetSellForm() {
@@ -2704,6 +2794,84 @@ function addToMySales(product, carrierName) {
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
+function spiritCloseIndustrialPopup(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.setProperty('display', 'none', 'important');
+}
+try { window.spiritCloseIndustrialPopup = spiritCloseIndustrialPopup; } catch (e) {}
+function spiritShowPurchaseSuccessModal(amountStr) {
+    var el = document.getElementById('spiritPurchaseSuccessModal');
+    var tx = document.getElementById('spiritPurchaseSuccessText');
+    var h2 = el ? el.querySelector('h2[data-key="purchase_success_title"]') : null;
+    var amt = String(amountStr != null ? amountStr : '');
+    var body = (typeof window.spiritT === 'function')
+        ? String(window.spiritT('purchase_success_msg')).replace(/\{amount\}/g, amt)
+        : ('Félicitations ! Votre achat est confirmé. L\'annonce a été retirée du marché. Montant : ' + amt + ' €.');
+    if (tx) tx.textContent = body;
+    if (h2 && typeof window.spiritT === 'function') h2.textContent = window.spiritT('purchase_success_title');
+    if (el) el.style.setProperty('display', 'flex', 'important');
+}
+function spiritApplyLocalSoldToCaches(productRow) {
+    if (!productRow) return;
+    var pid = spiritFavoriteProductId(productRow);
+    if (pid == null) return;
+    var patch = { status: 'sold' };
+    ['figurine', 'statue'].forEach(function (key) {
+        var b = typeof spiritMarketBucket !== 'undefined' ? spiritMarketBucket[key] : null;
+        if (!b || !Array.isArray(b.rows)) return;
+        for (var i = 0; i < b.rows.length; i++) {
+            if (spiritFavoriteProductId(b.rows[i]) === pid) b.rows[i] = Object.assign({}, b.rows[i], patch);
+        }
+    });
+    try {
+        var mk = typeof spiritBucketKeyFromMode === 'function' ? spiritBucketKeyFromMode() : 'figurine';
+        if (typeof spiritMarketBucket !== 'undefined' && spiritMarketBucket[mk]) marketData = spiritMarketBucket[mk].rows.slice();
+    } catch (e) {}
+}
+function spiritQueueSellerShipmentPrep(sellerId, payload) {
+    var sid = String(sellerId || '').trim();
+    if (!sid) return;
+    try {
+        var key = 'spirit_seller_prep_v1';
+        var arr = [];
+        try { arr = JSON.parse(localStorage.getItem(key) || '[]'); } catch (x) {}
+        if (!Array.isArray(arr)) arr = [];
+        arr.push({
+            sellerId: sid,
+            title: String((payload && payload.title) || ''),
+            productId: payload && payload.productId,
+            at: Date.now()
+        });
+        if (arr.length > 25) arr = arr.slice(-25);
+        localStorage.setItem(key, JSON.stringify(arr));
+    } catch (e) {}
+}
+function spiritDrainSellerPrepNotices() {
+    var uid = typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '';
+    if (!uid) return;
+    try {
+        var key = 'spirit_seller_prep_v1';
+        var arr = JSON.parse(localStorage.getItem(key) || '[]');
+        if (!Array.isArray(arr) || arr.length === 0) return;
+        var keep = [];
+        var mine = [];
+        arr.forEach(function (r) {
+            if (String(r.sellerId) === uid) mine.push(r);
+            else keep.push(r);
+        });
+        localStorage.setItem(key, JSON.stringify(keep));
+        if (mine.length === 0) return;
+        var el = document.getElementById('spiritSellerPrepModal');
+        var tx = document.getElementById('spiritSellerPrepText');
+        if (tx) {
+            tx.innerHTML = mine.map(function (n) {
+                return '<div style="margin:10px 0;color:#ddd;">• ' + String(n.title || 'Annonce').replace(/</g, '&lt;') + '</div>';
+            }).join('');
+        }
+        if (el) el.style.setProperty('display', 'flex', 'important');
+    } catch (e) {}
+}
+
 /**
  * Paiement validé : insert transactions (split 3% / 3% / 2%) + maj products_lives vendu.
  */
@@ -2743,6 +2911,7 @@ async function enregistrerVente(method) {
 
         let figSoldErr = null;
         const hasFigId = selectedProduct.id != null && String(selectedProduct.id).trim() !== '';
+        /* Mise à jour forcée par id (clé products_live = product_id favorites). */
         if (hasFigId) {
             const r1 = await _spirit.from('products_live').update({ status: 'sold' }).eq('id', selectedProduct.id);
             figSoldErr = r1.error;
@@ -2752,6 +2921,15 @@ async function enregistrerVente(method) {
             figSoldErr = r2.error;
         }
         if (figSoldErr) console.warn('[SPIRIT] products_live (statut vendu):', figSoldErr.message);
+
+        spiritApplyLocalSoldToCaches(Object.assign({}, selectedProduct, { status: 'sold' }));
+        try {
+            spiritQueueSellerShipmentPrep(String(selectedProduct.owner_id || selectedProduct.owner || ''), {
+                title: selectedProduct.title || selectedProduct.name || '',
+                productId: selectedProduct.id
+            });
+        } catch (e) {}
+        checkGlobalNotifications().catch(function () {});
 
         const buyRep = {
             ia_score: Math.round(Number(selectedProduct.ia_score)) || 0,
@@ -2764,8 +2942,8 @@ async function enregistrerVente(method) {
         const { error: buyRepErr } = await _spirit.from('spirit_authenticity_reports').insert([buyRep]);
         if (buyRepErr) console.warn('[SPIRIT] spirit_authenticity_reports (achat):', buyRepErr.message);
 
-        alert('Achat Réussi — Spirit Infinity\n\n' + totalAcheteur + ' € enregistrés (Spirit Secure).');
         try { closeModals(); } catch (e) {}
+        spiritShowPurchaseSuccessModal(totalAcheteur);
         try {
             spiritInvalidateMarketCache();
             await fetchMarketplaceFromSupabase({ reset: true });
@@ -2826,7 +3004,19 @@ async function confirmPayment(method) {
  function openProduct(item) {
         selectedProduct = item;
         try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
-        document.getElementById('productModal').style.setProperty('display', 'flex', 'important');
+        var pmRoot = document.getElementById('productModal');
+        var mcRoot = pmRoot && pmRoot.querySelector('.modal-content');
+        if (mcRoot) {
+            mcRoot.classList.remove('spirit-ad-statue', 'spirit-ad-figurine');
+            var isStatueTpl = (typeof normalizeSpiritCat === 'function') && normalizeSpiritCat(item.cat || item.category) === 'statue';
+            mcRoot.classList.add(isStatueTpl ? 'spirit-ad-statue' : 'spirit-ad-figurine');
+            var pBadgeEl = document.getElementById('pBadge');
+            if (pBadgeEl) {
+                pBadgeEl.textContent = isStatueTpl ? 'STATUE' : 'FIGURINE';
+                pBadgeEl.className = 'badge spirit-detail-type-badge ' + (isStatueTpl ? 'spirit-detail-statue-badge' : 'spirit-detail-figurine-badge');
+            }
+        }
+        if (pmRoot) pmRoot.style.setProperty('display', 'flex', 'important');
         
         // CORRECTION : Gestion des noms de colonnes Supabase vs Local
         document.getElementById('pTitle').innerText = item.title || "Sans Titre";
@@ -2948,6 +3138,7 @@ async function confirmPayment(method) {
         if (typeof renderChatMessages === 'function') renderChatMessages();
         if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier();
     }
+    try { window.openProduct = openProduct; } catch (e) {}
     // --- AUTRES FONCTIONS ---
     function transferToSale() {
         diagActive = true;
@@ -3137,6 +3328,7 @@ async function confirmPayment(method) {
     // --- NAVIGATION SPIRIT : 1 MENU = 1 SECTION (sans reload) ---
     function hideAllSections() {
         document.querySelectorAll('.overlay').forEach(function (o) {
+            if (o.id === 'spiritPurchaseSuccessModal' || o.id === 'spiritSellerPrepModal') return;
             o.style.setProperty('display', 'none', 'important');
         });
         [
@@ -3332,6 +3524,10 @@ window.showAccountTab = function showAccountTab(tab) {
     if (typeof MY_TEST_ID !== 'undefined') {
         window.MY_TEST_ID = String(MY_TEST_ID).trim();
     }
+
+    try {
+        if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
+    } catch (e) {}
 
     if(tab === 'achats') loadUserPurchases();
     if (tab === 'ventes') loadMySales();
@@ -4141,6 +4337,7 @@ async function fetchMarketplaceFromSupabase(opts) {
     setSpiritMarketLoading(false);
     spiritUpdateLoadMoreUI();
     try { await spiritLoadFavoriteData(); } catch (eF) {}
+    try { checkGlobalNotifications().catch(function () {}); } catch (eA) {}
     try { if (typeof applyFilters === 'function') applyFilters(); }
     catch (e) { try { renderMarket(); } catch (e2) { console.error('[SPIRIT MARKET] renderMarket:', e2); } }
     try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e3) {}
@@ -4235,6 +4432,7 @@ function showLedgerModal() {
 function closeModals() {
     try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
     document.querySelectorAll('.overlay').forEach(function (m) {
+        if (m.id === 'spiritPurchaseSuccessModal' || m.id === 'spiritSellerPrepModal') return;
         m.style.setProperty('display', 'none', 'important');
     });
     try { if (typeof hideTopicEditor === 'function') hideTopicEditor(); } catch (e) {}
