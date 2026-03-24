@@ -683,11 +683,17 @@
                     <label data-i18n="statues_brand">MARQUE</label>
                     <select id="sBrand" onchange="applyStatuesFilters()">
                         <option value="all" data-i18n="opt_all_brands">Toutes les marques</option>
-                        <option value="Prime 1">Prime 1</option>
-                        <option value="XM Studios">XM Studios</option>
-                        <option value="Queen Studios">Queen Studios</option>
-                        <option value="Sideshow">Sideshow</option>
-                        <option value="Tsume">Tsume</option>
+                        <option value="Prime 1 Studio" data-i18n="brand_prime1">Prime 1 Studio</option>
+                        <option value="XM Studios" data-i18n="brand_xm">XM Studios</option>
+                        <option value="Queen Studios" data-i18n="brand_queen">Queen Studios</option>
+                        <option value="Sideshow Collectibles" data-i18n="brand_sideshow_collectibles">Sideshow Collectibles</option>
+                        <option value="Infinity Studio" data-i18n="brand_infinity_studio">Infinity Studio</option>
+                        <option value="Tsume Art" data-i18n="brand_tsume_art">Tsume Art</option>
+                        <option value="Oniri Creations" data-i18n="brand_oniri">Oniri Creations</option>
+                        <option value="PureArts" data-i18n="brand_purearts">PureArts</option>
+                        <option value="Iron Studios" data-i18n="brand_iron_studios">Iron Studios</option>
+                        <option value="JND Studios" data-i18n="brand_jnd_studios">JND Studios</option>
+                        <option value="Blitzway" data-i18n="brand_blitzway">Blitzway</option>
                     </select>
                     <label data-i18n="statues_price">PRIX</label>
                     <select id="sPrice" onchange="applyStatuesFilters()">
@@ -709,10 +715,12 @@
                     <label data-i18n="statues_scale">ÉCHELLE / FORMAT</label>
                     <select id="sScale" onchange="applyStatuesFilters()">
                         <option value="all" data-i18n="opt_all_formats">Tous les formats</option>
-                        <option value="1/4">1/4</option>
-                        <option value="1/3">1/3</option>
-                        <option value="1/2">1/2</option>
-                        <option value="Life-Size">Life-Size</option>
+                        <option value="1/6-resine" data-i18n="scale_1_6_resine">1/6 (Resine)</option>
+                        <option value="1/4" data-i18n="scale_1_4">1/4</option>
+                        <option value="1/3" data-i18n="scale_1_3">1/3</option>
+                        <option value="1/2" data-i18n="scale_1_2">1/2</option>
+                        <option value="life-size" data-i18n="scale_life_size">Life-Size (1/1)</option>
+                        <option value="buste" data-i18n="scale_bust">Buste</option>
                     </select>
                     <label data-i18n="statues_condition">ÉTAT DE L'OBJET</label>
                     <select id="sCond" onchange="applyStatuesFilters()">
@@ -1182,7 +1190,13 @@
             'market_gallery': 'Galerie', 'market_list': 'Liste', 'market_currency': 'Devise',
             'statues_filters_title': 'FILTRES STATUES', 'statues_brand': 'MARQUE', 'statues_price': 'PRIX',
             'statues_zone': "ZONE D'EXPÉDITION", 'statues_scale': 'ÉCHELLE / FORMAT', 'statues_condition': "ÉTAT DE L'OBJET",
-            'market_statues_title': 'MARKET STATUES', 'cond_new_short': 'Neuf', 'cond_used': 'Occasion', 'cond_sealed': 'Scellé'
+            'market_statues_title': 'MARKET STATUES', 'cond_new_short': 'Neuf', 'cond_used': 'Occasion', 'cond_sealed': 'Scellé',
+            'brand_prime1': 'Prime 1 Studio', 'brand_xm': 'XM Studios', 'brand_queen': 'Queen Studios',
+            'brand_sideshow_collectibles': 'Sideshow Collectibles', 'brand_infinity_studio': 'Infinity Studio',
+            'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
+            'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
+            'scale_1_6_resine': '1/6 (Resine)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
+            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Buste'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -1198,7 +1212,13 @@
             'market_gallery': 'Gallery', 'market_list': 'List', 'market_currency': 'Currency',
             'statues_filters_title': 'STATUE FILTERS', 'statues_brand': 'BRAND', 'statues_price': 'PRICE',
             'statues_zone': 'SHIPPING ZONE', 'statues_scale': 'SCALE / FORMAT', 'statues_condition': 'ITEM CONDITION',
-            'market_statues_title': 'STATUES MARKET', 'cond_new_short': 'New', 'cond_used': 'Used', 'cond_sealed': 'Sealed'
+            'market_statues_title': 'STATUES MARKET', 'cond_new_short': 'New', 'cond_used': 'Used', 'cond_sealed': 'Sealed',
+            'brand_prime1': 'Prime 1 Studio', 'brand_xm': 'XM Studios', 'brand_queen': 'Queen Studios',
+            'brand_sideshow_collectibles': 'Sideshow Collectibles', 'brand_infinity_studio': 'Infinity Studio',
+            'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
+            'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
+            'scale_1_6_resine': '1/6 (Resin)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
+            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Bust'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -1214,7 +1234,13 @@
             'market_gallery': 'Galeria', 'market_list': 'Lista', 'market_currency': 'Divisa',
             'statues_filters_title': 'FILTROS ESTATUAS', 'statues_brand': 'MARCA', 'statues_price': 'PRECIO',
             'statues_zone': 'ZONA DE ENVIO', 'statues_scale': 'ESCALA / FORMATO', 'statues_condition': 'ESTADO DEL ARTICULO',
-            'market_statues_title': 'MERCADO ESTATUAS', 'cond_new_short': 'Nuevo', 'cond_used': 'Usado', 'cond_sealed': 'Sellado'
+            'market_statues_title': 'MERCADO ESTATUAS', 'cond_new_short': 'Nuevo', 'cond_used': 'Usado', 'cond_sealed': 'Sellado',
+            'brand_prime1': 'Prime 1 Studio', 'brand_xm': 'XM Studios', 'brand_queen': 'Queen Studios',
+            'brand_sideshow_collectibles': 'Sideshow Collectibles', 'brand_infinity_studio': 'Infinity Studio',
+            'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
+            'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
+            'scale_1_6_resine': '1/6 (Resina)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
+            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Busto'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -1230,7 +1256,13 @@
             'market_gallery': '画廊', 'market_list': '列表', 'market_currency': '货币',
             'statues_filters_title': '雕像筛选', 'statues_brand': '品牌', 'statues_price': '价格',
             'statues_zone': '发货区域', 'statues_scale': '比例 / 规格', 'statues_condition': '成色',
-            'market_statues_title': '雕像市场', 'cond_new_short': '全新', 'cond_used': '二手', 'cond_sealed': '未拆封'
+            'market_statues_title': '雕像市场', 'cond_new_short': '全新', 'cond_used': '二手', 'cond_sealed': '未拆封',
+            'brand_prime1': 'Prime 1 Studio', 'brand_xm': 'XM Studios', 'brand_queen': 'Queen Studios',
+            'brand_sideshow_collectibles': 'Sideshow Collectibles', 'brand_infinity_studio': 'Infinity Studio',
+            'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
+            'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
+            'scale_1_6_resine': '1/6（树脂）', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
+            'scale_1_2': '1/2', 'scale_life_size': '等身（1/1）', 'scale_bust': '胸像'
         }
     };
 
@@ -1474,6 +1506,18 @@ function normalizeSpiritCat(rawCat) {
         return 'statue';
     }
     return 'figurine';
+}
+
+function normalizeSpiritScale(rawScale) {
+    const s = String(rawScale || '').toLowerCase().trim();
+    if (!s) return '';
+    if (s.includes('1/6') && (s.includes('resine') || s.includes('résine') || s.includes('resin'))) return '1/6-resine';
+    if (s.includes('1/4')) return '1/4';
+    if (s.includes('1/3')) return '1/3';
+    if (s.includes('1/2')) return '1/2';
+    if (s.includes('life-size') || s.includes('1/1') || s.includes('life size')) return 'life-size';
+    if (s.includes('buste') || s.includes('bust')) return 'buste';
+    return s;
 }
 
 function setSpiritMarketLoading(on) {
@@ -2483,12 +2527,12 @@ async function confirmPayment(method) {
                 }
             }
             const itemCountry = item.origin_country || item.country || '';
-            const itemScale = item.scale || item.format || item.category || '';
+            const itemScale = normalizeSpiritScale(item.scale || item.format || item.category || '');
             const itemCond = item.cond || item.condition || '';
             return matchPrice &&
                 (brand === 'all' || String(item.brand || '') === brand) &&
                 (country === 'all' || String(itemCountry) === country) &&
-                (scale === 'all' || String(itemScale) === scale) &&
+                (scale === 'all' || String(itemScale) === String(scale)) &&
                 (cond === 'all' || String(itemCond) === cond);
         });
         renderMarket(filtered);
