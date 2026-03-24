@@ -257,6 +257,43 @@
         #ledgerModal.overlay {
             z-index: 100100 !important;
         }
+        /* Détail annonce : scroll interne, néon conservé */
+        #productModal.overlay {
+            align-items: flex-start;
+            padding-top: 20px;
+            padding-bottom: 32px;
+        }
+        #productModal .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+        #productModal #pGallery {
+            overflow: visible;
+            min-height: 200px;
+        }
+        .spirit-market-loader {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--neon-orange);
+            font-weight: 900;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+        }
+        @keyframes spirit-loader-pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 12px rgba(255,102,0,0.4); }
+            50% { opacity: 0.75; box-shadow: 0 0 28px rgba(255,102,0,0.65); }
+        }
+        .spirit-market-loader .spirit-pulse-inner {
+            display: inline-block;
+            padding: 22px 36px;
+            border: 2px solid var(--neon-orange);
+            border-radius: 8px;
+            animation: spirit-loader-pulse 1.2s ease-in-out infinite;
+        }
     </style>
 </head>
 
@@ -349,6 +386,7 @@
     </div>
 
     <div class="grid">
+        <div id="spiritMarketLoader" class="spirit-market-loader" style="display:none;" aria-live="polite"></div>
         <div class="cat-title" data-key="cat_native_title">1. Équipées Spirit (Hardware Ledger)</div>
         <div class="grid-layout" id="marketGridNative"></div>
         <div class="cat-title" data-key="cat_legacy_title">2. Anciennes Collections & Multimarques (IA Scan)</div>
@@ -771,14 +809,7 @@
         "Grand": { "mr": 12.90, "cl": 25.00, "dh": 45.00 }
     };
 
-    let marketData = [
-        { id: 1, title: "Iron Man MK85", price: 650, mac: '24:0A:C4:9B:54:28', type: 'native', country: 'France', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Figurine comme neuve, jamais exposée. Puce Spirit OK.", status: 'available', chat: [] },
-        { id: 2, title: "Spider-Man No Way Home", price: 320, type: 'native', country: 'France', cond: 'Très bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Complet en boite.", status: 'available', chat: [] },
-        { id: 3, title: "Batman The Dark Knight", price: 890, mac: 'IA-SCAN-992', type: 'legacy', country: 'USA', cond: 'Neuf', brand: 'InArt', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Version InArt scellée.", status: 'available', chat: [] },
-        { id: 4, title: "The Joker Rooted Hair", price: 1200, type: 'legacy', country: 'Hong Kong', cond: 'Neuf', brand: 'InArt', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "InArt Joker Rooted.", status: 'available', chat: [] },
-        { id: 5, title: "Captain America Endgame", price: 280, type: 'native', country: 'France', cond: 'Bon état', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Très bon état.", status: 'available', chat: [] },
-        { id: 6, title: "Darth Vader OBW", price: 450, type: 'native', country: 'Europe', cond: 'Neuf', brand: 'Hot Toys', cat: '1/6', shipSize: "Moyen", img: null, photos: [], desc: "Scellé.", status: 'available', chat: [] }
-    ];
+    let marketData = [];
 
     // --- PRÉCOMMANDES HOT TOYS (PARTENAIRE OFFICIEL) ---
     // Vitrine indépendante du Marketplace (pas d'achat in-app)
@@ -977,6 +1008,42 @@ function spiritOwnerId(v) {
     return s;
 }
 
+/** image_url : chaîne unique, JSON ["a","b"], ou tableau (Supabase json/jsonb) */
+function spiritImageUrlList(item) {
+    if (!item) return [];
+    if (item.photos && Array.isArray(item.photos) && item.photos.length) return item.photos.filter(Boolean);
+    if (item.img) return [item.img];
+    const raw = item.image_url;
+    if (raw == null || raw === '') return [];
+    if (Array.isArray(raw)) return raw.map(function (x) { return String(x); }).filter(Boolean);
+    if (typeof raw === 'object') return [];
+    const s = String(raw).trim();
+    if (s.startsWith('[')) {
+        try {
+            var j = JSON.parse(s);
+            if (Array.isArray(j)) return j.map(function (x) { return String(x); }).filter(Boolean);
+        } catch (e) { /* ignore */ }
+    }
+    return [s];
+}
+
+function setSpiritMarketLoading(on) {
+    var el = document.getElementById('spiritMarketLoader');
+    var gn = document.getElementById('marketGridNative');
+    var gl = document.getElementById('marketGridLegacy');
+    if (on) {
+        if (el) {
+            el.style.display = 'block';
+            el.innerHTML = '<div class="spirit-pulse-inner">SPIRIT INFINITY — CHARGEMENT</div>';
+        }
+        if (gn) gn.innerHTML = '';
+        if (gl) gl.innerHTML = '';
+    } else if (el) {
+        el.style.display = 'none';
+        el.innerHTML = '';
+    }
+}
+
 function renderMarket(filteredData = null) {
 
         const gn = document.getElementById('marketGridNative');
@@ -1023,8 +1090,8 @@ function renderMarket(filteredData = null) {
             
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
             
-            // STRICT mapping products_lives (catalogue)
-            const displayImg = item.image_url;
+            const _urls = spiritImageUrlList(item);
+            const displayImg = _urls.length ? _urls[0] : null;
             const safeTitle = (item.title || item.name || 'Annonce').trim() || 'Annonce';
             const safePrice = (item.price != null && item.price !== '') ? item.price : '—';
             const imgContent = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain; background:#000;">` : `<div style="color:#333; font-size:10px;">PHOTO ${safeTitle}</div>`;
@@ -1367,7 +1434,12 @@ async function publierAnnonce() {
         ? crypto.randomUUID()
         : ('SPIRIT-' + Date.now());
 
-    const photoUrl = (typeof previewPhotos !== 'undefined' && previewPhotos.length > 0) ? previewPhotos[0] : null;
+    var photoUrls = (typeof previewPhotos !== 'undefined' && Array.isArray(previewPhotos))
+        ? previewPhotos.filter(function (p) { return p != null && String(p).trim() !== ''; })
+        : [];
+    var imageUrlPayload = null;
+    if (photoUrls.length === 1) imageUrlPayload = photoUrls[0];
+    else if (photoUrls.length > 1) imageUrlPayload = JSON.stringify(photoUrls);
 
     const newItem = {
         uuid: uuidVal,
@@ -1376,7 +1448,7 @@ async function publierAnnonce() {
         description: desc,
         ia_score: scoreIA || 0,
         owner_id: String(MY_TEST_ID),
-        image_url: photoUrl,
+        image_url: imageUrlPayload,
         category: category || 'Collection',
         brand: 'Spirit Infinity',
         ship_size: shipSize,
@@ -1482,7 +1554,8 @@ async function updateUserAnnonces() {
         div.style = `background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px; margin-bottom:10px; ${opacity} border-left: 3px solid ${a.status === 'sold' ? '#555' : 'var(--neon-orange)'};`;
         
         // AJOUT : Affichage de la miniature avec fallback img1/img
-        const displayImg = a.image_url || a.img1 || a.img;
+        const _annUrls = spiritImageUrlList(a);
+        const displayImg = _annUrls.length ? _annUrls[0] : (a.img1 || a.img);
         const imgHtml = displayImg ? `<img src="${displayImg}" style="width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:2px;">` : `<div style="width:50px; height:50px; background:#222; display:flex; align-items:center; justify-content:center; font-size:8px;">NO IMG</div>`;
         
         // AJOUT : Badge de statut
@@ -1673,12 +1746,16 @@ async function enregistrerVente(method) {
         const { error: buyRepErr } = await _spirit.from('spirit_authenticity_reports').insert([buyRep]);
         if (buyRepErr) console.warn('[SPIRIT] spirit_authenticity_reports (achat):', buyRepErr.message);
 
-        alert(`✅ SPIRIT SECURE : ${totalAcheteur} € enregistrés.`);
+        alert('Achat Réussi — Spirit Infinity\n\n' + totalAcheteur + ' € enregistrés (Spirit Secure).');
+        try { closeModals(); } catch (e) {}
         try { await fetchMarketplaceFromSupabase(); } catch (e) {}
+        try {
+            if (typeof navigateTo === 'function') navigateTo('market');
+            else if (typeof window.navigateTo === 'function') window.navigateTo('market');
+        } catch (e) {}
         try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
         try { if (typeof loadMyPurchases === 'function') loadMyPurchases(); } catch (e) {}
         try { if (typeof loadMySales === 'function') loadMySales(); } catch (e) {}
-        try { closeModals(); } catch (e) {}
 
     } catch (err) {
         console.error("ERREUR COLONNE :", err.message);
@@ -1745,25 +1822,77 @@ async function confirmPayment(method) {
         
         document.getElementById('pCarrierSelect').value = "0";
         
-        // CORRECTION DE LA GALERIE : Gestion de image_url (Supabase) et photos (Local)
-        let galleryHtml = '';
-        
-        // Cas 1 : Données Supabase (image_url unique pour le moment)
-        if(item.image_url) {
-            galleryHtml += `<img src="${item.image_url}" onclick="zoomImg('${item.image_url}')" style="width:95%; max-height:300px; object-fit:contain; margin:5px; border:1px solid var(--neon-orange); cursor:zoom-in; background:#000;">`;
-        } 
-        // Cas 2 : Données locales (Tableau de photos)
-        else if(item.photos && item.photos.length > 0) {
-            item.photos.forEach(p => {
-                galleryHtml += `<img src="${p}" onclick="zoomImg('${p}')" style="width:45%; margin:5px; border:1px solid #333; cursor:zoom-in; object-fit:contain; background:#000;">`;
+        var gBox = document.getElementById('pGallery');
+        gBox.innerHTML = '';
+        var gUrls = spiritImageUrlList(item);
+        if (gUrls.length === 0) {
+            gBox.innerHTML = "<div style='color:#555; padding:20px;'>IMAGE NON DISPONIBLE DANS LE LEDGER</div>";
+        } else if (gUrls.length === 1) {
+            var im1 = document.createElement('img');
+            im1.src = gUrls[0];
+            im1.style.cssText = 'width:95%;max-height:300px;object-fit:contain;margin:5px auto;display:block;border:1px solid var(--neon-orange);cursor:zoom-in;background:#000;';
+            im1.onclick = function () { zoomImg(gUrls[0]); };
+            gBox.appendChild(im1);
+        } else {
+            var wrap = document.createElement('div');
+            wrap.style.cssText = 'width:100%;';
+            var main = document.createElement('img');
+            main.id = 'spiritGalleryMain';
+            main.style.cssText = 'width:100%;max-height:320px;object-fit:contain;display:block;margin:0 auto;border:1px solid var(--neon-orange);cursor:zoom-in;background:#000;';
+            var cap = document.createElement('div');
+            cap.id = 'spiritGalleryCap';
+            cap.style.cssText = 'text-align:center;color:var(--neon-orange);font-size:0.75rem;margin:8px 0;font-weight:bold;';
+            var nav = document.createElement('div');
+            nav.style.cssText = 'display:flex;gap:10px;justify-content:center;align-items:center;margin-bottom:10px;flex-wrap:wrap;';
+            var btnP = document.createElement('button');
+            btnP.type = 'button';
+            btnP.className = 'btn-action';
+            btnP.style.cssText = 'padding:6px 16px;font-size:0.65rem;';
+            btnP.textContent = '◀ Précédent';
+            var btnN = document.createElement('button');
+            btnN.type = 'button';
+            btnN.className = 'btn-action';
+            btnN.style.cssText = 'padding:6px 16px;font-size:0.65rem;';
+            btnN.textContent = 'Suivant ▶';
+            window.spiritGalleryUrls = gUrls.slice();
+            window.spiritGalleryIndex = 0;
+            function spiritGalleryRefresh() {
+                var u = window.spiritGalleryUrls[window.spiritGalleryIndex];
+                main.src = u;
+                main.onclick = function () { zoomImg(u); };
+                cap.textContent = (window.spiritGalleryIndex + 1) + ' / ' + window.spiritGalleryUrls.length;
+            }
+            btnP.onclick = function () {
+                var n = window.spiritGalleryUrls.length;
+                window.spiritGalleryIndex = (window.spiritGalleryIndex - 1 + n) % n;
+                spiritGalleryRefresh();
+            };
+            btnN.onclick = function () {
+                var n = window.spiritGalleryUrls.length;
+                window.spiritGalleryIndex = (window.spiritGalleryIndex + 1) % n;
+                spiritGalleryRefresh();
+            };
+            nav.appendChild(btnP);
+            nav.appendChild(cap);
+            nav.appendChild(btnN);
+            var thumbs = document.createElement('div');
+            thumbs.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px;';
+            gUrls.forEach(function (u, idx) {
+                var t = document.createElement('img');
+                t.src = u;
+                t.style.cssText = 'width:52px;height:52px;object-fit:cover;border:1px solid #333;cursor:pointer;border-radius:2px;';
+                t.onclick = function () {
+                    window.spiritGalleryIndex = idx;
+                    spiritGalleryRefresh();
+                };
+                thumbs.appendChild(t);
             });
+            wrap.appendChild(main);
+            wrap.appendChild(nav);
+            wrap.appendChild(thumbs);
+            gBox.appendChild(wrap);
+            spiritGalleryRefresh();
         }
-        // Cas 3 : Fallback si item.img existe mais pas les autres
-        else if(item.img) {
-            galleryHtml += `<img src="${item.img}" onclick="zoomImg('${item.img}')" style="width:95%; max-height:300px; object-fit:contain; margin:5px; border:1px solid #333; cursor:zoom-in; background:#000;">`;
-        }
-
-        document.getElementById('pGallery').innerHTML = galleryHtml || "<div style='color:#555; padding:20px;'>IMAGE NON DISPONIBLE DANS LE LEDGER</div>";
         
         // Fonctions de support
         if (typeof renderChatMessages === 'function') renderChatMessages();
@@ -2605,10 +2734,13 @@ async function fetchMarketplaceFromSupabase() {
     const gridLegacy = document.getElementById('marketGridLegacy');
     if (gridNative || gridLegacy) console.log("[SPIRIT MARKET] Grilles Marketplace détectées (Native/Legacy).");
     
+    setSpiritMarketLoading(true);
+
     if (!_spirit) {
         marketData = [];
         if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
         if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
+        setSpiritMarketLoading(false);
         return;
     }
 
@@ -2637,6 +2769,7 @@ async function fetchMarketplaceFromSupabase() {
             try { renderMarket(); } catch (e) { console.error('[SPIRIT MARKET] renderMarket:', e); }
         }
         try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+        setSpiritMarketLoading(false);
         return;
     }
 
@@ -2646,6 +2779,7 @@ async function fetchMarketplaceFromSupabase() {
         if (gridNative) gridNative.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
         if (gridLegacy) gridLegacy.innerHTML = "<div style='grid-column: 1/-1; text-align:center; padding:40px; color:#888;'>Aucune annonce</div>";
         try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+        setSpiritMarketLoading(false);
         return;
     }
 
@@ -2664,6 +2798,7 @@ async function fetchMarketplaceFromSupabase() {
     }
 
     try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+    setSpiritMarketLoading(false);
 }
 
 async function fetchAnnonces() {
@@ -2673,7 +2808,6 @@ async function fetchAnnonces() {
 // BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
 document.addEventListener('DOMContentLoaded', () => {
     try { fetchMarketplaceFromSupabase(); } catch (e) {}
-    try { renderMarket(); } catch (e) {}
 });
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
