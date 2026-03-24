@@ -180,10 +180,10 @@
         .market-fee-note { font-size:0.62rem; color:#9a9a9a; margin-top:4px; }
         .market-fee-note.high { color:#ff9b7a; }
         /* Certif modal compact to reduce scrolling */
-        #certifModal .modal-content { padding: 12px 14px; }
-        #certifModal .steps { margin-bottom: 12px; }
-        #stepInfo h2 { margin: 0 0 8px 0; font-size: 1rem; }
-        #stepInfo input, #stepInfo select, #stepInfo textarea { margin: 6px 0; padding: 9px; font-size: 0.8rem; }
+        #certifModal .modal-content { padding: 10px 11px; }
+        #certifModal .steps { margin-bottom: 10px; }
+        #stepInfo h2 { margin: 0 0 6px 0; font-size: 0.95rem; }
+        #stepInfo input, #stepInfo select, #stepInfo textarea { margin: 5px 0; padding: 7px; font-size: 0.76rem; }
         #stepInfo textarea { min-height: 72px; }
         .market-kind-toggle { display:flex; align-items:center; border:1px solid #ff6600; border-radius:999px; overflow:hidden; box-shadow:0 0 12px rgba(255,102,0,0.22); }
         .market-kind-toggle button { border:none; background:#0a0a0a; color:#777; padding:10px 24px; font-weight:800; letter-spacing:0.8px; cursor:pointer; transition:0.2s ease; }
@@ -572,10 +572,10 @@
         <button id="nav-func" onclick="showSecurite()" data-key="nav_security">SÉCURITÉ</button>
         <button id="nav-preorders" onclick="showPrecommandesHotToys()" data-key="nav_preorders">PRÉCOMMANDES HOT TOYS</button>
         <button id="nav-sav" onclick="showSupport()" data-key="nav_support">SUPPORT SPIRIT</button>
-        <select class="lang-selector" onchange="changeLang(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
+        <select class="lang-selector" onchange="switchLanguage(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
             <option value="FR">FR 🇫🇷</option>
             <option value="EN">EN 🇺🇸</option>
-            <option value="CN">CN 🇨🇳</option>
+            <option value="ZH">ZH 🇨🇳</option>
             <option value="ES">ES 🇪🇸</option>
         </select>
     </div>
@@ -650,16 +650,16 @@
         <div id="spiritMarketLoader" class="spirit-market-loader" style="display:none;" aria-live="polite"></div>
         <div class="market-toolbar">
             <div class="market-kind-toggle" role="tablist" aria-label="Type de produit">
-                <button type="button" id="btn-kind-figurines" class="active" onclick="setMarketKind('figurines')">FIGURINES</button>
-                <button type="button" id="btn-kind-statues" onclick="setMarketKind('statues')">STATUES</button>
+                <button type="button" id="btn-kind-figurines" class="active" onclick="setMarketKind('figurines')" data-i18n="market_kind_figurines">FIGURINES</button>
+                <button type="button" id="btn-kind-statues" onclick="setMarketKind('statues')" data-i18n="market_kind_statues">STATUES</button>
             </div>
             <div class="market-view-box">
-                <span>Vue</span>
+                <span data-i18n="market_view">Vue</span>
                 <select id="marketViewSelect" onchange="setMarketView(this.value)">
-                    <option value="gallery">Galerie</option>
-                    <option value="list">Liste</option>
+                    <option value="gallery" data-i18n="market_gallery">Galerie</option>
+                    <option value="list" data-i18n="market_list">Liste</option>
                 </select>
-                <span>Devise</span>
+                <span data-i18n="market_currency">Devise</span>
                 <select id="marketCurrencySelect" onchange="setMarketCurrency(this.value)">
                     <option value="EUR">EUR</option>
                     <option value="USD">USD</option>
@@ -766,7 +766,7 @@
                 <button id="btn-publish-final" class="btn-action" style="margin-top:20px; width:100%; display:none;" onclick="publishFinal()">PUBLIER SUR LE MARCHÉ MONDIAL</button>
             </div>
         </div>
-        <div id="stepInfo" style="display:none; margin-top:-6px;">
+        <div id="stepInfo" style="display:none; margin-top:-8px;">
             <h2 style="text-align:center;">PHOTOS & DÉTAILS</h2>
             <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px; margin-bottom:10px;">
                 <div id="pBox1" onclick="triggerFile('file1')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 1</div>
@@ -1119,9 +1119,49 @@
             'lbl_prot_text': 'Protection Spirit 100% active sur toutes les transactions.', 'cat_native_title': '1. Équipées Spirit (Hardware Ledger)',
             'cat_legacy_title': '2. Anciennes Collections & Multimarques (IA Scan)', 'modal_reg_title': 'CREER UN COMPTE', 'btn_reg_confirm': "S'INSCRIRE",
             'safety_msg_escrow': 'SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).', 'lbl_price': 'Prix', 'lbl_duty': 'Frais de Douane Est.',
-            'lbl_total_pay': 'TOTAL À PAYER', 'btn_buy': 'ACHAT DIRECT', 'btn_offer': 'FAIRE OFFRE'
+            'lbl_total_pay': 'TOTAL À PAYER', 'btn_buy': 'ACHAT DIRECT', 'btn_offer': 'FAIRE OFFRE',
+            'market_kind_figurines': 'FIGURINES', 'market_kind_statues': 'STATUES', 'market_view': 'Vue',
+            'market_gallery': 'Galerie', 'market_list': 'Liste', 'market_currency': 'Devise'
+        },
+        'EN': {
+            'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
+            'nav_support': 'SPIRIT SUPPORT', 'nav_security': 'SECURITY', 'nav_preorders': 'HOT TOYS PREORDERS', 'btn_reg': 'REGISTER', 'btn_sell': 'SELL & CERTIFY',
+            'filter_title': 'SEARCH FILTERS', 'lbl_price_range': 'Price Range (€)', 'opt_all_prices': 'All prices',
+            'lbl_zone': 'Shipping Zone', 'opt_all_zones': 'All zones', 'lbl_brand': 'Brand', 'opt_all_brands': 'All brands',
+            'lbl_cat': 'Scale / Format', 'opt_all_formats': 'All formats', 'lbl_cond': 'Item condition', 'opt_all_conds': 'All conditions',
+            'cond_new': 'New (Sealed)', 'cond_vgood': 'Very good', 'cond_good': 'Good', 'cond_mid': 'Average', 'cond_ok': 'Fair',
+            'lbl_prot_text': 'Spirit protection is active on every transaction.', 'modal_reg_title': 'CREATE ACCOUNT', 'btn_reg_confirm': 'REGISTER',
+            'safety_msg_escrow': 'SECURITY: Funds secured. Release: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Price', 'lbl_duty': 'Estimated Customs',
+            'lbl_total_pay': 'TOTAL TO PAY', 'btn_buy': 'BUY NOW', 'btn_offer': 'MAKE OFFER',
+            'market_kind_figurines': 'FIGURINES', 'market_kind_statues': 'STATUES', 'market_view': 'View',
+            'market_gallery': 'Gallery', 'market_list': 'List', 'market_currency': 'Currency'
+        },
+        'ES': {
+            'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
+            'nav_support': 'SOPORTE SPIRIT', 'nav_security': 'SEGURIDAD', 'nav_preorders': 'PREVENTAS HOT TOYS', 'btn_reg': 'REGISTRO', 'btn_sell': 'VENDER Y CERTIFICAR',
+            'filter_title': 'FILTROS DE BUSQUEDA', 'lbl_price_range': 'Rango de precio (€)', 'opt_all_prices': 'Todos los precios',
+            'lbl_zone': 'Zona de envio', 'opt_all_zones': 'Todas las zonas', 'lbl_brand': 'Marca', 'opt_all_brands': 'Todas las marcas',
+            'lbl_cat': 'Escala / Formato', 'opt_all_formats': 'Todos los formatos', 'lbl_cond': 'Estado del producto', 'opt_all_conds': 'Todos los estados',
+            'cond_new': 'Nuevo (Sellado)', 'cond_vgood': 'Muy buen estado', 'cond_good': 'Buen estado', 'cond_mid': 'Medio', 'cond_ok': 'Aceptable',
+            'lbl_prot_text': 'Proteccion Spirit activa en todas las transacciones.', 'modal_reg_title': 'CREAR CUENTA', 'btn_reg_confirm': 'REGISTRARSE',
+            'safety_msg_escrow': 'SEGURIDAD: Fondos protegidos. Liberacion: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Precio', 'lbl_duty': 'Aduana estimada',
+            'lbl_total_pay': 'TOTAL A PAGAR', 'btn_buy': 'COMPRA DIRECTA', 'btn_offer': 'HACER OFERTA',
+            'market_kind_figurines': 'FIGURINAS', 'market_kind_statues': 'ESTATUAS', 'market_view': 'Vista',
+            'market_gallery': 'Galeria', 'market_list': 'Lista', 'market_currency': 'Divisa'
+        },
+        'ZH': {
+            'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
+            'nav_support': 'SPIRIT 支持', 'nav_security': '安全', 'nav_preorders': 'HOT TOYS 预购', 'btn_reg': '注册', 'btn_sell': '发布并认证',
+            'filter_title': '筛选', 'lbl_price_range': '价格区间 (€)', 'opt_all_prices': '全部价格',
+            'lbl_zone': '发货区域', 'opt_all_zones': '全部区域', 'lbl_brand': '品牌', 'opt_all_brands': '全部品牌',
+            'lbl_cat': '比例 / 类型', 'opt_all_formats': '全部类型', 'lbl_cond': '成色', 'opt_all_conds': '全部成色',
+            'cond_new': '全新', 'cond_vgood': '非常好', 'cond_good': '良好', 'cond_mid': '一般', 'cond_ok': '可接受',
+            'lbl_prot_text': '所有交易均启用 Spirit 保护。', 'modal_reg_title': '创建账户', 'btn_reg_confirm': '注册',
+            'safety_msg_escrow': '安全：资金托管。放款：Legacy 4天 / Native 3天。', 'lbl_price': '价格', 'lbl_duty': '预估关税',
+            'lbl_total_pay': '应付总额', 'btn_buy': '立即购买', 'btn_offer': '出价',
+            'market_kind_figurines': '可动人偶', 'market_kind_statues': '雕像', 'market_view': '视图',
+            'market_gallery': '画廊', 'market_list': '列表', 'market_currency': '货币'
         }
-        // ... (Suite des traductions inchangée)
     };
 
     const shippingRates = {
@@ -1314,13 +1354,18 @@ async function loadUserPurchases() {
         return text;
     }
 
-    function changeLang(lang) {
-        const set = translations[lang] || translations['FR'];
-        document.querySelectorAll('[data-key]').forEach(el => {
-            const key = el.getAttribute('data-key');
-            if(set[key]) el.innerText = set[key];
+    function switchLanguage(lang) {
+        const normalized = String(lang || 'FR').toUpperCase() === 'CN' ? 'ZH' : String(lang || 'FR').toUpperCase();
+        const set = translations[normalized] || translations['FR'];
+        document.documentElement.lang = normalized.toLowerCase();
+        document.querySelectorAll('[data-key], [data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n') || el.getAttribute('data-key');
+            if (!key || !set[key]) return;
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = set[key];
+            else el.textContent = set[key];
         });
     }
+    function changeLang(lang) { switchLanguage(lang); }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -3395,6 +3440,10 @@ async function fetchAnnonces() {
 // BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
 document.addEventListener('DOMContentLoaded', () => {
     try { ensureMarketCurrencySelect(); } catch (e) {}
+    try {
+        const ls = document.querySelector('.lang-selector');
+        if (ls) switchLanguage(ls.value);
+    } catch (e) {}
     try { fetchMarketplaceFromSupabase(); } catch (e) {}
 });
 // (c) 2026 Spirit Infinity - Tous droits réservés
