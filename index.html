@@ -902,7 +902,6 @@
                         <textarea id="sanctuaryStory" placeholder="Storytelling optionnel"></textarea>
                         <input id="sanctuaryPhotos" type="file" accept="image/*" multiple>
                         <button class="btn-action" style="margin-top:8px; font-size:0.68rem;" onclick="addSanctuaryPiece()">Publier dans le Sanctuaire</button>
-                        <div id="sanctuaryUploadStatus" style="margin-top:8px; font-size:0.72rem; color:#888;">Prêt à publier.</div>
                     </div>
 
                     <div id="sanctuary-owner-lock" class="account-private-lock" style="display:none;">
@@ -2590,23 +2589,6 @@ values
 ('12345', '12345', 'Batman DX19 - Prestige Edition', 'Pièce exposée sous halo Pulse-ID, état collector, storytelling certifié Spirit.', '["BATMAN_DX19_FRONT","BATMAN_DX19_POSE","BATMAN_DX19_DETAIL"]'::jsonb, true),
 ('12345', '12345', 'Iron Man MK85 - Infinity Legacy', 'Armure exposée avec contrôle visuel complet et historique de conservation.', '["MK85_FULL","MK85_CLOSEUP","MK85_LED"]'::jsonb, true);
 `;
-async function spiritEnsureProfileRow(authUid) {
-    if (!_spirit || !authUid) return null;
-    try {
-        let prof = await _spirit.from('profiles').select('id,owner_id').eq('id', authUid).maybeSingle();
-        if (prof && prof.data) return prof.data;
-        const payload = { id: authUid, owner_id: authUid };
-        const created = await _spirit.from('profiles').upsert([payload], { onConflict: 'id' }).select('id,owner_id').maybeSingle();
-        if (created && created.error) {
-            console.error('[SPIRIT SANCT] create profile error:', created.error);
-            return null;
-        }
-        return created && created.data ? created.data : payload;
-    } catch (e) {
-        console.error('[SPIRIT SANCT] ensure profile exception:', e && e.message ? e.message : e);
-        return null;
-    }
-}
 async function spiritLoadSession() {
     if (spiritSession.loaded) return spiritSession;
     spiritSession.loaded = true;
@@ -2628,13 +2610,15 @@ async function spiritLoadSession() {
         spiritSession.publicId = u && u.user_metadata && u.user_metadata.owner_id ? String(u.user_metadata.owner_id) : '';
         if (_spirit && spiritSession.userId) {
             try {
-                const pData = await spiritEnsureProfileRow(spiritSession.userId);
-                if (pData) {
-                    spiritSession.profileRow = pData;
-                    spiritSession.profileOwnerId = String(pData.owner_id || pData.id || '').trim();
-                } else {
-                    console.warn('[SPIRIT SANCT] profiles row missing for auth user:', spiritSession.userId);
+                let prof = await _spirit.from('profiles').select('id,owner_id').eq('id', spiritSession.userId).maybeSingle();
+                if (!prof || !prof.data) {
+                    prof = await _spirit.from('profiles').select('id,owner_id').eq('id', spiritSession.userId).maybeSingle();
                 }
+                if (prof && prof.error) console.warn('[SPIRIT SANCT] profiles check error:', prof.error.message || prof.error);
+                if (prof && prof.data) {
+                    spiritSession.profileRow = prof.data;
+                    spiritSession.profileOwnerId = String(prof.data.owner_id || prof.data.id || '').trim();
+                } else console.warn('[SPIRIT SANCT] profiles row missing for auth user:', spiritSession.userId);
             } catch (e) {
                 console.warn('[SPIRIT SANCT] profiles table check exception:', e && e.message ? e.message : e);
             }
@@ -2657,7 +2641,7 @@ function spiritIsAccountOwner() {
     const ownerId = spiritProfileOwnerId();
     if (spiritSession.hasActiveSession && spiritSession.profileRow) {
         var p = spiritSession.profileRow;
-        var pu = String(p.id || '').trim();
+        var pu = String(p.user_id || p.id || '').trim();
         var po = String(p.owner_id || '').trim();
         if (spiritSession.userId && (spiritSession.userId === pu || spiritSession.userId === po)) return true;
     }
@@ -2788,18 +2772,7 @@ async function spiritFetchSanctuaire() {
             pieces[i].chat = Array.isArray(c.data) ? c.data.map(function (x) { return { user: x.sender_name, text: x.message, at: x.created_at }; }).reverse() : [];
         }
         out.pieces = pieces.map(function (r) {
-            var pArr = [];
-            if (Array.isArray(r.photos)) pArr = r.photos;
-            else if (typeof r.photos === 'string') {
-                try { var jj = JSON.parse(r.photos); if (Array.isArray(jj)) pArr = jj; } catch (e) {}
-            }
-            return {
-                id: r.id,
-                title: r.figurine_name || r.title || 'PIÈCE',
-                story: r.description || r.story || '',
-                photos: pArr,
-                chat: r.chat || []
-            };
+            return { id: r.id, title: r.title, story: r.story || '', photos: Array.isArray(r.photos) ? r.photos : [], chat: r.chat || [] };
         });
         out.followers = Array.isArray(f.data) ? f.data.map(function (x) { return String(x.follower_id); }) : [];
         if (m && m.data) {
@@ -2872,29 +2845,6 @@ async function sanctuaryChatPost(pieceId) {
     input.value = '';
     await renderSanctuaryGallery();
 }
-async function spiritEnsureSanctuaryBucket() {
-    if (!_spirit || !_spirit.storage) return { ok: false, error: 'storage indisponible' };
-    try {
-        if (typeof _spirit.storage.listBuckets === 'function') {
-            const b = await _spirit.storage.listBuckets();
-            if (b && b.error) {
-                console.error('[SPIRIT SANCT] listBuckets error:', b.error);
-                return { ok: false, error: b.error.message || String(b.error) };
-            }
-            const arr = b && b.data ? b.data : [];
-            const has = Array.isArray(arr) && arr.some(function (x) { return String(x && x.name) === SPIRIT_SANCT_BUCKET; });
-            if (!has) {
-                console.error('[SPIRIT SANCT] bucket manquant:', SPIRIT_SANCT_BUCKET);
-                return { ok: false, error: 'Bucket introuvable: ' + SPIRIT_SANCT_BUCKET };
-            }
-            return { ok: true };
-        }
-        return { ok: true };
-    } catch (e) {
-        console.error('[SPIRIT SANCT] ensure bucket exception:', e && e.message ? e.message : e);
-        return { ok: false, error: e && e.message ? e.message : String(e) };
-    }
-}
 async function addSanctuaryPiece() {
     if (!spiritIsAccountOwner()) {
         alert("Accès propriétaire requis pour publier.");
@@ -2903,27 +2853,16 @@ async function addSanctuaryPiece() {
     var titleEl = document.getElementById('sanctuaryTitle');
     var storyEl = document.getElementById('sanctuaryStory');
     var photosEl = document.getElementById('sanctuaryPhotos');
-    var upStatus = document.getElementById('sanctuaryUploadStatus');
     var title = titleEl ? String(titleEl.value || '').trim() : '';
     if (!title) { alert('Titre requis pour la pièce.'); return; }
     var files = photosEl && photosEl.files ? Array.from(photosEl.files) : [];
     if (files.length > 15) { alert('Maximum 15 photos par pièce.'); return; }
     await spiritLoadSession();
-    // Force test mode: ne pas bloquer l'upload si profile absent, on tente création auto
-    if (spiritSession.userId) await spiritEnsureProfileRow(spiritSession.userId);
     var ownerId = spiritProfileOwnerId();
     var authUid = spiritSession.userId || '';
-    if (upStatus) { upStatus.textContent = 'Publication en cours...'; upStatus.style.color = 'var(--neon-orange)'; }
     var photos = files.map(function (f) { return f.name; });
     if (_spirit && files.length > 0 && _spirit.storage) {
-        const bucketCheck = await spiritEnsureSanctuaryBucket();
-        if (!bucketCheck.ok) {
-            if (upStatus) { upStatus.textContent = 'Erreur bucket: ' + bucketCheck.error; upStatus.style.color = 'var(--danger)'; }
-            alert("Erreur upload : bucket '" + SPIRIT_SANCT_BUCKET + "' introuvable ou inaccessible.");
-            return;
-        }
         photos = [];
-        var hadUploadFailure = false;
         for (var i = 0; i < files.length; i++) {
             var f = files[i];
             var safe = String(f.name || ('photo_' + i)).replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -2931,74 +2870,32 @@ async function addSanctuaryPiece() {
             try {
                 const up = await _spirit.storage.from(SPIRIT_SANCT_BUCKET).upload(path, f, { upsert: false });
                 if (up.error) {
-                    console.error('[SPIRIT SANCT] Upload bucket error:', up.error, { bucket: SPIRIT_SANCT_BUCKET, path: path, file: f && f.name ? f.name : 'n/a' });
-                    hadUploadFailure = true;
+                    console.error('[SPIRIT SANCT] Upload bucket error:', up.error);
                     continue;
                 }
                 const pub = _spirit.storage.from(SPIRIT_SANCT_BUCKET).getPublicUrl(path);
                 var url = pub && pub.data ? pub.data.publicUrl : '';
-                if (url && /^https?:\/\//i.test(url)) photos.push(url);
-                else {
-                    console.error('[SPIRIT SANCT] URL publique invalide après upload:', { path: path, publicUrl: url });
-                    hadUploadFailure = true;
-                }
+                photos.push(url || path);
             } catch (e) {
-                console.error('[SPIRIT SANCT] Upload exception:', e && e.message ? e.message : e, { bucket: SPIRIT_SANCT_BUCKET, path: path, file: f && f.name ? f.name : 'n/a' });
-                hadUploadFailure = true;
+                console.error('[SPIRIT SANCT] Upload exception:', e && e.message ? e.message : e);
             }
-        }
-        if (hadUploadFailure) {
-            if (upStatus) { upStatus.textContent = "Upload incomplet/échoué : insertion annulée."; upStatus.style.color = 'var(--danger)'; }
-            alert("Échec upload Storage : la ligne SQL n'a pas été insérée.");
-            return;
-        }
-        if (!Array.isArray(photos) || photos.length === 0) {
-            if (upStatus) { upStatus.textContent = "Aucune URL publique valide générée."; upStatus.style.color = 'var(--danger)'; }
-            alert("Upload terminé mais aucune URL publique valide n'a été générée.");
-            return;
         }
     }
     if (_spirit) {
         try {
-            console.log('[SPIRIT SANCT] Payload insert sanctuary_pieces:', {
-                id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('spirit-' + Date.now()),
-                owner_id: ownerId,
-                figurine_name: title,
-                description: storyEl ? String(storyEl.value || '').trim() : '',
-                photos_jsonb: JSON.stringify(photos),
-                created_at: new Date().toISOString()
-            });
-            var newId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('spirit-' + Date.now());
-            var newDesc = storyEl ? String(storyEl.value || '').trim() : '';
             const ins = await _spirit.from('sanctuary_pieces').insert([{
-                id: newId,
                 owner_id: ownerId,
                 user_id: authUid || ownerId,
-                figurine_name: title,
-                description: newDesc,
-                photos: JSON.stringify(photos),
-                created_at: new Date().toISOString()
+                title: title,
+                story: storyEl ? String(storyEl.value || '').trim() : '',
+                photos: photos,
+                is_public: true
             }]);
             if (ins.error) {
-                console.error('[SPIRIT SANCT] Erreur insertion:', ins.error, {
-                    owner_id: ownerId,
-                    user_id: authUid || ownerId,
-                    figurine_name: title,
-                    created_at: new Date().toISOString(),
-                    photos_count: Array.isArray(photos) ? photos.length : 0
-                });
-                if (upStatus) { upStatus.textContent = "Échec insertion : " + (ins.error.message || 'erreur inconnue'); upStatus.style.color = 'var(--danger)'; }
-                alert("Échec publication Sanctuaire.");
-                return;
+                console.error('[SPIRIT SANCT] Insert sanctuary_pieces error:', ins.error);
             }
         } catch (e) {
-            console.error('[SPIRIT SANCT] piece insert exception:', e && e.message ? e.message : e, {
-                owner_id: ownerId,
-                user_id: authUid || ownerId
-            });
-            if (upStatus) { upStatus.textContent = "Exception publication : " + (e && e.message ? e.message : 'inconnue'); upStatus.style.color = 'var(--danger)'; }
-            alert("Exception publication Sanctuaire.");
-            return;
+            console.error('[SPIRIT SANCT] piece insert exception:', e && e.message ? e.message : e);
         }
     } else {
         var s = spiritReadSanctCache();
@@ -3008,20 +2905,12 @@ async function addSanctuaryPiece() {
     if (titleEl) titleEl.value = '';
     if (storyEl) storyEl.value = '';
     if (photosEl) photosEl.value = '';
-    if (upStatus) { upStatus.textContent = 'Succès : photo publiée avec succès !'; upStatus.style.color = 'var(--spirit-green)'; }
-    alert("Photo publiée avec succès !");
     await renderSanctuaryGallery();
 }
 async function publierDansLeSanctuaire() {
     return addSanctuaryPiece();
 }
 try { window.publierDansLeSanctuaire = publierDansLeSanctuaire; } catch (e) {}
-async function relancerUploadGambit() {
-    var titleEl = document.getElementById('sanctuaryTitle');
-    if (titleEl && String(titleEl.value || '').trim() === '') titleEl.value = 'GAMBIT';
-    await addSanctuaryPiece();
-}
-try { window.relancerUploadGambit = relancerUploadGambit; } catch (e) {}
 async function toggleSanctuaryFollow() {
     await spiritLoadSession();
     var s = await spiritFetchSanctuaire();
@@ -4087,7 +3976,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
