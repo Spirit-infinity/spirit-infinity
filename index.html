@@ -1,3 +1,4 @@
+<!-- (c) 2026 Spirit Infinity - Tous droits réservés -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2589,6 +2590,23 @@ values
 ('12345', '12345', 'Batman DX19 - Prestige Edition', 'Pièce exposée sous halo Pulse-ID, état collector, storytelling certifié Spirit.', '["BATMAN_DX19_FRONT","BATMAN_DX19_POSE","BATMAN_DX19_DETAIL"]'::jsonb, true),
 ('12345', '12345', 'Iron Man MK85 - Infinity Legacy', 'Armure exposée avec contrôle visuel complet et historique de conservation.', '["MK85_FULL","MK85_CLOSEUP","MK85_LED"]'::jsonb, true);
 `;
+async function spiritEnsureProfileRow(authUid) {
+    if (!_spirit || !authUid) return null;
+    try {
+        let prof = await _spirit.from('profiles').select('id,owner_id,public_id').eq('id', authUid).maybeSingle();
+        if (prof && prof.data) return prof.data;
+        const payload = { id: authUid, owner_id: authUid, public_id: authUid };
+        const created = await _spirit.from('profiles').upsert([payload], { onConflict: 'id' }).select('id,owner_id,public_id').maybeSingle();
+        if (created && created.error) {
+            console.error('[SPIRIT SANCT] create profile error:', created.error);
+            return null;
+        }
+        return created && created.data ? created.data : payload;
+    } catch (e) {
+        console.error('[SPIRIT SANCT] ensure profile exception:', e && e.message ? e.message : e);
+        return null;
+    }
+}
 async function spiritLoadSession() {
     if (spiritSession.loaded) return spiritSession;
     spiritSession.loaded = true;
@@ -2610,15 +2628,13 @@ async function spiritLoadSession() {
         spiritSession.publicId = u && u.user_metadata && u.user_metadata.public_id ? String(u.user_metadata.public_id) : '';
         if (_spirit && spiritSession.userId) {
             try {
-                let prof = await _spirit.from('profiles').select('id,user_id,owner_id,public_id').eq('user_id', spiritSession.userId).maybeSingle();
-                if (!prof || !prof.data) {
-                    prof = await _spirit.from('profiles').select('id,user_id,owner_id,public_id').eq('id', spiritSession.userId).maybeSingle();
+                const pData = await spiritEnsureProfileRow(spiritSession.userId);
+                if (pData) {
+                    spiritSession.profileRow = pData;
+                    spiritSession.profileOwnerId = String(pData.owner_id || pData.public_id || pData.id || '').trim();
+                } else {
+                    console.warn('[SPIRIT SANCT] profiles row missing for auth user:', spiritSession.userId);
                 }
-                if (prof && prof.error) console.warn('[SPIRIT SANCT] profiles check error:', prof.error.message || prof.error);
-                if (prof && prof.data) {
-                    spiritSession.profileRow = prof.data;
-                    spiritSession.profileOwnerId = String(prof.data.owner_id || prof.data.user_id || prof.data.public_id || prof.data.id || '').trim();
-                } else console.warn('[SPIRIT SANCT] profiles row missing for auth user:', spiritSession.userId);
             } catch (e) {
                 console.warn('[SPIRIT SANCT] profiles table check exception:', e && e.message ? e.message : e);
             }
@@ -2641,7 +2657,7 @@ function spiritIsAccountOwner() {
     const ownerId = spiritProfileOwnerId();
     if (spiritSession.hasActiveSession && spiritSession.profileRow) {
         var p = spiritSession.profileRow;
-        var pu = String(p.user_id || p.id || '').trim();
+        var pu = String(p.id || '').trim();
         var po = String(p.owner_id || '').trim();
         if (spiritSession.userId && (spiritSession.userId === pu || spiritSession.userId === po)) return true;
     }
@@ -2893,6 +2909,8 @@ async function addSanctuaryPiece() {
     var files = photosEl && photosEl.files ? Array.from(photosEl.files) : [];
     if (files.length > 15) { alert('Maximum 15 photos par pièce.'); return; }
     await spiritLoadSession();
+    // Force test mode: ne pas bloquer l'upload si profile absent, on tente création auto
+    if (spiritSession.userId) await spiritEnsureProfileRow(spiritSession.userId);
     var ownerId = spiritProfileOwnerId();
     var authUid = spiritSession.userId || '';
     if (upStatus) { upStatus.textContent = 'Publication en cours...'; upStatus.style.color = 'var(--neon-orange)'; }
