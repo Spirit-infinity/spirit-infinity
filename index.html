@@ -2480,6 +2480,8 @@ async function confirmPayment(method) {
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
 const SPIRIT_SANCT_OWNER_ID = '12345';
+const SPIRIT_SANCT_BUCKET = 'sanctuary';
+const spiritSession = { loaded: false, user: null, userId: '', publicId: '' };
 const SPIRIT_SANCT_SQL = `
 -- (c) 2026 Spirit Infinity - Tous droits réservés
 create extension if not exists "pgcrypto";
@@ -2556,6 +2558,13 @@ drop policy if exists "sanctuary_metrics_read_public" on public.sanctuary_trust_
 create policy "sanctuary_metrics_read_public" on public.sanctuary_trust_metrics for select using (true);
 drop policy if exists "sanctuary_metrics_owner_write" on public.sanctuary_trust_metrics;
 create policy "sanctuary_metrics_owner_write" on public.sanctuary_trust_metrics for all using (owner_id = auth.uid()::text) with check (owner_id = auth.uid()::text);
+
+alter table public.sanctuary_pieces add column if not exists user_id text;
+update public.sanctuary_pieces set user_id = owner_id where user_id is null;
+drop policy if exists "sanctuary_pieces_insert_user_match" on public.sanctuary_pieces;
+create policy "sanctuary_pieces_insert_user_match" on public.sanctuary_pieces
+for insert
+with check (user_id = auth.uid()::text);
 `;
 const SPIRIT_SANCT_SEED_SQL = `
 -- (c) 2026 Spirit Infinity - Tous droits réservés
@@ -2573,13 +2582,37 @@ insert into public.sanctuary_trust_metrics (
   confidence_score = excluded.confidence_score,
   updated_at = now();
 
-insert into public.sanctuary_pieces (owner_id, title, story, photos, is_public)
+insert into public.sanctuary_pieces (owner_id, user_id, title, story, photos, is_public)
 values
-('12345', 'Batman DX19 - Prestige Edition', 'Pièce exposée sous halo Pulse-ID, état collector, storytelling certifié Spirit.', '["BATMAN_DX19_FRONT","BATMAN_DX19_POSE","BATMAN_DX19_DETAIL"]'::jsonb, true),
-('12345', 'Iron Man MK85 - Infinity Legacy', 'Armure exposée avec contrôle visuel complet et historique de conservation.', '["MK85_FULL","MK85_CLOSEUP","MK85_LED"]'::jsonb, true);
+('12345', '12345', 'Batman DX19 - Prestige Edition', 'Pièce exposée sous halo Pulse-ID, état collector, storytelling certifié Spirit.', '["BATMAN_DX19_FRONT","BATMAN_DX19_POSE","BATMAN_DX19_DETAIL"]'::jsonb, true),
+('12345', '12345', 'Iron Man MK85 - Infinity Legacy', 'Armure exposée avec contrôle visuel complet et historique de conservation.', '["MK85_FULL","MK85_CLOSEUP","MK85_LED"]'::jsonb, true);
 `;
+async function spiritLoadSession() {
+    if (spiritSession.loaded) return spiritSession;
+    spiritSession.loaded = true;
+    if (!_spirit || !_spirit.auth || typeof _spirit.auth.getUser !== 'function') return spiritSession;
+    try {
+        const res = await _spirit.auth.getUser();
+        const u = res && res.data ? res.data.user : null;
+        spiritSession.user = u || null;
+        spiritSession.userId = u && u.id ? String(u.id) : '';
+        spiritSession.publicId = u && u.user_metadata && u.user_metadata.public_id ? String(u.user_metadata.public_id) : '';
+    } catch (e) {
+        console.warn('[SPIRIT SANCT] auth.getUser error:', e && e.message ? e.message : e);
+    }
+    return spiritSession;
+}
+function spiritProfileOwnerId() {
+    return String(window.SPIRIT_PROFILE_OWNER_ID || SPIRIT_SANCT_OWNER_ID || MY_TEST_ID).trim();
+}
+function spiritViewerId() {
+    return spiritSession.userId || spiritSession.publicId || String(window.MY_TEST_ID || MY_TEST_ID).trim();
+}
 function spiritIsAccountOwner() {
-    return String(window.MY_TEST_ID || MY_TEST_ID).trim() === SPIRIT_SANCT_OWNER_ID;
+    const ownerId = spiritProfileOwnerId();
+    if (spiritSession.userId && spiritSession.userId === ownerId) return true;
+    if (spiritSession.publicId && spiritSession.publicId === ownerId) return true;
+    return false;
 }
 function spiritSanctStoreKey() {
     return 'spirit_sanctuaire_cache_' + String(window.MY_TEST_ID || MY_TEST_ID).trim();
@@ -2687,8 +2720,9 @@ async function seedSanctuaireDemo() {
     }
 }
 async function spiritFetchSanctuaire() {
-    var ownerId = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+    var ownerId = spiritProfileOwnerId();
     var out = spiritReadSanctCache();
+    await spiritLoadSession();
     if (!_spirit) return out;
     try {
         const p = await _spirit.from('sanctuary_pieces').select('*').eq('owner_id', ownerId).order('created_at', { ascending: false });
@@ -2732,6 +2766,13 @@ function applyAccountVisibilityRules() {
     var lock = document.getElementById('sanctuary-owner-lock');
     if (tools) tools.style.display = isOwner ? 'block' : 'none';
     if (lock) lock.style.display = isOwner ? 'none' : 'block';
+    var subBtn = document.querySelector('#tab-sanctuaire button.btn-action');
+    if (subBtn) {
+        if (!spiritSession.userId) {
+            subBtn.disabled = false;
+            subBtn.style.opacity = '1';
+        }
+    }
 }
 async function sanctuaryChatPost(pieceId) {
     var s = await spiritFetchSanctuaire();
@@ -2767,18 +2808,45 @@ async function addSanctuaryPiece() {
     if (!title) { alert('Titre requis pour la pièce.'); return; }
     var files = photosEl && photosEl.files ? Array.from(photosEl.files) : [];
     if (files.length > 15) { alert('Maximum 15 photos par pièce.'); return; }
-    var ownerId = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+    await spiritLoadSession();
+    var ownerId = spiritProfileOwnerId();
     var photos = files.map(function (f) { return f.name; });
+    if (_spirit && files.length > 0 && _spirit.storage) {
+        photos = [];
+        for (var i = 0; i < files.length; i++) {
+            var f = files[i];
+            var safe = String(f.name || ('photo_' + i)).replace(/[^a-zA-Z0-9._-]/g, '_');
+            var path = ownerId + '/' + Date.now() + '_' + i + '_' + safe;
+            try {
+                const up = await _spirit.storage.from(SPIRIT_SANCT_BUCKET).upload(path, f, { upsert: false });
+                if (up.error) {
+                    console.error('[SPIRIT SANCT] Upload bucket error:', up.error);
+                    continue;
+                }
+                const pub = _spirit.storage.from(SPIRIT_SANCT_BUCKET).getPublicUrl(path);
+                var url = pub && pub.data ? pub.data.publicUrl : '';
+                photos.push(url || path);
+            } catch (e) {
+                console.error('[SPIRIT SANCT] Upload exception:', e && e.message ? e.message : e);
+            }
+        }
+    }
     if (_spirit) {
         try {
-            await _spirit.from('sanctuary_pieces').insert([{
+            const ins = await _spirit.from('sanctuary_pieces').insert([{
                 owner_id: ownerId,
+                user_id: spiritSession.userId || ownerId,
                 title: title,
                 story: storyEl ? String(storyEl.value || '').trim() : '',
                 photos: photos,
                 is_public: true
             }]);
-        } catch (e) { console.warn('[SPIRIT SANCT] piece insert', e && e.message ? e.message : e); }
+            if (ins.error) {
+                console.error('[SPIRIT SANCT] Insert sanctuary_pieces error:', ins.error);
+            }
+        } catch (e) {
+            console.error('[SPIRIT SANCT] piece insert exception:', e && e.message ? e.message : e);
+        }
     } else {
         var s = spiritReadSanctCache();
         s.pieces.unshift({ id: Date.now(), title: title, story: storyEl ? String(storyEl.value || '').trim() : '', photos: photos, chat: [] });
@@ -2789,16 +2857,34 @@ async function addSanctuaryPiece() {
     if (photosEl) photosEl.value = '';
     await renderSanctuaryGallery();
 }
+async function publierDansLeSanctuaire() {
+    return addSanctuaryPiece();
+}
+try { window.publierDansLeSanctuaire = publierDansLeSanctuaire; } catch (e) {}
 async function toggleSanctuaryFollow() {
+    await spiritLoadSession();
     var s = await spiritFetchSanctuaire();
-    var me = String(window.MY_TEST_ID || MY_TEST_ID).trim();
-    var ownerId = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+    var me = spiritViewerId();
+    var ownerId = spiritProfileOwnerId();
+    if (!me) {
+        alert("Connexion requise pour s'abonner au Sanctuaire.");
+        return;
+    }
+    if (me === ownerId) {
+        alert("Vous êtes propriétaire de ce Sanctuaire.");
+        return;
+    }
     if (_spirit) {
         var isFollowing = (s.followers || []).indexOf(me) >= 0;
         try {
-            if (isFollowing) await _spirit.from('sanctuary_followers').delete().eq('owner_id', ownerId).eq('follower_id', me);
-            else await _spirit.from('sanctuary_followers').insert([{ owner_id: ownerId, follower_id: me, channel: 'both' }]);
-        } catch (e) { console.warn('[SPIRIT SANCT] follow toggle', e && e.message ? e.message : e); }
+            if (isFollowing) {
+                const del = await _spirit.from('sanctuary_followers').delete().eq('owner_id', ownerId).eq('follower_id', me);
+                if (del.error) console.error('[SPIRIT SANCT] unsubscribe error:', del.error);
+            } else {
+                const ins = await _spirit.from('sanctuary_followers').insert([{ owner_id: ownerId, follower_id: me, channel: 'both' }]);
+                if (ins.error) console.error('[SPIRIT SANCT] subscribe error:', ins.error);
+            }
+        } catch (e) { console.error('[SPIRIT SANCT] follow toggle exception:', e && e.message ? e.message : e); }
     } else {
         if (!Array.isArray(s.followers)) s.followers = [];
         var i = s.followers.indexOf(me);
@@ -2818,12 +2904,17 @@ function updateSanctuaryTheme() {
     renderSanctuaryGallery();
 }
 async function renderSanctuaryHeader() {
+    await spiritLoadSession();
     var s = await spiritFetchSanctuaire();
     var urlEl = document.getElementById('sanctuary-public-url');
-    var me = String(window.MY_TEST_ID || MY_TEST_ID).trim();
-    if (urlEl) urlEl.textContent = 'https://spirit.infinity/u/' + me + '/sanctuaire';
+    var me = spiritViewerId();
+    var ownerId = spiritProfileOwnerId();
+    if (urlEl) urlEl.textContent = 'https://spirit.infinity/u/' + ownerId + '/sanctuaire';
     var follow = document.getElementById('sanctuary-follow-state');
-    if (follow) follow.textContent = (s.followers || []).indexOf(me) >= 0 ? 'Abonné (notifications activées)' : 'Non abonné';
+    if (follow) {
+        if (!me || me === ownerId) follow.textContent = me === ownerId ? 'Propriétaire du Sanctuaire' : 'Connectez-vous pour suivre';
+        else follow.textContent = (s.followers || []).indexOf(me) >= 0 ? 'Abonné (notifications activées)' : 'Non abonné';
+    }
     var m = s.metrics || {};
     var buyer = Number(m.buyer || 0), seller = Number(m.seller || 0), speed = Number(m.speed || 0), protect = Number(m.protect || 0), disputes = Number(m.disputes || 0);
     var global = Math.max(0, Math.min(100, Math.round(((speed + protect) / 20) * 100 - disputes * 5 + (buyer + seller) * 0.5)));
@@ -2864,6 +2955,7 @@ async function renderSanctuaryGallery() {
     }).join('');
 }
 async function initSanctuaireAccount() {
+    await spiritLoadSession();
     applyAccountVisibilityRules();
     await seedSanctuaireDemo();
     var s = spiritReadSanctCache();
