@@ -240,6 +240,17 @@
         .spirit-card-fav-btn.is-fav { border-color: #ff6600; box-shadow: 0 0 10px rgba(255, 102, 0, 0.35); }
         .spirit-card-fav-btn.is-fav .spirit-fav-heart { fill: #ff6600; }
         .spirit-card-fav-btn.is-fav .spirit-fav-count { color: #ff6600; }
+        @keyframes spirit-fav-neon-flash {
+            0% { box-shadow: 0 0 4px transparent; border-color: #333; }
+            40% { box-shadow: 0 0 22px rgba(255, 102, 0, 1), 0 0 40px rgba(255, 102, 0, 0.55); border-color: var(--neon-orange); transform: scale(1.06); }
+            100% { box-shadow: 0 0 10px rgba(255, 102, 0, 0.35); border-color: #ff6600; transform: scale(1); }
+        }
+        .spirit-card-fav-btn.spirit-fav-flash { animation: spirit-fav-neon-flash 0.65s ease-out 1; }
+        .spirit-card-fav-btn.spirit-fav-flash .spirit-fav-heart {
+            fill: var(--neon-orange);
+            filter: drop-shadow(0 0 8px rgba(255, 102, 0, 1)) drop-shadow(0 0 18px rgba(255, 102, 0, 0.7));
+        }
+        .spirit-card-fav-btn.spirit-fav-flash .spirit-fav-count { color: var(--neon-orange); }
         #btn-favoris { position: relative; }
         .spirit-tab-notif {
             display: none;
@@ -1751,6 +1762,47 @@ function spiritFavoriteProductId(item) {
     var n = Number(item.id);
     return (typeof n === 'number' && isFinite(n) && !isNaN(n)) ? n : null;
 }
+/** Toujours l’ID session courant (texte), aligné sur MY_TEST_ID — pas window seul (évite un user_id obsolète après switchUser). */
+function spiritGetCurrentUserId() {
+    try {
+        if (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null && String(MY_TEST_ID).trim() !== '')
+            return String(MY_TEST_ID).trim();
+    } catch (e) { /* MY_TEST_ID pas encore défini */ }
+    if (typeof window !== 'undefined' && window.MY_TEST_ID != null && String(window.MY_TEST_ID).trim() !== '')
+        return String(window.MY_TEST_ID).trim();
+    return '';
+}
+/** Entier sûr pour favorites.product_id (bigint côté Postgres, précision Number). */
+function spiritParseFavoriteProductId(v) {
+    if (v == null || v === '') return null;
+    var s = String(v).trim();
+    if (!/^\d+$/.test(s)) return null;
+    var n = parseInt(s, 10);
+    if (!Number.isFinite(n) || n < 0 || n > Number.MAX_SAFE_INTEGER) return null;
+    if (String(n) !== s) return null;
+    return n;
+}
+/** Met à jour les cœurs visibles pour ce product_id sans re-render complet ; flash néon si flashBtn et favori actif. */
+function spiritSyncFavoriteButtonDOM(productIdInt, flashBtn) {
+    var ks = String(productIdInt);
+    var isFav = spiritUserFavoriteSet.has(productIdInt);
+    var fc = spiritFavoriteCountMap[ks] != null ? spiritFavoriteCountMap[ks] : 0;
+    document.querySelectorAll('.spirit-card-fav-btn[data-spirit-fav="' + ks + '"]').forEach(function (btn) {
+        btn.classList.toggle('is-fav', isFav);
+        btn.setAttribute('aria-pressed', isFav ? 'true' : 'false');
+        var cnt = btn.querySelector('.spirit-fav-count');
+        if (cnt) cnt.textContent = String(fc);
+    });
+    var b = flashBtn && flashBtn.classList && flashBtn.classList.contains('spirit-card-fav-btn') ? flashBtn : null;
+    if (b && isFav) {
+        b.classList.remove('spirit-fav-flash');
+        void b.offsetWidth;
+        b.classList.add('spirit-fav-flash');
+        var endFlash = function () { try { b.classList.remove('spirit-fav-flash'); } catch (x) {} };
+        b.addEventListener('animationend', endFlash, { once: true });
+        setTimeout(endFlash, 800);
+    }
+}
 function spiritReadFavSnap() {
     try { return JSON.parse(localStorage.getItem('spirit_fav_snap_v2') || '{}'); } catch (e) { return {}; }
 }
@@ -1807,13 +1859,13 @@ function spiritAcknowledgeFavoriteTab() {
     var dot = document.getElementById('favorites-tab-dot');
     if (dot) dot.style.display = 'none';
 }
-/* Supabase: favorites.product_id = bigint (FK products_live.id). RLS selon user_id. */
+/* Supabase: favorites.user_id = text ; product_id = bigint (FK products_live.id). */
 async function spiritLoadFavoriteData() {
     if (!_spirit) return;
     try {
         var out = await _spirit.from('favorites').select('user_id, product_id');
         if (out.error) return;
-        var uid = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+        var uid = spiritGetCurrentUserId();
         spiritUserFavoriteSet = new Set();
         spiritFavoriteCountMap = {};
         (out.data || []).forEach(function (r) {
@@ -1827,16 +1879,18 @@ async function spiritLoadFavoriteData() {
     spiritBootstrapFavoriteSnapshots();
     spiritEvaluateFavoriteAlerts();
 }
-async function spiritToggleFavorite(productId, ev) {
+async function spiritToggleFavorite(productId, ev, favBtn) {
     if (ev) {
         ev.stopPropagation();
         ev.preventDefault();
     }
     if (!_spirit) return;
-    var uid = String(window.MY_TEST_ID || MY_TEST_ID).trim();
-    var pid = Number(productId);
-    if (!isFinite(pid) || isNaN(pid)) return;
+    var uid = spiritGetCurrentUserId();
+    if (!uid) return;
+    var pid = spiritParseFavoriteProductId(productId);
+    if (pid == null) return;
     var ks = String(pid);
+    var flashNeon = false;
     try {
         if (spiritUserFavoriteSet.has(pid)) {
             var del = await _spirit.from('favorites').delete().eq('user_id', uid).eq('product_id', pid);
@@ -1844,20 +1898,33 @@ async function spiritToggleFavorite(productId, ev) {
             spiritUserFavoriteSet.delete(pid);
             spiritFavoriteCountMap[ks] = Math.max(0, (spiritFavoriteCountMap[ks] || 1) - 1);
         } else {
-            var ins = await _spirit.from('favorites').insert([{ user_id: uid, product_id: pid }]);
-            if (ins.error) throw ins.error;
-            spiritUserFavoriteSet.add(pid);
-            spiritFavoriteCountMap[ks] = (spiritFavoriteCountMap[ks] || 0) + 1;
+            var row = { user_id: String(uid), product_id: pid };
+            var ins = await _spirit.from('favorites').insert(row);
+            if (ins.error) {
+                var msg = String((ins.error.message || '') + ' ' + (ins.error.details || '') + ' ' + (ins.error.hint || ''));
+                var code = String(ins.error.code || '');
+                var dup = code === '23505' || /23505|duplicate key|unique constraint|already exists|conflict/i.test(code + msg);
+                if (dup) {
+                    spiritUserFavoriteSet.add(pid);
+                    flashNeon = true;
+                } else {
+                    throw ins.error;
+                }
+            } else {
+                spiritUserFavoriteSet.add(pid);
+                spiritFavoriteCountMap[ks] = (spiritFavoriteCountMap[ks] || 0) + 1;
+                flashNeon = true;
+            }
         }
     } catch (err) {
-        console.warn('[SPIRIT] favorites:', err);
+        var em = err && (err.message || err.error_description) ? String(err.message || err.error_description) : String(err);
+        if (typeof console !== 'undefined' && console.warn) console.warn('[SPIRIT] favorites:', em);
         return;
     }
-    spiritRenderMarketSig = '';
-    try {
-        if (typeof applyFilters === 'function') applyFilters();
-        else if (typeof renderMarket === 'function') renderMarket();
-    } catch (x) {}
+    var btnFlash = favBtn;
+    if (flashNeon && !btnFlash)
+        btnFlash = document.querySelector('.spirit-card-fav-btn[data-spirit-fav="' + ks + '"]');
+    spiritSyncFavoriteButtonDOM(pid, flashNeon ? btnFlash : null);
     spiritBootstrapFavoriteSnapshots();
     spiritEvaluateFavoriteAlerts();
 }
@@ -1870,7 +1937,7 @@ function spiritInitFavoriteClickDelegation() {
         e.stopPropagation();
         e.preventDefault();
         var p = btn.getAttribute('data-spirit-fav');
-        if (p != null && p !== '') spiritToggleFavorite(Number(p), e);
+        if (p != null && p !== '') spiritToggleFavorite(p, e, btn);
     }, true);
 }
 async function renderUserFavorites() {
@@ -3335,6 +3402,7 @@ window.showAccountTab = function showAccountTab(tab) {
 function switchUser(newId, label) {
     // STABILISATION : On force le type String pour garantir la correspondance Supabase
     MY_TEST_ID = String(newId).trim();
+    try { window.MY_TEST_ID = MY_TEST_ID; } catch (e) {}
     // AJOUT : Synchronisation du nom d'utilisateur pour l'affichage et les annonces
     currentUser = label; 
     
@@ -3525,6 +3593,7 @@ function openAccount() {
 
 // On utilise 'let' pour pouvoir changer d'utilisateur avec le simulateur
 let MY_TEST_ID = "12345";
+try { window.MY_TEST_ID = MY_TEST_ID; } catch (e) {}
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
