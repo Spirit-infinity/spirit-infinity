@@ -190,6 +190,12 @@
         .market-kind-toggle button.active { color:#000; background:#ff6600; }
         .market-signals { display:flex; gap:6px; flex-wrap:wrap; }
         .market-chip { border:1px solid rgba(255,102,0,0.45); color:#bbb; font-size:0.62rem; padding:3px 8px; border-radius:999px; background:#0a0a0a; }
+        .statues-market-view { display:none; margin-top:8px; }
+        .statues-layout { display:flex; gap:16px; align-items:flex-start; }
+        .statues-sidebar { width:260px; background:#0a0a0a; border:1px solid #222; padding:12px; }
+        .statues-grid-wrap { flex:1; }
+        .statues-sidebar label { color:#777; font-size:0.72rem; margin-top:6px; display:block; }
+        .statues-sidebar select { margin:6px 0; }
         .switch-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:8px 0; font-size:0.78rem; color:#bbb; }
         .switch { position:relative; display:inline-block; width:52px; height:28px; }
         .switch input { opacity:0; width:0; height:0; }
@@ -670,6 +676,58 @@
         <div class="cat-title market-title">MARKET SPIRIT</div>
         <div class="grid-layout" id="marketGridNative"></div>
         <div class="grid-layout" id="marketGridLegacy" style="display:none !important;"></div>
+        <div id="marketStatuesView" class="statues-market-view">
+            <div class="statues-layout">
+                <div class="statues-sidebar">
+                    <h4 style="color:var(--neon-orange); margin:0 0 8px 0;" data-i18n="statues_filters_title">FILTRES STATUES</h4>
+                    <label data-i18n="statues_brand">MARQUE</label>
+                    <select id="sBrand" onchange="applyStatuesFilters()">
+                        <option value="all" data-i18n="opt_all_brands">Toutes les marques</option>
+                        <option value="Prime 1">Prime 1</option>
+                        <option value="XM Studios">XM Studios</option>
+                        <option value="Queen Studios">Queen Studios</option>
+                        <option value="Sideshow">Sideshow</option>
+                        <option value="Tsume">Tsume</option>
+                    </select>
+                    <label data-i18n="statues_price">PRIX</label>
+                    <select id="sPrice" onchange="applyStatuesFilters()">
+                        <option value="all" data-i18n="opt_all_prices">Tous les prix</option>
+                        <option value="0-500">0 - 500</option>
+                        <option value="500-1000">500 - 1000</option>
+                        <option value="1000-2000">1000 - 2000</option>
+                        <option value="2000+">2000+</option>
+                    </select>
+                    <label data-i18n="statues_zone">ZONE D'EXPÉDITION</label>
+                    <select id="sCountry" onchange="applyStatuesFilters()">
+                        <option value="all" data-i18n="opt_all_zones">Toutes les zones</option>
+                        <option value="France">France</option>
+                        <option value="Europe">Europe</option>
+                        <option value="Chine">Chine</option>
+                        <option value="USA">USA</option>
+                        <option value="Hong Kong">Hong Kong</option>
+                    </select>
+                    <label data-i18n="statues_scale">ÉCHELLE / FORMAT</label>
+                    <select id="sScale" onchange="applyStatuesFilters()">
+                        <option value="all" data-i18n="opt_all_formats">Tous les formats</option>
+                        <option value="1/4">1/4</option>
+                        <option value="1/3">1/3</option>
+                        <option value="1/2">1/2</option>
+                        <option value="Life-Size">Life-Size</option>
+                    </select>
+                    <label data-i18n="statues_condition">ÉTAT DE L'OBJET</label>
+                    <select id="sCond" onchange="applyStatuesFilters()">
+                        <option value="all" data-i18n="opt_all_conds">Tous les états</option>
+                        <option value="Neuf" data-i18n="cond_new_short">Neuf</option>
+                        <option value="Occasion" data-i18n="cond_used">Occasion</option>
+                        <option value="Scellé" data-i18n="cond_sealed">Scellé</option>
+                    </select>
+                </div>
+                <div class="statues-grid-wrap">
+                    <div class="cat-title market-title" data-i18n="market_statues_title">MARKET STATUES</div>
+                    <div class="grid-layout" id="marketGridStatues"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1121,7 +1179,10 @@
             'safety_msg_escrow': 'SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).', 'lbl_price': 'Prix', 'lbl_duty': 'Frais de Douane Est.',
             'lbl_total_pay': 'TOTAL À PAYER', 'btn_buy': 'ACHAT DIRECT', 'btn_offer': 'FAIRE OFFRE',
             'market_kind_figurines': 'FIGURINES', 'market_kind_statues': 'STATUES', 'market_view': 'Vue',
-            'market_gallery': 'Galerie', 'market_list': 'Liste', 'market_currency': 'Devise'
+            'market_gallery': 'Galerie', 'market_list': 'Liste', 'market_currency': 'Devise',
+            'statues_filters_title': 'FILTRES STATUES', 'statues_brand': 'MARQUE', 'statues_price': 'PRIX',
+            'statues_zone': "ZONE D'EXPÉDITION", 'statues_scale': 'ÉCHELLE / FORMAT', 'statues_condition': "ÉTAT DE L'OBJET",
+            'market_statues_title': 'MARKET STATUES', 'cond_new_short': 'Neuf', 'cond_used': 'Occasion', 'cond_sealed': 'Scellé'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -1134,7 +1195,10 @@
             'safety_msg_escrow': 'SECURITY: Funds secured. Release: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Price', 'lbl_duty': 'Estimated Customs',
             'lbl_total_pay': 'TOTAL TO PAY', 'btn_buy': 'BUY NOW', 'btn_offer': 'MAKE OFFER',
             'market_kind_figurines': 'FIGURINES', 'market_kind_statues': 'STATUES', 'market_view': 'View',
-            'market_gallery': 'Gallery', 'market_list': 'List', 'market_currency': 'Currency'
+            'market_gallery': 'Gallery', 'market_list': 'List', 'market_currency': 'Currency',
+            'statues_filters_title': 'STATUE FILTERS', 'statues_brand': 'BRAND', 'statues_price': 'PRICE',
+            'statues_zone': 'SHIPPING ZONE', 'statues_scale': 'SCALE / FORMAT', 'statues_condition': 'ITEM CONDITION',
+            'market_statues_title': 'STATUES MARKET', 'cond_new_short': 'New', 'cond_used': 'Used', 'cond_sealed': 'Sealed'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -1147,7 +1211,10 @@
             'safety_msg_escrow': 'SEGURIDAD: Fondos protegidos. Liberacion: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Precio', 'lbl_duty': 'Aduana estimada',
             'lbl_total_pay': 'TOTAL A PAGAR', 'btn_buy': 'COMPRA DIRECTA', 'btn_offer': 'HACER OFERTA',
             'market_kind_figurines': 'FIGURINAS', 'market_kind_statues': 'ESTATUAS', 'market_view': 'Vista',
-            'market_gallery': 'Galeria', 'market_list': 'Lista', 'market_currency': 'Divisa'
+            'market_gallery': 'Galeria', 'market_list': 'Lista', 'market_currency': 'Divisa',
+            'statues_filters_title': 'FILTROS ESTATUAS', 'statues_brand': 'MARCA', 'statues_price': 'PRECIO',
+            'statues_zone': 'ZONA DE ENVIO', 'statues_scale': 'ESCALA / FORMATO', 'statues_condition': 'ESTADO DEL ARTICULO',
+            'market_statues_title': 'MERCADO ESTATUAS', 'cond_new_short': 'Nuevo', 'cond_used': 'Usado', 'cond_sealed': 'Sellado'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -1160,7 +1227,10 @@
             'safety_msg_escrow': '安全：资金托管。放款：Legacy 4天 / Native 3天。', 'lbl_price': '价格', 'lbl_duty': '预估关税',
             'lbl_total_pay': '应付总额', 'btn_buy': '立即购买', 'btn_offer': '出价',
             'market_kind_figurines': '可动人偶', 'market_kind_statues': '雕像', 'market_view': '视图',
-            'market_gallery': '画廊', 'market_list': '列表', 'market_currency': '货币'
+            'market_gallery': '画廊', 'market_list': '列表', 'market_currency': '货币',
+            'statues_filters_title': '雕像筛选', 'statues_brand': '品牌', 'statues_price': '价格',
+            'statues_zone': '发货区域', 'statues_scale': '比例 / 规格', 'statues_condition': '成色',
+            'market_statues_title': '雕像市场', 'cond_new_short': '全新', 'cond_used': '二手', 'cond_sealed': '未拆封'
         }
     };
 
@@ -1416,20 +1486,21 @@ function setSpiritMarketLoading(on) {
 function renderMarket(filteredData = null) {
         const sourceData = filteredData || marketData;
         const dataToRender = Array.isArray(sourceData) ? sourceData.filter(item => {
-            const rawCat = String(item.category || item.cat || '').toLowerCase();
-            const isStatue = rawCat.includes('1/4') || rawCat.includes('resine') || rawCat.includes('résine') || rawCat.includes('pvc') || rawCat.includes('statue');
-            return marketKindMode === 'statues' ? isStatue : !isStatue;
+            const strictStatue = String(item.cat || '').toLowerCase() === 'statue';
+            return marketKindMode === 'statues' ? strictStatue : !strictStatue;
         }) : [];
         if (!dataToRender || dataToRender.length === 0) {
             console.warn("[SPIRIT MARKET] Attente des données Ledger avant rendu...");
             return;
         }
 
-        const gn = document.getElementById('marketGridNative');
+        const gn = marketKindMode === 'statues'
+            ? document.getElementById('marketGridStatues')
+            : document.getElementById('marketGridNative');
         const gl = document.getElementById('marketGridLegacy');
         
         // AJOUT : Ciblage de la grille "Mes Annonces" si elle existe dans ton interface compte
-        const gMine = document.getElementById('marketGridMines');
+        const gMine = marketKindMode === 'statues' ? null : document.getElementById('marketGridMines');
 
         if (!gn) return; // Sécurité si les IDs n'existent pas
         
@@ -2358,6 +2429,10 @@ async function confirmPayment(method) {
     }
 
     function applyFilters() {
+        if (marketKindMode === 'statues') {
+            applyStatuesFilters();
+            return;
+        }
         const pRange = document.getElementById('fPrice').value;
         const country = document.getElementById('fCountry').value;
         const brand = document.getElementById('fBrand').value;
@@ -2377,9 +2452,42 @@ async function confirmPayment(method) {
         renderMarket(filtered);
     }
 
+    function applyStatuesFilters() {
+        const brand = document.getElementById('sBrand') ? document.getElementById('sBrand').value : 'all';
+        const pRange = document.getElementById('sPrice') ? document.getElementById('sPrice').value : 'all';
+        const country = document.getElementById('sCountry') ? document.getElementById('sCountry').value : 'all';
+        const scale = document.getElementById('sScale') ? document.getElementById('sScale').value : 'all';
+        const cond = document.getElementById('sCond') ? document.getElementById('sCond').value : 'all';
+        const filtered = (Array.isArray(marketData) ? marketData : []).filter(item => {
+            if (String(item.cat || '').toLowerCase() !== 'statue') return false;
+            const itemPrice = spiritConvertCurrency((item.amount != null ? Number(item.amount) : Number(item.price || 0)), String(item.currency || 'EUR').toUpperCase(), marketCurrencyMode);
+            let matchPrice = true;
+            if (pRange !== 'all') {
+                if (pRange === '2000+') matchPrice = itemPrice >= 2000;
+                else {
+                    const sp = pRange.split('-');
+                    const min = Number(sp[0] || 0);
+                    const max = Number(sp[1] || 0);
+                    matchPrice = itemPrice >= min && itemPrice <= max;
+                }
+            }
+            const itemCountry = item.origin_country || item.country || '';
+            const itemScale = item.scale || item.format || item.category || '';
+            const itemCond = item.cond || item.condition || '';
+            return matchPrice &&
+                (brand === 'all' || String(item.brand || '') === brand) &&
+                (country === 'all' || String(itemCountry) === country) &&
+                (scale === 'all' || String(itemScale) === scale) &&
+                (cond === 'all' || String(itemCond) === cond);
+        });
+        renderMarket(filtered);
+    }
+
     function setMarketView(mode) {
         marketViewMode = (mode === 'list') ? 'list' : 'gallery';
-        const gn = document.getElementById('marketGridNative');
+        const gn = marketKindMode === 'statues'
+            ? document.getElementById('marketGridStatues')
+            : document.getElementById('marketGridNative');
         if (!gn) return;
         if (marketViewMode === 'list') gn.classList.add('list-view');
         else gn.classList.remove('list-view');
@@ -2390,8 +2498,17 @@ async function confirmPayment(method) {
         marketKindMode = (kind === 'statues') ? 'statues' : 'figurines';
         const bFig = document.getElementById('btn-kind-figurines');
         const bSta = document.getElementById('btn-kind-statues');
+        const leftSidebar = document.querySelector('#marketplaceSection > .sidebar');
+        const marketTitle = document.querySelector('#marketplaceSection .grid > .market-title');
+        const gridNative = document.getElementById('marketGridNative');
+        const statuesView = document.getElementById('marketStatuesView');
         if (bFig) bFig.classList.toggle('active', marketKindMode === 'figurines');
         if (bSta) bSta.classList.toggle('active', marketKindMode === 'statues');
+        if (leftSidebar) leftSidebar.style.display = marketKindMode === 'statues' ? 'none' : '';
+        if (marketTitle) marketTitle.style.display = marketKindMode === 'statues' ? 'none' : '';
+        if (gridNative) gridNative.style.display = marketKindMode === 'statues' ? 'none' : '';
+        if (statuesView) statuesView.style.display = marketKindMode === 'statues' ? 'block' : 'none';
+        setMarketView(marketViewMode);
         if (typeof applyFilters === 'function') applyFilters();
     }
     window.setMarketKind = setMarketKind;
@@ -3544,7 +3661,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
