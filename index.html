@@ -2593,10 +2593,10 @@ values
 async function spiritEnsureProfileRow(authUid) {
     if (!_spirit || !authUid) return null;
     try {
-        let prof = await _spirit.from('profiles').select('id,owner_id,public_id').eq('id', authUid).maybeSingle();
+        let prof = await _spirit.from('profiles').select('id,owner_id').eq('id', authUid).maybeSingle();
         if (prof && prof.data) return prof.data;
-        const payload = { id: authUid, owner_id: authUid, public_id: authUid };
-        const created = await _spirit.from('profiles').upsert([payload], { onConflict: 'id' }).select('id,owner_id,public_id').maybeSingle();
+        const payload = { id: authUid, owner_id: authUid };
+        const created = await _spirit.from('profiles').upsert([payload], { onConflict: 'id' }).select('id,owner_id').maybeSingle();
         if (created && created.error) {
             console.error('[SPIRIT SANCT] create profile error:', created.error);
             return null;
@@ -2625,13 +2625,13 @@ async function spiritLoadSession() {
         }
         spiritSession.user = u || null;
         spiritSession.userId = u && u.id ? String(u.id) : '';
-        spiritSession.publicId = u && u.user_metadata && u.user_metadata.public_id ? String(u.user_metadata.public_id) : '';
+        spiritSession.publicId = u && u.user_metadata && u.user_metadata.owner_id ? String(u.user_metadata.owner_id) : '';
         if (_spirit && spiritSession.userId) {
             try {
                 const pData = await spiritEnsureProfileRow(spiritSession.userId);
                 if (pData) {
                     spiritSession.profileRow = pData;
-                    spiritSession.profileOwnerId = String(pData.owner_id || pData.public_id || pData.id || '').trim();
+                    spiritSession.profileOwnerId = String(pData.owner_id || pData.id || '').trim();
                 } else {
                     console.warn('[SPIRIT SANCT] profiles row missing for auth user:', spiritSession.userId);
                 }
