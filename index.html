@@ -1222,7 +1222,6 @@
             <div style="flex:1; min-width:300px;">
                 <h2 id="pTitle">Titre</h2>
                 <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
-                <div id="pMatiere" style="display:none; font-size:0.78rem; color:#8cc; margin-bottom:8px;"></div>
                 <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
                 <div id="pDescBox" style="font-size:0.85rem; color:#aaa; margin-bottom:15px; background:#111; padding:10px; border-left:2px solid var(--neon-orange);"></div>
                 
@@ -1302,7 +1301,6 @@
                 <button class="btn-action" onclick="chooseMethod('hot_native')">1. Hot Toys (Equipée Spirit Infinity + Scan IA)</button>
                 <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan IA uniquement)</button>
                 <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (Vente Directe)</button>
-                <button class="btn-action" style="background:#2a2a2a; color:white; border:1px solid #555;" onclick="chooseMethod('statue')">4. Statue</button>
                 <button id="btn-publish-final" class="btn-action" style="margin-top:20px; width:100%; display:none;" onclick="publishFinal()">PUBLIER SUR LE MARCHÉ MONDIAL</button>
             </div>
         </div>
@@ -1332,14 +1330,6 @@
                 <option value="Resine">Statue Résine</option>
                 <option value="PVC">Statue PVC</option>
             </select>
-            <div id="saleMatiereRow" style="display:none;">
-                <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;">MATIÈRE</label>
-                <select id="saleMatiere">
-                    <option value="">-- MATIÈRE --</option>
-                    <option value="Résine">Résine</option>
-                    <option value="PVC">PVC</option>
-                </select>
-            </div>
             <select id="saleBrand">
                 <option value="">-- MARQUE --</option>
                 <option value="Hot Toys">Hot Toys</option>
@@ -1397,7 +1387,7 @@
                     <p style="font-size:0.75rem; color:#777; margin-top:5px;">Par: Tony_S | 12 réponses</p>
                 </div>
             </div>
-            <div id="topicEditor" style="display:none; background:rgba(0,0,0,0.9); padding:12px; border:1px solid #ff4500; border-radius:8px; margin-top:80px; max-width:520px; width:100%; margin-left:auto; margin-right:auto; position:relative; z-index:100001; box-sizing:border-box; max-height:calc(100vh - 280px); overflow-y:auto;">
+            <div id="topicEditor" style="display:none; background:#111; padding:20px; border:1px solid var(--border);">
                 <h3 style="color:var(--neon-orange); margin-top:0;">CRÉER UN NOUVEAU SUJET</h3>
                 <input type="text" id="topicTitle" placeholder="Titre du sujet (ex: Problème articulation Batman)">
                 <select id="topicTag">
@@ -1406,7 +1396,7 @@
                     <option value="NEWS">NEWS / RUMEURS</option>
                     <option value="SHOWCASE">SHOWCASE</option>
                 </select>
-                <textarea id="topicBody" style="height:80px;" placeholder="Écrivez votre message ici..."></textarea>
+                <textarea id="topicBody" style="height:150px;" placeholder="Écrivez votre message ici..."></textarea>
                 <div style="display:flex; gap:10px; margin-top:10px;">
                     <button class="btn-action" onclick="publishTopic()">PUBLIER LE SUJET</button>
                     <button class="btn-action" style="background:#333; color:white;" onclick="hideTopicEditor()">ANNULER</button>
@@ -2526,7 +2516,6 @@ function spiritAcknowledgeFavoriteTab() {
 /* Supabase: favorites.user_id = text ; product_id = bigint (FK products_live.id).
    Colonnes recommandées (SQL Supabase, une fois chacune) :
    ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS old_price numeric;
-   ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS matiere text; /* rubrique Statue : Résine | PVC */
    -- Optionnel (si vous alignez le schéma sur `amount`) :
    -- ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS amount numeric;
    -- Après ajout de `amount`, vous pourrez ré-inclure amount dans les insert/update et dans les .select() ciblés.
@@ -2905,15 +2894,11 @@ async function loadMySales() {
     function resetSellForm() {
         editingId = null;
         diagActive = false;
-        currentMethod = '';
         previewPhotos = [null, null, null, null, null];
         document.getElementById('inputTitle').value = '';
         document.getElementById('inputPrice').value = '';
         document.getElementById('inputDesc').value = '';
         document.getElementById('saleCat').value = '';
-        if (document.getElementById('saleMatiere')) document.getElementById('saleMatiere').value = '';
-        var _mr = document.getElementById('saleMatiereRow');
-        if (_mr) _mr.style.display = 'none';
         document.getElementById('saleShip').value = 'Moyen';
         for(let i=1; i<=5; i++) {
             document.getElementById('pBox' + i).innerHTML = 'PHOTO ' + i;
@@ -2937,8 +2922,6 @@ async function loadMySales() {
         document.getElementById('stepMethod').style.display = 'none';
         document.getElementById('stepInfo').style.display = 'block';
         document.getElementById('s2').className = 'step active';
-        var mr = document.getElementById('saleMatiereRow');
-        if (mr) mr.style.display = (m === 'statue') ? 'block' : 'none';
     }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -2956,13 +2939,6 @@ async function goToScan() {
     if(!imgToScan) {
         alert("PHOTO MANQUANTE : La Photo 1 est la base de l'audit Spirit Eyes.");
         return;
-    }
-    if (typeof currentMethod !== 'undefined' && currentMethod === 'statue') {
-        var matSel = document.getElementById('saleMatiere');
-        if (!matSel || !String(matSel.value || '').trim()) {
-            alert("MATIÈRE REQUISE : sélectionnez Résine ou PVC.");
-            return;
-        }
     }
 
     // Affichage interface de scan
@@ -3110,8 +3086,7 @@ async function publierAnnonce() {
     const desc = document.getElementById('inputDesc').value;
     const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore, 10) || 0;
     const category = document.getElementById('saleCat') ? document.getElementById('saleCat').value : '';
-    const matiere = document.getElementById('saleMatiere') ? String(document.getElementById('saleMatiere').value || '').trim() : '';
-    const normalizedCat = (typeof currentMethod !== 'undefined' && currentMethod === 'statue') ? 'statue' : normalizeSpiritCat(category);
+    const normalizedCat = normalizeSpiritCat(category);
     const brand = document.getElementById('saleBrand') ? document.getElementById('saleBrand').value : '';
     const isSmokeFree = !!(document.getElementById('saleSmokeFree') && document.getElementById('saleSmokeFree').checked);
     const isLightProtect = !!(document.getElementById('saleLightProtect') && document.getElementById('saleLightProtect').checked);
@@ -3151,9 +3126,6 @@ async function publierAnnonce() {
         is_first_hand: isFirstHand,
         has_coa: hasCoa
     };
-    if (typeof currentMethod !== 'undefined' && currentMethod === 'statue' && matiere) {
-        newItem.matiere = matiere;
-    }
 
     try {
         if (!_spirit) {
@@ -3187,11 +3159,6 @@ async function publierAnnonce() {
                 is_first_hand: isFirstHand,
                 has_coa: hasCoa
             };
-            if (typeof currentMethod !== 'undefined' && currentMethod === 'statue' && matiere) {
-                updateRow.matiere = matiere;
-            } else if (typeof currentMethod !== 'undefined' && currentMethod === 'statue' && !matiere) {
-                updateRow.matiere = null;
-            }
             if (photoUrls.length > 0) {
                 updateRow.image_url = photoUrls.length === 1 ? photoUrls[0] : JSON.stringify(photoUrls);
             }
@@ -3398,17 +3365,8 @@ async function editAnnonce(id) {
     if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize || 'medium';
     
     if (typeof chooseMethod === 'function') {
-        var isStatListing = (typeof normalizeSpiritCat === 'function') && normalizeSpiritCat(item.cat || item.category) === 'statue';
-        var hasMatiere = item.matiere && String(item.matiere).trim() !== '';
-        if (isStatListing || hasMatiere) {
-            chooseMethod('statue');
-            if (document.getElementById('saleMatiere') && hasMatiere) {
-                document.getElementById('saleMatiere').value = item.matiere;
-            }
-        } else {
-            const isNative = item.is_native === true || item.type === 'native';
-            chooseMethod(isNative ? 'hot_native' : 'hot_legacy');
-        }
+        const isNative = item.is_native === true || item.type === 'native';
+        chooseMethod(isNative ? 'hot_native' : 'hot_legacy');
     }
     console.log("[SPIRIT SYSTEM] Mode édition activé pour:", item.title);
 }
@@ -3747,17 +3705,6 @@ async function confirmPayment(method) {
         const displayCountry = item.country || "France";
         const displayCond = item.cond || "Certifié Spirit";
         document.getElementById('pOrigin').innerText = displayCountry + " | " + displayCond;
-        var pMatEl = document.getElementById('pMatiere');
-        if (pMatEl) {
-            var _mat = item.matiere;
-            if (_mat && String(_mat).trim() !== '') {
-                pMatEl.style.display = 'block';
-                pMatEl.textContent = 'MATIÈRE : ' + _mat;
-            } else {
-                pMatEl.style.display = 'none';
-                pMatEl.textContent = '';
-            }
-        }
         
         // CORRECTION : Supabase utilise 'description' au lieu de 'desc'
         document.getElementById('pDescBox').innerText = item.description || item.desc || "Aucune description disponible.";
@@ -6551,7 +6498,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
