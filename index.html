@@ -5125,8 +5125,12 @@ async function spiritUpdateNavSanctuaryDot() {
 function spiritSanctuaryStartPoll() {
     if (spiritSanctuaryPollTimer) clearInterval(spiritSanctuaryPollTimer);
     spiritSanctuaryPollTimer = setInterval(function () {
-        if (document.body.classList.contains('spirit-public-active')) return;
-        void spiritUpdateNavSanctuaryDot();
+        try {
+            if (!document.body) return;
+            if (document.body.classList && document.body.classList.contains('spirit-public-active')) return;
+            var p = spiritUpdateNavSanctuaryDot();
+            if (p && typeof p.catch === 'function') p.catch(function () {});
+        } catch (e) {}
     }, 10000);
 }
 function spiritApplyPublicHashRoute() {
