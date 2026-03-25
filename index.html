@@ -1807,6 +1807,39 @@
         _spirit = null;
         console.warn('[SPIRIT] Supabase indisponible, UI en mode statique.', e);
     }
+    // Coupe-circuit anti-400: on neutralise user_profiles + sanctuary_chat côté réseau.
+    // Ces fonctionnalités tournent en fallback local dans cette page.
+    var SPIRIT_SUPABASE_BLOCK_TABLES = { user_profiles: true, sanctuary_chat: true };
+    function spiritBlockedTableResult(table) {
+        return Promise.resolve({
+            data: table === 'user_profiles' ? null : [],
+            error: null,
+            count: 0
+        });
+    }
+    function spiritBlockedTableBuilder(table) {
+        var b = {};
+        ['select', 'eq', 'neq', 'order', 'limit', 'update', 'insert', 'delete', 'upsert', 'in'].forEach(function (m) {
+            b[m] = function () { return b; };
+        });
+        b.maybeSingle = function () { return spiritBlockedTableResult(table); };
+        b.then = function (resolve, reject) { return spiritBlockedTableResult(table).then(resolve, reject); };
+        b.catch = function (reject) { return spiritBlockedTableResult(table).catch(reject); };
+        b.finally = function (cb) { return spiritBlockedTableResult(table).finally(cb); };
+        return b;
+    }
+    try {
+        if (_spirit && typeof _spirit.from === 'function') {
+            var _spiritFromOrig = _spirit.from.bind(_spirit);
+            _spirit.from = function (table) {
+                var t = String(table || '').trim();
+                if (SPIRIT_SUPABASE_BLOCK_TABLES[t]) return spiritBlockedTableBuilder(t);
+                return _spiritFromOrig(table);
+            };
+        }
+    } catch (ePatch) {
+        console.warn('[SPIRIT] patch _spirit.from impossible', ePatch);
+    }
     
     const translations = {
         'FR': {
@@ -4512,6 +4545,10 @@ var spiritSanctuaryViewModeAccount = 'list';
 var spiritSanctuaryPollTimer = null;
 var SPIRIT_BUCKET_AVATAR = 'sanctuary';
 var SPIRIT_BUCKET_SANCTUARY = 'sanctuary';
+// Fallback local pour IDs de test (évite les 400 Supabase si non mappés côté backend).
+var spiritLocalSanctuaryChatByRecipient = Object.create(null);
+// Stabilisation: on force le chat Sanctuaire en local (plus de requêtes sanctuary_chat => plus de 400).
+var SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY = true;
 // Persist: stocke la valeur de `user_profiles.avatar_url` (path ou URL) pour recharger l'image au changement de vue.
 var spiritPublicAvatarPersist = '';
 
@@ -4750,22 +4787,31 @@ function spiritPublicSetTab(which) {
     try { if (typeof spiritPublicReloadAvatarFromSanctuary === 'function') void spiritPublicReloadAvatarFromSanctuary(); } catch (e2) {}
 }
 
-async function spiritResolveUserIdForFakeTestId(v) {
-    // Plusieurs requêtes Supabase doivent utiliser l'ID UUID réel quand on manipule le faux ID "12345".
+async function spiritResolveUserIdForFakeTestId(v, opts) {
+    // Pour les IDs de test ("12345"/"67890"), on évite les requêtes Supabase par défaut
+    // (sinon spam 400). On ne mappe vers l'UUID auth que si explicitement autorisé.
+    opts = opts || {};
     v = String(v || '').trim();
-    if (v !== '12345') return v;
-    if (typeof _spirit === 'undefined' || !_spirit || !_spirit.auth || typeof _spirit.auth.getUser !== 'function') return v;
+    var isFake = (v === '12345' || v === '67890');
+    if (!isFake) return v;
+    if (!opts.allowCurrentAuthMap) return null;
+    if (typeof _spirit === 'undefined' || !_spirit || !_spirit.auth || typeof _spirit.auth.getUser !== 'function') return null;
+    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (!me || me !== v) return null;
     try {
         var au = await _spirit.auth.getUser();
         var rid = au && au.data && au.data.user && au.data.user.id ? String(au.data.user.id).trim() : '';
         if (rid) return rid;
     } catch (e) {}
-    return v;
+    return null;
 }
 async function spiritPublicFetchUserProfile(uid) {
     if (typeof _spirit === 'undefined' || !_spirit) return null;
     try {
+        var rawUid = String(uid || '').trim();
+        if (rawUid === '12345' || rawUid === '67890') return null;
         var userId = await spiritResolveUserIdForFakeTestId(uid);
+        if (!userId) return null;
         var out = await _spirit.from('user_profiles').select('*').eq('id', userId.toString()).maybeSingle();
         if (out.error) return null;
         return out.data || null;
@@ -5021,11 +5067,13 @@ async function spiritSanctuaryFetchItems(uid) {
     } catch (e) { return []; }
 }
 async function spiritSanctuaryMarkReadForOwner(uid) {
+    if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) return;
     if (typeof _spirit === 'undefined' || !_spirit) return;
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
     if (me !== String(uid)) return;
     try {
         var resolvedUid = await spiritResolveUserIdForFakeTestId(uid);
+        if (!resolvedUid) return;
         await _spirit.from('sanctuary_chat').update({ is_read: true }).eq('recipient_id', String(resolvedUid)).eq('is_read', false);
     } catch (e) {}
     void spiritUpdateNavSanctuaryDot();
@@ -5425,8 +5473,31 @@ async function spiritSanctuaryRenderChat(ctx) {
     var uid = spiritSanctuaryUid(ctx);
     var d = spiritSanctuaryDom(ctx);
     var box = document.getElementById(d.chatMsgs);
-    if (!box || !uid || typeof _spirit === 'undefined' || !_spirit) return;
+    if (!box || !uid) return;
+    if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
+        var keyLocal = String(uid);
+        var arrLocal = spiritLocalSanctuaryChatByRecipient[keyLocal] || [];
+        box.innerHTML = arrLocal.map(function (m) {
+            var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
+            var tx = String(m.body || '').replace(/</g, '&lt;');
+            return '<div class="spirit-san-chat-line"><span class="who">' + who + '</span> — ' + tx + '</div>';
+        }).join('');
+        box.scrollTop = box.scrollHeight;
+        return;
+    }
+    if (typeof _spirit === 'undefined' || !_spirit) return;
     var resolvedUid = await spiritResolveUserIdForFakeTestId(uid);
+    if (!resolvedUid) {
+        var key = String(uid);
+        var arr = spiritLocalSanctuaryChatByRecipient[key] || [];
+        box.innerHTML = arr.map(function (m) {
+            var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
+            var tx = String(m.body || '').replace(/</g, '&lt;');
+            return '<div class="spirit-san-chat-line"><span class="who">' + who + '</span> — ' + tx + '</div>';
+        }).join('');
+        box.scrollTop = box.scrollHeight;
+        return;
+    }
     var out = await _spirit.from('sanctuary_chat').select('*').eq('recipient_id', String(resolvedUid)).order('created_at', { ascending: true }).limit(200);
     if (out.error || !out.data) { box.innerHTML = '<p style="color:#555;font-size:0.65rem;">—</p>'; return; }
     box.innerHTML = out.data.map(function (m) {
@@ -5449,9 +5520,41 @@ async function spiritSanctuarySendChat(ctx) {
         return;
     }
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
+        var keyLocal = String(uid);
+        if (!Array.isArray(spiritLocalSanctuaryChatByRecipient[keyLocal])) spiritLocalSanctuaryChatByRecipient[keyLocal] = [];
+        var labelLocal = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
+        spiritLocalSanctuaryChatByRecipient[keyLocal].push({
+            recipient_id: String(uid),
+            sender_id: String(me),
+            sender_label: labelLocal,
+            body: chk.text,
+            is_read: String(me) === String(uid),
+            created_at: new Date().toISOString()
+        });
+        inp.value = '';
+        await spiritSanctuaryRenderChat(ctx);
+        return;
+    }
+    if (typeof _spirit === 'undefined' || !_spirit) return;
     var resolvedUid = await spiritResolveUserIdForFakeTestId(uid);
     var resolvedMe = await spiritResolveUserIdForFakeTestId(me);
     var label = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
+    if (!resolvedUid || !resolvedMe) {
+        var key = String(uid);
+        if (!Array.isArray(spiritLocalSanctuaryChatByRecipient[key])) spiritLocalSanctuaryChatByRecipient[key] = [];
+        spiritLocalSanctuaryChatByRecipient[key].push({
+            recipient_id: String(uid),
+            sender_id: String(me),
+            sender_label: label,
+            body: chk.text,
+            is_read: String(me) === String(uid),
+            created_at: new Date().toISOString()
+        });
+        inp.value = '';
+        await spiritSanctuaryRenderChat(ctx);
+        return;
+    }
     var ins = await _spirit.from('sanctuary_chat').insert({
         recipient_id: String(resolvedUid),
         sender_id: String(resolvedMe),
@@ -5489,7 +5592,25 @@ async function spiritUpdateNavSanctuaryDot() {
         return;
     }
 
+    if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
+        var arrLocal = spiritLocalSanctuaryChatByRecipient[String(me)] || [];
+        var showLocal = Array.isArray(arrLocal) && arrLocal.length > 0;
+        if (dot) dot.style.display = showLocal ? 'block' : 'none';
+        if (fix) fix.style.display = showLocal ? 'block' : 'none';
+        if (nav) nav.classList.toggle('spirit-nav-sanctuary-blink', showLocal);
+        return;
+    }
+
     try {
+        if (!resolvedMe) {
+            // Mode local (IDs de test non mappés Supabase): dot basé sur cache local.
+            var arr = spiritLocalSanctuaryChatByRecipient[String(me)] || [];
+            var showLocal = Array.isArray(arr) && arr.length > 0;
+            if (dot) dot.style.display = showLocal ? 'block' : 'none';
+            if (fix) fix.style.display = showLocal ? 'block' : 'none';
+            if (nav) nav.classList.toggle('spirit-nav-sanctuary-blink', showLocal);
+            return;
+        }
         // Raison: éviter de dépendre de `is_read`/`count/head/order` (ça génère des 400 chez toi).
         // On affiche le dot si une ligne existe pour ce `recipient_id` (dot = activité chat côté serveur).
         var q = await _spirit.from('sanctuary_chat')
