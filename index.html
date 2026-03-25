@@ -3190,9 +3190,18 @@ function publishFinal() {
 async function updateUserAnnonces() {
     const container = document.getElementById('user-annonces-list');
     if (!container) return;
-    container.innerHTML = '';
-    
     const currentUserID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+
+    // PERF: si déjà rendu pour ce user récemment, ne pas rerender => évite de recharger les images.
+    try {
+        const loadedFor = container.dataset ? String(container.dataset.spiritAdsLoadedFor || '') : '';
+        const loadedAt = container.dataset ? Number(container.dataset.spiritAdsLoadedAt || 0) : 0;
+        if (loadedFor === currentUserID && loadedAt && (Date.now() - loadedAt) < 60000 && container.childElementCount > 0) {
+            return;
+        }
+    } catch (e) {}
+
+    container.innerHTML = '';
     
     let myAnnonces = [];
     if (_spirit) {
@@ -3230,7 +3239,7 @@ async function updateUserAnnonces() {
         const div = document.createElement('div');
         // AJOUT : Style Industrial Dark avec distinction si vendu
         const opacity = a.status === 'sold' ? 'opacity: 0.6;' : '';
-        div.style = `background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px; margin-bottom:10px; ${opacity} border-left: 3px solid ${a.status === 'sold' ? '#555' : 'var(--neon-orange)'};`;
+        div.style = `background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px; margin-bottom:10px; ${opacity} border-left: 3px solid ${a.status === 'sold' ? '#555' : 'var(--neon-orange)'}; cursor:pointer;`;
         
         // AJOUT : Affichage de la miniature avec fallback img1/img
         const _annUrls = spiritImageUrlList(a);
@@ -3252,12 +3261,26 @@ async function updateUserAnnonces() {
                 </div>
             </div>
             <div style="display:flex; gap:10px; margin-top:5px;">
-                <button class="btn-action" style="font-size:0.6rem; padding:8px; flex:1; cursor:pointer;" onclick="editAnnonce('${a.id}')">MODIFIER</button>
-                <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem; padding:8px; flex:1; cursor:pointer; border:none;" onclick="deleteAnnonce('${a.id}')">SUPPRIMER</button>
+                <button class="btn-action" style="font-size:0.6rem; padding:8px; flex:1; cursor:pointer;" onclick="event.stopPropagation(); editAnnonce('${a.id}')">MODIFIER</button>
+                <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem; padding:8px; flex:1; cursor:pointer; border:none;" onclick="event.stopPropagation(); deleteAnnonce('${a.id}')">SUPPRIMER</button>
             </div>
         `;
+        // Clic carte => ouverture directe de l'annonce (modal vente)
+        try {
+            div.addEventListener('click', function () {
+                if (typeof showProductDetails === 'function') void showProductDetails(a.id);
+                else if (typeof window !== 'undefined' && typeof window.showProductDetails === 'function') void window.showProductDetails(a.id);
+                else if (typeof openAdDetail === 'function') void openAdDetail(a.id);
+            });
+        } catch (e) {}
         container.appendChild(div);
     });
+    try {
+        if (container.dataset) {
+            container.dataset.spiritAdsLoadedFor = currentUserID;
+            container.dataset.spiritAdsLoadedAt = String(Date.now());
+        }
+    } catch (e) {}
     console.log(`[SPIRIT SYSTEM] Mise à jour liste utilisateur : ${myAnnonces.length} annonces affichées.`);
 }
 
