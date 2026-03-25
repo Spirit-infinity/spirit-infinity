@@ -2008,8 +2008,7 @@ async function loadUserPurchases() {
     if(!listBody) return;
     listBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Chargement du Ledger...</td></tr>';
 
-    const { data, error } = await _spirit
-        .from('transactions')
+    const { data, error } = await _spirit.from('transactions')
         .select('*')
         .eq('buyer_id', String(MY_TEST_ID)) // Remplace '12345' par String(MY_TEST_ID)
         // .order('created_at', { ascending: false });
@@ -5270,10 +5269,9 @@ async function loadMyPurchases() {
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE ACHATS...</div>';
 
     try {
-        const { data, error } = await _spirit
-            .from('transactions')
+        const { data, error } = await _spirit.from('transactions')
             .select('*')
-            .eq('buyer_id', MY_TEST_ID)
+            .eq('buyer_id', String(MY_TEST_ID))
             // .order('created_at', { ascending: false });
 
         // Correction : Vérification que data existe avant le rendu pour éviter "data is not defined"
