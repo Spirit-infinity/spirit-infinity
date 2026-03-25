@@ -5359,12 +5359,15 @@ async function spiritUpdateNavSanctuaryDot() {
         return;
     }
     try {
-        var q = await _spirit.from('sanctuary_chat').select('id', { count: 'exact', head: true })
+        // Avoid `count: 'exact'` + `head: true` which peut déclencher des 400 côté PostgREST/RLS.
+        // Ici on cherche juste l'existence d'au moins 1 message unread.
+        var q = await _spirit.from('sanctuary_chat')
+            .select('id')
             .eq('recipient_id', String(resolvedMe))
             .eq('is_read', false)
-            .neq('sender_id', String(resolvedMe));
-        var n = (q && q.error) ? 0 : ((typeof q.count === 'number') ? q.count : 0);
-        var show = n > 0;
+            .neq('sender_id', String(resolvedMe))
+            .limit(1);
+        var show = !!(q && !q.error && q.data && Array.isArray(q.data) && q.data.length > 0);
         if (dot) dot.style.display = show ? 'block' : 'none';
         if (fix) fix.style.display = show ? 'block' : 'none';
         if (nav) nav.classList.toggle('spirit-nav-sanctuary-blink', show);
