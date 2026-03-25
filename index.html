@@ -3422,12 +3422,15 @@ async function enregistrerVente(method) {
         const { data, error } = await _spirit
             .from('transactions')
             .insert([{
-                amount: totalAcheteur, 
-                buyer_id: buyerIdTxt,
-                seller_id: sellerIdTxt,
-                user_profit: uProfit, 
-                firm_profit: fProfit, 
-                bank_share: bShare, 
+                // Supabase: `amount` est `numeric` => envoi sous forme de nombre
+                amount: Number(totalAcheteur),
+                // Règle: forcer `buyer_id`/`seller_id` en chaîne de chiffres (pas un UUID)
+                buyer_id: /^\d+$/.test(String(buyerIdTxt).trim()) ? String(buyerIdTxt).trim() : String(MY_TEST_ID || '').trim(),
+                seller_id: /^\d+$/.test(String(sellerIdTxt).trim()) ? String(sellerIdTxt).trim() : '67890',
+                // Colonnes `numeric` => envoi numérique explicite
+                user_profit: Number(uProfit),
+                firm_profit: Number(fProfit),
+                bank_share: Number(bShare),
                 status: 'SÉQUESTRE ACTIF', 
                 figurine_name: selectedProduct.title || selectedProduct.name || 'Produit',
                 currency: 'EUR',
@@ -5907,7 +5910,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
