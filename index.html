@@ -1501,6 +1501,10 @@
     <p style="font-size:0.65rem;color:#666;margin-top:0;">Galerie noire &amp; néon — jusqu’à 15 pièces (bucket Storage <code>sanctuary</code>).</p>
     <div id="spiritAccountSanctuaryRoot" style="background:#000000;border:1px solid rgba(255,102,0,0.4);padding:16px;margin-top:12px;">
         <h2 id="spiritAccountSanctuaryPseudoBanner">—</h2>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 12px 0;">
+            <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="spiritOpenPublicSanctuary('12345')">VOIR SANCTUAIRE — MOI</button>
+            <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="spiritOpenPublicSanctuary('67890')">VOIR SANCTUAIRE — INVITÉ</button>
+        </div>
         <div class="spirit-sanctuary-toolbar">
             <span style="font-size:0.65rem;color:#888;">Néon (nouvelle photo)</span>
             <select id="spiritAccountSanctuaryNeonSelect" aria-label="Couleur néon">
@@ -5513,6 +5517,16 @@ function spiritApplyPublicHashRoute() {
     }
     void spiritOpenPublicProfileUI(p.userId, { sanctuary: p.sanctuary });
 }
+
+function spiritOpenPublicSanctuary(uid) {
+    try {
+        uid = String(uid || '').trim();
+        if (!uid) return;
+        location.hash = 'spirit-public/' + encodeURIComponent(uid) + '/sanctuary';
+        if (typeof spiritApplyPublicHashRoute === 'function') void spiritApplyPublicHashRoute();
+    } catch (e) {}
+}
+try { window.spiritOpenPublicSanctuary = spiritOpenPublicSanctuary; } catch (e) {}
 try {
     window.spiritExitPublicProfile = spiritExitPublicProfile;
     window.spiritPublicSetTab = spiritPublicSetTab;
