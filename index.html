@@ -1301,6 +1301,7 @@
                 <button class="btn-action" onclick="chooseMethod('hot_native')">1. Hot Toys (Equipée Spirit Infinity + Scan IA)</button>
                 <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan IA uniquement)</button>
                 <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (Vente Directe)</button>
+                <button class="btn-action" style="background:#6a4c93; color:white;" onclick="chooseMethod('statue')">4. Statue (Vente Directe)</button>
                 <button id="btn-publish-final" class="btn-action" style="margin-top:20px; width:100%; display:none;" onclick="publishFinal()">PUBLIER SUR LE MARCHÉ MONDIAL</button>
             </div>
         </div>
@@ -1341,6 +1342,14 @@
                 <option value="Queen Studios">Queen Studios</option>
                 <option value="Autre">Autre</option>
             </select>
+            <div id="statueMatiereRow" style="display:none;">
+                <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;">MATIÈRE</label>
+                <select id="saleMatiere">
+                    <option value="">-- MATIÈRE --</option>
+                    <option value="Résine">Résine</option>
+                    <option value="PVC">PVC</option>
+                </select>
+            </div>
             <input type="number" id="inputPrice" placeholder="Prix de vente (€)">
             <div class="switch-row" style="margin:6px 0;"><span>Environnement non-fumeur</span><label class="switch"><input type="checkbox" id="saleSmokeFree"><span class="slider"></span></label></div>
             <div class="switch-row" style="margin:6px 0;"><span>A l'abri de la lumiere</span><label class="switch"><input type="checkbox" id="saleLightProtect"><span class="slider"></span></label></div>
@@ -2233,6 +2242,16 @@ function normalizeSpiritCat(rawCat) {
     return 'figurine';
 }
 
+/** Décode la ligne MATIÈRE en tête de description (annonces rubrique Statue). */
+function spiritExtractMatiereFromDesc(raw) {
+    var s = String(raw || '');
+    var m = s.match(/^\s*MATIÈRE\s*:\s*(Résine|Resine|PVC)\s*(\r?\n)?/i);
+    if (!m) return { matiere: '', rest: s };
+    var mat = /^pvc$/i.test(String(m[1] || '').trim()) ? 'PVC' : 'Résine';
+    var rest = s.slice(m[0].length).replace(/^\s+/, '');
+    return { matiere: mat, rest: rest };
+}
+
 /** Prix listing : priorité `amount` si la colonne existe côté Supabase, sinon `price` (schéma courant). Ne pas envoyer `amount` en insert/update tant que la colonne est absente. */
 function spiritProductsLivePriceEUR(row) {
     if (!row) return 0;
@@ -2900,6 +2919,9 @@ async function loadMySales() {
         document.getElementById('inputDesc').value = '';
         document.getElementById('saleCat').value = '';
         document.getElementById('saleShip').value = 'Moyen';
+        if (document.getElementById('saleMatiere')) document.getElementById('saleMatiere').value = '';
+        var smRow = document.getElementById('statueMatiereRow');
+        if (smRow) smRow.style.display = 'none';
         for(let i=1; i<=5; i++) {
             document.getElementById('pBox' + i).innerHTML = 'PHOTO ' + i;
         }
@@ -2922,6 +2944,15 @@ async function loadMySales() {
         document.getElementById('stepMethod').style.display = 'none';
         document.getElementById('stepInfo').style.display = 'block';
         document.getElementById('s2').className = 'step active';
+        var smRow = document.getElementById('statueMatiereRow');
+        var smSel = document.getElementById('saleMatiere');
+        if (smRow && smSel) {
+            if (m === 'statue') smRow.style.display = 'block';
+            else {
+                smRow.style.display = 'none';
+                smSel.value = '';
+            }
+        }
     }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -2939,6 +2970,13 @@ async function goToScan() {
     if(!imgToScan) {
         alert("PHOTO MANQUANTE : La Photo 1 est la base de l'audit Spirit Eyes.");
         return;
+    }
+    if (typeof currentMethod !== 'undefined' && currentMethod === 'statue') {
+        var smGo = document.getElementById('saleMatiere');
+        if (!smGo || !String(smGo.value || '').trim()) {
+            alert("MATIÈRE REQUISE : choisissez Résine ou PVC pour la rubrique Statue.");
+            return;
+        }
     }
 
     // Affichage interface de scan
@@ -3083,7 +3121,16 @@ async function saveSpiritAudit(title, detected, score, status, detailNote) {
 async function publierAnnonce() {
     const title = document.getElementById('inputTitle').value;
     const price = parseFloat(document.getElementById('inputPrice').value);
-    const desc = document.getElementById('inputDesc').value;
+    var desc = document.getElementById('inputDesc').value;
+    if (typeof currentMethod !== 'undefined' && currentMethod === 'statue') {
+        var smPub = document.getElementById('saleMatiere');
+        var matPub = smPub && smPub.value ? String(smPub.value).trim() : '';
+        if (!matPub) {
+            alert("MATIÈRE REQUISE : choisissez Résine ou PVC pour la rubrique Statue.");
+            return;
+        }
+        desc = 'MATIÈRE : ' + matPub + '\n\n' + desc;
+    }
     const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore, 10) || 0;
     const category = document.getElementById('saleCat') ? document.getElementById('saleCat').value : '';
     const normalizedCat = normalizeSpiritCat(category);
@@ -3355,7 +3402,10 @@ async function editAnnonce(id) {
     if(document.getElementById('inputTitle')) document.getElementById('inputTitle').value = item.title || item.name || '';
     var pEd = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : (item.price != null ? item.price : 0);
     if(document.getElementById('inputPrice')) document.getElementById('inputPrice').value = pEd != null ? pEd : 0;
-    if(document.getElementById('inputDesc')) document.getElementById('inputDesc').value = item.description || item.desc || '';
+    var rawDescEd = item.description || item.desc || '';
+    var mExEd = (typeof spiritExtractMatiereFromDesc === 'function') ? spiritExtractMatiereFromDesc(rawDescEd) : { matiere: '', rest: rawDescEd };
+    if(document.getElementById('inputDesc')) document.getElementById('inputDesc').value = mExEd.rest;
+    if(document.getElementById('saleMatiere') && mExEd.matiere) document.getElementById('saleMatiere').value = mExEd.matiere;
     if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat || 'figurine';
     if(document.getElementById('saleBrand')) document.getElementById('saleBrand').value = item.brand || '';
     if(document.getElementById('saleSmokeFree')) document.getElementById('saleSmokeFree').checked = !!item.is_smoke_free;
@@ -3365,8 +3415,12 @@ async function editAnnonce(id) {
     if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize || 'medium';
     
     if (typeof chooseMethod === 'function') {
-        const isNative = item.is_native === true || item.type === 'native';
-        chooseMethod(isNative ? 'hot_native' : 'hot_legacy');
+        const isStatueEd = (typeof normalizeSpiritCat === 'function') && normalizeSpiritCat(item.cat || item.category) === 'statue';
+        if (isStatueEd) chooseMethod('statue');
+        else {
+            const isNative = item.is_native === true || item.type === 'native';
+            chooseMethod(isNative ? 'hot_native' : 'hot_legacy');
+        }
     }
     console.log("[SPIRIT SYSTEM] Mode édition activé pour:", item.title);
 }
