@@ -3268,6 +3268,7 @@ async function deleteAnnonce(id) {
 }
     // --- LOGIQUE PAIEMENT ---
     function openPaymentModal() {
+        console.log("Ouverture du paiement lancée");
         const total = document.getElementById('sumTotal').innerText;
         if(total === "0.00 €" || total === "0 €") {
             alert("Veuillez d'abord sélectionner un transporteur.");
@@ -3276,8 +3277,13 @@ async function deleteAnnonce(id) {
         document.getElementById('payTotalAmount').innerText = total;
         var modal = document.getElementById('paymentModal');
         if (modal) {
-            modal.style.setProperty('display', 'flex', 'important');
-            modal.style.setProperty('z-index', '20000', 'important');
+            modal.style.setProperty('display', 'block', 'important');
+            modal.style.setProperty('visibility', 'visible', 'important');
+            modal.style.setProperty('opacity', '1', 'important');
+            modal.style.setProperty('z-index', '99999', 'important');
+            modal.style.setProperty('top', '50%', 'important');
+            modal.style.setProperty('left', '50%', 'important');
+            modal.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
             modal.style.setProperty('background', 'rgba(0,0,0,0.45)', 'important');
             modal.style.setProperty('backdrop-filter', 'blur(5px)', 'important');
             modal.style.setProperty('-webkit-backdrop-filter', 'blur(5px)', 'important');
@@ -5922,7 +5928,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
