@@ -432,6 +432,12 @@
         /* FORUM */
         .forum-post { background: #111; border: 1px solid #222; padding: 15px; margin-bottom: 10px; border-radius: 4px; border-left: 2px solid var(--neon-orange); }
         .forum-tag { font-size: 0.6rem; background: var(--neon-orange); color: black; padding: 2px 6px; border-radius: 2px; font-weight: bold; }
+        #forumModal .modal-content.forum-modal-shell { display: flex; flex-direction: column; max-width: 900px; max-height: 90vh; min-height: min(520px, 85vh); box-sizing: border-box; }
+        #forumContent.forum-content-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+        #forumViewPanel { display: flex; flex-direction: column; flex: 1; min-height: 360px; overflow: auto; }
+        #topicEditor.forum-topic-editor-full { flex: 1; display: none; flex-direction: column; gap: 10px; min-height: 360px; background: #111; padding: 20px; border: 1px solid var(--border); box-sizing: border-box; }
+        #topicEditor.forum-topic-editor-full textarea#topicBody { flex: 1; min-height: 200px; width: 100%; box-sizing: border-box; resize: vertical; }
+        #topicEditor.forum-topic-editor-full input#topicTitle, #topicEditor.forum-topic-editor-full select#topicTag { width: 100%; box-sizing: border-box; }
         /* SECTION ACCOUNT PAGES */
         .account-page { display: none; }
         .account-page.active { display: block; }
@@ -1382,36 +1388,22 @@
 </div>
 
 <div id="forumModal" class="overlay">
-    <div class="modal-content" style="max-width:900px;text-align:left;">
+    <div class="modal-content forum-modal-shell" style="text-align:left;">
         <button onclick="closeSpiritMenu()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-shrink:0;">
             <h2 id="forum-main-title" data-key="nav_forum" style="margin:0;">FORUM SPIRIT INFINITY</h2>
             <button id="btn-new-topic" class="btn-action" onclick="showTopicEditor()" style="font-size:0.6rem;">+ NOUVEAU SUJET</button>
         </div>
-        <div id="forumContent">
-            <div id="forumList">
+        <div id="forumContent" class="forum-content-wrap">
+            <div id="forumViewPanel">
+                <div id="forumList">
                 <div class="forum-post">
                     <span class="forum-tag">CONSEILS</span>
                     <strong>Comment entretenir son Iron Man Diecast ?</strong>
                     <p style="font-size:0.75rem; color:#777; margin-top:5px;">Par: Tony_S | 12 réponses</p>
                 </div>
             </div>
-            <div id="topicEditor" style="display:none; background:#111; padding:20px; border:1px solid var(--border);">
-                <h3 style="color:var(--neon-orange); margin-top:0;">CRÉER UN NOUVEAU SUJET</h3>
-                <input type="text" id="topicTitle" placeholder="Titre du sujet (ex: Problème articulation Batman)">
-                <select id="topicTag">
-                    <option value="CONSEILS">CONSEILS</option>
-                    <option value="AIDE">AIDE TECHNIQUE</option>
-                    <option value="NEWS">NEWS / RUMEURS</option>
-                    <option value="SHOWCASE">SHOWCASE</option>
-                </select>
-                <textarea id="topicBody" style="height:150px;" placeholder="Écrivez votre message ici..."></textarea>
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="btn-action" onclick="publishTopic()">PUBLIER LE SUJET</button>
-                    <button class="btn-action" style="background:#333; color:white;" onclick="hideTopicEditor()">ANNULER</button>
-                </div>
-            </div>
-            <div class="chat-container" style="height:250px;">
+            <div class="chat-container" style="height:250px; flex-shrink:0;">
                 <div class="msg-safety-alert">SÉCURITÉ : Vente sous le manteau interdite (PayPal Amis = Ban immédiat).</div>
                 <div class="chat-messages" id="forumChat">
                     <div class="msg-line"><span class="msg-user">[Système]</span><span class="msg-text">Bienvenue sur le chat communautaire sécurisé.</span></div>
@@ -1419,6 +1411,22 @@
                 <div class="chat-input-area">
                     <input type="text" id="forumInput" placeholder="Discuter avec la communauté...">
                     <button class="btn-action" onclick="sendForumMsg()">OK</button>
+                </div>
+            </div>
+            </div>
+            <div id="topicEditor" class="forum-topic-editor-full" style="display:none;">
+                <h3 style="color:var(--neon-orange); margin-top:0; flex-shrink:0;">CRÉER UN NOUVEAU SUJET</h3>
+                <input type="text" id="topicTitle" placeholder="Titre du sujet (ex: Problème articulation Batman)">
+                <select id="topicTag">
+                    <option value="CONSEILS">CONSEILS</option>
+                    <option value="AIDE">AIDE TECHNIQUE</option>
+                    <option value="NEWS">NEWS / RUMEURS</option>
+                    <option value="SHOWCASE">SHOWCASE</option>
+                </select>
+                <textarea id="topicBody" placeholder="Écrivez votre message ici..."></textarea>
+                <div style="display:flex; gap:10px; margin-top:10px; flex-shrink:0;">
+                    <button class="btn-action" onclick="publishTopic()">PUBLIER LE SUJET</button>
+                    <button class="btn-action" style="background:#333; color:white;" onclick="hideTopicEditor()">ANNULER</button>
                 </div>
             </div>
         </div>
@@ -5877,19 +5885,19 @@ window.spiritShowHeroHome = spiritShowHeroHome;
 window.showSection = showSection;
 
 function showTopicEditor() {
-    const forumList = document.getElementById('forumList');
+    const forumViewPanel = document.getElementById('forumViewPanel');
     const topicEditor = document.getElementById('topicEditor');
-    if(forumList && topicEditor) {
-        forumList.style.display = 'none';
-        topicEditor.style.display = 'block';
+    if (forumViewPanel && topicEditor) {
+        forumViewPanel.style.display = 'none';
+        topicEditor.style.display = 'flex';
     }
 }
 
 function hideTopicEditor() {
-    const forumList = document.getElementById('forumList');
+    const forumViewPanel = document.getElementById('forumViewPanel');
     const topicEditor = document.getElementById('topicEditor');
-    if(forumList && topicEditor) {
-        forumList.style.display = 'block';
+    if (forumViewPanel && topicEditor) {
+        forumViewPanel.style.display = 'flex';
         topicEditor.style.display = 'none';
     }
 }
