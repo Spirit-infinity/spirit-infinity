@@ -4498,7 +4498,7 @@ function spiritPublicSetTab(which) {
 async function spiritPublicFetchUserProfile(uid) {
     if (typeof _spirit === 'undefined' || !_spirit) return null;
     try {
-        var out = await _spirit.from('user_profiles').select('*').eq('user_id', String(uid)).maybeSingle();
+        var out = await _spirit.from('user_profiles').select('*').eq('id', String(uid)).maybeSingle();
         if (out.error) return null;
         return out.data || null;
     } catch (e) { return null; }
@@ -4561,23 +4561,37 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     try { spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
 }
 async function spiritPublicSaveMeta() {
-    var uid = spiritPublicViewUserId;
-    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-    if (!uid || me !== String(uid) || typeof _spirit === 'undefined' || !_spirit) return;
-    var c = (document.getElementById('spiritPublicCountryInput') && document.getElementById('spiritPublicCountryInput').value.trim()) || 'France';
-    var up = { user_id: String(uid), country: c, updated_at: new Date().toISOString() };
-    var ex = await spiritPublicFetchUserProfile(uid);
-    if (ex) {
-        if (ex.pseudo) up.pseudo = ex.pseudo;
-        if (ex.avatar_url) up.avatar_url = ex.avatar_url;
-        ['badge_achat', 'badge_vente', 'badge_livr', 'badge_lit', 'ia_score'].forEach(function (k) {
-            if (ex[k] != null) up[k] = ex[k];
-        });
+    // Règle stricte : ne toucher qu'aux colonnes connues { id, avatar_url }
+    if (typeof _spirit === 'undefined' || !_spirit) return;
+
+    var targetUserId = (spiritPublicViewUserId != null) ? String(spiritPublicViewUserId).trim() : '';
+    if (!targetUserId && _spirit.auth && typeof _spirit.auth.getUser === 'function') {
+        try {
+            var au = await _spirit.auth.getUser();
+            targetUserId = au && au.data && au.data.user && au.data.user.id ? String(au.data.user.id).trim() : '';
+        } catch (e) {}
     }
-    var ins = await _spirit.from('user_profiles').upsert(up, { onConflict: 'user_id' });
-    if (ins.error) { alert('Erreur Supabase : ' + ins.error.message); return; }
-    var cEl = document.getElementById('spiritPublicCountry');
-    if (cEl) cEl.textContent = 'Pays : ' + c;
+    if (!targetUserId) return;
+
+    // On ne modifie pas le pays/pseudo/email/etc ici (bouton "ENREGISTRER" reste sans erreur).
+    var imgEl = document.getElementById('spiritPublicAvatarImg');
+    var avatarUrl = imgEl ? (imgEl.currentSrc || imgEl.src || '') : '';
+    avatarUrl = avatarUrl ? String(avatarUrl).trim() : '';
+
+    // Si rien n'est uploadé/chargé, on évite toute requête Supabase.
+    if (!avatarUrl) {
+        alert('Profil public mis à jour.');
+        return;
+    }
+
+    var up = { id: targetUserId, avatar_url: avatarUrl };
+    try {
+        var ins = await _spirit.from('user_profiles').upsert(up, { onConflict: 'id' });
+        if (ins && ins.error) throw ins.error;
+    } catch (err) {
+        alert('Erreur Supabase : ' + (err && err.message ? err.message : err));
+        return;
+    }
     alert('Profil public mis à jour.');
 }
 function spiritPublicWireAvatarOnce() {
@@ -4587,19 +4601,22 @@ function spiritPublicWireAvatarOnce() {
     if (!inp) return;
     inp.addEventListener('change', function () {
         var f = inp.files && inp.files[0];
-        if (!f || !spiritPublicViewUserId) return;
+        if (!f) return;
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-        if (me !== String(spiritPublicViewUserId)) return;
         void (async function () {
             try {
+                var targetUserId = (spiritPublicViewUserId != null) ? String(spiritPublicViewUserId).trim() : '';
+                if (!targetUserId && _spirit && _spirit.auth && typeof _spirit.auth.getUser === 'function') {
+                    var au = await _spirit.auth.getUser();
+                    if (au && au.data && au.data.user && au.data.user.id) targetUserId = String(au.data.user.id).trim();
+                }
+                if (!targetUserId) throw new Error('User id indisponible');
+                if (me && String(me) !== String(targetUserId)) return;
+
                 var ext = (f.name && f.name.split('.').pop()) || 'jpg';
-                var path = String(spiritPublicViewUserId) + '/avatar_' + Date.now() + '.' + ext;
+                var path = String(targetUserId) + '/avatar_' + Date.now() + '.' + ext;
                 var url = await spiritStorageUploadPublic(SPIRIT_BUCKET_AVATAR, path, f);
-                var ex = await spiritPublicFetchUserProfile(spiritPublicViewUserId);
-                var up = { user_id: String(spiritPublicViewUserId), avatar_url: url };
-                if (ex && ex.pseudo) up.pseudo = ex.pseudo;
-                if (ex && ex.country) up.country = ex.country;
-                var r = await _spirit.from('user_profiles').upsert(up, { onConflict: 'user_id' });
+                var r = await _spirit.from('user_profiles').update({ avatar_url: url }).eq('id', String(targetUserId));
                 if (r.error) throw r.error;
                 var imgEl = document.getElementById('spiritPublicAvatarImg');
                 var ph = document.getElementById('spiritPublicAvatarPlaceholder');
