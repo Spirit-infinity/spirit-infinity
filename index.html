@@ -1194,7 +1194,7 @@
     </div>
 </div>
 
-<div id="paymentModal" class="overlay">
+<div id="paymentModal" class="overlay" style="z-index:20000 !important; background:rgba(0,0,0,0.45); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);">
     <div class="modal-content" style="max-width:500px;text-align:left;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <h2 style="text-align:center; color:var(--neon-orange);">FINALISER LE PAIEMENT</h2>
@@ -3274,7 +3274,16 @@ async function deleteAnnonce(id) {
             return;
         }
         document.getElementById('payTotalAmount').innerText = total;
-        document.getElementById('paymentModal').style.setProperty('display', 'flex', 'important');
+        var modal = document.getElementById('paymentModal');
+        if (modal) {
+            modal.style.setProperty('display', 'flex', 'important');
+            modal.style.setProperty('z-index', '20000', 'important');
+            modal.style.setProperty('background', 'rgba(0,0,0,0.45)', 'important');
+            modal.style.setProperty('backdrop-filter', 'blur(5px)', 'important');
+            modal.style.setProperty('-webkit-backdrop-filter', 'blur(5px)', 'important');
+            var mc = modal.querySelector('.modal-content');
+            if (mc) mc.style.setProperty('z-index', '20001', 'important');
+        }
     }
 
    // --- SYSTÈME DE BORDEREAU SPIRIT INFINITY ---
@@ -5123,15 +5132,14 @@ async function spiritUpdateNavSanctuaryDot() {
     }
 }
 function spiritSanctuaryStartPoll() {
-    if (spiritSanctuaryPollTimer) clearInterval(spiritSanctuaryPollTimer);
-    spiritSanctuaryPollTimer = setInterval(function () {
-        try {
-            if (!document.body) return;
-            if (document.body.classList && document.body.classList.contains('spirit-public-active')) return;
-            var p = spiritUpdateNavSanctuaryDot();
-            if (p && typeof p.catch === 'function') p.catch(function () {});
-        } catch (e) {}
-    }, 10000);
+    // Stopper la boucle polling qui peut saturer l'interface.
+    // On fait un update unique (si possible) puis on ne relance pas.
+    try { if (spiritSanctuaryPollTimer) clearInterval(spiritSanctuaryPollTimer); } catch (e) {}
+    spiritSanctuaryPollTimer = null;
+    try {
+        if (document.body && document.body.classList && document.body.classList.contains('spirit-public-active')) return;
+        void spiritUpdateNavSanctuaryDot();
+    } catch (e) {}
 }
 function spiritApplyPublicHashRoute() {
     var p = spiritParsePublicHash();
