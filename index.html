@@ -839,51 +839,6 @@
         #spiritSanctuaryGrid.spirit-san-mode-icons-sm {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px;
         }
-        /* SANCTUARY BENTO / MASONRY (non-carré, tailles variées) */
-        #spiritSanctuaryGrid.spirit-san-mode-bento {
-            display: block;
-            column-count: 5;
-            column-gap: 16px;
-        }
-        #spiritSanctuaryGrid.spirit-san-mode-bento .spirit-san-card {
-            break-inside: avoid;
-            /* display inline-block remplacé par flex (ci-dessous) */
-            width: 100%;
-            margin: 0 0 16px;
-            background: #0a0a0a;
-            border: 1px solid #222;
-            padding: 12px;
-            flex-direction: column;
-            gap: 16px;
-            align-items: stretch;
-            display: flex;
-        }
-        #spiritSanctuaryGrid.spirit-san-mode-bento .spirit-san-add-tile {
-            width: 100%;
-            min-width: 0;
-            aspect-ratio: auto;
-            height: 220px;
-            align-self: initial;
-        }
-        #spiritSanctuaryGrid.spirit-san-mode-bento .spirit-san-thumb-wrap {
-            width: 100%;
-            min-width: 0;
-            flex-shrink: 0;
-            aspect-ratio: auto;
-        }
-        #spiritSanctuaryGrid.spirit-san-mode-bento.spirit-san-mode-details .spirit-san-thumb-wrap {
-            min-width: 0;
-            max-width: none;
-        }
-        @media (max-width: 1100px) {
-            #spiritSanctuaryGrid.spirit-san-mode-bento { column-count: 4; }
-        }
-        @media (max-width: 900px) {
-            #spiritSanctuaryGrid.spirit-san-mode-bento { column-count: 3; }
-        }
-        @media (max-width: 620px) {
-            #spiritSanctuaryGrid.spirit-san-mode-bento { column-count: 2; }
-        }
         #spiritSanctuaryGrid .spirit-san-add-tile {
             width: 280px; min-width: 280px; aspect-ratio: 1 / 1; min-height: 0; border: 2px dashed rgba(255,102,0,0.5); background: #0d0d0d;
             display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--neon-orange);
@@ -998,51 +953,6 @@
         }
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
-        }
-        /* SANCTUARY BENTO / MASONRY (compte) */
-        #spiritAccountSanctuaryGrid.spirit-san-mode-bento {
-            display: block;
-            column-count: 5;
-            column-gap: 16px;
-        }
-        #spiritAccountSanctuaryGrid.spirit-san-mode-bento .spirit-san-card {
-            break-inside: avoid;
-            /* display inline-block remplacé par flex (ci-dessous) */
-            width: 100%;
-            margin: 0 0 16px;
-            background: #0a0a0a;
-            border: 1px solid #222;
-            padding: 12px;
-            flex-direction: column;
-            gap: 16px;
-            align-items: stretch;
-            display: flex;
-        }
-        #spiritAccountSanctuaryGrid.spirit-san-mode-bento .spirit-san-add-tile {
-            width: 100%;
-            min-width: 0;
-            aspect-ratio: auto;
-            height: 220px;
-            align-self: initial;
-        }
-        #spiritAccountSanctuaryGrid.spirit-san-mode-bento .spirit-san-thumb-wrap {
-            width: 100%;
-            min-width: 0;
-            flex-shrink: 0;
-            aspect-ratio: auto;
-        }
-        #spiritAccountSanctuaryGrid.spirit-san-mode-bento.spirit-san-mode-details .spirit-san-thumb-wrap {
-            min-width: 0;
-            max-width: none;
-        }
-        @media (max-width: 1100px) {
-            #spiritAccountSanctuaryGrid.spirit-san-mode-bento { column-count: 4; }
-        }
-        @media (max-width: 900px) {
-            #spiritAccountSanctuaryGrid.spirit-san-mode-bento { column-count: 3; }
-        }
-        @media (max-width: 620px) {
-            #spiritAccountSanctuaryGrid.spirit-san-mode-bento { column-count: 2; }
         }
         #spiritAccountSanctuaryGrid .spirit-san-add-tile {
             width: 280px; min-width: 280px; aspect-ratio: 1 / 1; min-height: 0; border: 2px dashed rgba(255,102,0,0.5); background: #000;
@@ -1590,6 +1500,10 @@
     <p style="font-size:0.65rem;color:#666;margin-top:0;">Galerie noire &amp; néon — jusqu’à 15 pièces (bucket Storage <code>sanctuary</code>).</p>
     <div id="spiritAccountSanctuaryRoot" style="background:#000000;border:1px solid rgba(255,102,0,0.4);padding:16px;margin-top:12px;">
         <h2 id="spiritAccountSanctuaryPseudoBanner">—</h2>
+        <div class="spirit-account-san-add-row" id="spiritAccountSanctuaryAddRow">
+            <button type="button" class="spirit-san-add-photo-btn" id="spiritAccountSanctuaryAddPhotoBtn" title="Uploader vers le bucket sanctuary">+</button>
+            <span class="spirit-san-add-label">AJOUTER UNE PHOTO</span>
+        </div>
         <div class="spirit-sanctuary-toolbar">
             <span style="font-size:0.65rem;color:#888;">Néon (nouvelle photo)</span>
             <select id="spiritAccountSanctuaryNeonSelect" aria-label="Couleur néon">
@@ -1690,6 +1604,10 @@
         <div id="spiritSanctuaryRoot">
             <div id="spiritSanctuaryChrome" style="display:none;">
                 <h1 id="spiritSanctuaryPseudoBanner">—</h1>
+                <div id="spiritSanctuaryOwnerActions" class="spirit-sanctuary-owner-actions" style="display:none;">
+                    <button type="button" class="spirit-san-add-photo-btn" id="spiritSanctuaryAddPhotoBtn" title="Uploader vers le bucket sanctuary">+</button>
+                    <span class="spirit-san-add-label">AJOUTER UNE PHOTO</span>
+                </div>
             </div>
             <div class="spirit-sanctuary-toolbar">
                 <span style="font-size:0.65rem;color:#888;">Bordure néon (nouvelle photo)</span>
@@ -4496,69 +4414,6 @@ var spiritSanctuaryViewModeAccount = 'list';
 var spiritSanctuaryPollTimer = null;
 var SPIRIT_BUCKET_AVATAR = 'sanctuary';
 var SPIRIT_BUCKET_SANCTUARY = 'sanctuary';
-// Cache profil public (pour recharger l'avatar au changement de vue sans re-requête systématique)
-var spiritPublicProfileRowCache = null;
-
-function spiritExtractStorageObjectPath(avatarField) {
-    try {
-        var s = String(avatarField || '').trim();
-        if (!s) return '';
-        // Si c'est déjà une URL publique Supabase, extraire le chemin relatif bucket (après "/object/public/<bucket>/")
-        if (/^https?:\\/\\//i.test(s)) {
-            var marker = '/object/public/';
-            var idx = s.indexOf(marker);
-            if (idx >= 0) {
-                var rest = s.substring(idx + marker.length); // <bucket>/<path...>
-                var slash = rest.indexOf('/');
-                if (slash >= 0) return rest.substring(slash + 1);
-                return rest;
-            }
-        }
-        // Sinon on considère que c'est déjà un chemin relatif (fileName / object path)
-        return s;
-    } catch (e) { return ''; }
-}
-
-async function spiritPublicRefreshHeaderAvatar() {
-    var imgEl = document.getElementById('spiritPublicAvatarImg');
-    var ph = document.getElementById('spiritPublicAvatarPlaceholder');
-    if (!imgEl || !ph) return;
-
-    // Par défaut : placeholder
-    ph.style.display = 'flex';
-    imgEl.style.display = 'none';
-
-    if (typeof _spirit === 'undefined' || !_spirit) return;
-
-    var row = spiritPublicProfileRowCache;
-    var avatarField = row && row.avatar_url ? row.avatar_url : '';
-
-    // Si absent du cache, petite requête
-    if (!avatarField && spiritPublicViewUserId) {
-        var fetched = await spiritPublicFetchUserProfile(spiritPublicViewUserId);
-        spiritPublicProfileRowCache = fetched;
-        avatarField = fetched && fetched.avatar_url ? fetched.avatar_url : '';
-    }
-
-    if (!avatarField) return;
-
-    var fileName = spiritExtractStorageObjectPath(avatarField);
-    if (!fileName) return;
-
-    // Pointer EXCLUSIVEMENT vers le bucket "sanctuary"
-    var pub = _spirit.storage.from('sanctuary').getPublicUrl(fileName);
-    var publicUrl = pub && pub.data ? pub.data.publicUrl : '';
-    if (!publicUrl) return;
-
-    imgEl.src = String(publicUrl);
-    imgEl.style.display = 'block';
-    ph.style.display = 'none';
-    imgEl.onerror = function () {
-        try { imgEl.removeAttribute('src'); } catch (e) {}
-        imgEl.style.display = 'none';
-        ph.style.display = 'flex';
-    };
-}
 /** Colonnes sanctuary_items : aligné Supabase (snake_case). Erreur 400 si nom incorrect. */
 var SPIRIT_SANCTUARY_ITEM_COLS = 'id,user_id,image_url,neon_color,description,sort_order';
 var SPIRIT_SANCTUARY_SORT_KEY = 'sort_order';
@@ -4672,7 +4527,6 @@ function spiritRefreshDashboardPublicUrl() {
 }
 function spiritExitPublicProfile() {
     spiritPublicViewUserId = null;
-    spiritPublicProfileRowCache = null;
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
     document.body.classList.remove('spirit-public-active');
     var sec = document.getElementById('spiritPublicProfileSection');
@@ -4712,8 +4566,6 @@ function spiritPublicSetTab(which) {
     if (isS) {
         void spiritSanctuaryTabEnter();
     }
-    // Recharger l'avatar (bucket sanctuary + getPublicUrl) pour éviter les disparitions lors des changements de vue
-    try { void spiritPublicRefreshHeaderAvatar(); } catch (e) {}
 }
 async function spiritPublicFetchUserProfile(uid) {
     if (typeof _spirit === 'undefined' || !_spirit) return null;
@@ -4757,9 +4609,22 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     if (cEd) cEd.style.display = isOwner ? 'flex' : 'none';
     var avBtn = document.getElementById('spiritPublicAvatarBtn');
     if (avBtn) avBtn.style.display = isOwner ? 'inline-block' : 'none';
-    // Mettre le cache du profil avant le rechargement avatar (bucket sanctuary + getPublicUrl)
-    spiritPublicProfileRowCache = row;
-    await spiritPublicRefreshHeaderAvatar();
+    var imgEl = document.getElementById('spiritPublicAvatarImg');
+    var ph = document.getElementById('spiritPublicAvatarPlaceholder');
+    if (row && row.avatar_url && imgEl && ph) {
+        imgEl.src = String(row.avatar_url);
+        imgEl.style.display = 'block';
+        imgEl.onerror = function () {
+            try { imgEl.removeAttribute('src'); } catch (e) {}
+            imgEl.style.display = 'none';
+            ph.style.display = 'flex';
+        };
+        ph.style.display = 'none';
+    } else if (imgEl && ph) {
+        imgEl.removeAttribute('src');
+        imgEl.style.display = 'none';
+        ph.style.display = 'flex';
+    }
     spiritPublicApplyBadgesFromRow(row);
     await spiritPublicLoadIaScore(spiritPublicViewUserId, row);
     spiritPublicWireAvatarOnce();
@@ -4864,9 +4729,6 @@ function spiritPublicWireAvatarOnce() {
                     };
                 }
                 if (ph) ph.style.display = 'none';
-                // Mettre à jour le cache pour que la photo ne "disparaisse" lors d'un changement de vue
-                if (!spiritPublicProfileRowCache) spiritPublicProfileRowCache = {};
-                if (spiritPublicProfileRowCache) spiritPublicProfileRowCache.avatar_url = url;
             } catch (err) {
                 alert('Upload avatar impossible (bucket Storage « ' + SPIRIT_BUCKET_AVATAR + ' » ou RLS) : ' + (err && err.message ? err.message : err));
             }
@@ -5050,9 +4912,8 @@ async function spiritSanctuaryRender(ctx) {
         vm = 'list';
         spiritSanctuaryViewModeSet(ctx, 'list');
     }
-    // Refact : le rendu list/détails devient un layout Bento/Masonry (non-carré)
-    var modeClass = 'spirit-san-mode-bento';
-    if (vm === 'details') modeClass = 'spirit-san-mode-bento spirit-san-mode-details';
+    var modeClass = 'spirit-san-mode-list';
+    if (vm === 'details') modeClass = 'spirit-san-mode-list spirit-san-mode-details';
     else if (vm === 'icons-lg') modeClass = 'spirit-san-mode-icons-lg';
     grid.className = modeClass;
     grid.innerHTML = '';
@@ -5068,7 +4929,6 @@ async function spiritSanctuaryRender(ctx) {
     }
     var listLike = vm === 'list' || vm === 'details';
     var neonOpts = [['#ff6600', 'Orange Spirit'], ['#00ff88', 'Vert'], ['#00ccff', 'Cyan'], ['#ff00aa', 'Magenta'], ['#ffffff', 'Blanc'], ['#ffcc00', 'Or']];
-    var bentoHeights = [190, 250, 220, 310, 240, 280, 205];
     function spiritSanctuaryFillNeonSelect(stSel, curNeon) {
         neonOpts.forEach(function (opt) {
             var o = document.createElement('option');
@@ -5092,10 +4952,6 @@ async function spiritSanctuaryRender(ctx) {
         wrap.className = 'spirit-san-thumb-wrap';
         wrap.style.border = '3px solid ' + neon;
         wrap.style.boxShadow = '0 0 14px ' + neon + '44';
-        // Tailles variées pour un rendu Bento/Masonry
-        if (modeClass.indexOf('spirit-san-mode-bento') >= 0) {
-            wrap.style.height = bentoHeights[idx % bentoHeights.length] + 'px';
-        }
         var img = document.createElement('img');
         img.className = 'spirit-sanctuary-img';
         img.src = it.src || '';
