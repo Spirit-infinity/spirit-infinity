@@ -3833,8 +3833,11 @@ async function confirmPayment(method) {
         const u = document.getElementById('regUser').value;
         if(!u) return;
         currentUser = u;
-        document.getElementById('btn-reg').innerText = u.toUpperCase();
-        document.getElementById('user-display').innerText = u.toUpperCase();
+        const up = u.toUpperCase();
+        const btnReg = document.getElementById('btn-reg');
+        if (btnReg) btnReg.innerText = up;
+        const nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
+        if (nameEl) nameEl.innerText = up;
         alert("Bienvenue " + u);
         closeModals();
         updateUserAnnonces();
@@ -5004,8 +5007,12 @@ async function spiritPublicLoadAnnonces(uid) {
     if (typeof _spirit !== 'undefined' && _spirit) {
         try {
             var out = await _spirit.from('products_live').select('*').eq('owner_id', String(uid)).order('id', { ascending: false }).limit(48);
-            if (!out.error && Array.isArray(out.data)) rows = out.data;
+            if (out && !out.error && Array.isArray(out.data)) rows = out.data;
         } catch (e) {}
+    }
+    if (!rows.length && typeof marketData !== 'undefined' && Array.isArray(marketData)) {
+        var suid = String(uid);
+        rows = marketData.filter(function (m) { return spiritOwnerId(m.owner_id) === suid; });
     }
     if (!rows.length) {
         box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Aucune annonce publique.</p>';
