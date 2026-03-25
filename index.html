@@ -3279,7 +3279,8 @@ async function deleteAnnonce(id) {
             modal.style.setProperty('display', 'block', 'important');
             modal.style.setProperty('visibility', 'visible', 'important');
             modal.style.setProperty('opacity', '1', 'important');
-            modal.style.setProperty('z-index', '99999', 'important');
+            // #productModal.overlay a z-index: 100150 !important -> on doit passer au-dessus
+            modal.style.setProperty('z-index', '200000', 'important');
             modal.style.setProperty('top', '50%', 'important');
             modal.style.setProperty('left', '50%', 'important');
             modal.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
@@ -3287,7 +3288,7 @@ async function deleteAnnonce(id) {
             modal.style.setProperty('backdrop-filter', 'blur(5px)', 'important');
             modal.style.setProperty('-webkit-backdrop-filter', 'blur(5px)', 'important');
             var mc = modal.querySelector('.modal-content');
-            if (mc) mc.style.setProperty('z-index', '20001', 'important');
+            if (mc) mc.style.setProperty('z-index', '200001', 'important');
         }
     }
 
