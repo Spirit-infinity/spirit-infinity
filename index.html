@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spirit Infinity | Écosystème Global</title>
+    <link rel="preconnect" href="https://eagmxrbtcajqlhivvpww.supabase.co" crossorigin>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
@@ -4946,6 +4947,10 @@ async function spiritPublicLoadAnnonces(uid) {
             var im = document.createElement('img');
             im.src = urls[0];
             im.alt = '';
+            // PERF: décodage async + priorité haute sur les premières images visibles
+            try { im.decoding = 'async'; } catch (e) {}
+            try { im.loading = (box && box.childElementCount < 6) ? 'eager' : 'lazy'; } catch (e2) {}
+            try { im.fetchPriority = (box && box.childElementCount < 6) ? 'high' : 'low'; } catch (e3) {}
             // Hauteur fixe + object-fit pour cadrage stable (titre/prix restent au-dessous via flex-column)
             im.style.cssText = 'width:100%;height:250px;object-fit:cover;object-position:center;display:block;flex:0 0 auto;';
             div.appendChild(im);
@@ -5121,6 +5126,11 @@ async function spiritSanctuaryRender(ctx) {
         img.src = it.src || '';
         img.alt = '';
         img.decoding = 'async';
+        try {
+            // PERF: eager sur les premières images, lazy sur le reste
+            img.loading = (idx < 6) ? 'eager' : 'lazy';
+            img.fetchPriority = (idx < 6) ? 'high' : 'low';
+        } catch (e) {}
         img.style.cursor = 'zoom-in';
         img.addEventListener('click', function (e) {
             e.stopPropagation();
