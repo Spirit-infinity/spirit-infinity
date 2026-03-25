@@ -5358,6 +5358,18 @@ async function spiritUpdateNavSanctuaryDot() {
         if (nav) nav.classList.remove('spirit-nav-sanctuary-blink');
         return;
     }
+
+    // Anti-spam/anti-erreurs: ne pas interroger `sanctuary_chat` tant que l'utilisateur
+    // n'est pas sur l'onglet `tab-sanctuary` (sinon on déclenche des 400 côté Supabase).
+    var tabS = document.getElementById('tab-sanctuary');
+    var tabSActive = tabS && (tabS.classList.contains('active') || tabS.style.display === 'block');
+    if (!tabSActive) {
+        if (dot) dot.style.display = 'none';
+        if (fix) fix.style.display = 'none';
+        if (nav) nav.classList.remove('spirit-nav-sanctuary-blink');
+        return;
+    }
+
     try {
         // Raison: éviter de dépendre de `is_read`/`count/head/order` (ça génère des 400 chez toi).
         // On affiche le dot si une ligne existe pour ce `recipient_id` (dot = activité chat côté serveur).
