@@ -4596,7 +4596,7 @@ function spiritPublicWireAvatarOnce() {
                 var path = String(spiritPublicViewUserId) + '/avatar_' + Date.now() + '.' + ext;
                 var url = await spiritStorageUploadPublic(SPIRIT_BUCKET_AVATAR, path, f);
                 var ex = await spiritPublicFetchUserProfile(spiritPublicViewUserId);
-                var up = { user_id: String(spiritPublicViewUserId), avatar_url: url, updated_at: new Date().toISOString() };
+                var up = { user_id: String(spiritPublicViewUserId), avatar_url: url };
                 if (ex && ex.pseudo) up.pseudo = ex.pseudo;
                 if (ex && ex.country) up.country = ex.country;
                 var r = await _spirit.from('user_profiles').upsert(up, { onConflict: 'user_id' });
