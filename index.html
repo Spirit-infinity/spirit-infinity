@@ -4533,41 +4533,14 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     if (avBtn) avBtn.style.display = isOwner ? 'inline-block' : 'none';
     var imgEl = document.getElementById('spiritPublicAvatarImg');
     var ph = document.getElementById('spiritPublicAvatarPlaceholder');
-    if (imgEl && ph) {
-        var showPlaceholder = function () {
-            try { imgEl.onerror = null; } catch (e) {}
-            try { imgEl.removeAttribute('src'); } catch (e) {}
-            imgEl.style.display = 'none';
-            ph.style.display = 'flex';
-            // Icône utilisateur par défaut
-            ph.textContent = '👤';
-        };
-        var resolveAvatarUrl = function (raw) {
-            var s = String(raw || '').trim();
-            if (!s) return null;
-            if (/^https?:\\/\\//i.test(s)) return s;
-            // Si la DB stocke un chemin (ex: userId/avatar_123.jpg) au lieu d'une URL publique :
-            try {
-                if (typeof _spirit !== 'undefined' && _spirit && _spirit.storage) {
-                    var pub = _spirit.storage.from(SPIRIT_BUCKET_AVATAR).getPublicUrl(s);
-                    return pub && pub.data && pub.data.publicUrl ? String(pub.data.publicUrl) : null;
-                }
-            } catch (e) {}
-            return null;
-        };
-
-        var resolvedUrl = resolveAvatarUrl(row ? row.avatar_url : null);
-        if (resolvedUrl) {
-            imgEl.src = resolvedUrl;
-            imgEl.style.display = 'block';
-            ph.style.display = 'none';
-            // Aspect rond (maquette Spirit Infinity)
-            imgEl.style.borderRadius = '50%';
-            imgEl.style.objectFit = 'cover';
-            imgEl.onerror = function () { showPlaceholder(); };
-        } else {
-            showPlaceholder();
-        }
+    if (row && row.avatar_url && imgEl && ph) {
+        imgEl.src = String(row.avatar_url);
+        imgEl.style.display = 'block';
+        ph.style.display = 'none';
+    } else if (imgEl && ph) {
+        imgEl.removeAttribute('src');
+        imgEl.style.display = 'none';
+        ph.style.display = 'flex';
     }
     spiritPublicApplyBadgesFromRow(row);
     await spiritPublicLoadIaScore(spiritPublicViewUserId, row);
@@ -4620,18 +4593,7 @@ function spiritPublicWireAvatarOnce() {
                 if (r.error) throw r.error;
                 var imgEl = document.getElementById('spiritPublicAvatarImg');
                 var ph = document.getElementById('spiritPublicAvatarPlaceholder');
-                if (imgEl) {
-                    imgEl.src = url;
-                    imgEl.style.display = 'block';
-                    // Aspect rond (maquette Spirit Infinity)
-                    imgEl.style.borderRadius = '50%';
-                    imgEl.style.objectFit = 'cover';
-                    imgEl.onerror = function () {
-                        try { imgEl.removeAttribute('src'); } catch (e) {}
-                        imgEl.style.display = 'none';
-                        if (ph) { ph.style.display = 'flex'; ph.textContent = '👤'; }
-                    };
-                }
+                if (imgEl) { imgEl.src = url; imgEl.style.display = 'block'; }
                 if (ph) ph.style.display = 'none';
             } catch (err) {
                 alert('Upload avatar impossible (bucket Storage « ' + SPIRIT_BUCKET_AVATAR + ' » ou RLS) : ' + (err && err.message ? err.message : err));
