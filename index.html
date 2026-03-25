@@ -5363,7 +5363,8 @@ async function spiritUpdateNavSanctuaryDot() {
         // On affiche le dot si une ligne existe pour ce `recipient_id` (dot = activité chat côté serveur).
         var q = await _spirit.from('sanctuary_chat')
             .select('*')
-            .eq('recipient_id', String(resolvedMe))
+            // Utilise la valeur "compte" (MY_TEST_ID) pour matcher la donnée stockée côté serveur.
+            .eq('recipient_id', String(me))
             .limit(1);
         var show = !!(q && !q.error && q.data && Array.isArray(q.data) && q.data.length > 0);
         if (dot) dot.style.display = show ? 'block' : 'none';
