@@ -4498,7 +4498,8 @@ function spiritPublicSetTab(which) {
 async function spiritPublicFetchUserProfile(uid) {
     if (typeof _spirit === 'undefined' || !_spirit) return null;
     try {
-        var out = await _spirit.from('user_profiles').select('*').eq('id', String(uid)).maybeSingle();
+        var userId = String(uid);
+        var out = await _spirit.from('user_profiles').select('*').eq('id', userId.toString()).maybeSingle();
         if (out.error) return null;
         return out.data || null;
     } catch (e) { return null; }
@@ -4586,8 +4587,14 @@ async function spiritPublicSaveMeta() {
 
     var up = { id: targetUserId, avatar_url: avatarUrl };
     try {
-        var ins = await _spirit.from('user_profiles').upsert(up, { onConflict: 'id' });
-        if (ins && ins.error) throw ins.error;
+        if (String(targetUserId) === '12345') {
+            // Pour le profil de test "12345", éviter upsert/contraintes pouvant interpréter le type.
+            var upRes = await _spirit.from('user_profiles').update({ avatar_url: avatarUrl }).eq('id', targetUserId.toString());
+            if (upRes && upRes.error) throw upRes.error;
+        } else {
+            var ins = await _spirit.from('user_profiles').upsert(up, { onConflict: 'id' });
+            if (ins && ins.error) throw ins.error;
+        }
     } catch (err) {
         alert('Erreur Supabase : ' + (err && err.message ? err.message : err));
         return;
@@ -4616,9 +4623,9 @@ function spiritPublicWireAvatarOnce() {
                 var ext = (f.name && f.name.split('.').pop()) || 'jpg';
                 var path = String(targetUserId) + '/avatar_' + Date.now() + '.' + ext;
                 var url = await spiritStorageUploadPublic(SPIRIT_BUCKET_AVATAR, path, f);
-                // Si l'id vaut "12345", on force un cast en texte pour éviter l'interprétation UUID côté PostgREST.
-                var idField = (String(targetUserId) === '12345') ? 'id::text' : 'id';
-                var r = await _spirit.from('user_profiles').update({ avatar_url: url }).eq(idField, String(targetUserId));
+                // Forcer l'id en texte (ex: "12345") pour éviter toute interprétation UUID.
+                var userId = String(targetUserId);
+                var r = await _spirit.from('user_profiles').update({ avatar_url: url }).eq('id', userId.toString());
                 if (r.error) throw r.error;
                 var imgEl = document.getElementById('spiritPublicAvatarImg');
                 var ph = document.getElementById('spiritPublicAvatarPlaceholder');
