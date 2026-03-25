@@ -4574,6 +4574,15 @@ async function spiritPublicSaveMeta() {
     }
     if (!targetUserId) return;
 
+    // Si la vue utilise le faux ID "12345", utilisez l'ID auth réel (UUID valide) pour ne pas casser PostgREST.
+    var resolvedUserId = String(targetUserId);
+    if (String(targetUserId) === '12345' && _spirit && _spirit.auth && typeof _spirit.auth.getUser === 'function') {
+        try {
+            var au2 = await _spirit.auth.getUser();
+            if (au2 && au2.data && au2.data.user && au2.data.user.id) resolvedUserId = String(au2.data.user.id).trim();
+        } catch (e) {}
+    }
+
     // On ne modifie pas le pays/pseudo/email/etc ici (bouton "ENREGISTRER" reste sans erreur).
     var imgEl = document.getElementById('spiritPublicAvatarImg');
     var avatarUrl = imgEl ? (imgEl.currentSrc || imgEl.src || '') : '';
@@ -4585,11 +4594,11 @@ async function spiritPublicSaveMeta() {
         return;
     }
 
-    var up = { id: targetUserId, avatar_url: avatarUrl };
+    var up = { id: resolvedUserId, avatar_url: avatarUrl };
     try {
         if (String(targetUserId) === '12345') {
             // Pour le profil de test "12345", éviter upsert/contraintes pouvant interpréter le type.
-            var upRes = await _spirit.from('user_profiles').update({ avatar_url: avatarUrl }).eq('id', targetUserId.toString());
+            var upRes = await _spirit.from('user_profiles').update({ avatar_url: avatarUrl }).eq('id', resolvedUserId.toString());
             if (upRes && upRes.error) throw upRes.error;
         } else {
             var ins = await _spirit.from('user_profiles').upsert(up, { onConflict: 'id' });
@@ -4612,19 +4621,28 @@ function spiritPublicWireAvatarOnce() {
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
         void (async function () {
             try {
-                var targetUserId = (spiritPublicViewUserId != null) ? String(spiritPublicViewUserId).trim() : '';
-                if (!targetUserId && _spirit && _spirit.auth && typeof _spirit.auth.getUser === 'function') {
+                var viewUserId = (spiritPublicViewUserId != null) ? String(spiritPublicViewUserId).trim() : '';
+                if (!viewUserId && _spirit && _spirit.auth && typeof _spirit.auth.getUser === 'function') {
                     var au = await _spirit.auth.getUser();
-                    if (au && au.data && au.data.user && au.data.user.id) targetUserId = String(au.data.user.id).trim();
+                    if (au && au.data && au.data.user && au.data.user.id) viewUserId = String(au.data.user.id).trim();
                 }
-                if (!targetUserId) throw new Error('User id indisponible');
-                if (me && String(me) !== String(targetUserId)) return;
+                if (!viewUserId) throw new Error('User id indisponible');
+                if (me && String(me) !== String(viewUserId)) return;
+
+                // Si la vue utilise le faux ID "12345", utilisez l'ID auth réel (UUID valide) pour ne pas casser PostgREST.
+                var resolvedUserId = String(viewUserId);
+                if (String(viewUserId) === '12345' && _spirit && _spirit.auth && typeof _spirit.auth.getUser === 'function') {
+                    try {
+                        var au2 = await _spirit.auth.getUser();
+                        if (au2 && au2.data && au2.data.user && au2.data.user.id) resolvedUserId = String(au2.data.user.id).trim();
+                    } catch (e) {}
+                }
 
                 var ext = (f.name && f.name.split('.').pop()) || 'jpg';
-                var path = String(targetUserId) + '/avatar_' + Date.now() + '.' + ext;
+                var path = String(resolvedUserId) + '/avatar_' + Date.now() + '.' + ext;
                 var url = await spiritStorageUploadPublic(SPIRIT_BUCKET_AVATAR, path, f);
-                // Forcer l'id en texte (ex: "12345") pour éviter toute interprétation UUID.
-                var userId = String(targetUserId);
+                // Ne mettre à jour que avatar_url, mais filtrer sur id (UUID si "12345" était un faux ID).
+                var userId = String(resolvedUserId);
                 var r = await _spirit.from('user_profiles').update({ avatar_url: url }).eq('id', userId.toString());
                 if (r.error) throw r.error;
                 var imgEl = document.getElementById('spiritPublicAvatarImg');
