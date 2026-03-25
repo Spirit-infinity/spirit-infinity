@@ -4860,13 +4860,16 @@ async function spiritPublicLoadAnnonces(uid) {
         var st = String(p.status || '').toLowerCase();
         var sold = st === 'sold' || st === 'vendu';
         var div = document.createElement('div');
-        div.style.cssText = 'background:#111;border:1px solid #333;padding:12px;display:flex;flex-direction:column;gap:8px;';
+        div.style.cssText = 'background:#111;border:1px solid #333;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;overflow:hidden;transition:border-color 160ms ease;';
+        div.onmouseenter = function () { div.style.borderColor = '#ff4500'; };
+        div.onmouseleave = function () { div.style.borderColor = '#333'; };
         var urls = (typeof spiritImageUrlList === 'function') ? spiritImageUrlList(p) : [];
         if (urls[0]) {
             var im = document.createElement('img');
             im.src = urls[0];
             im.alt = '';
-            im.style.cssText = 'width:100%;max-height:140px;object-fit:cover;border:1px solid #333;';
+            // Hauteur fixe + object-fit pour cadrage stable (titre/prix restent au-dessous via flex-column)
+            im.style.cssText = 'width:100%;height:250px;object-fit:cover;object-position:center;display:block;flex:0 0 auto;';
             div.appendChild(im);
         }
         var info = document.createElement('div');
