@@ -1500,10 +1500,6 @@
     <p style="font-size:0.65rem;color:#666;margin-top:0;">Galerie noire &amp; néon — jusqu’à 15 pièces (bucket Storage <code>sanctuary</code>).</p>
     <div id="spiritAccountSanctuaryRoot" style="background:#000000;border:1px solid rgba(255,102,0,0.4);padding:16px;margin-top:12px;">
         <h2 id="spiritAccountSanctuaryPseudoBanner">—</h2>
-        <div class="spirit-account-san-add-row" id="spiritAccountSanctuaryAddRow">
-            <button type="button" class="spirit-san-add-photo-btn" id="spiritAccountSanctuaryAddPhotoBtn" title="Uploader vers le bucket sanctuary">+</button>
-            <span class="spirit-san-add-label">AJOUTER UNE PHOTO</span>
-        </div>
         <div class="spirit-sanctuary-toolbar">
             <span style="font-size:0.65rem;color:#888;">Néon (nouvelle photo)</span>
             <select id="spiritAccountSanctuaryNeonSelect" aria-label="Couleur néon">
@@ -1604,10 +1600,6 @@
         <div id="spiritSanctuaryRoot">
             <div id="spiritSanctuaryChrome" style="display:none;">
                 <h1 id="spiritSanctuaryPseudoBanner">—</h1>
-                <div id="spiritSanctuaryOwnerActions" class="spirit-sanctuary-owner-actions" style="display:none;">
-                    <button type="button" class="spirit-san-add-photo-btn" id="spiritSanctuaryAddPhotoBtn" title="Uploader vers le bucket sanctuary">+</button>
-                    <span class="spirit-san-add-label">AJOUTER UNE PHOTO</span>
-                </div>
             </div>
             <div class="spirit-sanctuary-toolbar">
                 <span style="font-size:0.65rem;color:#888;">Bordure néon (nouvelle photo)</span>
@@ -3986,6 +3978,13 @@ async function confirmPayment(method) {
     function navigateTo(section) {
         hideAllSections();
 
+        // Recharger l'avatar du header public à chaque changement de vue (bucket Storage « sanctuary »)
+        try {
+            if (document.body && document.body.classList && document.body.classList.contains('spirit-public-active')) {
+                if (typeof spiritPublicReloadAvatarFromSanctuary === 'function') void spiritPublicReloadAvatarFromSanctuary();
+            }
+        } catch (e) {}
+
         switch (String(section)) {
             case 'market':
                 setActiveNav('nav-market');
@@ -4414,6 +4413,88 @@ var spiritSanctuaryViewModeAccount = 'list';
 var spiritSanctuaryPollTimer = null;
 var SPIRIT_BUCKET_AVATAR = 'sanctuary';
 var SPIRIT_BUCKET_SANCTUARY = 'sanctuary';
+// Persist: stocke la valeur de `user_profiles.avatar_url` (path ou URL) pour recharger l'image au changement de vue.
+var spiritPublicAvatarPersist = '';
+
+function spiritPublicAvatarObjectPathFromValue(v) {
+    v = String(v || '').trim();
+    if (!v) return '';
+    // Nettoie querystring/hash (utile si `img.src` a déjà eu un paramètre).
+    try {
+        v = v.split('#')[0];
+    } catch (e) {}
+    try {
+        var qIdx = v.indexOf('?');
+        if (qIdx >= 0) v = v.substring(0, qIdx);
+    } catch (e2) {}
+    try {
+        if (typeof spiritStoragePublicUrlToObjectPath === 'function') {
+            var p = spiritStoragePublicUrlToObjectPath(SPIRIT_BUCKET_AVATAR, v);
+            if (p) return p;
+        }
+    } catch (e) {}
+    // Si c'est déjà un path d'objet (pas d'URL complète), on le retourne tel quel.
+    if (!/^https?:\/\//i.test(v) && v.indexOf('/') >= 0) return v;
+    // Fallback: extraction si URL complète mais parsing marker raté.
+    try {
+        var marker = '/object/public/' + String(SPIRIT_BUCKET_AVATAR) + '/';
+        var idx = v.indexOf(marker);
+        if (idx >= 0) return v.substring(idx + marker.length);
+    } catch (e2) {}
+    return '';
+}
+
+async function spiritPublicReloadAvatarFromSanctuary() {
+    try {
+        var imgEl = document.getElementById('spiritPublicAvatarImg');
+        var ph = document.getElementById('spiritPublicAvatarPlaceholder');
+        if (!imgEl) return;
+
+        var stored = spiritPublicAvatarPersist
+            || (imgEl.dataset && imgEl.dataset.spiritAvatarPersist ? imgEl.dataset.spiritAvatarPersist : '')
+            || (imgEl.currentSrc || imgEl.src || '');
+        stored = stored ? String(stored).trim() : '';
+
+        if (!stored) {
+            imgEl.removeAttribute('src');
+            imgEl.style.display = 'none';
+            if (ph) ph.style.display = 'flex';
+            return;
+        }
+
+        var objectPath = spiritPublicAvatarObjectPathFromValue(stored);
+        if (!objectPath) {
+            imgEl.removeAttribute('src');
+            imgEl.style.display = 'none';
+            if (ph) ph.style.display = 'flex';
+            return;
+        }
+
+        if (typeof _spirit === 'undefined' || !_spirit || !_spirit.storage || typeof _spirit.storage.from !== 'function') return;
+
+        var pub = _spirit.storage.from(SPIRIT_BUCKET_AVATAR).getPublicUrl(objectPath);
+        var url = pub && pub.data && pub.data.publicUrl ? String(pub.data.publicUrl) : '';
+        if (!url) {
+            imgEl.removeAttribute('src');
+            imgEl.style.display = 'none';
+            if (ph) ph.style.display = 'flex';
+            return;
+        }
+
+        imgEl.onerror = function () {
+            try { imgEl.removeAttribute('src'); } catch (e) {}
+            imgEl.style.display = 'none';
+            if (ph) ph.style.display = 'flex';
+        };
+
+        imgEl.src = url;
+        imgEl.style.display = 'block';
+        if (ph) ph.style.display = 'none';
+
+        spiritPublicAvatarPersist = stored;
+        if (imgEl.dataset) imgEl.dataset.spiritAvatarPersist = stored;
+    } catch (e2) {}
+}
 /** Colonnes sanctuary_items : aligné Supabase (snake_case). Erreur 400 si nom incorrect. */
 var SPIRIT_SANCTUARY_ITEM_COLS = 'id,user_id,image_url,neon_color,description,sort_order';
 var SPIRIT_SANCTUARY_SORT_KEY = 'sort_order';
@@ -4566,6 +4647,8 @@ function spiritPublicSetTab(which) {
     if (isS) {
         void spiritSanctuaryTabEnter();
     }
+    // Recharger l'avatar du header à chaque changement d'onglet public.
+    try { if (typeof spiritPublicReloadAvatarFromSanctuary === 'function') void spiritPublicReloadAvatarFromSanctuary(); } catch (e2) {}
 }
 async function spiritPublicFetchUserProfile(uid) {
     if (typeof _spirit === 'undefined' || !_spirit) return null;
@@ -4611,19 +4694,19 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     if (avBtn) avBtn.style.display = isOwner ? 'inline-block' : 'none';
     var imgEl = document.getElementById('spiritPublicAvatarImg');
     var ph = document.getElementById('spiritPublicAvatarPlaceholder');
-    if (row && row.avatar_url && imgEl && ph) {
-        imgEl.src = String(row.avatar_url);
-        imgEl.style.display = 'block';
-        imgEl.onerror = function () {
-            try { imgEl.removeAttribute('src'); } catch (e) {}
+    spiritPublicAvatarPersist = (row && row.avatar_url) ? String(row.avatar_url).trim() : '';
+    if (imgEl && ph) {
+        if (spiritPublicAvatarPersist) {
+            if (imgEl.dataset) imgEl.dataset.spiritAvatarPersist = spiritPublicAvatarPersist;
+            imgEl.removeAttribute('src');
             imgEl.style.display = 'none';
             ph.style.display = 'flex';
-        };
-        ph.style.display = 'none';
-    } else if (imgEl && ph) {
-        imgEl.removeAttribute('src');
-        imgEl.style.display = 'none';
-        ph.style.display = 'flex';
+            void spiritPublicReloadAvatarFromSanctuary();
+        } else {
+            imgEl.removeAttribute('src');
+            imgEl.style.display = 'none';
+            ph.style.display = 'flex';
+        }
     }
     spiritPublicApplyBadgesFromRow(row);
     await spiritPublicLoadIaScore(spiritPublicViewUserId, row);
