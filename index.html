@@ -743,7 +743,7 @@
             display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; margin-bottom: 18px;
         }
         .spirit-san-add-photo-btn {
-            width: 220px; height: 220px; min-width: 220px; border: 2px dashed rgba(255,102,0,0.55); background: #000;
+            width: 280px; height: 280px; min-width: 280px; border: 2px dashed rgba(255,102,0,0.55); background: #000;
             color: var(--neon-orange); font-size: 2.75rem; font-weight: 300; line-height: 1; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 14px rgba(255,102,0,0.12); transition: border-color 0.2s, box-shadow 0.2s;
@@ -774,16 +774,16 @@
         #spiritSanctuaryRoot .spirit-sanctuary-toolbar button.active { border-color: var(--neon-orange); color: var(--neon-orange); }
         #spiritSanctuaryGrid.spirit-san-mode-list { display: flex; flex-direction: column; gap: 16px; }
         #spiritSanctuaryGrid.spirit-san-mode-list .spirit-san-card {
-            display: flex; gap: 16px; align-items: flex-start; background: #0a0a0a; border: 1px solid #222; padding: 12px;
+            display: flex; flex-direction: column; gap: 16px; align-items: stretch; background: #0a0a0a; border: 1px solid #222; padding: 12px;
         }
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
         }
         #spiritSanctuaryGrid.spirit-san-mode-icons-sm {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px;
         }
         #spiritSanctuaryGrid .spirit-san-add-tile {
-            width: 220px; min-width: 220px; aspect-ratio: 1 / 1; min-height: 0; border: 2px dashed rgba(255,102,0,0.5); background: #0d0d0d;
+            width: 280px; min-width: 280px; aspect-ratio: 1 / 1; min-height: 0; border: 2px dashed rgba(255,102,0,0.5); background: #0d0d0d;
             display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--neon-orange);
             font-size: 2rem; font-weight: 300; transition: border-color 0.2s, box-shadow 0.2s;
             align-self: flex-start;
@@ -792,15 +792,29 @@
         #spiritSanctuaryGrid .spirit-san-thumb-wrap {
             position: relative; overflow: hidden; background: #000;
         }
-        #spiritSanctuaryGrid.spirit-san-mode-list .spirit-san-thumb-wrap { width: 220px; min-width: 220px; flex-shrink: 0; aspect-ratio: 1 / 1; }
+        #spiritSanctuaryGrid.spirit-san-mode-list .spirit-san-thumb-wrap { width: 280px; min-width: 280px; flex-shrink: 0; aspect-ratio: 1 / 1; }
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap {
-            width: 220px; min-width: 220px; aspect-ratio: 1 / 1;
+            width: 280px; min-width: 280px; aspect-ratio: 1 / 1;
             display: flex; flex-direction: column; min-height: 0;
         }
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap img.spirit-sanctuary-img { flex: 1 1 auto; min-height: 0; }
         #spiritSanctuaryGrid.spirit-san-mode-icons-sm .spirit-san-thumb-wrap { aspect-ratio: 1; }
         #spiritSanctuaryGrid .spirit-san-thumb-wrap img.spirit-sanctuary-img {
             width: 100%; height: 100%; object-fit: cover; display: block; cursor: crosshair;
+        }
+
+        #spiritSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-icons-cell {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #spiritSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-icons-desc {
+            font-size: 0.75rem;
+            color: #aaa;
+            line-height: 1.2;
+            padding: 0 4px;
+            word-break: break-word;
         }
         /* Actions overlay (loupe + corbeille) */
         .spirit-san-action-btn {
@@ -866,7 +880,7 @@
         }
         #spiritSanctuaryGrid.spirit-san-mode-details .spirit-san-thumb-wrap,
         #spiritAccountSanctuaryGrid.spirit-san-mode-details .spirit-san-thumb-wrap {
-            width: 100%; max-width: 320px;
+            width: 100%; min-width: 280px; max-width: 320px;
         }
         #spiritSanctuaryGrid.spirit-san-mode-details .spirit-san-meta,
         #spiritAccountSanctuaryGrid.spirit-san-mode-details .spirit-san-meta {
@@ -878,13 +892,13 @@
         }
         #spiritAccountSanctuaryGrid.spirit-san-mode-list { display: flex; flex-direction: column; gap: 16px; }
         #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-card {
-            display: flex; gap: 16px; align-items: flex-start; background: #0a0a0a; border: 1px solid #222; padding: 12px;
+            display: flex; flex-direction: column; gap: 16px; align-items: stretch; background: #0a0a0a; border: 1px solid #222; padding: 12px;
         }
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
         }
         #spiritAccountSanctuaryGrid .spirit-san-add-tile {
-            width: 220px; min-width: 220px; aspect-ratio: 1 / 1; min-height: 0; border: 2px dashed rgba(255,102,0,0.5); background: #000;
+            width: 280px; min-width: 280px; aspect-ratio: 1 / 1; min-height: 0; border: 2px dashed rgba(255,102,0,0.5); background: #000;
             display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--neon-orange);
             font-size: 2rem; font-weight: 300; transition: border-color 0.2s, box-shadow 0.2s;
             align-self: flex-start;
@@ -893,14 +907,28 @@
         #spiritAccountSanctuaryGrid .spirit-san-thumb-wrap {
             position: relative; overflow: hidden; background: #000;
         }
-        #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-thumb-wrap { width: 220px; min-width: 220px; flex-shrink: 0; aspect-ratio: 1 / 1; }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-thumb-wrap { width: 280px; min-width: 280px; flex-shrink: 0; aspect-ratio: 1 / 1; }
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap {
-            width: 220px; min-width: 220px; aspect-ratio: 1 / 1;
+            width: 280px; min-width: 280px; aspect-ratio: 1 / 1;
             display: flex; flex-direction: column; min-height: 0;
         }
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap img.spirit-sanctuary-img { flex: 1 1 auto; min-height: 0; }
         #spiritAccountSanctuaryGrid .spirit-san-thumb-wrap img.spirit-sanctuary-img {
             width: 100%; height: 100%; object-fit: cover; display: block; cursor: crosshair;
+        }
+
+        #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-icons-cell {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-icons-desc {
+            font-size: 0.75rem;
+            color: #aaa;
+            line-height: 1.2;
+            padding: 0 4px;
+            word-break: break-word;
         }
         #spiritAccountSanctuaryGrid .spirit-san-meta { flex: 1; font-size: 0.75rem; color: #aaa; }
         #spiritAccountSanctuaryGrid .spirit-san-meta input[type="text"] {
@@ -3372,6 +3400,11 @@ async function enregistrerVente(method) {
 
     if (!selectedProduct) return;
 
+    const buyerId = (typeof spiritGetCurrentUserId === 'function') ? spiritGetCurrentUserId() : MY_TEST_ID;
+    const buyerIdTxt = String(buyerId || '').trim();
+    const sellerIdTxt = String(selectedProduct.owner_id || selectedProduct.owner || '').trim() || '67890';
+    if (!buyerIdTxt) { alert('Identifiant acheteur manquant.'); return; }
+
     const prixFigurine = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(selectedProduct) : parseFloat(selectedProduct.price);
     const fraisLivraison = parseFloat(document.getElementById('sumShip').innerText) || 0;
     
@@ -3390,8 +3423,8 @@ async function enregistrerVente(method) {
             .from('transactions')
             .insert([{
                 amount: totalAcheteur, 
-                buyer_id: String(MY_TEST_ID),
-                seller_id: String(selectedProduct.owner_id || selectedProduct.owner || "67890"),
+                buyer_id: buyerIdTxt,
+                seller_id: sellerIdTxt,
                 user_profit: uProfit, 
                 firm_profit: fProfit, 
                 bank_share: bShare, 
@@ -4770,20 +4803,13 @@ async function spiritSanctuaryRender(ctx) {
         img.src = it.src || '';
         img.alt = '';
         img.decoding = 'async';
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (it && it.src) zoomImg(it.src);
+        });
         wrap.appendChild(img);
-        // Icônes d'action au survol (Loupe / Corbeille)
-        try {
-            var btnLoupe = document.createElement('button');
-            btnLoupe.type = 'button';
-            btnLoupe.className = 'spirit-san-action-btn';
-            btnLoupe.title = 'LOUPE';
-            btnLoupe.textContent = '⌕';
-            btnLoupe.onclick = function (e) {
-                e.stopPropagation();
-                try { if (typeof spiritAttachProductLoupe === 'function') spiritAttachProductLoupe(img, { lens: 220, zoom: 4, hd: true, touch: true }); } catch (ex) {}
-            };
-            wrap.appendChild(btnLoupe);
-        } catch (e) {}
+        // (Loupe supprimée) => on ouvre directement la photo en plein écran au clic.
         var btnDel = null;
         if (listLike) {
             var card = document.createElement('div');
@@ -4871,6 +4897,9 @@ async function spiritSanctuaryRender(ctx) {
             card.appendChild(meta);
             grid.appendChild(card);
         } else {
+            var cell = document.createElement('div');
+            cell.className = 'spirit-san-icons-cell';
+            cell.appendChild(wrap);
             // Corbeille (suppression bucket + Supabase)
             if (isOwner) {
                 try {
@@ -4888,32 +4917,32 @@ async function spiritSanctuaryRender(ctx) {
             }
             // Drag & drop uniquement pour le propriétaire (ordre sauvegardé via sort_order)
             if (isOwner) {
-                wrap.dataset.sanItemId = String(rowId);
-                wrap.draggable = true;
-                wrap.addEventListener('dragstart', function (e) {
+                cell.dataset.sanItemId = String(rowId);
+                cell.draggable = true;
+                cell.addEventListener('dragstart', function (e) {
                     var tag = ((e.target && e.target.tagName) ? e.target.tagName : '').toLowerCase();
                     if (['input', 'select', 'button', 'textarea'].includes(tag)) { e.preventDefault(); return; }
                     e.dataTransfer.setData('text/plain', String(rowId));
                     e.dataTransfer.effectAllowed = 'move';
-                    wrap.classList.add('spirit-san-dragging');
+                    cell.classList.add('spirit-san-dragging');
                 });
-                wrap.addEventListener('dragend', function () { wrap.classList.remove('spirit-san-dragging'); });
-                wrap.addEventListener('dragover', function (e) {
+                cell.addEventListener('dragend', function () { cell.classList.remove('spirit-san-dragging'); });
+                cell.addEventListener('dragover', function (e) {
                     if (!isOwner) return;
                     e.preventDefault();
                     e.dataTransfer.dropEffect = 'move';
-                    wrap.classList.add('spirit-san-drop-target');
+                    cell.classList.add('spirit-san-drop-target');
                 });
-                wrap.addEventListener('dragleave', function () { wrap.classList.remove('spirit-san-drop-target'); });
-                wrap.addEventListener('drop', async function (e) {
+                cell.addEventListener('dragleave', function () { cell.classList.remove('spirit-san-drop-target'); });
+                cell.addEventListener('drop', async function (e) {
                     if (!isOwner) return;
                     e.preventDefault();
-                    wrap.classList.remove('spirit-san-drop-target');
+                    cell.classList.remove('spirit-san-drop-target');
                     var draggedId = e.dataTransfer.getData('text/plain');
                     if (!draggedId || String(draggedId) === String(rowId)) return;
                     var draggedEl = grid.querySelector('[data-san-item-id=\"' + draggedId + '\"]');
-                    if (!draggedEl || draggedEl === wrap) return;
-                    grid.insertBefore(draggedEl, wrap);
+                    if (!draggedEl || draggedEl === cell) return;
+                    grid.insertBefore(draggedEl, cell);
                     await spiritSanctuaryPersistSortOrder(ctx, grid);
                 });
             }
@@ -4934,11 +4963,14 @@ async function spiritSanctuaryRender(ctx) {
                 };
             }
             wrap.appendChild(selMini);
-            grid.appendChild(wrap);
+
+            var descEl = document.createElement('div');
+            descEl.className = 'spirit-san-icons-desc';
+            descEl.textContent = String(it.desc || '').trim();
+            cell.appendChild(descEl);
+
+            grid.appendChild(cell);
         }
-        try {
-            if (typeof spiritAttachProductLoupe === 'function') spiritAttachProductLoupe(img, { lens: 200, zoom: 3.75, hd: true });
-        } catch (e) {}
     });
 }
 function spiritSanctuaryBindFileInput(ctx) {
