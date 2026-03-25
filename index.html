@@ -5359,14 +5359,13 @@ async function spiritUpdateNavSanctuaryDot() {
         return;
     }
     try {
-        // Avoid `count: 'exact'` + `head: true` which peut déclencher des 400 côté PostgREST/RLS.
-        // Ici on cherche juste l'existence d'au moins 1 message unread.
+        // Raison: éviter de dépendre de `is_read`/`count/head/order` (ça génère des 400 chez toi).
+        // On affiche le dot si une ligne existe pour ce `recipient_id` (dot = activité chat côté serveur).
         var q = await _spirit.from('sanctuary_chat')
-            .select('id,is_read')
+            .select('id')
             .eq('recipient_id', String(resolvedMe))
-            .order('created_at', { ascending: false })
-            .limit(50);
-        var show = !!(q && !q.error && q.data && Array.isArray(q.data) && q.data.some(function (m) { return m && m.is_read === false; }));
+            .limit(1);
+        var show = !!(q && !q.error && q.data && Array.isArray(q.data) && q.data.length > 0);
         if (dot) dot.style.display = show ? 'block' : 'none';
         if (fix) fix.style.display = show ? 'block' : 'none';
         if (nav) nav.classList.toggle('spirit-nav-sanctuary-blink', show);
