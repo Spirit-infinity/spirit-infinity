@@ -1222,6 +1222,7 @@
             <div style="flex:1; min-width:300px;">
                 <h2 id="pTitle">Titre</h2>
                 <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
+                <div id="pMatiere" style="display:none; font-size:0.78rem; color:#8cc; margin-bottom:8px;"></div>
                 <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
                 <div id="pDescBox" style="font-size:0.85rem; color:#aaa; margin-bottom:15px; background:#111; padding:10px; border-left:2px solid var(--neon-orange);"></div>
                 
@@ -1301,6 +1302,7 @@
                 <button class="btn-action" onclick="chooseMethod('hot_native')">1. Hot Toys (Equipée Spirit Infinity + Scan IA)</button>
                 <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan IA uniquement)</button>
                 <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (Vente Directe)</button>
+                <button class="btn-action" style="background:#2a2a2a; color:white; border:1px solid #555;" onclick="chooseMethod('statue')">4. Statue</button>
                 <button id="btn-publish-final" class="btn-action" style="margin-top:20px; width:100%; display:none;" onclick="publishFinal()">PUBLIER SUR LE MARCHÉ MONDIAL</button>
             </div>
         </div>
@@ -1322,28 +1324,19 @@
                 <span style="color:var(--spirit-green); font-size:0.8rem;">✓ Auto-diagnostic Puce Spirit lié à cette annonce</span>
             </div>
             <input type="text" id="inputTitle" placeholder="Nom précis de la figurine">
-            <select id="saleCat" onchange="spiritSyncSellStatueFields()">
+            <select id="saleCat">
                 <option value="">-- FORMAT DU PRODUIT --</option>
                 <option value="1/6">Action Figure 1/6</option>
                 <option value="1/12">Action Figure 1/12</option>
                 <option value="1/4">Statue / Figure 1/4</option>
-                <option value="statue">STATUE (format + matière)</option>
                 <option value="Resine">Statue Résine</option>
                 <option value="PVC">Statue PVC</option>
             </select>
-            <div id="statueRubriqueFields" style="display:none; margin-top:8px;">
-                <label style="font-size:0.65rem; color:var(--neon-orange); font-weight:bold; display:block; margin:8px 0 6px 0;">FORMAT DU PRODUIT (STATUE)</label>
-                <select id="saleStatueFormat" aria-label="Format du produit (statue)">
-                    <option value="1/6">1/6</option>
-                    <option value="1/4" selected>1/4</option>
-                    <option value="1/3">1/3</option>
-                    <option value="1/2">1/2</option>
-                    <option value="life-size">Life-Size (1/1)</option>
-                    <option value="buste">Buste</option>
-                </select>
-                <label style="font-size:0.65rem; color:var(--neon-orange); font-weight:bold; display:block; margin:10px 0 6px 0;">MATIERE</label>
-                <select id="saleMatiere" aria-label="Matière (statue)">
-                    <option value="Resine" selected>Résine</option>
+            <div id="saleMatiereRow" style="display:none;">
+                <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;">MATIÈRE</label>
+                <select id="saleMatiere">
+                    <option value="">-- MATIÈRE --</option>
+                    <option value="Résine">Résine</option>
                     <option value="PVC">PVC</option>
                 </select>
             </div>
@@ -2533,6 +2526,7 @@ function spiritAcknowledgeFavoriteTab() {
 /* Supabase: favorites.user_id = text ; product_id = bigint (FK products_live.id).
    Colonnes recommandées (SQL Supabase, une fois chacune) :
    ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS old_price numeric;
+   ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS matiere text; /* rubrique Statue : Résine | PVC */
    -- Optionnel (si vous alignez le schéma sur `amount`) :
    -- ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS amount numeric;
    -- Après ajout de `amount`, vous pourrez ré-inclure amount dans les insert/update et dans les .select() ciblés.
@@ -2911,15 +2905,16 @@ async function loadMySales() {
     function resetSellForm() {
         editingId = null;
         diagActive = false;
+        currentMethod = '';
         previewPhotos = [null, null, null, null, null];
         document.getElementById('inputTitle').value = '';
         document.getElementById('inputPrice').value = '';
         document.getElementById('inputDesc').value = '';
         document.getElementById('saleCat').value = '';
-        try { if (typeof spiritSyncSellStatueFields === 'function') spiritSyncSellStatueFields(); } catch (e) {}
+        if (document.getElementById('saleMatiere')) document.getElementById('saleMatiere').value = '';
+        var _mr = document.getElementById('saleMatiereRow');
+        if (_mr) _mr.style.display = 'none';
         document.getElementById('saleShip').value = 'Moyen';
-        if (document.getElementById('saleStatueFormat')) document.getElementById('saleStatueFormat').value = '1/4';
-        if (document.getElementById('saleMatiere')) document.getElementById('saleMatiere').value = 'Resine';
         for(let i=1; i<=5; i++) {
             document.getElementById('pBox' + i).innerHTML = 'PHOTO ' + i;
         }
@@ -2942,18 +2937,9 @@ async function loadMySales() {
         document.getElementById('stepMethod').style.display = 'none';
         document.getElementById('stepInfo').style.display = 'block';
         document.getElementById('s2').className = 'step active';
+        var mr = document.getElementById('saleMatiereRow');
+        if (mr) mr.style.display = (m === 'statue') ? 'block' : 'none';
     }
-
-    function spiritSyncSellStatueFields() {
-        try {
-            var box = document.getElementById('statueRubriqueFields');
-            var saleCatEl = document.getElementById('saleCat');
-            if (!box || !saleCatEl) return;
-            var v = String(saleCatEl.value || '').toLowerCase().trim();
-            box.style.display = (v === 'statue') ? 'block' : 'none';
-        } catch (e) {}
-    }
-    try { window.spiritSyncSellStatueFields = spiritSyncSellStatueFields; } catch (e) {}
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function goToScan() {
@@ -2970,6 +2956,13 @@ async function goToScan() {
     if(!imgToScan) {
         alert("PHOTO MANQUANTE : La Photo 1 est la base de l'audit Spirit Eyes.");
         return;
+    }
+    if (typeof currentMethod !== 'undefined' && currentMethod === 'statue') {
+        var matSel = document.getElementById('saleMatiere');
+        if (!matSel || !String(matSel.value || '').trim()) {
+            alert("MATIÈRE REQUISE : sélectionnez Résine ou PVC.");
+            return;
+        }
     }
 
     // Affichage interface de scan
@@ -3114,24 +3107,11 @@ async function saveSpiritAudit(title, detected, score, status, detailNote) {
 async function publierAnnonce() {
     const title = document.getElementById('inputTitle').value;
     const price = parseFloat(document.getElementById('inputPrice').value);
-    const descInput = document.getElementById('inputDesc').value;
+    const desc = document.getElementById('inputDesc').value;
     const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore, 10) || 0;
-    const categoryRaw = document.getElementById('saleCat') ? document.getElementById('saleCat').value : '';
-    const rubriqueIsStatue = String(categoryRaw || '').toLowerCase().trim() === 'statue';
-    const statueFormatVal = rubriqueIsStatue && document.getElementById('saleStatueFormat')
-        ? document.getElementById('saleStatueFormat').value : '';
-    const statueMatiereVal = rubriqueIsStatue && document.getElementById('saleMatiere')
-        ? document.getElementById('saleMatiere').value : '';
-
-    const categoryForDb = rubriqueIsStatue ? (statueFormatVal || '1/4') : categoryRaw;
-    const normalizedCat = rubriqueIsStatue ? 'statue' : normalizeSpiritCat(categoryRaw);
-
-    // Concat matière dans description (colonne unique disponible côté DB).
-    let descFinal = String(descInput || '');
-    if (rubriqueIsStatue && statueMatiereVal) {
-        var matTxt = String(statueMatiereVal).toLowerCase() === 'resine' ? 'Résine' : String(statueMatiereVal);
-        descFinal = descFinal ? (descFinal.trim() + '\nMatiere: ' + matTxt) : ('Matiere: ' + matTxt);
-    }
+    const category = document.getElementById('saleCat') ? document.getElementById('saleCat').value : '';
+    const matiere = document.getElementById('saleMatiere') ? String(document.getElementById('saleMatiere').value || '').trim() : '';
+    const normalizedCat = (typeof currentMethod !== 'undefined' && currentMethod === 'statue') ? 'statue' : normalizeSpiritCat(category);
     const brand = document.getElementById('saleBrand') ? document.getElementById('saleBrand').value : '';
     const isSmokeFree = !!(document.getElementById('saleSmokeFree') && document.getElementById('saleSmokeFree').checked);
     const isLightProtect = !!(document.getElementById('saleLightProtect') && document.getElementById('saleLightProtect').checked);
@@ -3150,21 +3130,16 @@ async function publierAnnonce() {
     if (photoUrls.length === 1) imageUrlPayload = photoUrls[0];
     else if (photoUrls.length > 1) imageUrlPayload = JSON.stringify(photoUrls);
 
-    /* products_live : prix = colonne `price`. (amount/scale potentiellement optionnels selon le schéma). */
-    var scaleVal = '';
-    if (rubriqueIsStatue && statueFormatVal) {
-        try { scaleVal = normalizeSpiritScale(String(statueFormatVal) + ' ' + String(statueMatiereVal || '')); } catch (e) { scaleVal = ''; }
-    }
-
+    /* products_live : prix = colonne `price` (la colonne `amount` est optionnelle côté SQL — ne pas l’envoyer si absente, sinon 400). */
     const newItem = {
         uuid: uuidVal,
         title: title,
         price: price,
-        description: descFinal,
+        description: desc,
         ia_score: scoreIA || 0,
         owner_id: String(MY_TEST_ID),
         image_url: imageUrlPayload,
-        category: categoryForDb || 'Collection',
+        category: category || 'Collection',
         cat: normalizedCat,
         brand: brand || 'Spirit Infinity',
         ship_size: shipSize,
@@ -3176,8 +3151,9 @@ async function publierAnnonce() {
         is_first_hand: isFirstHand,
         has_coa: hasCoa
     };
-    if (rubriqueIsStatue && scaleVal) newItem.scale = scaleVal;
-    if (rubriqueIsStatue) newItem.amount = price;
+    if (typeof currentMethod !== 'undefined' && currentMethod === 'statue' && matiere) {
+        newItem.matiere = matiere;
+    }
 
     try {
         if (!_spirit) {
@@ -3198,9 +3174,9 @@ async function publierAnnonce() {
             var updateRow = {
                 title: title,
                 price: price,
-                description: descFinal,
+                description: desc,
                 ia_score: scoreIA || 0,
-                category: categoryForDb || 'Collection',
+                category: category || 'Collection',
                 cat: normalizedCat,
                 brand: brand || 'Spirit Infinity',
                 ship_size: shipSize,
@@ -3211,8 +3187,11 @@ async function publierAnnonce() {
                 is_first_hand: isFirstHand,
                 has_coa: hasCoa
             };
-            if (rubriqueIsStatue && scaleVal) updateRow.scale = scaleVal;
-            if (rubriqueIsStatue) updateRow.amount = price;
+            if (typeof currentMethod !== 'undefined' && currentMethod === 'statue' && matiere) {
+                updateRow.matiere = matiere;
+            } else if (typeof currentMethod !== 'undefined' && currentMethod === 'statue' && !matiere) {
+                updateRow.matiere = null;
+            }
             if (photoUrls.length > 0) {
                 updateRow.image_url = photoUrls.length === 1 ? photoUrls[0] : JSON.stringify(photoUrls);
             }
@@ -3220,19 +3199,7 @@ async function publierAnnonce() {
                 updateRow.old_price = prevEff;
             }
             var upRes = await _spirit.from('products_live').update(updateRow).eq('id', eid);
-            if (upRes.error) {
-                var em2 = upRes.error && upRes.error.message ? String(upRes.error.message) : String(upRes.error);
-                var needsRetry2 = rubriqueIsStatue && (/scale|amount/i.test(em2));
-                if (needsRetry2) {
-                    var retryUpd = Object.assign({}, updateRow);
-                    delete retryUpd.scale;
-                    delete retryUpd.amount;
-                    var upRes2 = await _spirit.from('products_live').update(retryUpd).eq('id', eid);
-                    if (upRes2 && upRes2.error) throw upRes2.error;
-                } else {
-                    throw upRes.error;
-                }
-            }
+            if (upRes.error) throw upRes.error;
             editingId = null;
             alert('ANNONCE MISE À JOUR !');
             try { closeModals(); } catch (e) {}
@@ -3247,20 +3214,8 @@ async function publierAnnonce() {
             return;
         }
 
-        var ins = await _spirit.from('products_live').insert([newItem]);
-        if (ins && ins.error) {
-            var em = ins.error && ins.error.message ? String(ins.error.message) : String(ins.error);
-            var needsRetry = rubriqueIsStatue && (/scale|amount/i.test(em));
-            if (needsRetry) {
-                var retryPayload = Object.assign({}, newItem);
-                delete retryPayload.scale;
-                delete retryPayload.amount;
-                var ins2 = await _spirit.from('products_live').insert([retryPayload]);
-                if (ins2 && ins2.error) throw ins2.error;
-            } else {
-                throw ins.error;
-            }
-        }
+        const { data, error } = await _spirit.from('products_live').insert([newItem]);
+        if (error) throw error;
 
         const ledgerRow = {
             listing_title: title,
@@ -3434,29 +3389,7 @@ async function editAnnonce(id) {
     var pEd = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : (item.price != null ? item.price : 0);
     if(document.getElementById('inputPrice')) document.getElementById('inputPrice').value = pEd != null ? pEd : 0;
     if(document.getElementById('inputDesc')) document.getElementById('inputDesc').value = item.description || item.desc || '';
-    try {
-        if (document.getElementById('saleCat')) {
-            var rawForNorm = item.category || item.cat || 'figurine';
-            var isStat = (typeof normalizeSpiritCat === 'function') ? normalizeSpiritCat(rawForNorm) === 'statue' : false;
-            document.getElementById('saleCat').value = isStat ? 'statue' : rawForNorm;
-
-            if (isStat) {
-                var fmt = item.scale || item.category || '1/4';
-                // Normalise vers une valeur compatible avec le select "saleStatueFormat"
-                var allowed = ['1/6', '1/4', '1/3', '1/2', 'life-size', 'buste'];
-                if (allowed.indexOf(String(fmt)) === -1) fmt = '1/4';
-                if (document.getElementById('saleStatueFormat')) document.getElementById('saleStatueFormat').value = fmt;
-
-                var dsc = String(item.description || item.desc || '');
-                var mat = '';
-                if (/\bpvc\b/i.test(dsc)) mat = 'PVC';
-                else if (/\bresine\b/i.test(dsc) || /\brésine\b/i.test(dsc)) mat = 'Resine';
-                if (!mat && document.getElementById('saleMatiere')) mat = document.getElementById('saleMatiere').value || 'Resine';
-                if (document.getElementById('saleMatiere') && mat) document.getElementById('saleMatiere').value = mat;
-            }
-            try { if (typeof spiritSyncSellStatueFields === 'function') spiritSyncSellStatueFields(); } catch (eSync) {}
-        }
-    } catch (eEditCat) {}
+    if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat || 'figurine';
     if(document.getElementById('saleBrand')) document.getElementById('saleBrand').value = item.brand || '';
     if(document.getElementById('saleSmokeFree')) document.getElementById('saleSmokeFree').checked = !!item.is_smoke_free;
     if(document.getElementById('saleLightProtect')) document.getElementById('saleLightProtect').checked = !!item.is_light_protect;
@@ -3465,8 +3398,17 @@ async function editAnnonce(id) {
     if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize || 'medium';
     
     if (typeof chooseMethod === 'function') {
-        const isNative = item.is_native === true || item.type === 'native';
-        chooseMethod(isNative ? 'hot_native' : 'hot_legacy');
+        var isStatListing = (typeof normalizeSpiritCat === 'function') && normalizeSpiritCat(item.cat || item.category) === 'statue';
+        var hasMatiere = item.matiere && String(item.matiere).trim() !== '';
+        if (isStatListing || hasMatiere) {
+            chooseMethod('statue');
+            if (document.getElementById('saleMatiere') && hasMatiere) {
+                document.getElementById('saleMatiere').value = item.matiere;
+            }
+        } else {
+            const isNative = item.is_native === true || item.type === 'native';
+            chooseMethod(isNative ? 'hot_native' : 'hot_legacy');
+        }
     }
     console.log("[SPIRIT SYSTEM] Mode édition activé pour:", item.title);
 }
@@ -3805,6 +3747,17 @@ async function confirmPayment(method) {
         const displayCountry = item.country || "France";
         const displayCond = item.cond || "Certifié Spirit";
         document.getElementById('pOrigin').innerText = displayCountry + " | " + displayCond;
+        var pMatEl = document.getElementById('pMatiere');
+        if (pMatEl) {
+            var _mat = item.matiere;
+            if (_mat && String(_mat).trim() !== '') {
+                pMatEl.style.display = 'block';
+                pMatEl.textContent = 'MATIÈRE : ' + _mat;
+            } else {
+                pMatEl.style.display = 'none';
+                pMatEl.textContent = '';
+            }
+        }
         
         // CORRECTION : Supabase utilise 'description' au lieu de 'desc'
         document.getElementById('pDescBox').innerText = item.description || item.desc || "Aucune description disponible.";
