@@ -1597,6 +1597,12 @@
         <button type="button" id="spiritPublicBtnAnnonces" class="active" onclick="spiritPublicSetTab('annonces')">ANNONCES</button>
         <button type="button" id="spiritPublicBtnSanctuary" onclick="spiritPublicSetTab('sanctuary')">SANCTUAIRE</button>
     </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 6px 0;">
+        <button type="button" class="btn-action" style="font-size:0.58rem;padding:7px 10px;" onclick="spiritOpenPublicAnnonces('12345')">ANNONCES MOI</button>
+        <button type="button" class="btn-action" style="font-size:0.58rem;padding:7px 10px;" onclick="spiritOpenPublicAnnonces('67890')">ANNONCES INVITÉ</button>
+        <button type="button" class="btn-action" style="font-size:0.58rem;padding:7px 10px;" onclick="spiritOpenPublicSanctuary('12345')">SANCTUAIRE MOI</button>
+        <button type="button" class="btn-action" style="font-size:0.58rem;padding:7px 10px;" onclick="spiritOpenPublicSanctuary('67890')">SANCTUAIRE INVITÉ</button>
+    </div>
     <div class="spirit-public-pane" id="spiritPublicPaneAnnonces">
         <p style="font-size:0.7rem;color:#666;margin-top:0;">Annonces publiques (products_live)</p>
         <div id="spiritPublicAnnoncesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;"></div>
@@ -4969,6 +4975,13 @@ async function spiritPublicLoadAnnonces(uid) {
         div.style.cssText = 'background:#111;border:1px solid #333;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;overflow:hidden;transition:border-color 160ms ease;';
         div.onmouseenter = function () { div.style.borderColor = '#ff4500'; };
         div.onmouseleave = function () { div.style.borderColor = '#333'; };
+        div.style.cursor = 'pointer';
+        div.addEventListener('click', function () {
+            try {
+                if (typeof showProductDetails === 'function') void showProductDetails(p.id);
+                else if (typeof window !== 'undefined' && typeof window.showProductDetails === 'function') void window.showProductDetails(p.id);
+            } catch (e) {}
+        });
         var urls = (typeof spiritImageUrlList === 'function') ? spiritImageUrlList(p) : [];
         if (urls[0]) {
             var im = document.createElement('img');
@@ -5012,7 +5025,8 @@ async function spiritSanctuaryMarkReadForOwner(uid) {
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
     if (me !== String(uid)) return;
     try {
-        await _spirit.from('sanctuary_chat').update({ is_read: true }).eq('recipient_id', String(uid)).eq('is_read', false);
+        var resolvedUid = await spiritResolveUserIdForFakeTestId(uid);
+        await _spirit.from('sanctuary_chat').update({ is_read: true }).eq('recipient_id', String(resolvedUid)).eq('is_read', false);
     } catch (e) {}
     void spiritUpdateNavSanctuaryDot();
 }
@@ -5412,7 +5426,8 @@ async function spiritSanctuaryRenderChat(ctx) {
     var d = spiritSanctuaryDom(ctx);
     var box = document.getElementById(d.chatMsgs);
     if (!box || !uid || typeof _spirit === 'undefined' || !_spirit) return;
-    var out = await _spirit.from('sanctuary_chat').select('*').eq('recipient_id', String(uid)).order('created_at', { ascending: true }).limit(200);
+    var resolvedUid = await spiritResolveUserIdForFakeTestId(uid);
+    var out = await _spirit.from('sanctuary_chat').select('*').eq('recipient_id', String(resolvedUid)).order('created_at', { ascending: true }).limit(200);
     if (out.error || !out.data) { box.innerHTML = '<p style="color:#555;font-size:0.65rem;">—</p>'; return; }
     box.innerHTML = out.data.map(function (m) {
         var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
@@ -5434,13 +5449,15 @@ async function spiritSanctuarySendChat(ctx) {
         return;
     }
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    var resolvedUid = await spiritResolveUserIdForFakeTestId(uid);
+    var resolvedMe = await spiritResolveUserIdForFakeTestId(me);
     var label = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
     var ins = await _spirit.from('sanctuary_chat').insert({
-        recipient_id: String(uid),
-        sender_id: me,
+        recipient_id: String(resolvedUid),
+        sender_id: String(resolvedMe),
         sender_label: label,
         body: chk.text,
-        is_read: me === String(uid)
+        is_read: String(resolvedMe) === String(resolvedUid)
     });
     if (ins.error) { alert('Erreur chat : ' + ins.error.message); return; }
     inp.value = '';
@@ -5478,7 +5495,7 @@ async function spiritUpdateNavSanctuaryDot() {
         var q = await _spirit.from('sanctuary_chat')
             .select('*')
             // Utilise la valeur "compte" (MY_TEST_ID) pour matcher la donnée stockée côté serveur.
-            .eq('recipient_id', String(me))
+            .eq('recipient_id', String(resolvedMe))
             .limit(1);
         var show = !!(q && !q.error && q.data && Array.isArray(q.data) && q.data.length > 0);
         if (dot) dot.style.display = show ? 'block' : 'none';
@@ -5527,6 +5544,16 @@ function spiritOpenPublicSanctuary(uid) {
     } catch (e) {}
 }
 try { window.spiritOpenPublicSanctuary = spiritOpenPublicSanctuary; } catch (e) {}
+
+function spiritOpenPublicAnnonces(uid) {
+    try {
+        uid = String(uid || '').trim();
+        if (!uid) return;
+        location.hash = 'spirit-public/' + encodeURIComponent(uid);
+        if (typeof spiritApplyPublicHashRoute === 'function') void spiritApplyPublicHashRoute();
+    } catch (e) {}
+}
+try { window.spiritOpenPublicAnnonces = spiritOpenPublicAnnonces; } catch (e) {}
 try {
     window.spiritExitPublicProfile = spiritExitPublicProfile;
     window.spiritPublicSetTab = spiritPublicSetTab;
