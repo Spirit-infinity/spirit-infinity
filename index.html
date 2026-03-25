@@ -695,10 +695,10 @@
         }
         #spiritPublicProfileSection .spirit-public-avatar-wrap {
             position: relative; width: 120px; height: 120px; flex-shrink: 0;
-            border: 3px solid var(--neon-orange); box-shadow: 0 0 24px rgba(255,102,0,0.25); background: #000;
+            border: 3px solid var(--neon-orange); box-shadow: 0 0 24px rgba(255,102,0,0.25); background: #000; border-radius: 50%; overflow: hidden;
         }
         #spiritPublicProfileSection .spirit-public-avatar-wrap img {
-            width: 100%; height: 100%; object-fit: cover; display: block;
+            width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%;
         }
         #spiritPublicProfileSection .spirit-public-badges {
             display: flex; flex-wrap: wrap; gap: 8px; margin: 0; align-items: center;
@@ -1515,7 +1515,12 @@
     <div class="spirit-public-hero">
         <div class="spirit-public-avatar-wrap">
             <img id="spiritPublicAvatarImg" src="" alt="" style="display:none;" />
-            <div id="spiritPublicAvatarPlaceholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#333;font-size:0.65rem;text-align:center;padding:8px;">AVATAR</div>
+            <div id="spiritPublicAvatarPlaceholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#777;font-size:0.65rem;text-align:center;padding:8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+            </div>
             <input type="file" id="spiritPublicAvatarFile" accept="image/*" style="display:none;" />
         </div>
         <div style="flex:1;min-width:200px;">
@@ -4335,7 +4340,7 @@ var spiritPublicViewUserId = null;
 var spiritSanctuaryViewMode = 'list';
 var spiritSanctuaryViewModeAccount = 'list';
 var spiritSanctuaryPollTimer = null;
-var SPIRIT_BUCKET_AVATAR = 'avatars';
+var SPIRIT_BUCKET_AVATAR = 'sanctuary';
 var SPIRIT_BUCKET_SANCTUARY = 'sanctuary';
 /** Colonnes sanctuary_items : aligné Supabase (snake_case). Erreur 400 si nom incorrect. */
 var SPIRIT_SANCTUARY_ITEM_COLS = 'id,user_id,image_url,neon_color,description,sort_order';
@@ -4536,6 +4541,11 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     if (row && row.avatar_url && imgEl && ph) {
         imgEl.src = String(row.avatar_url);
         imgEl.style.display = 'block';
+        imgEl.onerror = function () {
+            try { imgEl.removeAttribute('src'); } catch (e) {}
+            imgEl.style.display = 'none';
+            ph.style.display = 'flex';
+        };
         ph.style.display = 'none';
     } else if (imgEl && ph) {
         imgEl.removeAttribute('src');
@@ -4593,7 +4603,15 @@ function spiritPublicWireAvatarOnce() {
                 if (r.error) throw r.error;
                 var imgEl = document.getElementById('spiritPublicAvatarImg');
                 var ph = document.getElementById('spiritPublicAvatarPlaceholder');
-                if (imgEl) { imgEl.src = url; imgEl.style.display = 'block'; }
+                if (imgEl) {
+                    imgEl.src = url;
+                    imgEl.style.display = 'block';
+                    imgEl.onerror = function () {
+                        try { imgEl.removeAttribute('src'); } catch (e) {}
+                        imgEl.style.display = 'none';
+                        if (ph) ph.style.display = 'flex';
+                    };
+                }
                 if (ph) ph.style.display = 'none';
             } catch (err) {
                 alert('Upload avatar impossible (bucket Storage « ' + SPIRIT_BUCKET_AVATAR + ' » ou RLS) : ' + (err && err.message ? err.message : err));
