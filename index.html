@@ -5365,7 +5365,6 @@ async function spiritUpdateNavSanctuaryDot() {
             .select('id')
             .eq('recipient_id', String(resolvedMe))
             .eq('is_read', false)
-            .neq('sender_id', String(resolvedMe))
             .limit(1);
         var show = !!(q && !q.error && q.data && Array.isArray(q.data) && q.data.length > 0);
         if (dot) dot.style.display = show ? 'block' : 'none';
