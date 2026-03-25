@@ -3975,6 +3975,32 @@ async function confirmPayment(method) {
         if (btn) btn.classList.add('active');
     }
 
+    // --- PERF GUARDS (anti-doublons / anti-spam) ---
+    // Objectif: accélérer les changements de vue en évitant les appels redondants (sans changer le design).
+    var spiritPerf = window.spiritPerf || { inFlight: Object.create(null), lastRun: Object.create(null) };
+    try { window.spiritPerf = spiritPerf; } catch (e) {}
+    function spiritPerfNow() { return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(); }
+    function spiritPerfShouldRun(key, minIntervalMs) {
+        minIntervalMs = Number(minIntervalMs || 0);
+        if (!minIntervalMs) return true;
+        var now = spiritPerfNow();
+        var last = spiritPerf.lastRun[key] || 0;
+        if (now - last < minIntervalMs) return false;
+        spiritPerf.lastRun[key] = now;
+        return true;
+    }
+    function spiritPerfRunOnceInFlight(key, fn) {
+        try {
+            if (spiritPerf.inFlight[key]) return spiritPerf.inFlight[key];
+            var p = Promise.resolve().then(fn);
+            spiritPerf.inFlight[key] = p;
+            return p.finally(function () { try { delete spiritPerf.inFlight[key]; } catch (e) { spiritPerf.inFlight[key] = null; } });
+        } catch (e2) {
+            try { delete spiritPerf.inFlight[key]; } catch (e3) {}
+            return Promise.resolve();
+        }
+    }
+
     function navigateTo(section) {
         hideAllSections();
 
@@ -4020,9 +4046,18 @@ async function confirmPayment(method) {
             case 'account':
                 setActiveNav('nav-account');
                 // On s'assure que les données compte sont à jour
-                try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
-                try { if (typeof loadMyPurchases === 'function') loadMyPurchases(); } catch (e) {}
-                try { if (typeof loadMySales === 'function') loadMySales(); } catch (e) {}
+                try {
+                    if (typeof updateUserAnnonces === 'function' && spiritPerfShouldRun('account:updateUserAnnonces', 800))
+                        spiritPerfRunOnceInFlight('account:updateUserAnnonces', function () { return updateUserAnnonces(); });
+                } catch (e) {}
+                try {
+                    if (typeof loadMyPurchases === 'function' && spiritPerfShouldRun('account:loadMyPurchases', 800))
+                        spiritPerfRunOnceInFlight('account:loadMyPurchases', function () { return loadMyPurchases(); });
+                } catch (e) {}
+                try {
+                    if (typeof loadMySales === 'function' && spiritPerfShouldRun('account:loadMySales', 800))
+                        spiritPerfRunOnceInFlight('account:loadMySales', function () { return loadMySales(); });
+                } catch (e) {}
                 const account = document.getElementById('accountModal');
                 if (account) account.style.setProperty('display', 'flex', 'important');
                 try { if (typeof showAccountTab === 'function') showAccountTab('dashboard'); } catch (e) {}
@@ -4161,8 +4196,18 @@ window.showAccountTab = function showAccountTab(tab) {
         if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
     } catch (e) {}
 
-    if(tab === 'achats') loadUserPurchases();
-    if (tab === 'ventes') loadMySales();
+    if (tab === 'achats') {
+        try {
+            if (typeof loadUserPurchases === 'function' && spiritPerfShouldRun('tab:achats:loadUserPurchases', 700))
+                spiritPerfRunOnceInFlight('tab:achats:loadUserPurchases', function () { return loadUserPurchases(); });
+        } catch (e) {}
+    }
+    if (tab === 'ventes') {
+        try {
+            if (typeof loadMySales === 'function' && spiritPerfShouldRun('tab:ventes:loadMySales', 700))
+                spiritPerfRunOnceInFlight('tab:ventes:loadMySales', function () { return loadMySales(); });
+        } catch (e) {}
+    }
     
     // 1. On nettoie l'interface (Boutons et Pages)
     document.querySelectorAll('.dash-nav button').forEach(b => {
@@ -4192,28 +4237,48 @@ window.showAccountTab = function showAccountTab(tab) {
     // On ne garde qu'un seul appel par onglet pour éviter les doublons de requêtes
     if (tab === 'achats') {
         if (typeof loadMyPurchases === 'function') {
-            loadMyPurchases();
+            try {
+                if (spiritPerfShouldRun('tab:achats:loadMyPurchases', 700))
+                    spiritPerfRunOnceInFlight('tab:achats:loadMyPurchases', function () { return loadMyPurchases(); });
+            } catch (e) { loadMyPurchases(); }
         } else if (typeof loadUserPurchases === 'function') {
-            loadUserPurchases();
+            try {
+                if (spiritPerfShouldRun('tab:achats:loadUserPurchases2', 700))
+                    spiritPerfRunOnceInFlight('tab:achats:loadUserPurchases2', function () { return loadUserPurchases(); });
+            } catch (e2) { loadUserPurchases(); }
         }
     } else if (tab === 'ventes') {
         // Un seul appel ici vers la fonction dynamique
         if (typeof loadMySales === 'function') {
-            loadMySales();
+            try {
+                if (spiritPerfShouldRun('tab:ventes:loadMySales2', 700))
+                    spiritPerfRunOnceInFlight('tab:ventes:loadMySales2', function () { return loadMySales(); });
+            } catch (e3) { loadMySales(); }
         }
     } else if (tab === 'annonces') {
         if (typeof updateUserAnnonces === 'function') {
-            updateUserAnnonces();
+            try {
+                if (spiritPerfShouldRun('tab:annonces:updateUserAnnonces', 700))
+                    spiritPerfRunOnceInFlight('tab:annonces:updateUserAnnonces', function () { return updateUserAnnonces(); });
+            } catch (e4) { updateUserAnnonces(); }
         }
     } else if (tab === 'favoris') {
-        if (typeof renderUserFavorites === 'function') renderUserFavorites();
+        if (typeof renderUserFavorites === 'function') {
+            try {
+                if (spiritPerfShouldRun('tab:favoris:render', 350))
+                    spiritPerfRunOnceInFlight('tab:favoris:render', function () { return renderUserFavorites(); });
+            } catch (e5) { renderUserFavorites(); }
+        }
     } else if (tab === 'sanctuary') {
         try { if (typeof spiritAccountSanctuaryTabEnter === 'function') void spiritAccountSanctuaryTabEnter(); } catch (e) {}
         try { if (typeof spiritSanctuaryWireOnce === 'function') spiritSanctuaryWireOnce(); } catch (e) {}
     }
 
     if (tab === 'dashboard') {
-        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+        try {
+            if (typeof updateUserAnnonces === 'function' && spiritPerfShouldRun('tab:dashboard:updateUserAnnonces', 900))
+                spiritPerfRunOnceInFlight('tab:dashboard:updateUserAnnonces', function () { return updateUserAnnonces(); });
+        } catch (e) {}
         try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
     }
     if (tab === 'params') {
@@ -4269,9 +4334,9 @@ function switchUser(newId, label) {
         showAccountTab(activeTab);
     } else {
         // AJOUT : On force le rechargement synchrone des 3 piliers du compte
-        loadMyPurchases();
-        loadMySales();
-        updateUserAnnonces(); 
+        try { if (typeof loadMyPurchases === 'function') spiritPerfRunOnceInFlight('switchUser:loadMyPurchases', function () { return loadMyPurchases(); }); } catch (e) { try { loadMyPurchases(); } catch (e2) {} }
+        try { if (typeof loadMySales === 'function') spiritPerfRunOnceInFlight('switchUser:loadMySales', function () { return loadMySales(); }); } catch (e3) { try { loadMySales(); } catch (e4) {} }
+        try { if (typeof updateUserAnnonces === 'function') spiritPerfRunOnceInFlight('switchUser:updateUserAnnonces', function () { return updateUserAnnonces(); }); } catch (e5) { try { updateUserAnnonces(); } catch (e6) {} }
     }
     
     if (typeof renderMarket === 'function') renderMarket();
