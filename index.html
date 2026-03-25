@@ -5362,7 +5362,7 @@ async function spiritUpdateNavSanctuaryDot() {
         // Raison: éviter de dépendre de `is_read`/`count/head/order` (ça génère des 400 chez toi).
         // On affiche le dot si une ligne existe pour ce `recipient_id` (dot = activité chat côté serveur).
         var q = await _spirit.from('sanctuary_chat')
-            .select('id')
+            .select('*')
             .eq('recipient_id', String(resolvedMe))
             .limit(1);
         var show = !!(q && !q.error && q.data && Array.isArray(q.data) && q.data.length > 0);
