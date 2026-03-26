@@ -2757,26 +2757,44 @@ async function spiritCheckSellerFavAlerts() {
         sellerId = spiritOwnerId(sellerId);
         if (!sellerId) return;
 
-        // Timestamp local (évite de spammer le serveur).
+        // Throttle local (évite de re-frapper le serveur plusieurs fois).
+        var lastCheckKey = 'spirit_last_seller_fav_check_at__' + String(sellerId);
+        var lastCheckRaw = '';
+        try { lastCheckRaw = localStorage.getItem(lastCheckKey) || ''; } catch (e0) {}
+        var lastCheck = lastCheckRaw ? new Date(lastCheckRaw).getTime() : 0;
+        if (Number.isFinite(lastCheck) && lastCheck && (Date.now() - lastCheck) < 180000) return;
+        try { localStorage.setItem(lastCheckKey, new Date().toISOString()); } catch (e1) {}
+
+        // Timestamp local (évite de spammer le serveur + limite la fenêtre).
         var lastTsRaw = '';
         try { lastTsRaw = localStorage.getItem(spiritGetSellerFavAlertKey(sellerId)) || ''; } catch (e) {}
         var lastTs = lastTsRaw ? new Date(lastTsRaw).getTime() : 0;
         if (!Number.isFinite(lastTs)) lastTs = 0;
+        if (!Number.isFinite(lastTs) || !lastTs) {
+            // Si jamais rien n'a été alerté, on prend une fenêtre raisonnable pour éviter des scans massifs.
+            lastTs = Date.now() - (1000 * 60 * 60 * 24); // 24h
+        }
 
         // Récupère les produits du vendeur
         var prodOut = await _spirit
             .from('products_live')
             .select('id')
-            .eq('owner_id', sellerId);
+            .eq('owner_id', sellerId)
+            .order('id', { ascending: false })
+            .range(0, 49);
         if (prodOut.error) return;
         var prodIds = (prodOut.data || []).map(function (r) { return Number(r.id); }).filter(function (n) { return Number.isFinite(n); });
         if (prodIds.length === 0) return;
+        prodIds = prodIds.slice(0, 50); // cap
 
         // Favoris ajoutés récemment sur ses annonces (par d'autres users)
         var favOut = await _spirit
             .from('favorites')
             .select('product_id,created_at,user_id')
-            .in('product_id', prodIds);
+            .in('product_id', prodIds)
+            .gte('created_at', new Date(lastTs + 1000).toISOString())
+            .order('created_at', { ascending: false })
+            .range(0, 199);
         if (favOut.error) return;
         var rows = Array.isArray(favOut.data) ? favOut.data : [];
 
@@ -6864,17 +6882,15 @@ async function fetchMarketplaceFromSupabase(opts) {
 
     var data = null;
     var reqError = null;
-    var totalCount = null;
     try {
         /* Requiert la colonne `cat` sur products_live (Table Editor) : valeurs figurine | statue pour ce filtre. */
         var out = await _spirit.from('products_live')
-            .select('*', { count: 'exact' })
+            .select('id,uuid,title,price,old_price,ia_score,category,brand,ship_size,image_url,description,is_native,status,owner_id,currency,cat,is_smoke_free,is_light_protect,is_first_hand,origin_country,has_coa,amount')
             .eq('cat', cat)
             .order('id', { ascending: false })
             .range(from, to);
         data = out.data;
         reqError = out.error;
-        totalCount = (typeof out.count === 'number') ? out.count : null;
     } catch (e) {
         reqError = e;
         console.error('[SPIRIT MARKET] products_live exception:', e && e.message ? e.message : e, e);
@@ -6897,13 +6913,12 @@ async function fetchMarketplaceFromSupabase(opts) {
     }
 
     var chunk = Array.isArray(data) ? data : [];
-    if (totalCount !== null) b.serverCount = totalCount;
     if (append) {
         b.rows = b.rows.concat(chunk);
     } else {
         b.rows = chunk;
     }
-    b.hasMore = chunk.length === ps && (b.serverCount == null || b.rows.length < b.serverCount);
+    b.hasMore = chunk.length === ps;
 
     if (spiritBucketKeyFromMode() === key) {
         marketData = b.rows.slice();
