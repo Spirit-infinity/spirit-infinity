@@ -2896,7 +2896,10 @@ function renderMarket(filteredData = null) {
                             onclick="spiritOpenPublicProfileUIWithStop(event, '${oid}')"
                         >${sellerLabelText}</button>
                     </div>
-                    <div style="font-size:0.6rem; color:#555; font-family:monospace; margin-top:6px;">SPIRIT-ID: ${item.uuid || "---"}</div>
+                    <div style="font-size:0.6rem; color:#555; font-family:monospace; margin-top:6px;">
+                        Pseudo :
+                        <span class="spirit-card-seller-pseudo" data-seller-uid="${oid}">${sellerLabelText}</span>
+                    </div>
                     <div class="market-signals">
                         <span class="market-chip">${smokeTxt}</span>
                         <span class="market-chip">${lightTxt}</span>
@@ -2913,8 +2916,15 @@ function renderMarket(filteredData = null) {
                     if (!btn) return;
                     var pseudo = '';
                     try { pseudo = await spiritFetchOwnerPseudo(oid); } catch (e) { pseudo = ''; }
-                    if (pseudo) btn.textContent = pseudo;
-                    else btn.textContent = spiritDefaultLabelFromUid(oid);
+                    var pseudoText = pseudo ? String(pseudo).trim() : '';
+                    if (!pseudoText) pseudoText = spiritDefaultLabelFromUid(oid);
+                    if (pseudoText) btn.textContent = pseudoText;
+                    try {
+                        var spans = card.querySelectorAll('.spirit-card-seller-pseudo[data-seller-uid="' + oid + '"]');
+                        if (spans && spans.length) {
+                            spans.forEach(function (s) { s.textContent = pseudoText; });
+                        }
+                    } catch (e2) {}
                 })();
             }
             
