@@ -1843,9 +1843,9 @@
         _spirit = null;
         console.warn('[SPIRIT] Supabase indisponible, UI en mode statique.', e);
     }
-    // Coupe-circuit anti-400: on neutralise user_profiles + sanctuary_chat côté réseau.
-    // Ces fonctionnalités tournent en fallback local dans cette page.
-    var SPIRIT_SUPABASE_BLOCK_TABLES = { user_profiles: true, sanctuary_chat: true };
+    // Coupe-circuit anti-400: on neutralise sanctuary_chat côté réseau.
+    // user_profiles doit rester accessible (pour afficher le pseudo sur les cartes + profils).
+    var SPIRIT_SUPABASE_BLOCK_TABLES = { user_profiles: false, sanctuary_chat: true };
     function spiritBlockedTableResult(table) {
         return Promise.resolve({
             data: table === 'user_profiles' ? null : [],
@@ -2769,6 +2769,17 @@ async function spiritFetchOwnerPseudo(uid) {
                 if (out && !out.error && out.data && out.data.pseudo != null) {
                     return String(out.data.pseudo).trim();
                 }
+                // Fallback : selon le schéma, la clé peut être `user_id` au lieu de `id`.
+                try {
+                    var out2 = await _spirit
+                        .from('user_profiles')
+                        .select('pseudo')
+                        .eq('user_id', uid.toString())
+                        .maybeSingle();
+                    if (out2 && !out2.error && out2.data && out2.data.pseudo != null) {
+                        return String(out2.data.pseudo).trim();
+                    }
+                } catch (e2) {}
             } catch (e) {}
             return '';
         })();
@@ -2870,7 +2881,9 @@ function renderMarket(filteredData = null) {
             const oid = spiritOwnerId(item.owner_id);
             const isMine = oid !== '' && oid === String(MY_TEST_ID).trim();
             const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.5); color:#0f0; font-size:10px; padding:2px 6px; border:1px solid #0f0; border-radius:2px; z-index:10; font-weight:bold;">MES ANNONCES</div>` : '';
-            const sellerLabelText = spiritDefaultLabelFromUid(oid);
+            const sellerLabelText = isMine && typeof currentUser !== 'undefined' && String(currentUser).trim()
+                ? String(currentUser).trim()
+                : spiritDefaultLabelFromUid(oid);
 
             const smokeTxt = item.is_smoke_free ? 'Non-fumeur' : 'Fumeur?';
             const lightTxt = item.is_light_protect ? 'Lumiere protegee' : 'Lumiere exposee';
@@ -4036,6 +4049,27 @@ async function confirmPayment(method) {
         if (nameEl) nameEl.innerText = finalName.toUpperCase();
     }
 
+    async function spiritUpsertUserProfileFromAuth(user, pseudoFallback) {
+        try {
+            if (!_spirit || !_spirit.from || !_spirit.auth) return;
+            var uid = user && user.id ? String(user.id).trim() : '';
+            if (!uid) return;
+            var pseudo = '';
+            try {
+                if (user && user.user_metadata) pseudo = String(user.user_metadata.username || user.user_metadata.pseudo || '').trim();
+            } catch (e) {}
+            pseudo = pseudo || pseudoFallback || (uid ? uid : '');
+            if (!pseudo || pseudo === uid) pseudo = pseudoFallback || 'VISITEUR';
+
+            // user_profiles (CSV): id (uuid), pseudo (text), autres champs optionnels
+            await _spirit
+                .from('user_profiles')
+                .upsert([{ id: uid, pseudo: pseudo }], { onConflict: 'id' });
+        } catch (e) {
+            // Ne bloque pas l'UI si le schéma diffère un peu.
+        }
+    }
+
     async function spiritRefreshAuthFromSession() {
         if (!_spirit || !_spirit.auth || typeof _spirit.auth.getSession !== 'function') return;
         try {
@@ -4043,6 +4077,7 @@ async function confirmPayment(method) {
             var session = sess && sess.data ? sess.data.session : null;
             if (session && session.user) {
                 spiritApplyAuthUser(session.user);
+                await spiritUpsertUserProfileFromAuth(session.user, 'VISITEUR');
                 spiritRefreshUserScopedUi();
             }
         } catch (e) {
@@ -4129,6 +4164,7 @@ async function confirmPayment(method) {
             var signIn = await _spirit.auth.signInWithPassword({ email: email, password: pass });
             if (!signIn.error && signIn.data && signIn.data.user) {
                 spiritApplyAuthUser(signIn.data.user, u);
+                await spiritUpsertUserProfileFromAuth(signIn.data.user, u);
                 spiritRefreshUserScopedUi();
                 alert("Connexion réussie.");
                 closeModals();
@@ -4151,6 +4187,7 @@ async function confirmPayment(method) {
 
             if (signUp.data && signUp.data.user) {
                 spiritApplyAuthUser(signUp.data.user, u);
+                await spiritUpsertUserProfileFromAuth(signUp.data.user, u);
             }
             if (signUp.data && signUp.data.session) {
                 spiritRefreshUserScopedUi();
@@ -4595,6 +4632,7 @@ async function confirmPayment(method) {
             _spirit.auth.onAuthStateChange(function (_event, session) {
                 if (session && session.user) {
                     spiritApplyAuthUser(session.user);
+                    try { void spiritUpsertUserProfileFromAuth(session.user, 'VISITEUR'); } catch (eUp) {}
                     spiritRefreshUserScopedUi();
                 }
             });
