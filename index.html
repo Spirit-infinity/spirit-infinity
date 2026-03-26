@@ -2062,6 +2062,11 @@
     var spiritMarketScrollObserver = null;
     var spiritUserFavoriteSet = new Set();
     var spiritFavoriteCountMap = {};
+    /* Cache marketplace (bande passante Supabase) : TTL court + invalidation sur vente/publication. */
+    var SPIRIT_MARKET_LS_KEY = 'spirit_v1_market_bucket';
+    var SPIRIT_MARKET_CACHE_TTL_MS = 8 * 60 * 1000;
+    var spiritAuxFetchLast = { fav: 0, notif: 0, annonces: 0 };
+    var spiritMarketAuxOnce = false;
 
     // --- PRÉCOMMANDES HOT TOYS (PARTENAIRE OFFICIEL) ---
     // Vitrine indépendante du Marketplace (pas d'achat in-app)
@@ -2394,14 +2399,67 @@ function spiritInvalidateMarketCache() {
     spiritMarketBucket.statue.serverCount = null;
     spiritMarketBucket.statue.hasMore = false;
     spiritRenderMarketSig = '';
+    try { localStorage.removeItem(SPIRIT_MARKET_LS_KEY); } catch (e) {}
+}
+function spiritMarketCacheRead(key) {
+    try {
+        var raw = localStorage.getItem(SPIRIT_MARKET_LS_KEY);
+        if (!raw) return null;
+        var all = JSON.parse(raw);
+        var ent = all[key];
+        if (!ent || typeof ent.ts !== 'number' || !Array.isArray(ent.rows)) return null;
+        if (Date.now() - ent.ts > SPIRIT_MARKET_CACHE_TTL_MS) return null;
+        return { rows: ent.rows.slice(), hasMore: !!ent.hasMore };
+    } catch (e) { return null; }
+}
+function spiritMarketCacheWrite(key, rows, hasMore) {
+    try {
+        var raw = localStorage.getItem(SPIRIT_MARKET_LS_KEY);
+        var all = {};
+        try { all = raw ? JSON.parse(raw) : {}; } catch (e1) { all = {}; }
+        if (!all || typeof all !== 'object') all = {};
+        all[key] = { ts: Date.now(), rows: rows, hasMore: !!hasMore };
+        localStorage.setItem(SPIRIT_MARKET_LS_KEY, JSON.stringify(all));
+    } catch (e) { /* quota */ }
+}
+/** Favoris / notifs / annonces : ne pas enchaîner 3 requêtes à chaque fetch marketplace. */
+function spiritMarketFetchAuxThrottled(opts) {
+    opts = opts || {};
+    if (opts.forceAux) {
+        var t0 = Date.now();
+        try { spiritLoadFavoriteData(); } catch (e) {}
+        try { checkGlobalNotifications().catch(function () {}); } catch (e) {}
+        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+        spiritAuxFetchLast.fav = spiritAuxFetchLast.notif = spiritAuxFetchLast.annonces = t0;
+        spiritMarketAuxOnce = true;
+        return;
+    }
+    if (!spiritGetCurrentUserId()) return;
+    var now = Date.now();
+    if (!spiritMarketAuxOnce) {
+        spiritMarketAuxOnce = true;
+        try { spiritLoadFavoriteData(); } catch (e) {}
+        spiritAuxFetchLast.fav = now;
+    } else if (now - spiritAuxFetchLast.fav > 75000) {
+        spiritAuxFetchLast.fav = now;
+        try { spiritLoadFavoriteData(); } catch (e) {}
+    }
+    if (now - spiritAuxFetchLast.notif > 75000) {
+        spiritAuxFetchLast.notif = now;
+        try { checkGlobalNotifications().catch(function () {}); } catch (e) {}
+    }
+    if (now - spiritAuxFetchLast.annonces > 120000) {
+        spiritAuxFetchLast.annonces = now;
+        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
+    }
 }
 /** Après publication : vide les deux buckets, recharge figurines + statues, puis ré-applique l’onglet actif (évite doublons / cache partiel). */
 async function spiritRefreshAllMarketBuckets() {
     spiritInvalidateMarketCache();
     var active = (typeof spiritBucketKeyFromMode === 'function') ? spiritBucketKeyFromMode() : 'figurine';
     var other = active === 'statue' ? 'figurine' : 'statue';
-    await fetchMarketplaceFromSupabase({ reset: true, catKey: other, silentLoader: true });
-    await fetchMarketplaceFromSupabase({ reset: true, catKey: active });
+    await fetchMarketplaceFromSupabase({ reset: true, catKey: other, silentLoader: true, forceNetwork: true, forceAux: true });
+    await fetchMarketplaceFromSupabase({ reset: true, catKey: active, forceNetwork: true, forceAux: true });
 }
 function spiritUpdateLoadMoreUI() {
     var key = spiritBucketKeyFromMode();
@@ -2417,21 +2475,9 @@ function spiritUpdateLoadMoreUI() {
     if (btnS) { btnS.disabled = busy; btnS.style.opacity = busy ? '0.65' : '1'; }
 }
 async function spiritMarketBackgroundVerify() {
-    if (!_spirit) return;
-    var key = spiritBucketKeyFromMode();
-    var cat = key === 'statue' ? 'statue' : 'figurine';
-    var b = spiritMarketBucket[key];
-    if (b.rows.length === 0) return;
-    try {
-        /* Même exigence : colonne `cat` sur products_live (Table Editor). */
-        var out = await _spirit.from('products_live').select('*', { count: 'exact', head: true }).eq('cat', cat);
-        if (out.error) return;
-        var cnt = (typeof out.count === 'number') ? out.count : null;
-        if (cnt === null) return;
-        if (b.serverCount !== null && cnt !== b.serverCount) {
-            await fetchMarketplaceFromSupabase({ reset: true, catKey: key, silentLoader: true });
-        }
-    } catch (e) { /* ignore */ }
+    /* Désactivé : requête HEAD + count sur products_live = coût bande passante inutile (plan gratuit).
+       Rafraîchissement : scroll infinite / « Charger plus », navigation avec cache LS, ou invalidate après action. */
+    return;
 }
 async function spiritMarketLoadMore() {
     await fetchMarketplaceFromSupabase({ append: true });
@@ -4567,7 +4613,7 @@ async function enregistrerVente(method) {
         spiritShowPurchaseSuccessModal(totalAcheteur);
         try {
             spiritInvalidateMarketCache();
-            await fetchMarketplaceFromSupabase({ reset: true });
+            await fetchMarketplaceFromSupabase({ reset: true, forceNetwork: true, forceAux: true });
         } catch (e) {}
         try {
             if (typeof navigateTo === 'function') navigateTo('market');
@@ -5157,8 +5203,6 @@ async function confirmPayment(method) {
         else if (typeof renderMarket === 'function') renderMarket();
         if (spiritMarketBucket[mk].rows.length === 0 && !spiritMarketBucket[mk].loading) {
             try { fetchMarketplaceFromSupabase({ reset: true, catKey: mk }); } catch (e) {}
-        } else {
-            setTimeout(function () { try { spiritMarketBackgroundVerify(); } catch (e2) {} }, 0);
         }
     }
     window.setMarketKind = setMarketKind;
@@ -5311,7 +5355,6 @@ async function confirmPayment(method) {
                         if (typeof applyFilters === 'function') applyFilters();
                         else if (typeof renderMarket === 'function') renderMarket();
                         if (spiritMarketBucket[_mk].rows.length === 0) fetchMarketplaceFromSupabase({ reset: true });
-                        else setTimeout(function () { try { spiritMarketBackgroundVerify(); } catch (e) {} }, 0);
                     } else if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase({ reset: true });
                 } catch (e) {}
                 break;
@@ -5408,10 +5451,11 @@ async function confirmPayment(method) {
     setTimeout(function () { try { spiritRefreshAuthFromSession(); } catch (e) {} }, 0);
     setInterval(function () {
         try {
+            if (typeof document !== 'undefined' && document.visibilityState && document.visibilityState !== 'visible') return;
             if (typeof spiritCheckDashboardOfferDot === 'function' && typeof spiritGetCurrentUserId === 'function' && spiritGetCurrentUserId())
                 void spiritCheckDashboardOfferDot();
         } catch (e) {}
-    }, 120000);
+    }, 300000);
     function setHotToysMainImage(thumb) {
         if (!thumb) return;
         const card = thumb.closest('.hottoys-card') || thumb.closest('div[style*="box-shadow"]');
@@ -5628,7 +5672,6 @@ function spiritRefreshUserScopedUi() {
         if (typeof spiritBucketKeyFromMode === 'function' && typeof spiritMarketBucket !== 'undefined') {
             var _mk2 = spiritBucketKeyFromMode();
             if (spiritMarketBucket[_mk2].rows.length === 0) fetchMarketplaceFromSupabase({ reset: true });
-            else setTimeout(function () { try { spiritMarketBackgroundVerify(); } catch (e) {} }, 0);
         } else if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase({ reset: true });
     } catch (e) {}
 
@@ -7531,6 +7574,23 @@ async function fetchMarketplaceFromSupabase(opts) {
     if (b.loading) return;
     if (append && !b.hasMore) return;
 
+    /* Cache localStorage (TTL) : évite products_live à chaque navigation / retour Marketplace. */
+    if (!append && opts.reset !== false && !opts.forceNetwork && !opts.invalidateAll) {
+        var cached = spiritMarketCacheRead(key);
+        if (cached && Array.isArray(cached.rows)) {
+            b.rows = cached.rows;
+            b.hasMore = !!cached.hasMore;
+            b.loading = false;
+            if (spiritBucketKeyFromMode() === key) marketData = b.rows.slice();
+            setSpiritMarketLoading(false);
+            spiritUpdateLoadMoreUI();
+            try { spiritMarketFetchAuxThrottled(opts); } catch (eAux) {}
+            try { if (typeof applyFilters === 'function') applyFilters(); }
+            catch (e) { try { renderMarket(); } catch (e2) { console.error('[SPIRIT MARKET] renderMarket:', e2); } }
+            return;
+        }
+    }
+
     if (!append && opts.reset !== false) {
         b.rows = [];
         spiritRenderMarketSig = '';
@@ -7571,7 +7631,6 @@ async function fetchMarketplaceFromSupabase(opts) {
         if (!Array.isArray(marketData)) marketData = [];
         setSpiritMarketLoading(false);
         spiritUpdateLoadMoreUI();
-        // Si c'est une erreur réseau/CORS ("Failed to fetch"), on stoppe l'enchaînement.
         try {
             var msg = reqError && reqError.message ? String(reqError.message).toLowerCase() : '';
             if (msg.includes('failed to fetch') || msg.includes('cors') || msg.includes('err_failed')) {
@@ -7580,7 +7639,7 @@ async function fetchMarketplaceFromSupabase(opts) {
             }
         } catch (eNet1) {}
         try { if (typeof applyFilters === 'function') applyFilters(); } catch (e2) { try { renderMarket(); } catch (e3) {} }
-        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e4) {}
+        try { spiritMarketFetchAuxThrottled(opts); } catch (e4) {}
         return;
     }
 
@@ -7596,13 +7655,13 @@ async function fetchMarketplaceFromSupabase(opts) {
         marketData = b.rows.slice();
     }
 
+    try { spiritMarketCacheWrite(key, b.rows, b.hasMore); } catch (eW) {}
+
     setSpiritMarketLoading(false);
     spiritUpdateLoadMoreUI();
-    try { await spiritLoadFavoriteData(); } catch (eF) {}
-    try { checkGlobalNotifications().catch(function () {}); } catch (eA) {}
+    try { spiritMarketFetchAuxThrottled(opts); } catch (eF) {}
     try { if (typeof applyFilters === 'function') applyFilters(); }
     catch (e) { try { renderMarket(); } catch (e2) { console.error('[SPIRIT MARKET] renderMarket:', e2); } }
-    try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e3) {}
 }
 
 async function fetchAnnonces() {
