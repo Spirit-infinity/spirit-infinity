@@ -3980,13 +3980,23 @@ async function confirmPayment(method) {
         var msg = '';
         try { msg = err && err.message ? String(err.message) : String(err || ''); } catch (e) {}
         msg = String(msg).toLowerCase();
+        var hasCode = msg.includes('invalid_grant') || msg.includes('invalid grant');
         return (
+            hasCode ||
             msg.includes('confirm') ||
             msg.includes('not confirmed') ||
             msg.includes('confirmation') ||
             msg.includes('unconfirmed') ||
+            msg.includes('not verified') ||
             msg.includes('already registered')
         );
+    }
+
+    function spiritAuthErrIsRateLimited(err) {
+        var msg = '';
+        try { msg = err && err.message ? String(err.message) : String(err || ''); } catch (e) {}
+        msg = String(msg).toLowerCase();
+        return msg.includes('429') || msg.includes('too many requests') || msg.includes('rate limit') || msg.includes('rate-limited');
     }
 
     async function spiritResendEmailConfirmation(email) {
@@ -4001,6 +4011,11 @@ async function confirmPayment(method) {
     }
 
     async function handleRegister() {
+        if (typeof window !== 'undefined') {
+            if (window.__spiritAuthBusy) return;
+        }
+        if (typeof window !== 'undefined') window.__spiritAuthBusy = true;
+
         const u = String((document.getElementById('regUser') || {}).value || '').trim();
         const email = String((document.getElementById('regEmail') || {}).value || '').trim().toLowerCase();
         const pass = String((document.getElementById('regPass') || {}).value || '');
@@ -4070,6 +4085,11 @@ async function confirmPayment(method) {
             alert("Compte créé. Vérifie ton email pour confirmer ton inscription, puis reconnecte-toi.");
             closeModals();
         } catch (err) {
+            if (spiritAuthErrIsRateLimited(err)) {
+                alert("Trop de tentatives (429). Attends quelques minutes puis réessaie.");
+                closeModals();
+                return;
+            }
             if (spiritAuthErrNeedsEmailConfirmation(err)) {
                 var rs2 = await spiritResendEmailConfirmation(email);
                 alert(rs2 && rs2.ok ? "Email de confirmation renvoyé. Vérifie ta boîte mail." : "Compte existant, email non confirmé. (Impossible de renvoyer automatiquement.)");
@@ -4077,6 +4097,8 @@ async function confirmPayment(method) {
                 return;
             }
             alert("Erreur auth : " + (err && err.message ? err.message : err));
+        } finally {
+            if (typeof window !== 'undefined') window.__spiritAuthBusy = false;
         }
     }
 
