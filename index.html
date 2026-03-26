@@ -3548,6 +3548,15 @@ async function updateUserAnnonces() {
     if (!container) return;
     const currentUserID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
 
+    // Si le navigateur bloque une requête Supabase (CORS/Failed to fetch),
+    // on évite de déclencher d'autres appels en cascade.
+    try {
+        var netBlockKey = '__spirit_net_block_until__';
+        var untilRaw = localStorage.getItem(netBlockKey) || '';
+        var untilTs = untilRaw ? new Date(untilRaw).getTime() : 0;
+        if (Number.isFinite(untilTs) && untilTs && Date.now() < untilTs) return;
+    } catch (eNet0) {}
+
     // PERF: si déjà rendu pour ce user récemment, ne pas rerender => évite de recharger les images.
     try {
         const loadedFor = container.dataset ? String(container.dataset.spiritAdsLoadedFor || '') : '';
@@ -3562,7 +3571,9 @@ async function updateUserAnnonces() {
     let myAnnonces = [];
     if (_spirit) {
         try {
-            const { data, error } = await _spirit.from('products_live').select('*').eq('owner_id', currentUserID);
+            const { data, error } = await _spirit.from('products_live').select(
+                'id,uuid,title,price,old_price,ia_score,category,brand,ship_size,image_url,description,is_native,status,owner_id,currency,cat,is_smoke_free,is_light_protect,is_first_hand,origin_country,has_coa,amount'
+            ).eq('owner_id', currentUserID);
             console.log("Données reçues brute :", data);
             if (error) {
                 console.error('[SPIRIT] Mes annonces products_live erreur exacte:', error.message || String(error),
@@ -6856,6 +6867,15 @@ async function fetchMarketplaceFromSupabase(opts) {
     var append = !!opts.append;
     var silentLoader = !!opts.silentLoader;
 
+    // Anti-spam réseau/CORS : si le navigateur vient de bloquer une requête,
+    // on évite de relancer marketplace immédiatement (et d'enchaîner d'autres requêtes).
+    try {
+        var netBlockKey = '__spirit_net_block_until__';
+        var untilRaw = localStorage.getItem(netBlockKey) || '';
+        var untilTs = untilRaw ? new Date(untilRaw).getTime() : 0;
+        if (Number.isFinite(untilTs) && untilTs && Date.now() < untilTs && !append) return;
+    } catch (eNet0) {}
+
     if (!_spirit) {
         marketData = [];
         spiritRenderMarketSig = '';
@@ -6911,6 +6931,14 @@ async function fetchMarketplaceFromSupabase(opts) {
         if (!Array.isArray(marketData)) marketData = [];
         setSpiritMarketLoading(false);
         spiritUpdateLoadMoreUI();
+        // Si c'est une erreur réseau/CORS ("Failed to fetch"), on stoppe l'enchaînement.
+        try {
+            var msg = reqError && reqError.message ? String(reqError.message).toLowerCase() : '';
+            if (msg.includes('failed to fetch') || msg.includes('cors') || msg.includes('err_failed')) {
+                try { localStorage.setItem('__spirit_net_block_until__', new Date(Date.now() + 25000).toISOString()); } catch (eB) {}
+                return;
+            }
+        } catch (eNet1) {}
         try { if (typeof applyFilters === 'function') applyFilters(); } catch (e2) { try { renderMarket(); } catch (e3) {} }
         try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e4) {}
         return;
