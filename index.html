@@ -2733,6 +2733,53 @@ async function renderUserFavorites() {
     spiritAcknowledgeFavoriteTab();
 }
 
+// --- MARKET : seller pseudo + navigation profil entre utilisateurs ---
+var spiritOwnerPseudoCache = {};
+var spiritOwnerPseudoInFlight = {};
+
+function spiritDefaultLabelFromUid(uid) {
+    uid = spiritOwnerId(uid);
+    if (!uid) return '—';
+    if (uid.length <= 8) return uid;
+    return uid.slice(0, 6) + '…';
+}
+
+function spiritOpenPublicProfileUIWithStop(ev, uid) {
+    try { if (ev && ev.stopPropagation) ev.stopPropagation(); } catch (e) {}
+    try { if (ev && ev.preventDefault) ev.preventDefault(); } catch (e) {}
+    try {
+        if (typeof spiritOpenPublicProfileUI === 'function') void spiritOpenPublicProfileUI(uid);
+        else if (typeof spiritOpenPublicSanctuary === 'function') spiritOpenPublicSanctuary(uid);
+    } catch (e2) {}
+}
+
+async function spiritFetchOwnerPseudo(uid) {
+    uid = spiritOwnerId(uid);
+    if (!uid) return '';
+    if (spiritOwnerPseudoCache[uid]) return spiritOwnerPseudoCache[uid];
+    if (!spiritOwnerPseudoInFlight[uid]) {
+        spiritOwnerPseudoInFlight[uid] = (async function () {
+            try {
+                if (!_spirit || !_spirit.from) return '';
+                var out = await _spirit
+                    .from('user_profiles')
+                    .select('pseudo')
+                    .eq('id', uid.toString())
+                    .maybeSingle();
+                if (out && !out.error && out.data && out.data.pseudo != null) {
+                    return String(out.data.pseudo).trim();
+                }
+            } catch (e) {}
+            return '';
+        })();
+    }
+    var pseudo = '';
+    try { pseudo = await spiritOwnerPseudoInFlight[uid]; } catch (e) { pseudo = ''; }
+    pseudo = pseudo ? String(pseudo).trim() : '';
+    spiritOwnerPseudoCache[uid] = pseudo;
+    return pseudo;
+}
+
 function renderMarket(filteredData = null) {
         const sourceData = filteredData || marketData;
         const dataToRender = Array.isArray(sourceData) ? sourceData.filter(item => {
@@ -2823,6 +2870,7 @@ function renderMarket(filteredData = null) {
             const oid = spiritOwnerId(item.owner_id);
             const isMine = oid !== '' && oid === String(MY_TEST_ID).trim();
             const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.5); color:#0f0; font-size:10px; padding:2px 6px; border:1px solid #0f0; border-radius:2px; z-index:10; font-weight:bold;">MES ANNONCES</div>` : '';
+            const sellerLabelText = spiritDefaultLabelFromUid(oid);
 
             const smokeTxt = item.is_smoke_free ? 'Non-fumeur' : 'Fumeur?';
             const lightTxt = item.is_light_protect ? 'Lumiere protegee' : 'Lumiere exposee';
@@ -2839,6 +2887,15 @@ function renderMarket(filteredData = null) {
                     <div class="price">${safePrice.toFixed(2)} ${marketCurrencyMode}</div>
                     ${isImport ? `<div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}">Estimation Import : ${customs.toFixed(2)} ${marketCurrencyMode} | Total estimé à l'arrivée : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>` : ''}
                     <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
+                    <div style="margin-top:6px; font-size:0.72rem; color:#aaa;">
+                        Vendeur :
+                        <button type="button"
+                            class="btn-action"
+                            style="background:#111; border:1px solid #333; color:var(--neon-orange); font-weight:800; padding:6px 10px; cursor:pointer; margin-left:8px; font-size:0.7rem;"
+                            data-seller-uid="${oid}"
+                            onclick="spiritOpenPublicProfileUIWithStop(event, '${oid}')"
+                        >${sellerLabelText}</button>
+                    </div>
                     <div style="font-size:0.6rem; color:#555; font-family:monospace; margin-top:6px;">SPIRIT-ID: ${item.uuid || "---"}</div>
                     <div class="market-signals">
                         <span class="market-chip">${smokeTxt}</span>
@@ -2848,6 +2905,18 @@ function renderMarket(filteredData = null) {
                     <div class="legende"><span>${displayCountry}</span><span>${displayDiag}</span></div>
                 </div>
             `;
+
+            // Charge le pseudo réel en cache (évite de requêter à chaque rendu).
+            if (oid) {
+                (async function () {
+                    var btn = card.querySelector('.btn-action[data-seller-uid="' + oid + '"]');
+                    if (!btn) return;
+                    var pseudo = '';
+                    try { pseudo = await spiritFetchOwnerPseudo(oid); } catch (e) { pseudo = ''; }
+                    if (pseudo) btn.textContent = pseudo;
+                    else btn.textContent = spiritDefaultLabelFromUid(oid);
+                })();
+            }
             
             // --- LOGIQUE D'AFFICHAGE CORRIGÉE ---
 
