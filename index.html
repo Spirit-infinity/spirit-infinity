@@ -2632,7 +2632,7 @@ async function spiritToggleFavorite(productId, ev, favBtn) {
             spiritUserFavoriteSet.delete(pid);
             spiritFavoriteCountMap[ks] = Math.max(0, (spiritFavoriteCountMap[ks] || 1) - 1);
         } else {
-            var row = { user_id: String(uid), product_id: pid };
+            var row = { user_id: String(uid), product_id: pid, created_at: new Date().toISOString() };
             var ins = await _spirit.from('favorites').insert(row);
             if (ins.error) {
                 var msg = String((ins.error.message || '') + ' ' + (ins.error.details || '') + ' ' + (ins.error.hint || ''));
