@@ -3974,10 +3974,9 @@ async function confirmPayment(method) {
         }
     }
 
-    function spiritRebuildClientWithRemember(remember) {
+    function spiritRememberSessionChoice(remember) {
+        // Important: ne pas recréer plusieurs clients GoTrue dans la même page.
         spiritSetRememberSession(!!remember);
-        _spirit = spiritBuildSupabaseClient();
-        spiritPatchFromSafety(_spirit);
     }
 
     async function handleRegister() {
@@ -3995,11 +3994,7 @@ async function confirmPayment(method) {
             return;
         }
 
-        spiritRebuildClientWithRemember(remember);
-        if (!_spirit || !_spirit.auth) {
-            alert("Client Supabase indisponible.");
-            return;
-        }
+        spiritRememberSessionChoice(remember);
 
         try {
             var signIn = await _spirit.auth.signInWithPassword({ email: email, password: pass });
