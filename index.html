@@ -1014,11 +1014,6 @@
 
 <body>
 <div id="spiritSanctuaryNotifDot" aria-hidden="true" title="Message Sanctuaire"></div>
-<div id="spiritSimulatorBar" style="display:flex; gap:10px; padding:10px; background:#111; border-bottom:1px solid #222; justify-content:center;">
-    <span style="color:#555; font-size:0.8rem; align-self:center;">SIMULATEUR :</span>
-    <button onclick="switchUser('12345', 'MOI')" id="btn-user-moi" style="background:var(--spirit-green); color:black; border:none; padding:5px 10px; cursor:pointer; font-weight:bold;">COMPTE MOI</button>
-    <button onclick="switchUser('67890', 'INVITÉ')" id="btn-user-guest" style="background:#222; color:white; border:none; padding:5px 10px; cursor:pointer;">COMPTE INVITÉ</button>
-</div>
 
 <header>
     <div class="logo-box" onclick="location.reload()">
@@ -1209,6 +1204,10 @@
         <input type="text" id="regUser" placeholder="Nom d'utilisateur">
         <input type="email" id="regEmail" placeholder="Email">
         <input type="password" id="regPass" placeholder="Mot de passe">
+        <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:0.78rem; color:#bbb;">
+            <input type="checkbox" id="regRemember" checked>
+            <span>Rester connectée</span>
+        </label>
         <button class="btn-action" style="width:100%; margin-top:10px;" onclick="handleRegister()" data-key="btn_reg_confirm">S'INSCRIRE</button>
     </div>
 </div>
@@ -1570,6 +1569,7 @@
         BIC : SPIRITFRXX
     </div>
     <button class="btn-action" style="margin-top:10px; font-size:0.7rem;" onclick="changeRIB()">METTRE / CHANGER UN RIB ACTIF</button>
+    <button class="btn-action" style="margin-top:10px; font-size:0.7rem; background:#222; color:#fff; border:1px solid #555;" onclick="spiritLogout()">DÉCONNEXION</button>
 </div>
 
             </div>
@@ -1821,10 +1821,27 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZ214cmJ0Y2FqcWxoaXZ2cHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDYzMTAsImV4cCI6MjA4Njg4MjMxMH0.bkruo7GrA7UUZIv7HANG4_DFUrm9IygJP9ueVk_4r78';
     // Hardening: si Supabase plante, on n'arrête pas tout le JS (menus/UI doivent rester OK)
     let _spirit = null;
+    var SPIRIT_AUTH_REMEMBER_KEY = 'spirit_auth_remember';
+    function spiritShouldRememberSession() {
+        try { return localStorage.getItem(SPIRIT_AUTH_REMEMBER_KEY) !== '0'; } catch (e) { return true; }
+    }
+    function spiritSetRememberSession(remember) {
+        try { localStorage.setItem(SPIRIT_AUTH_REMEMBER_KEY, remember ? '1' : '0'); } catch (e) {}
+    }
+    function spiritBuildSupabaseClient() {
+        if (!(typeof supabase !== 'undefined' && supabase && typeof supabase.createClient === 'function')) return null;
+        var storageBackend = spiritShouldRememberSession() ? localStorage : sessionStorage;
+        return supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+                storage: storageBackend
+            }
+        });
+    }
     try {
-        if (typeof supabase !== 'undefined' && supabase && typeof supabase.createClient === 'function') {
-            _spirit = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        }
+        _spirit = spiritBuildSupabaseClient();
     } catch (e) {
         _spirit = null;
         console.warn('[SPIRIT] Supabase indisponible, UI en mode statique.', e);
@@ -1850,18 +1867,21 @@
         b.finally = function (cb) { return spiritBlockedTableResult(table).finally(cb); };
         return b;
     }
-    try {
-        if (_spirit && typeof _spirit.from === 'function') {
-            var _spiritFromOrig = _spirit.from.bind(_spirit);
-            _spirit.from = function (table) {
-                var t = String(table || '').trim();
-                if (SPIRIT_SUPABASE_BLOCK_TABLES[t]) return spiritBlockedTableBuilder(t);
-                return _spiritFromOrig(table);
-            };
+    function spiritPatchFromSafety(client) {
+        try {
+            if (client && typeof client.from === 'function') {
+                var fromOrig = client.from.bind(client);
+                client.from = function (table) {
+                    var t = String(table || '').trim();
+                    if (SPIRIT_SUPABASE_BLOCK_TABLES[t]) return spiritBlockedTableBuilder(t);
+                    return fromOrig(table);
+                };
+            }
+        } catch (ePatch) {
+            console.warn('[SPIRIT] patch _spirit.from impossible', ePatch);
         }
-    } catch (ePatch) {
-        console.warn('[SPIRIT] patch _spirit.from impossible', ePatch);
     }
+    spiritPatchFromSafety(_spirit);
     
     const translations = {
         'FR': {
@@ -2105,7 +2125,7 @@
     let currentMethod = '';
     let previewPhotos = [null, null, null, null, null];
     let selectedProduct = null;
-    let currentUser = "INVITÉ";
+    let currentUser = "VISITEUR";
     let diagActive = false;
     let editingId = null;
 
@@ -3920,18 +3940,127 @@ async function confirmPayment(method) {
     }
     try { window.transferToSale = transferToSale; } catch (e) {}
 
-    function handleRegister() {
-        const u = document.getElementById('regUser').value;
-        if(!u) return;
-        currentUser = u;
-        const up = u.toUpperCase();
-        const btnReg = document.getElementById('btn-reg');
-        if (btnReg) btnReg.innerText = up;
-        const nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
-        if (nameEl) nameEl.innerText = up;
-        alert("Bienvenue " + u);
+    function spiritApplyAuthUser(user, fallbackName) {
+        var uid = user && user.id ? String(user.id).trim() : '';
+        if (uid) {
+            MY_TEST_ID = uid;
+            try { window.MY_TEST_ID = uid; } catch (e) {}
+        }
+        var mail = user && user.email ? String(user.email).trim() : '';
+        var profileName = '';
+        try {
+            if (user && user.user_metadata) profileName = String(user.user_metadata.username || user.user_metadata.pseudo || '').trim();
+        } catch (e) {}
+        var finalName = String(profileName || fallbackName || (mail ? mail.split('@')[0] : 'VISITEUR')).trim();
+        if (!finalName) finalName = 'VISITEUR';
+        currentUser = finalName;
+        var btnReg = document.getElementById('btn-reg');
+        if (btnReg) btnReg.innerText = finalName.toUpperCase();
+        var nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
+        if (nameEl) nameEl.innerText = finalName.toUpperCase();
+    }
+
+    async function spiritRefreshAuthFromSession() {
+        if (!_spirit || !_spirit.auth || typeof _spirit.auth.getSession !== 'function') return;
+        try {
+            var sess = await _spirit.auth.getSession();
+            var session = sess && sess.data ? sess.data.session : null;
+            if (session && session.user) {
+                spiritApplyAuthUser(session.user);
+                spiritRefreshUserScopedUi();
+            }
+        } catch (e) {
+            console.warn('[SPIRIT AUTH] session refresh error', e);
+        }
+    }
+
+    function spiritRebuildClientWithRemember(remember) {
+        spiritSetRememberSession(!!remember);
+        _spirit = spiritBuildSupabaseClient();
+        spiritPatchFromSafety(_spirit);
+    }
+
+    async function handleRegister() {
+        const u = String((document.getElementById('regUser') || {}).value || '').trim();
+        const email = String((document.getElementById('regEmail') || {}).value || '').trim().toLowerCase();
+        const pass = String((document.getElementById('regPass') || {}).value || '');
+        const remember = !!(document.getElementById('regRemember') && document.getElementById('regRemember').checked);
+
+        if (!email || !pass) {
+            alert("Email et mot de passe requis.");
+            return;
+        }
+        if (!_spirit || !_spirit.auth) {
+            alert("Supabase indisponible. Impossible de se connecter.");
+            return;
+        }
+
+        spiritRebuildClientWithRemember(remember);
+        if (!_spirit || !_spirit.auth) {
+            alert("Client Supabase indisponible.");
+            return;
+        }
+
+        try {
+            var signIn = await _spirit.auth.signInWithPassword({ email: email, password: pass });
+            if (!signIn.error && signIn.data && signIn.data.user) {
+                spiritApplyAuthUser(signIn.data.user, u);
+                spiritRefreshUserScopedUi();
+                alert("Connexion réussie.");
+                closeModals();
+                updateUserAnnonces();
+                return;
+            }
+
+            var signUp = await _spirit.auth.signUp({
+                email: email,
+                password: pass,
+                options: { data: { username: u || email.split('@')[0], pseudo: u || email.split('@')[0] } }
+            });
+            if (signUp.error) throw signUp.error;
+
+            if (signUp.data && signUp.data.user) {
+                spiritApplyAuthUser(signUp.data.user, u);
+            }
+            if (signUp.data && signUp.data.session) {
+                spiritRefreshUserScopedUi();
+                alert("Compte créé et connecté.");
+                closeModals();
+                updateUserAnnonces();
+                return;
+            }
+
+            // Cas Auth email confirmation active.
+            alert("Compte créé. Vérifie ton email pour confirmer ton inscription, puis reconnecte-toi.");
+            closeModals();
+        } catch (err) {
+            alert("Erreur auth : " + (err && err.message ? err.message : err));
+        }
+    }
+
+    async function spiritLogout() {
+        if (!confirm("Voulez-vous vous déconnecter ?")) return;
+        try {
+            if (_spirit && _spirit.auth && typeof _spirit.auth.signOut === 'function') {
+                var out = await _spirit.auth.signOut();
+                if (out && out.error) throw out.error;
+            }
+        } catch (err) {
+            alert("Erreur déconnexion : " + (err && err.message ? err.message : err));
+            return;
+        }
+
+        MY_TEST_ID = '';
+        try { window.MY_TEST_ID = ''; } catch (e) {}
+        currentUser = 'VISITEUR';
+        var btnReg = document.getElementById('btn-reg');
+        if (btnReg) btnReg.innerText = spiritT('btn_reg');
+        var nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
+        if (nameEl) nameEl.innerText = 'VISITEUR';
+
+        spiritRefreshUserScopedUi();
         closeModals();
-        updateUserAnnonces();
+        alert("Déconnexion réussie.");
     }
 
     function triggerFile(id) { document.getElementById(id).click(); }
@@ -4252,7 +4381,13 @@ async function confirmPayment(method) {
 
     // Compat: on garde les fonctions existantes, mais elles passent par la navigation centrale
     function openForum() { navigateTo('forum'); }
-    function openRegister() { hideAllSections(); setActiveNav('nav-market'); document.getElementById('registerModal').style.setProperty('display', 'flex', 'important'); }
+    function openRegister() {
+        hideAllSections();
+        setActiveNav('nav-market');
+        var cb = document.getElementById('regRemember');
+        if (cb) cb.checked = spiritShouldRememberSession();
+        document.getElementById('registerModal').style.setProperty('display', 'flex', 'important');
+    }
     function openLedger() { navigateTo('ledger'); }
     function openSupport() { navigateTo('support'); }
     function openSecurity() { navigateTo('security'); }
@@ -4264,6 +4399,17 @@ async function confirmPayment(method) {
     window.showForum = function () { navigateTo('forum'); };
     window.showMonCompte = function () { navigateTo('account'); };
     window.showSecurite = function () { navigateTo('security'); };
+    try {
+        if (_spirit && _spirit.auth && typeof _spirit.auth.onAuthStateChange === 'function') {
+            _spirit.auth.onAuthStateChange(function (_event, session) {
+                if (session && session.user) {
+                    spiritApplyAuthUser(session.user);
+                    spiritRefreshUserScopedUi();
+                }
+            });
+        }
+    } catch (e) {}
+    setTimeout(function () { try { spiritRefreshAuthFromSession(); } catch (e) {} }, 0);
     function setHotToysMainImage(thumb) {
         if (!thumb) return;
         const card = thumb.closest('.hottoys-card') || thumb.closest('div[style*="box-shadow"]');
@@ -4454,52 +4600,22 @@ window.showAccountTab = function showAccountTab(tab) {
     }
 }
 
-/**
- * (c) 2026 Spirit Infinity - Tous droits réservés
- */
-function switchUser(newId, label) {
-    // STABILISATION : On force le type String pour garantir la correspondance Supabase
-    MY_TEST_ID = String(newId).trim();
-    try { window.MY_TEST_ID = MY_TEST_ID; } catch (e) {}
-    // AJOUT : Synchronisation du nom d'utilisateur pour l'affichage et les annonces
-    currentUser = label; 
-    
-    console.log("[SPIRIT SYSTEM] Switch Session : " + label + " (ID: " + MY_TEST_ID + ")");
-    
-    // Mise à jour visuelle des boutons de switch
-    if(document.getElementById('btn-user-moi')) {
-        document.getElementById('btn-user-moi').style.background = (newId === '12345') ? 'var(--spirit-green)' : '#222';
-        document.getElementById('btn-user-moi').style.color = (newId === '12345') ? 'black' : '#888';
-    }
-    if(document.getElementById('btn-user-guest')) {
-        document.getElementById('btn-user-guest').style.background = (newId === '67890') ? 'var(--spirit-green)' : '#222';
-        document.getElementById('btn-user-guest').style.color = (newId === '67890') ? 'black' : '#888';
-    }
-    
-    // AJOUT : Mise à jour du nom affiché dans l'interface Compte
-    const userNameDisplay = document.getElementById('display-user-name');
-    if(userNameDisplay) userNameDisplay.innerText = label.toUpperCase();
-
-    // Rafraîchissement automatique et forcé de l'affichage
+function spiritRefreshUserScopedUi() {
     const activeBtn = document.querySelector('.dash-nav button.active');
-    
-    // STABILISATION : On vide les listes avant de recharger pour éviter les résidus de l'ancien utilisateur
     if(document.getElementById('my-sales-list')) document.getElementById('my-sales-list').innerHTML = '';
     if(document.getElementById('my-purchases-list')) document.getElementById('my-purchases-list').innerHTML = '';
     if(document.getElementById('user-annonces-list')) document.getElementById('user-annonces-list').innerHTML = '';
     if(document.getElementById('user-favorites-list')) document.getElementById('user-favorites-list').innerHTML = '';
 
     if (activeBtn) {
-        // Si un onglet est déjà ouvert, on le relance avec le nouvel ID
         const activeTab = activeBtn.id.replace('btn-', '');
         showAccountTab(activeTab);
     } else {
-        // AJOUT : On force le rechargement synchrone des 3 piliers du compte
-        try { if (typeof loadMyPurchases === 'function') spiritPerfRunOnceInFlight('switchUser:loadMyPurchases', function () { return loadMyPurchases(); }); } catch (e) { try { loadMyPurchases(); } catch (e2) {} }
-        try { if (typeof loadMySales === 'function') spiritPerfRunOnceInFlight('switchUser:loadMySales', function () { return loadMySales(); }); } catch (e3) { try { loadMySales(); } catch (e4) {} }
-        try { if (typeof updateUserAnnonces === 'function') spiritPerfRunOnceInFlight('switchUser:updateUserAnnonces', function () { return updateUserAnnonces(); }); } catch (e5) { try { updateUserAnnonces(); } catch (e6) {} }
+        try { if (typeof loadMyPurchases === 'function') spiritPerfRunOnceInFlight('auth:loadMyPurchases', function () { return loadMyPurchases(); }); } catch (e) { try { loadMyPurchases(); } catch (e2) {} }
+        try { if (typeof loadMySales === 'function') spiritPerfRunOnceInFlight('auth:loadMySales', function () { return loadMySales(); }); } catch (e3) { try { loadMySales(); } catch (e4) {} }
+        try { if (typeof updateUserAnnonces === 'function') spiritPerfRunOnceInFlight('auth:updateUserAnnonces', function () { return updateUserAnnonces(); }); } catch (e5) { try { updateUserAnnonces(); } catch (e6) {} }
     }
-    
+
     if (typeof renderMarket === 'function') renderMarket();
     try {
         if (typeof spiritBucketKeyFromMode === 'function' && typeof spiritMarketBucket !== 'undefined') {
@@ -4509,7 +4625,6 @@ function switchUser(newId, label) {
         } else if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase({ reset: true });
     } catch (e) {}
 
-    console.log("[SPIRIT LEDGER] Synchronisation terminée pour " + label);
     try { if (typeof spiritUpdateNavSanctuaryDot === 'function') spiritUpdateNavSanctuaryDot(); } catch (e) {}
     try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
     try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
@@ -5914,8 +6029,7 @@ function openAccount() {
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
-// On utilise 'let' pour pouvoir changer d'utilisateur avec le simulateur
-let MY_TEST_ID = "12345";
+let MY_TEST_ID = "";
 try { window.MY_TEST_ID = MY_TEST_ID; } catch (e) {}
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
