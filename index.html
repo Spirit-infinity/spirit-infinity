@@ -3964,8 +3964,10 @@ async function publierAnnonce() {
         if (slErr) console.warn('[SPIRIT] spirit_ledger (annonce):', slErr.message);
 
         const macID = typeof currentMacAddress !== 'undefined' ? currentMacAddress : "XX:XX:XX:XX:XX:XX";
+        const modelNameForLedger = String(title || '').trim() || 'Annonce Spirit';
         const liRow = {
             mac_address: macID,
+            model_name: modelNameForLedger,
             battery_health: (typeof batteryLevelPercent === 'number' ? Math.round(batteryLevelPercent) : (parseInt(document.getElementById('ctrl-batt').innerText, 10) || 0)),
             last_seen: new Date().toISOString(),
             is_certified: true,
