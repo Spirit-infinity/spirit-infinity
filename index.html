@@ -1522,10 +1522,6 @@
     <p style="font-size:0.65rem;color:#666;margin-top:0;">Galerie noire &amp; néon — jusqu’à 15 pièces (bucket Storage <code>sanctuary</code>).</p>
     <div id="spiritAccountSanctuaryRoot" style="background:#000000;border:1px solid rgba(255,102,0,0.4);padding:16px;margin-top:12px;">
         <h2 id="spiritAccountSanctuaryPseudoBanner">—</h2>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 12px 0;">
-            <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="spiritOpenPublicSanctuary('12345')">VOIR SANCTUAIRE — MOI</button>
-            <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="spiritOpenPublicSanctuary('67890')">VOIR SANCTUAIRE — INVITÉ</button>
-        </div>
         <div class="spirit-sanctuary-toolbar">
             <span style="font-size:0.65rem;color:#888;">Néon (nouvelle photo)</span>
             <select id="spiritAccountSanctuaryNeonSelect" aria-label="Couleur néon">
@@ -1567,6 +1563,13 @@
         BANQUE : SPIRIT DIGITAL BANK<br>
         IBAN : FR76 3000 1000 2000 3000 4000 123<br>
         BIC : SPIRITFRXX
+    </div>
+    <div style="margin-top:12px; padding:10px; border:1px solid #333; background:#101010;">
+        <label for="paramsPseudoInput" style="display:block; font-size:0.68rem; color:#aaa; margin-bottom:6px;">MODIFIER PSEUDO</label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <input id="paramsPseudoInput" type="text" maxlength="40" placeholder="Nouveau pseudo" style="flex:1; min-width:180px; padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.75rem;">
+            <button type="button" class="btn-action" style="font-size:0.62rem; padding:8px 12px;" onclick="spiritUpdatePseudo()">ENREGISTRER LE PSEUDO</button>
+        </div>
     </div>
     <button class="btn-action" style="margin-top:10px; font-size:0.7rem;" onclick="changeRIB()">METTRE / CHANGER UN RIB ACTIF</button>
     <button class="btn-action" style="margin-top:10px; font-size:0.7rem; background:#222; color:#fff; border:1px solid #555;" onclick="spiritLogout()">DÉCONNEXION</button>
@@ -4056,6 +4059,54 @@ async function confirmPayment(method) {
         spiritRefreshUserScopedUi();
         closeModals();
         alert("Déconnexion réussie.");
+    }
+
+    async function spiritUpdatePseudo() {
+        var inp = document.getElementById('paramsPseudoInput');
+        var nextPseudo = String((inp && inp.value) || '').trim();
+        if (!nextPseudo) {
+            alert("Saisis un pseudo.");
+            return;
+        }
+        if (nextPseudo.length < 2) {
+            alert("Pseudo trop court (min 2 caractères).");
+            return;
+        }
+        if (!_spirit || !_spirit.auth || typeof _spirit.auth.getUser !== 'function') {
+            alert("Session indisponible.");
+            return;
+        }
+        try {
+            var gu = await _spirit.auth.getUser();
+            var user = gu && gu.data ? gu.data.user : null;
+            if (!user || !user.id) {
+                alert("Connecte-toi pour modifier ton pseudo.");
+                return;
+            }
+            var uid = String(user.id);
+
+            if (_spirit.auth && typeof _spirit.auth.updateUser === 'function') {
+                var upd = await _spirit.auth.updateUser({ data: { username: nextPseudo, pseudo: nextPseudo } });
+                if (upd && upd.error) console.warn('[SPIRIT] updateUser meta:', upd.error.message);
+            }
+
+            // Table principale profil
+            var pRes = await _spirit
+                .from('profiles')
+                .upsert([{ id: uid, owner_id: uid, pseudo: nextPseudo, username: nextPseudo }], { onConflict: 'id' });
+            if (pRes && pRes.error) throw pRes.error;
+
+            currentUser = nextPseudo;
+            var btnReg = document.getElementById('btn-reg');
+            if (btnReg) btnReg.innerText = nextPseudo.toUpperCase();
+            var nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
+            if (nameEl) nameEl.innerText = nextPseudo.toUpperCase();
+            if (inp) inp.value = '';
+            try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
+            alert("Pseudo mis à jour.");
+        } catch (err) {
+            alert("Erreur mise à jour pseudo : " + (err && err.message ? err.message : err));
+        }
     }
 
     function triggerFile(id) { document.getElementById(id).click(); }
