@@ -2820,6 +2820,8 @@ var spiritOwnerPseudoInFlight = {};
 function spiritDefaultLabelFromUid(uid) {
     uid = spiritOwnerId(uid);
     if (!uid) return '—';
+    if (uid === '12345') return 'MOI';
+    if (uid === '67890') return 'INVITÉ';
     if (uid.length <= 8) return uid;
     return uid.slice(0, 6) + '…';
 }
@@ -2836,6 +2838,8 @@ function spiritOpenPublicProfileUIWithStop(ev, uid) {
 async function spiritFetchOwnerPseudo(uid) {
     uid = spiritOwnerId(uid);
     if (!uid) return '';
+    // Evite des requêtes 400 (uuid attendu) pour les IDs de test/simulateur.
+    if (uid === '12345' || uid === '67890') return '';
     if (spiritOwnerPseudoCache[uid]) return spiritOwnerPseudoCache[uid];
     if (!spiritOwnerPseudoInFlight[uid]) {
         spiritOwnerPseudoInFlight[uid] = (async function () {
