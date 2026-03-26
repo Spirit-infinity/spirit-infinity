@@ -253,6 +253,7 @@
         }
         .spirit-card-fav-btn.spirit-fav-flash .spirit-fav-count { color: var(--neon-orange); }
         #btn-favoris { position: relative; }
+        #btn-dashboard { position: relative; }
         .spirit-tab-notif {
             display: none;
             position: absolute;
@@ -1253,7 +1254,7 @@
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                     <button id="btn-buy" class="btn-action" onclick="openPaymentModal()" data-key="btn_buy">ACHAT DIRECT</button>
-                    <button id="btn-offer" class="btn-action" style="background:#333; color:white;" onclick="alert('Offre transmise !')" data-key="btn_offer">FAIRE OFFRE</button>
+                    <button id="btn-offer" class="btn-action" style="background:#333; color:white;" onclick="spiritOfferFromProductModal()" data-key="btn_offer">FAIRE OFFRE</button>
                 </div>
             </div>
         </div>
@@ -1442,7 +1443,7 @@
         <button onclick="closeSpiritMenu()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div class="dash-container">
             <div class="dash-nav">
-                <button id="btn-dashboard" class="active" onclick="showAccountTab('dashboard')">DASHBOARD</button>
+                <button type="button" id="btn-dashboard" class="active" onclick="showAccountTab('dashboard')">DASHBOARD<span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button id="btn-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
                 <button id="btn-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
                 <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
@@ -1458,6 +1459,19 @@
                     <div id="spiritSellerFavAlert" style="display:none; margin-top:14px; padding:12px 14px; border:1px solid rgba(255,102,0,0.55); background:rgba(255,102,0,0.06);">
                         <div style="font-size:0.75rem; color:var(--neon-orange); font-weight:900; letter-spacing:1px; margin-bottom:6px;">ALERTE FAVORIS</div>
                         <div id="spiritSellerFavAlertText" style="font-size:0.72rem; color:#bbb;"></div>
+                    </div>
+                    <div id="spiritSellerOfferAlert" style="display:none; margin-top:14px; padding:12px 14px; border:1px solid rgba(0,200,255,0.45); background:rgba(0,120,180,0.08);">
+                        <div style="font-size:0.75rem; color:#5cf; font-weight:900; letter-spacing:1px; margin-bottom:6px;">ALERTE OFFRES</div>
+                        <div id="spiritSellerOfferAlertText" style="font-size:0.72rem; color:#bbb;"></div>
+                    </div>
+                    <div style="margin-top:16px;padding:14px;border:1px solid rgba(0,200,120,0.35);background:#0a1010;">
+                        <p style="margin:0 0 8px;font-size:0.7rem;color:#6d8;font-weight:800;letter-spacing:1px;">MES OFFRES ENVOYÉES (FAVORIS)</p>
+                        <p style="margin:0 0 10px;font-size:0.62rem;color:#666;">Récap : figurine, pseudo vendeur, prix d’origine, ton offre. Clique une ligne pour rouvrir l’annonce (prix à jour si le vendeur a accepté).</p>
+                        <div id="spiritBuyerOffersList" style="display:flex;flex-direction:column;gap:8px;"></div>
+                    </div>
+                    <div style="margin-top:16px;padding:14px;border:1px solid rgba(255,102,0,0.35);background:#0c0c0c;">
+                        <p style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">OFFRES REÇUES SUR TES ANNONCES</p>
+                        <div id="spiritSellerOffersList" style="display:flex;flex-direction:column;gap:10px;"></div>
                     </div>
                     <div style="margin-top:16px;padding:14px;border:1px solid rgba(255,102,0,0.35);background:#0c0c0c;">
                         <p style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">PROFIL PUBLIC &amp; SANCTUAIRE</p>
@@ -2311,6 +2325,10 @@ function spiritApplySaleCatOptions(statueMode) {
 /** Prix listing : priorité `amount` si la colonne existe côté Supabase, sinon `price` (schéma courant). Ne pas envoyer `amount` en insert/update tant que la colonne est absente. */
 function spiritProductsLivePriceEUR(row) {
     if (!row) return 0;
+    if (row._spiritDisplayPrice != null && row._spiritDisplayPrice !== '') {
+        var ox = Number(row._spiritDisplayPrice);
+        if (Number.isFinite(ox)) return ox;
+    }
     var a = row.amount;
     if (a != null && a !== '') {
         var n = Number(a);
@@ -2477,7 +2495,8 @@ var spiritShowProductDetailsLast = { id: null, t: 0 };
  * Détail annonce par products_live.id (= product_id dans favorites).
  * Template Statue / Figurine via openProduct ; anti-doublon clic.
  */
-async function showProductDetails(productId) {
+async function showProductDetails(productId, opts) {
+    opts = opts || {};
     var pid = spiritParseFavoriteProductId(productId);
     if (pid == null) pid = spiritParseFavoriteProductId(String(productId));
     if (pid == null) return;
@@ -2485,7 +2504,7 @@ async function showProductDetails(productId) {
     var vis = pmChk && (pmChk.style.display === 'flex' || pmChk.style.display === 'block');
     if (vis && typeof selectedProduct !== 'undefined' && selectedProduct && spiritFavoriteProductId(selectedProduct) === pid) return;
     var now = Date.now();
-    if (spiritShowProductDetailsLast.id === pid && now - spiritShowProductDetailsLast.t < 550) return;
+    if (!(opts && opts.priceOverride != null) && spiritShowProductDetailsLast.id === pid && now - spiritShowProductDetailsLast.t < 550) return;
     spiritShowProductDetailsLast = { id: pid, t: now };
     var item = spiritFindProductRowById(pid);
     if (!item && typeof _spirit !== 'undefined' && _spirit) {
@@ -2495,6 +2514,10 @@ async function showProductDetails(productId) {
         } catch (e) {}
     }
     if (!item) return;
+    if (opts.priceOverride != null) {
+        var po = Number(opts.priceOverride);
+        if (Number.isFinite(po)) item = Object.assign({}, item, { _spiritDisplayPrice: po });
+    }
     var opFn = (typeof window !== 'undefined' && typeof window.openProduct === 'function')
         ? window.openProduct
         : (typeof openProduct === 'function' ? openProduct : null);
@@ -2718,21 +2741,50 @@ async function renderUserFavorites() {
         }
         var div = document.createElement('div');
         div.className = ((isSold || priceDrop) ? 'spirit-fav-row-alert ' : '') + 'spirit-fav-account-row';
-        div.style.cssText = 'background:#111;border:1px solid #333;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;';
+        div.style.cssText = 'background:#111;border:1px solid #333;padding:12px;display:flex;flex-direction:column;gap:10px;cursor:default;';
         var titleEsc = String(p.title || p.name || '—').replace(/</g, '&lt;');
         var openTxt = (typeof window.spiritT === 'function') ? window.spiritT('fav_open') : 'Voir';
-        div.innerHTML = '<div><div style="font-weight:bold;color:#fff;font-size:0.85rem;">' + titleEsc + '</div><div style="color:var(--neon-orange);font-size:0.8rem;margin-top:4px;">' + curAmt.toFixed(2) + ' ' + String(p.currency || 'EUR') + tags + '</div></div><button type="button" class="btn-action" style="font-size:0.6rem;padding:8px;" data-key="fav_open">' + openTxt + '</button>';
-        var bt = div.querySelector('button');
-        bt.type = 'button';
-        bt.onclick = function (ev) {
-            if (ev) { ev.stopPropagation(); ev.preventDefault(); }
-            void showProductDetails(pid);
-        };
-        div.addEventListener('click', function (ev) {
-            if (ev.target && ev.target.closest && ev.target.closest('button')) return;
-            void showProductDetails(pid);
+        var sellerUid = spiritOwnerId(p.owner_id);
+        var sellerLbl = spiritDefaultLabelFromUid(sellerUid);
+        var myUid = spiritOwnerId(spiritGetCurrentUserId());
+        if (sellerUid && myUid && sellerUid === myUid && typeof currentUser !== 'undefined' && currentUser) sellerLbl = String(currentUser);
+        div.innerHTML =
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">' +
+            '<div style="flex:1;min-width:180px;">' +
+            '<div style="font-weight:bold;color:#fff;font-size:0.85rem;">' + titleEsc + '</div>' +
+            '<div style="color:var(--neon-orange);font-size:0.8rem;margin-top:4px;">' + curAmt.toFixed(2) + ' ' + String(p.currency || 'EUR') + tags + '</div>' +
+            '<div style="margin-top:8px;font-size:0.68rem;color:#888;">Vendeur : ' +
+            '<button type="button" class="btn-action spirit-fav-seller-pseudo" data-seller-uid="' + String(sellerUid).replace(/"/g, '') + '" style="font-size:0.58rem;padding:4px 10px;vertical-align:middle;">' + String(sellerLbl).replace(/</g, '&lt;') + '</button>' +
+            '</div></div>' +
+            '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">' +
+            '<button type="button" class="btn-action spirit-fav-btn-open" style="font-size:0.6rem;padding:8px;" data-key="fav_open">' + openTxt + '</button>' +
+            '<button type="button" class="btn-action spirit-fav-btn-offer" style="font-size:0.58rem;padding:8px;background:#222;color:var(--neon-orange);border:1px solid rgba(255,102,0,0.4);">FAIRE OFFRE</button>' +
+            '</div></div>';
+        var btOpen = div.querySelector('.spirit-fav-btn-open');
+        var btOff = div.querySelector('.spirit-fav-btn-offer');
+        var btPseudo = div.querySelector('.spirit-fav-seller-pseudo');
+        if (btOpen) {
+            btOpen.onclick = function (ev) {
+                if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+                void showProductDetails(pid);
+            };
+        }
+        if (btOff) {
+            btOff.onclick = function (ev) {
+                if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+                spiritOfferFromFavoritesPrompt(pid, sellerUid, curAmt, p.currency || 'EUR');
+            };
+        }
+        if (btPseudo) {
+            btPseudo.onclick = function (ev) {
+                spiritOpenPublicProfileUIWithStop(ev, sellerUid);
+            };
+        }
+        void spiritFetchOwnerPseudo(sellerUid).then(function (name) {
+            var nm = String(name || '').trim();
+            if (!nm || !btPseudo) return;
+            btPseudo.textContent = nm;
         });
-        box.appendChild(div);
     });
     spiritAcknowledgeFavoriteTab();
 }
@@ -2812,6 +2864,410 @@ async function spiritCheckSellerFavAlerts() {
         }
     } catch (e) {}
 }
+
+/* Supabase — table des offres (à créer une fois, SQL ci-dessous). Colonnes : id uuid, product_id bigint, buyer_id text, seller_id text, offer_amount numeric, original_price numeric, currency text, status text (pending|accepted|rejected), created_at timestamptz.
+   CREATE TABLE IF NOT EXISTS public.product_offers (
+     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+     product_id bigint NOT NULL REFERENCES public.products_live(id) ON DELETE CASCADE,
+     buyer_id text NOT NULL,
+     seller_id text NOT NULL,
+     offer_amount numeric NOT NULL,
+     original_price numeric,
+     currency text DEFAULT 'EUR',
+     status text NOT NULL DEFAULT 'pending',
+     created_at timestamptz DEFAULT now()
+   );
+   CREATE INDEX IF NOT EXISTS idx_product_offers_seller ON public.product_offers(seller_id, created_at DESC);
+   CREATE INDEX IF NOT EXISTS idx_product_offers_buyer ON public.product_offers(buyer_id, created_at DESC);
+   -- Adapter RLS / policies à ton auth (ou désactiver RLS le temps des tests). */
+
+function spiritGetSellerOfferBannerKey(uid) {
+    uid = spiritOwnerId(uid);
+    return 'spirit_last_seller_offer_banner_at__' + String(uid);
+}
+
+function spiritGetDashboardOfferSeenKey(uid) {
+    uid = spiritOwnerId(uid);
+    return 'spirit_dashboard_offer_seen__' + String(uid);
+}
+
+function spiritAckDashboardOfferDot() {
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) return;
+    try { localStorage.setItem(spiritGetDashboardOfferSeenKey(uid), new Date().toISOString()); } catch (e) {}
+    var dot = document.getElementById('dashboard-tab-dot');
+    if (dot) dot.style.display = 'none';
+}
+
+async function spiritCheckDashboardOfferDot() {
+    var dot = document.getElementById('dashboard-tab-dot');
+    if (!dot || !_spirit) return;
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) { dot.style.display = 'none'; return; }
+    var seenRaw = '';
+    try { seenRaw = localStorage.getItem(spiritGetDashboardOfferSeenKey(uid)) || ''; } catch (e) {}
+    var seenTs = seenRaw ? new Date(seenRaw).getTime() : 0;
+    if (!Number.isFinite(seenTs)) seenTs = 0;
+    try {
+        var out = await _spirit
+            .from('product_offers')
+            .select('id,created_at')
+            .eq('seller_id', uid)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false })
+            .range(0, 12);
+        if (out.error || !out.data) { dot.style.display = 'none'; return; }
+        var anyNew = false;
+        (out.data || []).forEach(function (r) {
+            var ct = r && r.created_at ? new Date(r.created_at).getTime() : 0;
+            if (Number.isFinite(ct) && ct > seenTs) anyNew = true;
+        });
+        dot.style.display = anyNew ? 'inline-block' : 'none';
+    } catch (e) {
+        dot.style.display = 'none';
+    }
+}
+
+async function spiritCheckSellerOfferBanner() {
+    try {
+        var banner = document.getElementById('spiritSellerOfferAlert');
+        var textEl = document.getElementById('spiritSellerOfferAlertText');
+        if (!banner || !textEl) return;
+        banner.style.display = 'none';
+        textEl.textContent = '';
+        if (!_spirit) return;
+        var sellerId = spiritOwnerId(spiritGetCurrentUserId());
+        if (!sellerId) return;
+
+        var lastKey = spiritGetSellerOfferBannerKey(sellerId);
+        var lastRaw = '';
+        try { lastRaw = localStorage.getItem(lastKey) || ''; } catch (e0) {}
+        var lastTs = lastRaw ? new Date(lastRaw).getTime() : 0;
+        if (!Number.isFinite(lastTs)) lastTs = 0;
+        if (!lastTs) lastTs = Date.now() - (1000 * 60 * 60 * 24);
+
+        var offOut = await _spirit
+            .from('product_offers')
+            .select('id,created_at,status,buyer_id')
+            .eq('seller_id', sellerId)
+            .eq('status', 'pending')
+            .gte('created_at', new Date(lastTs + 500).toISOString())
+            .order('created_at', { ascending: false })
+            .range(0, 99);
+        if (offOut.error) return;
+        var rows = Array.isArray(offOut.data) ? offOut.data : [];
+        var newCount = 0;
+        rows.forEach(function (r) {
+            var ct = r && r.created_at ? new Date(r.created_at).getTime() : 0;
+            var bid = r && r.buyer_id ? String(r.buyer_id) : '';
+            if (ct > lastTs && bid && bid !== sellerId) newCount++;
+        });
+        if (newCount > 0) {
+            textEl.textContent = 'Tu as ' + newCount + ' nouvelle(s) offre(s) en attente sur tes annonces.';
+            banner.style.display = 'block';
+            try { localStorage.setItem(lastKey, new Date().toISOString()); } catch (e1) {}
+        }
+    } catch (e) {}
+}
+
+async function spiritSubmitProductOffer(productId, sellerId, offerAmount, originalPrice, currency) {
+    if (!_spirit) {
+        alert('Connexion indisponible.');
+        return false;
+    }
+    var buyerId = spiritOwnerId(spiritGetCurrentUserId());
+    if (!buyerId) {
+        alert('Connecte-toi pour envoyer une offre.');
+        return false;
+    }
+    var pid = spiritParseFavoriteProductId(productId);
+    if (pid == null) return false;
+    var sid = spiritOwnerId(sellerId);
+    if (!sid || sid === buyerId) {
+        alert('Offre invalide.');
+        return false;
+    }
+    var amt = Number(offerAmount);
+    if (!Number.isFinite(amt) || amt <= 0) {
+        alert('Montant invalide.');
+        return false;
+    }
+    var orig = Number(originalPrice);
+    if (!Number.isFinite(orig)) orig = amt;
+    var cur = String(currency || 'EUR').trim() || 'EUR';
+    var row = {
+        product_id: pid,
+        buyer_id: String(buyerId),
+        seller_id: String(sid),
+        offer_amount: amt,
+        original_price: orig,
+        currency: cur,
+        status: 'pending',
+        created_at: new Date().toISOString()
+    };
+    try {
+        var ins = await _spirit.from('product_offers').insert(row);
+        if (ins.error) {
+            var em = String((ins.error.message || '') + ' ' + (ins.error.code || ''));
+            if (/42P01|does not exist|relation/i.test(em)) {
+                alert('Table product_offers absente : exécute le SQL de création dans Supabase (voir commentaire dans le code).');
+            } else {
+                alert('Offre : ' + (ins.error.message || 'erreur'));
+            }
+            return false;
+        }
+        alert('Offre envoyée au vendeur.');
+        try { if (typeof spiritLoadBuyerOffersSent === 'function') void spiritLoadBuyerOffersSent(); } catch (e3) {}
+        return true;
+    } catch (err) {
+        alert('Erreur envoi offre.');
+        return false;
+    }
+}
+
+function spiritOfferFromProductModal() {
+    try {
+        if (typeof selectedProduct === 'undefined' || !selectedProduct) return;
+        var pid = spiritFavoriteProductId(selectedProduct);
+        var sid = spiritOwnerId(selectedProduct.owner_id);
+        if (pid == null || !sid) return;
+        var base = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(selectedProduct) : Number(selectedProduct.price || 0);
+        var raw = window.prompt('Montant de votre offre (' + String(selectedProduct.currency || 'EUR') + ') :', String(Number.isFinite(base) ? base : ''));
+        if (raw == null) return;
+        var amt = parseFloat(String(raw).replace(',', '.').trim());
+        void spiritSubmitProductOffer(pid, sid, amt, base, selectedProduct.currency || 'EUR');
+    } catch (e) {}
+}
+
+function spiritOfferFromFavoritesPrompt(productId, sellerId, originalPrice, currency) {
+    var pid = spiritParseFavoriteProductId(productId);
+    if (pid == null) return;
+    var raw = window.prompt('Montant de votre offre (' + String(currency || 'EUR') + ') :', String(Number.isFinite(Number(originalPrice)) ? originalPrice : ''));
+    if (raw == null) return;
+    var amt = parseFloat(String(raw).replace(',', '.').trim());
+    void spiritSubmitProductOffer(pid, sellerId, amt, originalPrice, currency || 'EUR');
+}
+
+async function spiritLoadBuyerOffersSent() {
+    var box = document.getElementById('spiritBuyerOffersList');
+    if (!box || !_spirit) return;
+    box.innerHTML = '';
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) {
+        box.innerHTML = '<div style="font-size:0.65rem;color:#555;">Connecte-toi pour voir tes offres.</div>';
+        return;
+    }
+    try {
+        var out = await _spirit
+            .from('product_offers')
+            .select('id,product_id,offer_amount,original_price,currency,status,created_at,seller_id')
+            .eq('buyer_id', uid)
+            .order('created_at', { ascending: false })
+            .range(0, 60);
+        if (out.error) {
+            box.innerHTML = '<div style="font-size:0.65rem;color:#855;">Impossible de charger tes offres.</div>';
+            return;
+        }
+        var rows = Array.isArray(out.data) ? out.data : [];
+        if (rows.length === 0) {
+            box.innerHTML = '<div style="font-size:0.65rem;color:#555;">Aucune offre envoyée pour l’instant.</div>';
+            return;
+        }
+        var pids = rows.map(function (r) { return Number(r.product_id); }).filter(function (n) { return Number.isFinite(n); });
+        var titles = {};
+        if (pids.length) {
+            try {
+                var pl = await _spirit.from('products_live').select('id,title').in('id', pids);
+                if (!pl.error && pl.data) pl.data.forEach(function (p) { titles[String(p.id)] = p.title || '—'; });
+            } catch (e0) {}
+        }
+        for (var i = 0; i < rows.length; i++) {
+            (function (offer) {
+                var pid = Number(offer.product_id);
+                var title = titles[String(pid)] || ('#' + pid);
+                var st = String(offer.status || 'pending');
+                var stLabel = st === 'accepted' ? 'ACCEPTÉE' : st === 'rejected' ? 'REFUSÉE' : 'EN ATTENTE';
+                var sellerUid = spiritOwnerId(offer.seller_id);
+                var pseudoLbl = spiritDefaultLabelFromUid(sellerUid);
+                var div = document.createElement('div');
+                div.style.cssText = 'background:#050808;border:1px solid #233;padding:10px;border-radius:4px;cursor:pointer;font-size:0.68rem;color:#ccc;';
+                div.innerHTML =
+                    '<div style="font-weight:800;color:#9d9;margin-bottom:4px;">' + String(title).replace(/</g, '&lt;') + '</div>' +
+                    '<div>Vendeur : <span class="spirit-buyer-off-seller" style="color:var(--neon-orange);font-weight:700;">' + String(pseudoLbl).replace(/</g, '&lt;') + '</span> · Statut : ' + stLabel + '</div>' +
+                    '<div style="margin-top:4px;">Prix annonce : ' + Number(offer.original_price || 0).toFixed(2) + ' ' + String(offer.currency || 'EUR') +
+                    ' · Ton offre : <b style="color:#fff;">' + Number(offer.offer_amount || 0).toFixed(2) + '</b> ' + String(offer.currency || 'EUR') + '</div>';
+                div.onclick = function () {
+                    var ovr = st === 'accepted' ? Number(offer.offer_amount) : null;
+                    void showProductDetails(pid, ovr != null && Number.isFinite(ovr) ? { priceOverride: ovr } : {});
+                };
+                box.appendChild(div);
+                void spiritFetchOwnerPseudo(sellerUid).then(function (name) {
+                    var nm = String(name || '').trim();
+                    if (!nm) return;
+                    var sp = div.querySelector('.spirit-buyer-off-seller');
+                    if (sp) sp.textContent = nm;
+                });
+            })(rows[i]);
+        }
+    } catch (e) {
+        box.innerHTML = '<div style="font-size:0.65rem;color:#855;">Erreur chargement offres.</div>';
+    }
+}
+
+async function spiritLoadSellerOffersList() {
+    var box = document.getElementById('spiritSellerOffersList');
+    if (!box || !_spirit) return;
+    box.innerHTML = '';
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) {
+        box.innerHTML = '<div style="font-size:0.65rem;color:#555;">Connecte-toi.</div>';
+        return;
+    }
+    try {
+        var out = await _spirit
+            .from('product_offers')
+            .select('id,product_id,offer_amount,original_price,currency,status,created_at,buyer_id')
+            .eq('seller_id', uid)
+            .order('created_at', { ascending: false })
+            .range(0, 80);
+        if (out.error) {
+            box.innerHTML = '<div style="font-size:0.65rem;color:#855;">Impossible de charger les offres reçues.</div>';
+            return;
+        }
+        var rows = (Array.isArray(out.data) ? out.data : []).filter(function (r) { return String(r.status || 'pending') === 'pending'; });
+        if (rows.length === 0) {
+            box.innerHTML = '<div style="font-size:0.65rem;color:#555;">Aucune offre en attente.</div>';
+            return;
+        }
+        var pids = rows.map(function (r) { return Number(r.product_id); }).filter(function (n) { return Number.isFinite(n); });
+        var titles = {};
+        if (pids.length) {
+            try {
+                var pl = await _spirit.from('products_live').select('id,title').in('id', pids);
+                if (!pl.error && pl.data) pl.data.forEach(function (p) { titles[String(p.id)] = p.title || '—'; });
+            } catch (e0) {}
+        }
+        rows.forEach(function (offer) {
+            var pid = Number(offer.product_id);
+            var title = titles[String(pid)] || ('#' + pid);
+            var buyerUid = spiritOwnerId(offer.buyer_id);
+            var pseudoLbl = spiritDefaultLabelFromUid(buyerUid);
+            var wrap = document.createElement('div');
+            wrap.style.cssText = 'background:#111;border:1px solid #333;padding:10px;border-radius:4px;font-size:0.68rem;color:#ddd;';
+            wrap.innerHTML =
+                '<div style="font-weight:800;color:#fff;margin-bottom:6px;">' + String(title).replace(/</g, '&lt;') + '</div>' +
+                '<div>Acheteur : <span class="spirit-sell-off-buyer" style="color:#5cf;font-weight:700;">' + String(pseudoLbl).replace(/</g, '&lt;') + '</span></div>' +
+                '<div style="margin:6px 0;">Prix annonce : ' + Number(offer.original_price || 0).toFixed(2) + ' ' + String(offer.currency || 'EUR') +
+                ' → Offre : <b style="color:var(--neon-orange);">' + Number(offer.offer_amount || 0).toFixed(2) + '</b> ' + String(offer.currency || 'EUR') + '</div>' +
+                '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
+                '<button type="button" class="btn-action spirit-off-accept" style="font-size:0.58rem;padding:6px 12px;">ACCEPTER</button>' +
+                '<button type="button" class="btn-action spirit-off-reject" style="font-size:0.58rem;padding:6px 12px;background:#333;">REFUSER</button>' +
+                '<button type="button" class="btn-action spirit-off-open" style="font-size:0.58rem;padding:6px 12px;background:#222;">VOIR ANNONCE</button>' +
+                '</div>';
+            var idStr = String(offer.id);
+            wrap.querySelector('.spirit-off-accept').onclick = function (e) {
+                if (e) { e.stopPropagation(); e.preventDefault(); }
+                void spiritAcceptProductOffer(idStr);
+            };
+            wrap.querySelector('.spirit-off-reject').onclick = function (e) {
+                if (e) { e.stopPropagation(); e.preventDefault(); }
+                void spiritRejectProductOffer(idStr);
+            };
+            wrap.querySelector('.spirit-off-open').onclick = function (e) {
+                if (e) { e.stopPropagation(); e.preventDefault(); }
+                void showProductDetails(pid);
+            };
+            box.appendChild(wrap);
+            void spiritFetchOwnerPseudo(buyerUid).then(function (name) {
+                var nm = String(name || '').trim();
+                if (!nm) return;
+                var sp = wrap.querySelector('.spirit-sell-off-buyer');
+                if (sp) sp.textContent = nm;
+            });
+        });
+    } catch (e) {
+        box.innerHTML = '<div style="font-size:0.65rem;color:#855;">Erreur.</div>';
+    }
+}
+
+async function spiritRejectProductOffer(offerId) {
+    if (!_spirit || !offerId) return;
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) return;
+    if (!window.confirm('Refuser cette offre ?')) return;
+    try {
+        var g = await _spirit.from('product_offers').select('seller_id,status').eq('id', offerId).maybeSingle();
+        if (g.error || !g.data || String(g.data.seller_id) !== uid) {
+            alert('Action impossible.');
+            return;
+        }
+        var up = await _spirit.from('product_offers').update({ status: 'rejected' }).eq('id', offerId);
+        if (up.error) {
+            alert(up.error.message || 'Erreur');
+            return;
+        }
+        void spiritLoadSellerOffersList();
+        void spiritCheckDashboardOfferDot();
+    } catch (e) {}
+}
+
+async function spiritAcceptProductOffer(offerId) {
+    if (!_spirit || !offerId) return;
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) return;
+    if (!window.confirm('Accepter cette offre ? Le prix de l’annonce sera mis à jour à ce montant ; les autres offres en attente sur ce produit seront refusées.')) return;
+    try {
+        var g = await _spirit.from('product_offers').select('*').eq('id', offerId).maybeSingle();
+        if (g.error || !g.data) {
+            alert('Offre introuvable.');
+            return;
+        }
+        var o = g.data;
+        if (String(o.seller_id) !== uid) {
+            alert('Accès refusé.');
+            return;
+        }
+        if (String(o.status || '') !== 'pending') {
+            alert('Offre déjà traitée.');
+            return;
+        }
+        var amt = Number(o.offer_amount);
+        if (!Number.isFinite(amt) || amt <= 0) {
+            alert('Montant offre invalide.');
+            return;
+        }
+        var upd = await _spirit
+            .from('products_live')
+            .update({ price: amt, amount: amt })
+            .eq('id', o.product_id)
+            .eq('owner_id', uid);
+        if (upd.error) {
+            alert('Mise à jour annonce : ' + (upd.error.message || 'erreur'));
+            return;
+        }
+        await _spirit.from('product_offers').update({ status: 'accepted' }).eq('id', offerId);
+        await _spirit
+            .from('product_offers')
+            .update({ status: 'rejected' })
+            .eq('product_id', o.product_id)
+            .eq('status', 'pending')
+            .neq('id', offerId);
+        spiritApplyLocalPriceToCaches({ id: o.product_id, owner_id: uid }, amt);
+        try { if (typeof renderMarket === 'function') renderMarket(); } catch (e1) {}
+        alert('Offre acceptée — prix de l’annonce mis à jour.');
+        void spiritLoadSellerOffersList();
+        void spiritLoadBuyerOffersSent();
+        void spiritCheckDashboardOfferDot();
+    } catch (e) {
+        alert('Erreur acceptation.');
+    }
+}
+
+try {
+    window.spiritOfferFromProductModal = spiritOfferFromProductModal;
+    window.spiritAcceptProductOffer = spiritAcceptProductOffer;
+    window.spiritRejectProductOffer = spiritRejectProductOffer;
+} catch (eW) {}
 
 // --- MARKET : seller pseudo + navigation profil entre utilisateurs ---
 var spiritOwnerPseudoCache = {};
@@ -3814,6 +4270,25 @@ function spiritShowPurchaseSuccessModal(amountStr) {
     if (h2 && typeof window.spiritT === 'function') h2.textContent = window.spiritT('purchase_success_title');
     if (el) el.style.setProperty('display', 'flex', 'important');
 }
+function spiritApplyLocalPriceToCaches(productRow, newPrice) {
+    if (!productRow) return;
+    var pid = spiritFavoriteProductId(productRow);
+    if (pid == null) return;
+    var n = Number(newPrice);
+    if (!Number.isFinite(n) || n <= 0) return;
+    var patch = { price: n, amount: n };
+    ['figurine', 'statue'].forEach(function (key) {
+        var b = typeof spiritMarketBucket !== 'undefined' ? spiritMarketBucket[key] : null;
+        if (!b || !Array.isArray(b.rows)) return;
+        for (var i = 0; i < b.rows.length; i++) {
+            if (spiritFavoriteProductId(b.rows[i]) === pid) b.rows[i] = Object.assign({}, b.rows[i], patch);
+        }
+    });
+    try {
+        var mk = typeof spiritBucketKeyFromMode === 'function' ? spiritBucketKeyFromMode() : 'figurine';
+        if (typeof spiritMarketBucket !== 'undefined' && spiritMarketBucket[mk]) marketData = spiritMarketBucket[mk].rows.slice();
+    } catch (e) {}
+}
 function spiritApplyLocalSoldToCaches(productRow) {
     if (!productRow) return;
     var pid = spiritFavoriteProductId(productRow);
@@ -4777,6 +5252,12 @@ async function confirmPayment(method) {
         }
     } catch (e) {}
     setTimeout(function () { try { spiritRefreshAuthFromSession(); } catch (e) {} }, 0);
+    setInterval(function () {
+        try {
+            if (typeof spiritCheckDashboardOfferDot === 'function' && typeof spiritGetCurrentUserId === 'function' && spiritGetCurrentUserId())
+                void spiritCheckDashboardOfferDot();
+        } catch (e) {}
+    }, 120000);
     function setHotToysMainImage(thumb) {
         if (!thumb) return;
         const card = thumb.closest('.hottoys-card') || thumb.closest('div[style*="box-shadow"]');
@@ -4949,12 +5430,16 @@ window.showAccountTab = function showAccountTab(tab) {
     }
 
     if (tab === 'dashboard') {
+        try { if (typeof spiritAckDashboardOfferDot === 'function') spiritAckDashboardOfferDot(); } catch (e) {}
         try {
             if (typeof updateUserAnnonces === 'function' && spiritPerfShouldRun('tab:dashboard:updateUserAnnonces', 900))
                 spiritPerfRunOnceInFlight('tab:dashboard:updateUserAnnonces', function () { return updateUserAnnonces(); });
         } catch (e) {}
         try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
         try { if (typeof spiritCheckSellerFavAlerts === 'function') spiritCheckSellerFavAlerts(); } catch (e) {}
+        try { if (typeof spiritCheckSellerOfferBanner === 'function') spiritCheckSellerOfferBanner(); } catch (e) {}
+        try { if (typeof spiritLoadSellerOffersList === 'function') spiritLoadSellerOffersList(); } catch (e) {}
+        try { if (typeof spiritLoadBuyerOffersSent === 'function') spiritLoadBuyerOffersSent(); } catch (e) {}
     }
     if (tab === 'params') {
         console.log("[SPIRIT SYSTEM] Accès paramètres");
@@ -4996,6 +5481,7 @@ function spiritRefreshUserScopedUi() {
     try { if (typeof spiritUpdateNavSanctuaryDot === 'function') spiritUpdateNavSanctuaryDot(); } catch (e) {}
     try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
     try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
+    try { if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot(); } catch (e) {}
 }
 
 var spiritLoupeCleanup = null;
