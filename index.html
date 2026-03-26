@@ -1622,12 +1622,6 @@
         <button type="button" id="spiritPublicBtnAnnonces" class="active" onclick="spiritPublicSetTab('annonces')">ANNONCES</button>
         <button type="button" id="spiritPublicBtnSanctuary" onclick="spiritPublicSetTab('sanctuary')">SANCTUAIRE</button>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 6px 0;">
-        <button type="button" class="btn-action" style="font-size:0.58rem;padding:7px 10px;" onclick="spiritOpenPublicAnnonces('12345')">ANNONCES MOI</button>
-        <button type="button" class="btn-action" style="font-size:0.58rem;padding:7px 10px;" onclick="spiritOpenPublicAnnonces('67890')">ANNONCES INVITÉ</button>
-        <button type="button" class="btn-action" style="font-size:0.58rem;padding:7px 10px;" onclick="spiritOpenPublicSanctuary('12345')">SANCTUAIRE MOI</button>
-        <button type="button" class="btn-action" style="font-size:0.58rem;padding:7px 10px;" onclick="spiritOpenPublicSanctuary('67890')">SANCTUAIRE INVITÉ</button>
-    </div>
     <div class="spirit-public-pane" id="spiritPublicPaneAnnonces">
         <p style="font-size:0.7rem;color:#666;margin-top:0;">Annonces publiques (products_live)</p>
         <div id="spiritPublicAnnoncesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;"></div>
@@ -3982,6 +3976,30 @@ async function confirmPayment(method) {
         spiritSetRememberSession(!!remember);
     }
 
+    function spiritAuthErrNeedsEmailConfirmation(err) {
+        var msg = '';
+        try { msg = err && err.message ? String(err.message) : String(err || ''); } catch (e) {}
+        msg = String(msg).toLowerCase();
+        return (
+            msg.includes('confirm') ||
+            msg.includes('not confirmed') ||
+            msg.includes('confirmation') ||
+            msg.includes('unconfirmed') ||
+            msg.includes('already registered')
+        );
+    }
+
+    async function spiritResendEmailConfirmation(email) {
+        if (!_spirit || !_spirit.auth || typeof _spirit.auth.resend !== 'function') return { ok: false, error: null };
+        try {
+            var r = await _spirit.auth.resend({ email: email });
+            if (r && r.error) return { ok: false, error: r.error };
+            return { ok: true, error: null };
+        } catch (e) {
+            return { ok: false, error: e };
+        }
+    }
+
     async function handleRegister() {
         const u = String((document.getElementById('regUser') || {}).value || '').trim();
         const email = String((document.getElementById('regEmail') || {}).value || '').trim().toLowerCase();
@@ -4009,6 +4027,12 @@ async function confirmPayment(method) {
                 updateUserAnnonces();
                 return;
             }
+            if (signIn && signIn.error && spiritAuthErrNeedsEmailConfirmation(signIn.error)) {
+                var rs = await spiritResendEmailConfirmation(email);
+                alert(rs && rs.ok ? "Email de confirmation renvoyé. Vérifie ta boîte mail." : "Compte créé mais email non confirmé. (Impossible de renvoyer automatiquement.)");
+                closeModals();
+                return;
+            }
 
             var signUp = await _spirit.auth.signUp({
                 email: email,
@@ -4032,6 +4056,12 @@ async function confirmPayment(method) {
             alert("Compte créé. Vérifie ton email pour confirmer ton inscription, puis reconnecte-toi.");
             closeModals();
         } catch (err) {
+            if (spiritAuthErrNeedsEmailConfirmation(err)) {
+                var rs2 = await spiritResendEmailConfirmation(email);
+                alert(rs2 && rs2.ok ? "Email de confirmation renvoyé. Vérifie ta boîte mail." : "Compte existant, email non confirmé. (Impossible de renvoyer automatiquement.)");
+                closeModals();
+                return;
+            }
             alert("Erreur auth : " + (err && err.message ? err.message : err));
         }
     }
