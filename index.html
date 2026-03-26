@@ -2581,9 +2581,15 @@ async function checkGlobalNotifications() {
         return;
     }
     try {
-        var favOut = await _spirit.from('favorites').select('product_id').eq('user_id', uidN);
-        if ((favOut.error || !favOut.data || favOut.data.length === 0) && uid) {
-            favOut = await _spirit.from('favorites').select('product_id').eq('user_id', String(uid).trim());
+        var uidCandidates = [uidN];
+        var uRaw = String(uid || '').trim();
+        if (uRaw && uidCandidates.indexOf(uRaw) === -1) uidCandidates.push(uRaw);
+        var favOut = await _spirit.from('favorites').select('product_id').in('user_id', uidCandidates);
+        if (favOut.error || !favOut.data || favOut.data.length === 0) {
+            favOut = await _spirit.from('favorites').select('product_id').eq('user_id', uidN);
+        }
+        if ((favOut.error || !favOut.data || favOut.data.length === 0) && uRaw) {
+            favOut = await _spirit.from('favorites').select('product_id').eq('user_id', uRaw);
         }
         if (favOut.error || !favOut.data || favOut.data.length === 0) {
             if (dot) dot.style.display = 'none';
@@ -2638,11 +2644,20 @@ async function spiritLoadFavoriteData() {
         var uid = spiritGetCurrentUserId();
         var uidN = spiritNormUid(uid);
         if (!uidN) return;
+        var uidCandidates = [];
+        uidCandidates.push(uidN);
+        var uRaw = String(uid || '').trim();
+        if (uRaw && uidCandidates.indexOf(uRaw) === -1) uidCandidates.push(uRaw);
         var rows = [];
-        var out = await _spirit.from('favorites').select('user_id, product_id').eq('user_id', uidN);
+        var out = await _spirit.from('favorites').select('user_id, product_id').in('user_id', uidCandidates);
+        if (out.error && typeof console !== 'undefined' && console.warn) console.warn('[SPIRIT] favorites select:', out.error.message || out.error);
         if (!out.error && out.data && out.data.length) rows = out.data;
-        if (rows.length === 0 && uid) {
-            var out2 = await _spirit.from('favorites').select('user_id, product_id').eq('user_id', String(uid).trim());
+        if (rows.length === 0) {
+            var out1 = await _spirit.from('favorites').select('user_id, product_id').eq('user_id', uidN);
+            if (!out1.error && out1.data && out1.data.length) rows = out1.data;
+        }
+        if (rows.length === 0 && uRaw) {
+            var out2 = await _spirit.from('favorites').select('user_id, product_id').eq('user_id', uRaw);
             if (!out2.error && out2.data && out2.data.length) rows = out2.data;
         }
         spiritUserFavoriteSet = new Set();
@@ -2650,11 +2665,14 @@ async function spiritLoadFavoriteData() {
         rows.forEach(function (r) {
             var n = Number(r.product_id);
             if (!isFinite(n) || isNaN(n)) return;
+            if (spiritNormUid(r.user_id) !== uidN) return;
             var k = String(n);
             spiritFavoriteCountMap[k] = (spiritFavoriteCountMap[k] || 0) + 1;
-            if (spiritNormUid(r.user_id) === uidN) spiritUserFavoriteSet.add(n);
+            spiritUserFavoriteSet.add(n);
         });
-    } catch (e) { /* table favorites ou RLS */ }
+    } catch (e) {
+        if (typeof console !== 'undefined' && console.warn) console.warn('[SPIRIT] spiritLoadFavoriteData', e);
+    }
     await checkGlobalNotifications();
 }
 async function spiritToggleFavorite(productId, ev, favBtn) {
@@ -2721,6 +2739,34 @@ function spiritInitFavoriteClickDelegation() {
         if (p != null && p !== '') spiritToggleFavorite(p, e, btn);
     }, true);
 }
+/** Charge les lignes products_live pour les favoris : lot + repli id par id si le lot échoue (RLS / timeout). */
+async function spiritFetchProductsLiveForFavoriteIds(ids) {
+    var rows = [];
+    if (!_spirit || !ids || !ids.length) return rows;
+    var want = {};
+    ids.forEach(function (id) { if (Number.isFinite(id)) want[id] = true; });
+    try {
+        var out = await _spirit.from('products_live').select('*').in('id', ids);
+        if (!out.error && Array.isArray(out.data)) rows = out.data.slice();
+    } catch (e) {}
+    var got = {};
+    rows.forEach(function (r) {
+        var id = spiritFavoriteProductId(r);
+        if (id != null) got[id] = true;
+    });
+    for (var i = 0; i < ids.length; i++) {
+        var pid = ids[i];
+        if (!Number.isFinite(pid) || got[pid]) continue;
+        try {
+            var one = await _spirit.from('products_live').select('*').eq('id', pid).maybeSingle();
+            if (!one.error && one.data) {
+                rows.push(one.data);
+                got[pid] = true;
+            }
+        } catch (e2) {}
+    }
+    return rows;
+}
 async function renderUserFavorites() {
     var box = document.getElementById('user-favorites-list');
     if (!box) return;
@@ -2736,8 +2782,7 @@ async function renderUserFavorites() {
     var rows = [];
     if (_spirit) {
         try {
-            var out = await _spirit.from('products_live').select('*').in('id', ids);
-            if (!out.error && Array.isArray(out.data)) rows = out.data;
+            rows = await spiritFetchProductsLiveForFavoriteIds(ids);
         } catch (e) {}
     }
     if (rows.length === 0) {
@@ -2745,6 +2790,26 @@ async function renderUserFavorites() {
             var n = spiritFavoriteProductId(m);
             return n != null && spiritUserFavoriteSet.has(n);
         });
+    }
+    if (rows.length === 0 && ids.length) {
+        ids.forEach(function (pid) {
+            if (!Number.isFinite(pid)) return;
+            rows.push({
+                id: pid,
+                title: 'Annonce #' + pid,
+                price: 0,
+                currency: 'EUR',
+                owner_id: '',
+                description: '',
+                status: 'available'
+            });
+        });
+        try {
+            var hint = document.createElement('div');
+            hint.style.cssText = 'font-size:0.62rem;color:#888;margin-bottom:10px;padding:8px;border:1px dashed #444;';
+            hint.textContent = 'Détail des annonces en cours de chargement (ou accès limité). Clique « Voir » pour ouvrir.';
+            box.appendChild(hint);
+        } catch (eH) {}
     }
     rows.forEach(function (p) {
         var pid = spiritFavoriteProductId(p);
@@ -2810,6 +2875,7 @@ async function renderUserFavorites() {
             if (!nm || !btPseudo) return;
             btPseudo.textContent = nm;
         });
+        box.appendChild(div);
     });
     spiritAcknowledgeFavoriteTab();
 }
@@ -5445,10 +5511,10 @@ window.showAccountTab = function showAccountTab(tab) {
             } catch (e4) { updateUserAnnonces(); }
         }
     } else if (tab === 'favoris') {
+        /* Toujours recharger : spiritPerfShouldRun bloquait le rendu après vidage de la liste (liste vide). */
         if (typeof renderUserFavorites === 'function') {
             try {
-                if (spiritPerfShouldRun('tab:favoris:render', 350))
-                    spiritPerfRunOnceInFlight('tab:favoris:render', function () { return renderUserFavorites(); });
+                spiritPerfRunOnceInFlight('tab:favoris:render', function () { return renderUserFavorites(); });
             } catch (e5) { renderUserFavorites(); }
         }
     } else if (tab === 'sanctuary') {
