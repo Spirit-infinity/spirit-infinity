@@ -1233,6 +1233,7 @@
                 <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
                 <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
                 <div id="pDescBox" style="font-size:0.85rem; color:#aaa; margin-bottom:15px; background:#111; padding:10px; border-left:2px solid var(--neon-orange);"></div>
+                <div id="pNegotiatedNote" style="display:none;font-size:0.62rem;color:#6cf;margin:-4px 0 10px 0;line-height:1.35;padding:6px 8px;border:1px solid rgba(0,200,255,0.35);background:rgba(0,80,120,0.12);">Prix convenu — visible uniquement entre le vendeur et l’acheteur concerné. Sur le marché, le prix public reste affiché pour les autres.</div>
                 
                 <div style="background:rgba(255,102,0,0.05); padding:15px; border:1px solid #333; margin-bottom:15px;">
                     <label style="font-size:0.7rem; color:var(--neon-orange); font-weight:bold; display:block; margin-bottom:5px;">LIVRAISON (Taille: <span id="pSizeLabel">---</span>)</label>
@@ -2524,9 +2525,11 @@ async function showProductDetails(productId, opts) {
         } catch (e) {}
     }
     if (!item) return;
+    item = Object.assign({}, item);
+    delete item._spiritDisplayPrice;
     if (opts.priceOverride != null) {
         var po = Number(opts.priceOverride);
-        if (Number.isFinite(po)) item = Object.assign({}, item, { _spiritDisplayPrice: po });
+        if (Number.isFinite(po)) item._spiritDisplayPrice = po;
     }
     var opFn = (typeof window !== 'undefined' && typeof window.openProduct === 'function')
         ? window.openProduct
@@ -2727,6 +2730,20 @@ async function spiritToggleFavorite(productId, ev, favBtn) {
     spiritSyncFavoriteButtonDOM(pid, flashNeon ? btnFlash : null);
     checkGlobalNotifications().catch(function () {});
 }
+/** Retire un favori depuis Mes favoris (même logique que le cœur sur la carte). */
+async function spiritRemoveFavoriteFromAccount(productId) {
+    var pid = spiritParseFavoriteProductId(productId);
+    if (pid == null) return;
+    if (!spiritUserFavoriteSet.has(pid)) {
+        if (typeof renderUserFavorites === 'function') void renderUserFavorites();
+        return;
+    }
+    var fe = { stopPropagation: function () {}, preventDefault: function () {} };
+    await spiritToggleFavorite(pid, fe, null);
+    if (typeof renderUserFavorites === 'function') await renderUserFavorites();
+    try { if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications(); } catch (e) {}
+}
+try { window.spiritRemoveFavoriteFromAccount = spiritRemoveFavoriteFromAccount; } catch (eR) {}
 function spiritInitFavoriteClickDelegation() {
     if (spiritInitFavoriteClickDelegation.done) return;
     spiritInitFavoriteClickDelegation.done = true;
@@ -2849,9 +2866,11 @@ async function renderUserFavorites() {
             '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">' +
             '<button type="button" class="btn-action spirit-fav-btn-open" style="font-size:0.6rem;padding:8px;" data-key="fav_open">' + openTxt + '</button>' +
             '<button type="button" class="btn-action spirit-fav-btn-offer" style="font-size:0.58rem;padding:8px;background:#222;color:var(--neon-orange);border:1px solid rgba(255,102,0,0.4);">FAIRE OFFRE</button>' +
+            '<button type="button" class="btn-action spirit-fav-btn-remove" style="font-size:0.58rem;padding:8px;background:#2a1515;color:#e66;border:1px solid rgba(200,60,60,0.45);">SUPPRIMER</button>' +
             '</div></div>';
         var btOpen = div.querySelector('.spirit-fav-btn-open');
         var btOff = div.querySelector('.spirit-fav-btn-offer');
+        var btRm = div.querySelector('.spirit-fav-btn-remove');
         var btPseudo = div.querySelector('.spirit-fav-seller-pseudo');
         if (btOpen) {
             btOpen.onclick = function (ev) {
@@ -2868,6 +2887,12 @@ async function renderUserFavorites() {
         if (btPseudo) {
             btPseudo.onclick = function (ev) {
                 spiritOpenPublicProfileUIWithStop(ev, sellerUid);
+            };
+        }
+        if (btRm) {
+            btRm.onclick = function (ev) {
+                if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+                if (typeof spiritRemoveFavoriteFromAccount === 'function') void spiritRemoveFavoriteFromAccount(pid);
             };
         }
         void spiritFetchOwnerPseudo(sellerUid).then(function (name) {
@@ -3281,6 +3306,34 @@ async function spiritLoadSellerOffersList() {
     }
 }
 
+/** Prix affiché en fiche si offre acceptée : uniquement acheteur ou vendeur de cette offre (pas le marché). */
+async function spiritFetchAcceptedOfferDisplayPrice(productId) {
+    if (!_spirit || !_spirit.from) return null;
+    var pid = spiritParseFavoriteProductId(productId);
+    if (pid == null) return null;
+    var uid = spiritNormUid(spiritGetCurrentUserId());
+    if (!uid) return null;
+    try {
+        var out = await _spirit
+            .from('product_offers')
+            .select('offer_amount,buyer_id,seller_id,status')
+            .eq('product_id', pid)
+            .eq('status', 'accepted')
+            .order('created_at', { ascending: false })
+            .range(0, 4);
+        if (out.error || !out.data || !out.data.length) return null;
+        for (var i = 0; i < out.data.length; i++) {
+            var r = out.data[i];
+            if (spiritNormUid(r.buyer_id) === uid || spiritNormUid(r.seller_id) === uid) {
+                var amt = Number(r.offer_amount);
+                if (Number.isFinite(amt) && amt > 0) return amt;
+            }
+        }
+    } catch (e) {}
+    return null;
+}
+try { window.spiritFetchAcceptedOfferDisplayPrice = spiritFetchAcceptedOfferDisplayPrice; } catch (eSF) {}
+
 async function spiritRejectProductOffer(offerId) {
     if (!_spirit || !offerId) return;
     var uid = spiritOwnerId(spiritGetCurrentUserId());
@@ -3306,7 +3359,7 @@ async function spiritAcceptProductOffer(offerId) {
     if (!_spirit || !offerId) return;
     var uid = spiritOwnerId(spiritGetCurrentUserId());
     if (!uid) return;
-    if (!window.confirm('Accepter cette offre ? Le prix de l’annonce sera mis à jour à ce montant ; les autres offres en attente sur ce produit seront refusées.')) return;
+    if (!window.confirm('Accepter cette offre ? Le prix convenu sera visible uniquement entre toi et l’acheteur sur la fiche annonce. Le marché continue d’afficher le prix public pour les autres. Les autres offres en attente sur ce produit seront refusées.')) return;
     try {
         var g = await _spirit.from('product_offers').select('*').eq('id', offerId).maybeSingle();
         if (g.error || !g.data) {
@@ -3327,15 +3380,6 @@ async function spiritAcceptProductOffer(offerId) {
             alert('Montant offre invalide.');
             return;
         }
-        var upd = await _spirit
-            .from('products_live')
-            .update({ price: amt, amount: amt })
-            .eq('id', o.product_id)
-            .eq('owner_id', uid);
-        if (upd.error) {
-            alert('Mise à jour annonce : ' + (upd.error.message || 'erreur'));
-            return;
-        }
         await _spirit.from('product_offers').update({ status: 'accepted' }).eq('id', offerId);
         await _spirit
             .from('product_offers')
@@ -3343,9 +3387,7 @@ async function spiritAcceptProductOffer(offerId) {
             .eq('product_id', o.product_id)
             .eq('status', 'pending')
             .neq('id', offerId);
-        spiritApplyLocalPriceToCaches({ id: o.product_id, owner_id: uid }, amt);
-        try { if (typeof renderMarket === 'function') renderMarket(); } catch (e1) {}
-        alert('Offre acceptée — prix de l’annonce mis à jour.');
+        alert('Offre acceptée — prix convenu visible uniquement entre toi et l’acheteur sur la fiche (le marché garde le prix public).');
         void spiritLoadSellerOffersList();
         void spiritLoadBuyerOffersSent();
         void spiritCheckDashboardOfferDot();
@@ -4580,7 +4622,19 @@ async function confirmPayment(method) {
         box.scrollTop = box.scrollHeight;
     }
 
- function openProduct(item) {
+ async function openProduct(item) {
+        item = Object.assign({}, item);
+        var keepNegotiated = item._spiritDisplayPrice != null;
+        if (!keepNegotiated) {
+            delete item._spiritDisplayPrice;
+            var _opid = spiritFavoriteProductId(item);
+            if (_opid != null && typeof window !== 'undefined' && typeof window.spiritFetchAcceptedOfferDisplayPrice === 'function') {
+                try {
+                    var _nego = await window.spiritFetchAcceptedOfferDisplayPrice(_opid);
+                    if (_nego != null) item._spiritDisplayPrice = _nego;
+                } catch (eNeg) {}
+            }
+        }
         selectedProduct = item;
         try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
         var pmRoot = document.getElementById('productModal');
@@ -4713,6 +4767,13 @@ async function confirmPayment(method) {
             try { if (typeof spiritAttachProductLoupe === 'function') spiritAttachProductLoupe(main); } catch (e) {}
         }
         
+        try {
+            var pN = document.getElementById('pNegotiatedNote');
+            if (pN) {
+                if (item._spiritDisplayPrice != null && Number.isFinite(Number(item._spiritDisplayPrice))) pN.style.display = 'block';
+                else pN.style.display = 'none';
+            }
+        } catch (ePn) {}
         // Fonctions de support
         if (typeof renderChatMessages === 'function') renderChatMessages();
         if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier();
