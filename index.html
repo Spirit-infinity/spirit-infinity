@@ -1455,6 +1455,10 @@
                 <div id="tab-dashboard" class="account-page active">
                     <h2>🏠 TABLEAU DE BORD</h2>
                     <p>C'est ici que s'affiche ton résumé.</p>
+                    <div id="spiritSellerFavAlert" style="display:none; margin-top:14px; padding:12px 14px; border:1px solid rgba(255,102,0,0.55); background:rgba(255,102,0,0.06);">
+                        <div style="font-size:0.75rem; color:var(--neon-orange); font-weight:900; letter-spacing:1px; margin-bottom:6px;">ALERTE FAVORIS</div>
+                        <div id="spiritSellerFavAlertText" style="font-size:0.72rem; color:#bbb;"></div>
+                    </div>
                     <div style="margin-top:16px;padding:14px;border:1px solid rgba(255,102,0,0.35);background:#0c0c0c;">
                         <p style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">PROFIL PUBLIC &amp; SANCTUAIRE</p>
                         <p style="margin:0 0 10px;font-size:0.65rem;color:#777;">URL unique (partage) :</p>
@@ -2733,6 +2737,64 @@ async function renderUserFavorites() {
     spiritAcknowledgeFavoriteTab();
 }
 
+// --- FAVORIS : alerte vendeur (dashboard) ---
+function spiritGetSellerFavAlertKey(uid) {
+    uid = spiritOwnerId(uid);
+    return 'spirit_last_seller_fav_alert_at__' + String(uid);
+}
+
+async function spiritCheckSellerFavAlerts() {
+    try {
+        var banner = document.getElementById('spiritSellerFavAlert');
+        var textEl = document.getElementById('spiritSellerFavAlertText');
+        if (!banner || !textEl) return;
+        banner.style.display = 'none';
+        textEl.textContent = '';
+
+        if (!_spirit || !_spirit.from) return;
+
+        var sellerId = spiritGetCurrentUserId();
+        sellerId = spiritOwnerId(sellerId);
+        if (!sellerId) return;
+
+        // Timestamp local (évite de spammer le serveur).
+        var lastTsRaw = '';
+        try { lastTsRaw = localStorage.getItem(spiritGetSellerFavAlertKey(sellerId)) || ''; } catch (e) {}
+        var lastTs = lastTsRaw ? new Date(lastTsRaw).getTime() : 0;
+        if (!Number.isFinite(lastTs)) lastTs = 0;
+
+        // Récupère les produits du vendeur
+        var prodOut = await _spirit
+            .from('products_live')
+            .select('id')
+            .eq('owner_id', sellerId);
+        if (prodOut.error) return;
+        var prodIds = (prodOut.data || []).map(function (r) { return Number(r.id); }).filter(function (n) { return Number.isFinite(n); });
+        if (prodIds.length === 0) return;
+
+        // Favoris ajoutés récemment sur ses annonces (par d'autres users)
+        var favOut = await _spirit
+            .from('favorites')
+            .select('product_id,created_at,user_id')
+            .in('product_id', prodIds);
+        if (favOut.error) return;
+        var rows = Array.isArray(favOut.data) ? favOut.data : [];
+
+        var newCount = 0;
+        rows.forEach(function (r) {
+            var ct = r && r.created_at ? new Date(r.created_at).getTime() : 0;
+            var fromUser = r && r.user_id ? String(r.user_id) : '';
+            if (ct > lastTs && fromUser && fromUser !== sellerId) newCount++;
+        });
+
+        if (newCount > 0) {
+            textEl.textContent = 'Tu as ' + newCount + ' nouveau(x) favori(s) sur tes annonces.';
+            banner.style.display = 'block';
+            try { localStorage.setItem(spiritGetSellerFavAlertKey(sellerId), new Date().toISOString()); } catch (e2) {}
+        }
+    } catch (e) {}
+}
+
 // --- MARKET : seller pseudo + navigation profil entre utilisateurs ---
 var spiritOwnerPseudoCache = {};
 var spiritOwnerPseudoInFlight = {};
@@ -2780,6 +2842,28 @@ async function spiritFetchOwnerPseudo(uid) {
                         return String(out2.data.pseudo).trim();
                     }
                 } catch (e2) {}
+
+                // Fallback schéma alternatif : table `profiles`.
+                try {
+                    var out3 = await _spirit
+                        .from('profiles')
+                        .select('pseudo')
+                        .eq('id', uid.toString())
+                        .maybeSingle();
+                    if (out3 && !out3.error && out3.data && out3.data.pseudo != null) {
+                        return String(out3.data.pseudo).trim();
+                    }
+                } catch (e3) {}
+                try {
+                    var out4 = await _spirit
+                        .from('profiles')
+                        .select('pseudo')
+                        .eq('owner_id', uid.toString())
+                        .maybeSingle();
+                    if (out4 && !out4.error && out4.data && out4.data.pseudo != null) {
+                        return String(out4.data.pseudo).trim();
+                    }
+                } catch (e4) {}
             } catch (e) {}
             return '';
         })();
@@ -2932,11 +3016,12 @@ function renderMarket(filteredData = null) {
                     var pseudoText = pseudo ? String(pseudo).trim() : '';
                     if (!pseudoText) pseudoText = spiritDefaultLabelFromUid(oid);
                     if (pseudoText) btn.textContent = pseudoText;
+                    // Mettre à jour aussi toutes les copies (ex: Mes annonces => cloneNode).
                     try {
-                        var spans = card.querySelectorAll('.spirit-card-seller-pseudo[data-seller-uid="' + oid + '"]');
-                        if (spans && spans.length) {
-                            spans.forEach(function (s) { s.textContent = pseudoText; });
-                        }
+                        var spansAll = document.querySelectorAll('.spirit-card-seller-pseudo[data-seller-uid="' + oid + '"]');
+                        if (spansAll && spansAll.length) spansAll.forEach(function (s) { s.textContent = pseudoText; });
+                        var btnAll = document.querySelectorAll('button.btn-action[data-seller-uid="' + oid + '"]');
+                        if (btnAll && btnAll.length) btnAll.forEach(function (b) { b.textContent = pseudoText; });
                     } catch (e2) {}
                 })();
             }
@@ -2950,7 +3035,20 @@ function renderMarket(filteredData = null) {
             
             // 2. Affichage Compte : Si une grille "Mes Annonces" existe, on y injecte uniquement mes produits
             if (isMine && gMine) {
-                gMine.appendChild(card.cloneNode(true));
+                var clone = card.cloneNode(true);
+                gMine.appendChild(clone);
+                // Si le pseudo est déjà en cache, on l'applique tout de suite sur la copie.
+                try {
+                    if (oid && spiritOwnerPseudoCache && spiritOwnerPseudoCache[oid]) {
+                        var cachedPseudo = String(spiritOwnerPseudoCache[oid]).trim();
+                        if (cachedPseudo) {
+                            var spansC = clone.querySelectorAll('.spirit-card-seller-pseudo[data-seller-uid="' + oid + '"]');
+                            if (spansC && spansC.length) spansC.forEach(function (s) { s.textContent = cachedPseudo; });
+                            var btnC = clone.querySelectorAll('button.btn-action[data-seller-uid="' + oid + '"]');
+                            if (btnC && btnC.length) btnC.forEach(function (b) { b.textContent = cachedPseudo; });
+                        }
+                    }
+                } catch (e3) {}
             }
             
             // AJOUT : Injection spécifique dans la grille Legacy si besoin (maintien de ta structure)
@@ -4065,6 +4163,13 @@ async function confirmPayment(method) {
             await _spirit
                 .from('user_profiles')
                 .upsert([{ id: uid, pseudo: pseudo }], { onConflict: 'id' });
+
+            // Fallback schéma (si ton projet utilise plutôt `profiles`)
+            try {
+                await _spirit
+                    .from('profiles')
+                    .upsert([{ id: uid, owner_id: uid, pseudo: pseudo, username: pseudo }], { onConflict: 'id' });
+            } catch (e2) {}
         } catch (e) {
             // Ne bloque pas l'UI si le schéma diffère un peu.
         }
@@ -4816,6 +4921,7 @@ window.showAccountTab = function showAccountTab(tab) {
                 spiritPerfRunOnceInFlight('tab:dashboard:updateUserAnnonces', function () { return updateUserAnnonces(); });
         } catch (e) {}
         try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
+        try { if (typeof spiritCheckSellerFavAlerts === 'function') spiritCheckSellerFavAlerts(); } catch (e) {}
     }
     if (tab === 'params') {
         console.log("[SPIRIT SYSTEM] Accès paramètres");
