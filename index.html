@@ -4018,6 +4018,20 @@ async function confirmPayment(method) {
         spiritRememberSessionChoice(remember);
 
         try {
+            // Si une session est déjà active avec un autre email, on la coupe pour permettre
+            // une reconnexion "propre" avec l'adresse saisie.
+            try {
+                var sess0 = await _spirit.auth.getSession();
+                var curUser0 = sess0 && sess0.data && sess0.data.session ? sess0.data.session.user : null;
+                var curEmail0 = curUser0 && curUser0.email ? String(curUser0.email).trim().toLowerCase() : '';
+                if (curEmail0 && curEmail0 !== email && typeof _spirit.auth.signOut === 'function') {
+                    await _spirit.auth.signOut();
+                    MY_TEST_ID = '';
+                    currentUser = 'VISITEUR';
+                    spiritRefreshUserScopedUi();
+                }
+            } catch (eSess) {}
+
             var signIn = await _spirit.auth.signInWithPassword({ email: email, password: pass });
             if (!signIn.error && signIn.data && signIn.data.user) {
                 spiritApplyAuthUser(signIn.data.user, u);
