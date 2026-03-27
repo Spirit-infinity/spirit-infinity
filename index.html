@@ -7065,11 +7065,55 @@ function spiritLsCacheWrite(key, rows) {
 function spiritSanctuaryItemsCacheInvalidate(uid) {
     try { localStorage.removeItem(spiritSanctuaryItemsCacheKey(uid)); } catch (e) {}
 }
+async function spiritMaybeConvertToWebp(file) {
+    try {
+        if (!file) return { file: file, ext: '', converted: false };
+        var type = String(file.type || '').toLowerCase();
+        // Conversion ciblée: JPEG/PNG uniquement (GIF/SVG exclus).
+        if (type !== 'image/jpeg' && type !== 'image/jpg' && type !== 'image/png') {
+            return { file: file, ext: '', converted: false };
+        }
+        var url = URL.createObjectURL(file);
+        var img = await new Promise(function (resolve, reject) {
+            var im = new Image();
+            im.onload = function () { resolve(im); };
+            im.onerror = reject;
+            im.src = url;
+        });
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Number(img.naturalWidth || img.width || 1));
+        canvas.height = Math.max(1, Number(img.naturalHeight || img.height || 1));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) { URL.revokeObjectURL(url); return { file: file, ext: '', converted: false }; }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        var webpBlob = await new Promise(function (resolve) {
+            canvas.toBlob(function (b) { resolve(b || null); }, 'image/webp', 0.82);
+        });
+        URL.revokeObjectURL(url);
+        if (!webpBlob) return { file: file, ext: '', converted: false };
+        // Garde l'original si gain trop faible (<8%).
+        if (Number(webpBlob.size || 0) >= Number(file.size || 0) * 0.92) {
+            return { file: file, ext: '', converted: false };
+        }
+        var webpFile = (typeof File !== 'undefined')
+            ? new File([webpBlob], String((file.name || 'image').replace(/\.[^.]+$/, '')) + '.webp', { type: 'image/webp' })
+            : webpBlob;
+        return { file: webpFile, ext: 'webp', converted: true };
+    } catch (e) {
+        return { file: file, ext: '', converted: false };
+    }
+}
 async function spiritStorageUploadPublic(bucket, path, file) {
     if (typeof _spirit === 'undefined' || !_spirit) throw new Error('Supabase indisponible');
-    var up = await _spirit.storage.from(bucket).upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+    var prep = await spiritMaybeConvertToWebp(file);
+    var finalFile = prep && prep.file ? prep.file : file;
+    var finalPath = String(path || '');
+    if (prep && prep.ext === 'webp') {
+        finalPath = finalPath.replace(/\.[^.\/\\]+$/, '') + '.webp';
+    }
+    var up = await _spirit.storage.from(bucket).upload(finalPath, finalFile, { upsert: true, contentType: (finalFile && finalFile.type) || 'image/jpeg' });
     if (up.error) throw up.error;
-    var pub = _spirit.storage.from(bucket).getPublicUrl(path);
+    var pub = _spirit.storage.from(bucket).getPublicUrl(finalPath);
     return pub.data.publicUrl;
 }
 function spiritPublicBuildUrl(uid) {
