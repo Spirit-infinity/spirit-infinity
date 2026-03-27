@@ -6609,6 +6609,19 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     if (cEd) cEd.style.display = isOwner ? 'flex' : 'none';
     var avBtn = document.getElementById('spiritPublicAvatarBtn');
     if (avBtn) avBtn.style.display = isOwner ? 'inline-block' : 'none';
+    // Visiteur: aucun contrôle de personnalisation sur le Sanctuaire public d'un autre compte.
+    try {
+        var neonSel = document.getElementById('spiritSanctuaryNeonSelect');
+        if (neonSel) {
+            neonSel.disabled = !isOwner;
+            neonSel.style.opacity = !isOwner ? '0.45' : '1';
+        }
+        document.querySelectorAll('#spiritSanctuaryRoot .spirit-san-view').forEach(function (b) {
+            b.disabled = !isOwner;
+            b.style.opacity = !isOwner ? '0.45' : '1';
+            b.style.pointerEvents = !isOwner ? 'none' : 'auto';
+        });
+    } catch (eCtrl) {}
     var imgEl = document.getElementById('spiritPublicAvatarImg');
     var ph = document.getElementById('spiritPublicAvatarPlaceholder');
     spiritPublicAvatarPersist = (row && row.avatar_url) ? String(row.avatar_url).trim() : '';
@@ -6790,6 +6803,7 @@ async function spiritPublicLoadAnnonces(uid) {
             try {
                 if (typeof showProductDetails === 'function') void showProductDetails(p.id);
                 else if (typeof window !== 'undefined' && typeof window.showProductDetails === 'function') void window.showProductDetails(p.id);
+                else if (typeof openProduct === 'function') openProduct(p);
             } catch (e) {}
         });
         var urls = (typeof spiritImageUrlList === 'function') ? spiritImageUrlList(p) : [];
@@ -6831,7 +6845,21 @@ async function spiritSanctuaryFetchItems(uid) {
     } catch (e) { return []; }
 }
 async function spiritSanctuaryMarkReadForOwner(uid) {
-    if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) return;
+    if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
+        try {
+            var me0 = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+            if (!me0 || String(me0) !== String(uid)) return;
+            Object.keys(spiritLocalSanctuaryChatByRecipient || {}).forEach(function (k) {
+                var arr = spiritLocalSanctuaryChatByRecipient[k];
+                if (!Array.isArray(arr)) return;
+                arr.forEach(function (m) {
+                    if (String((m && m.recipient_id) || '').trim() === me0) m.is_read = true;
+                });
+            });
+        } catch (eL) {}
+        void spiritUpdateNavSanctuaryDot();
+        return;
+    }
     if (typeof _spirit === 'undefined' || !_spirit) return;
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
     if (me !== String(uid)) return;
@@ -6873,6 +6901,13 @@ function spiritAccountSanctuarySendChat() {
 }
 function spiritSanctuarySetView(mode, ctx) {
     ctx = ctx === 'account' ? 'account' : 'public';
+    if (ctx === 'public') {
+        try {
+            var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+            var owner = String(spiritSanctuaryUid('public') || '').trim();
+            if (!me || !owner || me !== owner) return;
+        } catch (eGuard) { return; }
+    }
     spiritSanctuaryViewModeSet(ctx, mode);
     var d = spiritSanctuaryDom(ctx);
     document.querySelectorAll(d.viewSel).forEach(function (b) {
@@ -7476,6 +7511,23 @@ async function spiritSanctuarySendChat(ctx) {
             alert('Choisis une conversation pour répondre.');
             return;
         }
+    } else if (String(ctx) === 'public') {
+        // Depuis TON profil public, autoriser la réponse via la conversation active.
+        if (String(uid) === String(me)) {
+            var peerPub = spiritSanctuaryGetActivePeer(ctx);
+            if (peerPub && String(peerPub).trim() !== me) targetUid = String(peerPub).trim();
+            else {
+                var inferredPub = spiritSanctuaryInferLatestPeerGlobal(me);
+                if (inferredPub && inferredPub !== me) {
+                    targetUid = inferredPub;
+                    spiritSanctuarySetActivePeer(ctx, targetUid);
+                }
+            }
+            if (String(targetUid) === String(me)) {
+                alert('Choisis une conversation pour répondre.');
+                return;
+            }
+        }
     }
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
         if (!targetUid) {
@@ -7561,6 +7613,26 @@ async function spiritUpdateNavSanctuaryDot() {
         return;
     }
 
+    if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
+        var unreadLocal = 0;
+        try {
+            Object.keys(spiritLocalSanctuaryChatByRecipient || {}).forEach(function (k) {
+                var arr = spiritLocalSanctuaryChatByRecipient[k];
+                if (!Array.isArray(arr)) return;
+                arr.forEach(function (m) {
+                    var rec = String((m && m.recipient_id) || '').trim();
+                    var sen = String((m && m.sender_id) || '').trim();
+                    if (rec === String(me) && sen !== String(me) && !m.is_read) unreadLocal++;
+                });
+            });
+        } catch (eLU) {}
+        var showLocal = unreadLocal > 0;
+        if (dot) dot.style.display = showLocal ? 'block' : 'none';
+        if (fix) fix.style.display = showLocal ? 'block' : 'none';
+        if (nav) nav.classList.toggle('spirit-nav-sanctuary-blink', showLocal);
+        return;
+    }
+
     // Anti-spam/anti-erreurs: ne pas interroger `sanctuary_chat` tant que l'utilisateur
     // n'est pas sur l'onglet `tab-sanctuary` (sinon on déclenche des 400 côté Supabase).
     var tabS = document.getElementById('tab-sanctuary');
@@ -7569,15 +7641,6 @@ async function spiritUpdateNavSanctuaryDot() {
         if (dot) dot.style.display = 'none';
         if (fix) fix.style.display = 'none';
         if (nav) nav.classList.remove('spirit-nav-sanctuary-blink');
-        return;
-    }
-
-    if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
-        var arrLocal = spiritLocalSanctuaryChatByRecipient[String(me)] || [];
-        var showLocal = Array.isArray(arrLocal) && arrLocal.length > 0;
-        if (dot) dot.style.display = showLocal ? 'block' : 'none';
-        if (fix) fix.style.display = showLocal ? 'block' : 'none';
-        if (nav) nav.classList.toggle('spirit-nav-sanctuary-blink', showLocal);
         return;
     }
 
