@@ -7436,6 +7436,8 @@ async function spiritSanctuarySendChat(ctx) {
             is_read: String(me) === String(targetUid),
             created_at: new Date().toISOString()
         });
+        // Force l'affichage de la bonne conversation après envoi.
+        spiritSanctuarySetActivePeer(ctx, String(targetUid));
         inp.value = '';
         await spiritSanctuaryRenderChat(ctx);
         return;
@@ -7455,6 +7457,7 @@ async function spiritSanctuarySendChat(ctx) {
             is_read: String(me) === String(targetUid),
             created_at: new Date().toISOString()
         });
+        spiritSanctuarySetActivePeer(ctx, String(targetUid));
         inp.value = '';
         await spiritSanctuaryRenderChat(ctx);
         return;
@@ -7471,6 +7474,7 @@ async function spiritSanctuarySendChat(ctx) {
             is_read: String(me) === String(targetUid),
             created_at: new Date().toISOString()
         });
+        spiritSanctuarySetActivePeer(ctx, String(targetUid));
         inp.value = '';
         await spiritSanctuaryRenderChat(ctx);
         return;
@@ -7483,6 +7487,7 @@ async function spiritSanctuarySendChat(ctx) {
         is_read: String(resolvedMe) === String(resolvedUid)
     });
     if (ins.error) { alert('Erreur chat : ' + ins.error.message); return; }
+    spiritSanctuarySetActivePeer(ctx, String(targetUid));
     inp.value = '';
     await spiritSanctuaryRenderChat(ctx);
     void spiritUpdateNavSanctuaryDot();
