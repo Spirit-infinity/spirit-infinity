@@ -9,6 +9,29 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    (function () {
+        function spiritNavTo(section) {
+            return function () {
+                try {
+                    if (typeof window.navigateTo === 'function') window.navigateTo(section);
+                } catch (e) {}
+            };
+        }
+        window.showMonCompte = spiritNavTo('account');
+        window.showMarketplace = spiritNavTo('market');
+        window.showForum = spiritNavTo('forum');
+        window.showSecurite = spiritNavTo('security');
+        window.showLedgerModal = spiritNavTo('ledger');
+        window.showSupport = spiritNavTo('support');
+        window.showPrecommandesHotToys = function () {
+            try {
+                var el = document.getElementById('precommandes-hot-toys');
+                if (el) el.style.setProperty('display', 'block', 'important');
+            } catch (e) {}
+        };
+    })();
+    </script>
     <style>
         #precommandes-hot-toys { display: none !important; min-height: 100vh; width: 100%; background: #050505 !important; position: fixed; inset: 0; overflow-y: auto; z-index: 9999; }
         :root {
@@ -2272,9 +2295,13 @@
     var spiritMarketScrollObserver = null;
     var spiritUserFavoriteSet = new Set();
     var spiritFavoriteCountMap = {};
-    /* Cache marketplace (bande passante Supabase) : TTL court + invalidation sur vente/publication. */
+    /* Cache marketplace (localStorage visiteur) : TTL + invalidation sur vente/publication. */
     var SPIRIT_MARKET_LS_KEY = 'spirit_v1_market_bucket';
-    var SPIRIT_MARKET_CACHE_TTL_MS = 8 * 60 * 1000;
+    var SPIRIT_MARKET_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+    var SPIRIT_MY_ADS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+    function spiritMyAdsCacheKey(uid) {
+        return 'spirit_my_ads_v1__' + String(uid || '');
+    }
     var spiritAuxFetchLast = { fav: 0, notif: 0, annonces: 0 };
     var spiritMarketAuxOnce = false;
     var spiritAccountLastTab = '';
@@ -2620,6 +2647,10 @@ function spiritInvalidateMarketCache() {
     spiritMarketBucket.statue.hasMore = false;
     spiritRenderMarketSig = '';
     try { localStorage.removeItem(SPIRIT_MARKET_LS_KEY); } catch (e) {}
+    try {
+        var _invUid = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+        if (_invUid) localStorage.removeItem(spiritMyAdsCacheKey(_invUid));
+    } catch (eMy) {}
     try { spiritPublicAnnoncesSessionRows = Object.create(null); } catch (eAnn) {}
 }
 function spiritMarketCacheRead(key) {
@@ -2642,6 +2673,10 @@ function spiritMarketCacheWrite(key, rows, hasMore) {
         all[key] = { ts: Date.now(), rows: rows, hasMore: !!hasMore };
         localStorage.setItem(SPIRIT_MARKET_LS_KEY, JSON.stringify(all));
     } catch (e) { /* quota */ }
+}
+function spiritMarketRowsSig(rows) {
+    rows = Array.isArray(rows) ? rows : [];
+    return rows.map(function (r) { return String(r && r.id != null ? r.id : ''); }).join('|') + '#' + rows.length;
 }
 /** Favoris / notifs / annonces : ne pas enchaîner 3 requêtes à chaque fetch marketplace. */
 function spiritMarketFetchAuxThrottled(opts) {
@@ -4778,79 +4813,23 @@ function publishFinal() {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 
-async function updateUserAnnonces() {
-    const container = document.getElementById('user-annonces-list');
+function spiritRenderUserAnnoncesRows(container, myAnnonces) {
     if (!container) return;
+    myAnnonces = Array.isArray(myAnnonces) ? myAnnonces : [];
     const currentUserID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
-
-    // Si le navigateur bloque une requête Supabase (CORS/Failed to fetch),
-    // on évite de déclencher d'autres appels en cascade.
-    try {
-        var netBlockKey = '__spirit_net_block_until__';
-        var untilRaw = localStorage.getItem(netBlockKey) || '';
-        var untilTs = untilRaw ? new Date(untilRaw).getTime() : 0;
-        if (Number.isFinite(untilTs) && untilTs && Date.now() < untilTs) return;
-    } catch (eNet0) {}
-
-    // PERF: si déjà rendu pour ce user récemment, ne pas rerender => évite de recharger les images.
-    try {
-        const loadedFor = container.dataset ? String(container.dataset.spiritAdsLoadedFor || '') : '';
-        const loadedAt = container.dataset ? Number(container.dataset.spiritAdsLoadedAt || 0) : 0;
-        if (loadedFor === currentUserID && loadedAt && (Date.now() - loadedAt) < 60000 && container.childElementCount > 0) {
-            return;
-        }
-    } catch (e) {}
-
     container.innerHTML = '';
-    
-    let myAnnonces = [];
-    if (_spirit) {
-        try {
-            const { data, error } = await _spirit.from('products_live').select(
-                'id,uuid,title,price,old_price,ia_score,category,brand,ship_size,image_url,description,is_native,status,owner_id,currency,cat,is_smoke_free,is_light_protect,is_first_hand,origin_country,has_coa,amount'
-            ).eq('owner_id', currentUserID);
-            // console.log("Données reçues brute :", data);
-            if (error) {
-                console.error('[SPIRIT] Mes annonces products_live erreur exacte:', error.message || String(error),
-                    error.code != null ? ('code=' + error.code) : '',
-                    error.details != null ? ('details=' + error.details) : '',
-                    error.hint != null ? ('hint=' + error.hint) : '',
-                    error);
-            } else if (Array.isArray(data)) {
-                myAnnonces = data;
-            }
-        } catch (e) { console.error('[SPIRIT] updateUserAnnonces products_live exception:', e && e.message ? e.message : e, e); }
-    }
-    if (myAnnonces.length === 0) {
-        myAnnonces = marketData.filter(m => {
-            const oid = spiritOwnerId(m.owner_id);
-            const isOwner = (oid === currentUserID) ||
-                (currentUser && String(m.owner || '').trim() === String(currentUser).trim());
-            return isOwner;
-        });
-    }
-    
     if (myAnnonces.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE ANNONCE EN LIGNE (ID: ${currentUserID})</div>`;
         return;
     }
-
-    container.innerHTML = '';
-
     myAnnonces.forEach(a => {
         const div = document.createElement('div');
-        // AJOUT : Style Industrial Dark avec distinction si vendu
         const opacity = a.status === 'sold' ? 'opacity: 0.6;' : '';
         div.style = `background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px; margin-bottom:10px; ${opacity} border-left: 3px solid ${a.status === 'sold' ? '#555' : 'var(--neon-orange)'}; cursor:pointer;`;
-        
-        // AJOUT : Affichage de la miniature avec fallback img1/img
         const _annUrls = spiritImageUrlList(a);
         const displayImg = _annUrls.length ? _annUrls[0] : (a.img1 || a.img);
         const imgHtml = displayImg ? `<img src="${displayImg}" alt="" loading="lazy" decoding="async" style="width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:2px;">` : `<div style="width:50px; height:50px; background:#222; display:flex; align-items:center; justify-content:center; font-size:8px;">NO IMG</div>`;
-        
-        // AJOUT : Badge de statut
         const statusBadge = a.status === 'sold' ? `<span style="color:white; background:red; padding:2px 5px; font-size:0.6rem; font-weight:bold;">VENDU</span>` : `<span style="color:var(--spirit-green); font-size:0.6rem;">EN LIGNE</span>`;
-
         div.innerHTML = `
             <div style="display:flex; gap:12px; align-items:center;">
                 ${imgHtml}
@@ -4867,7 +4846,6 @@ async function updateUserAnnonces() {
                 <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem; padding:8px; flex:1; cursor:pointer; border:none;" onclick="event.stopPropagation(); deleteAnnonce('${a.id}')">SUPPRIMER</button>
             </div>
         `;
-        // Clic carte => ouverture directe de l'annonce (modal vente)
         try {
             div.addEventListener('click', function () {
                 if (typeof showProductDetails === 'function') void showProductDetails(a.id);
@@ -4883,7 +4861,78 @@ async function updateUserAnnonces() {
             container.dataset.spiritAdsLoadedAt = String(Date.now());
         }
     } catch (e) {}
-    // console.log(`[SPIRIT SYSTEM] Mise à jour liste utilisateur : ${myAnnonces.length} annonces affichées.`);
+}
+
+async function updateUserAnnonces() {
+    const container = document.getElementById('user-annonces-list');
+    if (!container) return;
+    const currentUserID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+
+    try {
+        var netBlockKey = '__spirit_net_block_until__';
+        var untilRaw = localStorage.getItem(netBlockKey) || '';
+        var untilTs = untilRaw ? new Date(untilRaw).getTime() : 0;
+        if (Number.isFinite(untilTs) && untilTs && Date.now() < untilTs) return;
+    } catch (eNet0) {}
+
+    try {
+        const loadedFor = container.dataset ? String(container.dataset.spiritAdsLoadedFor || '') : '';
+        const loadedAt = container.dataset ? Number(container.dataset.spiritAdsLoadedAt || 0) : 0;
+        if (loadedFor === currentUserID && loadedAt && (Date.now() - loadedAt) < 60000 && container.childElementCount > 0) {
+            return;
+        }
+    } catch (e) {}
+
+    var cachedLs = null;
+    if (currentUserID && typeof spiritLsCacheRead === 'function') {
+        try { cachedLs = spiritLsCacheRead(spiritMyAdsCacheKey(currentUserID), SPIRIT_MY_ADS_CACHE_TTL_MS); } catch (eC) {}
+    }
+    if (Array.isArray(cachedLs) && cachedLs.length) {
+        spiritRenderUserAnnoncesRows(container, cachedLs);
+    }
+
+    let myAnnonces = [];
+    let hadSupabaseError = false;
+    if (_spirit) {
+        try {
+            const { data, error } = await _spirit.from('products_live').select(
+                'id,uuid,title,price,old_price,ia_score,category,brand,ship_size,image_url,description,is_native,status,owner_id,currency,cat,is_smoke_free,is_light_protect,is_first_hand,origin_country,has_coa,amount'
+            ).eq('owner_id', currentUserID);
+            if (error) {
+                hadSupabaseError = true;
+                console.error('[SPIRIT] Mes annonces products_live erreur exacte:', error.message || String(error),
+                    error.code != null ? ('code=' + error.code) : '',
+                    error.details != null ? ('details=' + error.details) : '',
+                    error.hint != null ? ('hint=' + error.hint) : '',
+                    error);
+            } else if (Array.isArray(data)) {
+                myAnnonces = data;
+            }
+        } catch (e) {
+            hadSupabaseError = true;
+            console.error('[SPIRIT] updateUserAnnonces products_live exception:', e && e.message ? e.message : e, e);
+        }
+    }
+    if (hadSupabaseError && Array.isArray(cachedLs) && cachedLs.length) {
+        return;
+    }
+    if (myAnnonces.length === 0) {
+        myAnnonces = marketData.filter(m => {
+            const oid = spiritOwnerId(m.owner_id);
+            const isOwner = (oid === currentUserID) ||
+                (currentUser && String(m.owner || '').trim() === String(currentUser).trim());
+            return isOwner;
+        });
+    }
+
+    if (currentUserID && typeof spiritLsCacheWrite === 'function') {
+        try {
+            if (myAnnonces.length) spiritLsCacheWrite(spiritMyAdsCacheKey(currentUserID), myAnnonces);
+            else localStorage.removeItem(spiritMyAdsCacheKey(currentUserID));
+        } catch (eW) {}
+    }
+
+    spiritRenderUserAnnoncesRows(container, myAnnonces);
 }
 
 async function renderUserAds() {
@@ -4956,6 +5005,10 @@ async function deleteAnnonce(id) {
             spiritMarketBucket.figurine.rows = spiritMarketBucket.figurine.rows.filter(function (m) { return String(m.id) !== String(id); });
             spiritMarketBucket.statue.rows = spiritMarketBucket.statue.rows.filter(function (m) { return String(m.id) !== String(id); });
             spiritRenderMarketSig = '';
+            try {
+                var _delUid = String(window.MY_TEST_ID || MY_TEST_ID || '').trim();
+                if (_delUid) localStorage.removeItem(spiritMyAdsCacheKey(_delUid));
+            } catch (eLs) {}
             // AJOUT : Rafraîchissement global immédiat
             if (typeof renderMarket === 'function') renderMarket();
             updateUserAnnonces();
@@ -6529,7 +6582,7 @@ var spiritSanNotifsTableMissing = false;
 var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 20 * 60 * 1000;
 /** Dernières photos Sanctuaire par user_id (session) — complète le cache localStorage. */
 var spiritSanctuaryItemsSessionRows = Object.create(null);
-var SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS = 20 * 60 * 1000;
+var SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 /** Dernières lignes affichées par profil (même onglet) — évite rechargement à chaque retour sur le profil public. */
 var spiritPublicAnnoncesSessionRows = Object.create(null);
 var SPIRIT_PUBLIC_PROFILE_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -7344,15 +7397,10 @@ function spiritSanctuaryItemsCacheInvalidate(uid) {
     try { delete spiritSanctuaryItemsSessionRows[uid]; } catch (e2) {}
 }
 
-</think>
-Fixing a mistaken patch — the last replace introduced a stray closing fence.
-
-<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
-Read
-/** Côté le plus long max (px) avant upload — réduit poids + bande passante Storage. */
-var SPIRIT_UPLOAD_MAX_IMAGE_EDGE = 2048;
-/** Qualité WebP après redimensionnement éventuel (0–1). */
-var SPIRIT_UPLOAD_WEBP_QUALITY = 0.82;
+/** Largeur max (px) avant upload Storage — WebP automatique (côté largeur). */
+var SPIRIT_UPLOAD_MAX_WIDTH_PX = 1200;
+/** Qualité WebP (0–1). */
+var SPIRIT_UPLOAD_WEBP_QUALITY = 0.8;
 async function spiritMaybeConvertToWebp(file) {
     try {
         if (!file) return { file: file, ext: '', converted: false };
@@ -7370,14 +7418,13 @@ async function spiritMaybeConvertToWebp(file) {
         });
         var w = Math.max(1, Number(img.naturalWidth || img.width || 1));
         var h = Math.max(1, Number(img.naturalHeight || img.height || 1));
-        var maxEdge = Math.max(256, Math.min(8192, Number(SPIRIT_UPLOAD_MAX_IMAGE_EDGE) || 2048));
+        var maxW = Math.max(64, Math.min(8192, Number(SPIRIT_UPLOAD_MAX_WIDTH_PX) || 1200));
         var scale = 1;
-        if (w > maxEdge || h > maxEdge) {
-            scale = maxEdge / Math.max(w, h);
+        if (w > maxW) {
+            scale = maxW / w;
         }
         var tw = Math.max(1, Math.round(w * scale));
         var th = Math.max(1, Math.round(h * scale));
-        var resized = scale < 1;
         var canvas = document.createElement('canvas');
         canvas.width = tw;
         canvas.height = th;
@@ -7388,7 +7435,7 @@ async function spiritMaybeConvertToWebp(file) {
         }
         ctx.drawImage(img, 0, 0, tw, th);
         URL.revokeObjectURL(url);
-        var q = typeof SPIRIT_UPLOAD_WEBP_QUALITY === 'number' ? SPIRIT_UPLOAD_WEBP_QUALITY : 0.82;
+        var q = typeof SPIRIT_UPLOAD_WEBP_QUALITY === 'number' ? SPIRIT_UPLOAD_WEBP_QUALITY : 0.8;
         if (q < 0.5) q = 0.5;
         if (q > 0.95) q = 0.95;
         var webpBlob = await new Promise(function (resolve) {
@@ -7397,12 +7444,7 @@ async function spiritMaybeConvertToWebp(file) {
         if (!webpBlob) return { file: file, ext: '', converted: false };
         var origSize = Number(file.size || 0) || 1;
         var outSize = Number(webpBlob.size || 0);
-        // Pas de redimensionnement : garde l'original si gain WebP &lt; 8 % (comme avant).
-        if (!resized && outSize >= origSize * 0.92) {
-            return { file: file, ext: '', converted: false };
-        }
-        // Image réduite : on garde le WebP sauf si nettement plus lourd que l’original (cas rare).
-        if (resized && outSize > origSize * 1.08) {
+        if (outSize > origSize * 1.25) {
             return { file: file, ext: '', converted: false };
         }
         var webpFile = (typeof File !== 'undefined')
@@ -7421,7 +7463,10 @@ async function spiritStorageUploadPublic(bucket, path, file) {
     if (prep && prep.ext === 'webp') {
         finalPath = finalPath.replace(/\.[^.\/\\]+$/, '') + '.webp';
     }
-    var up = await _spirit.storage.from(bucket).upload(finalPath, finalFile, { upsert: true, contentType: (finalFile && finalFile.type) || 'image/jpeg' });
+    var ct = (finalFile && finalFile.type) ? finalFile.type : 'application/octet-stream';
+    if (prep && prep.ext === 'webp') ct = 'image/webp';
+    else if (String(ct).indexOf('image/') !== 0) ct = 'image/jpeg';
+    var up = await _spirit.storage.from(bucket).upload(finalPath, finalFile, { upsert: true, contentType: ct });
     if (up.error) throw up.error;
     var pub = _spirit.storage.from(bucket).getPublicUrl(finalPath);
     return pub.data.publicUrl;
@@ -7816,35 +7861,56 @@ async function spiritPublicLoadAnnonces(uid, opts) {
         box.appendChild(div);
         });
     }
-    /* 1) Mémoire session : retour instantané sur le même profil sans requête */
-    if (!force && spiritPublicAnnoncesSessionRows[uid] && Array.isArray(spiritPublicAnnoncesSessionRows[uid])) {
+    function spiritPublicAnnoncesSig(rows) {
+        rows = Array.isArray(rows) ? rows : [];
+        return rows.map(function (r) { return String(r && r.id != null ? r.id : ''); }).join('|') + '#' + rows.length;
+    }
+    var hadLocal = false;
+    if (!force && spiritPublicAnnoncesSessionRows[uid] && Array.isArray(spiritPublicAnnoncesSessionRows[uid]) && spiritPublicAnnoncesSessionRows[uid].length) {
         renderAnnonceRows(spiritPublicAnnoncesSessionRows[uid]);
-        return;
+        hadLocal = true;
     }
-    /* 2) localStorage (TTL) */
-    var cachedLs = spiritLsCacheRead(spiritPublicAnnoncesCacheKey(uid), SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS);
-    if (!force && cachedLs !== null && Array.isArray(cachedLs)) {
-        spiritPublicAnnoncesSessionRows[uid] = cachedLs;
-        renderAnnonceRows(cachedLs);
-        return;
+    if (!force && !hadLocal) {
+        var cachedLs = spiritLsCacheRead(spiritPublicAnnoncesCacheKey(uid), SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS);
+        if (cachedLs !== null && Array.isArray(cachedLs) && cachedLs.length) {
+            spiritPublicAnnoncesSessionRows[uid] = cachedLs;
+            renderAnnonceRows(cachedLs);
+            hadLocal = true;
+        }
     }
-    box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Chargement…</p>';
+    if (!hadLocal) {
+        box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Chargement…</p>';
+    }
+    var prevSig = (spiritPublicAnnoncesSessionRows[uid] && Array.isArray(spiritPublicAnnoncesSessionRows[uid]))
+        ? spiritPublicAnnoncesSig(spiritPublicAnnoncesSessionRows[uid]) : '';
     var rows = [];
+    var netOk = false;
     if (typeof _spirit !== 'undefined' && _spirit) {
         try {
             var out = await _spirit.from('products_live').select('*').eq('owner_id', String(uid)).order('id', { ascending: false }).limit(48);
             if (out && !out.error && Array.isArray(out.data)) {
                 rows = out.data;
-                spiritLsCacheWrite(spiritPublicAnnoncesCacheKey(uid), rows);
+                netOk = true;
             }
         } catch (e) {}
+    }
+    if (!netOk && hadLocal) {
+        return;
     }
     if (!rows.length && typeof marketData !== 'undefined' && Array.isArray(marketData)) {
         var suid = String(uid);
         rows = marketData.filter(function (m) { return spiritOwnerId(m.owner_id) === suid; });
     }
     spiritPublicAnnoncesSessionRows[uid] = rows;
-    renderAnnonceRows(rows);
+    var newSig = spiritPublicAnnoncesSig(rows);
+    if (newSig !== prevSig || force) {
+        if (rows.length) {
+            spiritLsCacheWrite(spiritPublicAnnoncesCacheKey(uid), rows);
+        } else {
+            try { localStorage.removeItem(spiritPublicAnnoncesCacheKey(uid)); } catch (eR) {}
+        }
+        renderAnnonceRows(rows);
+    }
 }
 async function spiritSanctuaryFetchItems(uid) {
     if (typeof _spirit === 'undefined' || !_spirit) return [];
@@ -9180,7 +9246,7 @@ async function generateSpiritLabel(id) {
             </div>
             <p style="font-size:10px; margin-top:15px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
         </div>
-        <script>window.print();<\/script>
+        ${'<' + 'script>window.print();</' + 'script>'}
     `;
     w.document.write(labelHtml);
     w.document.close();
@@ -9492,11 +9558,11 @@ window.generateSpiritLabel = async function(transactionId) {
                     <div style="margin:12px 0; border:1px solid #222; padding:10px;">
                         <p style="margin:0 0 6px;"><b>DESTINATAIRE :</b></p>
                         ${hasRecipient
-                            ? `<p style="margin:0;">${String(recip || '—').replace(/</g,'&lt;')}</p>
-                               <p style="margin:0;">${String(recipStreet).replace(/</g,'&lt;')}</p>
-                               <p style="margin:0;">${String(recipCityLine).replace(/</g,'&lt;')}</p>
-                               <p style="margin:0;">${String(recipCountry).replace(/</g,'&lt;')}</p>`
-                            : `<p style="margin:0;">Adresse postale non renseignée par l'acheteur.</p>`
+                            ? ('<p style="margin:0;">' + String(recip || '—').replace(new RegExp('<', 'g'), '&lt;') + '</p>' +
+                               '<p style="margin:0;">' + String(recipStreet).replace(new RegExp('<', 'g'), '&lt;') + '</p>' +
+                               '<p style="margin:0;">' + String(recipCityLine).replace(new RegExp('<', 'g'), '&lt;') + '</p>' +
+                               '<p style="margin:0;">' + String(recipCountry).replace(new RegExp('<', 'g'), '&lt;') + '</p>')
+                            : '<p style="margin:0;">Adresse postale non renseignée par l\'acheteur.</p>'
                         }
                     </div>
                     <div style="background:#000; color:#fff; padding:20px; text-align:center; font-size:1.5rem; font-weight:bold;">
@@ -9504,7 +9570,7 @@ window.generateSpiritLabel = async function(transactionId) {
                     </div>
                     <p style="text-align:center; font-size:0.8rem; margin-top:20px;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
                 </div>
-                <script>window.print();<\/script>
+                ${'<' + 'script>window.print();</' + 'script>'}
             </body>
             </html>`;
             
@@ -9549,6 +9615,13 @@ async function fetchMarketplaceFromSupabase(opts) {
     if (b.loading) return;
     if (append && !b.hasMore) return;
 
+    var prevSigStale = null;
+    var prevHasMoreStale = false;
+    if (opts.staleRefresh && !append && opts.reset !== false) {
+        prevSigStale = spiritMarketRowsSig(b.rows);
+        prevHasMoreStale = !!b.hasMore;
+    }
+
     /* Cache localStorage (TTL) : évite products_live à chaque navigation / retour Marketplace. */
     if (!append && opts.reset !== false && !opts.forceNetwork && !opts.invalidateAll) {
         var cached = spiritMarketCacheRead(key);
@@ -9562,6 +9635,17 @@ async function fetchMarketplaceFromSupabase(opts) {
             try { spiritMarketFetchAuxThrottled(opts); } catch (eAux) {}
             try { if (typeof applyFilters === 'function') applyFilters(); }
             catch (e) { try { renderMarket(); } catch (e2) { console.error('[SPIRIT MARKET] renderMarket:', e2); } }
+            try {
+                setTimeout(function () {
+                    fetchMarketplaceFromSupabase({
+                        reset: true,
+                        forceNetwork: true,
+                        silentLoader: true,
+                        catKey: key,
+                        staleRefresh: true
+                    });
+                }, 0);
+            } catch (eSch) {}
             return;
         }
     }
@@ -9619,6 +9703,13 @@ async function fetchMarketplaceFromSupabase(opts) {
     }
 
     var chunk = Array.isArray(data) ? data : [];
+    if (opts.staleRefresh && prevSigStale !== null) {
+        if (spiritMarketRowsSig(chunk) === prevSigStale && (chunk.length === ps) === prevHasMoreStale) {
+            setSpiritMarketLoading(false);
+            spiritUpdateLoadMoreUI();
+            return;
+        }
+    }
     if (append) {
         b.rows = b.rows.concat(chunk);
     } else {
@@ -9639,8 +9730,12 @@ async function fetchMarketplaceFromSupabase(opts) {
     catch (e) { try { renderMarket(); } catch (e2) { console.error('[SPIRIT MARKET] renderMarket:', e2); } }
 }
 
+async function loadAnnonces(opts) {
+    return fetchMarketplaceFromSupabase(Object.assign({ reset: true }, opts || {}));
+}
+try { window.loadAnnonces = loadAnnonces; } catch (eLa) {}
 async function fetchAnnonces() {
-    return fetchMarketplaceFromSupabase({ reset: true });
+    return loadAnnonces();
 }
 
 // BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
@@ -9650,7 +9745,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ls = document.querySelector('.lang-selector');
         if (ls) switchLanguage(ls.value);
     } catch (e) {}
-    try { fetchMarketplaceFromSupabase({ reset: true }); } catch (e) {}
+    try { loadAnnonces(); } catch (e) {}
     try { spiritMarketInitScrollObserver(); } catch (e) {}
     try { spiritInitFavoriteClickDelegation(); } catch (e) {}
     try { window.addEventListener('hashchange', function () { spiritApplyPublicHashRoute(); }); } catch (e) {}
@@ -9765,12 +9860,6 @@ function closeModals() {
 
 </body>
 </html>
-<!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-<!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
-
-
-
 
 
 
