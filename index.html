@@ -1050,6 +1050,10 @@
 
 <div id="marketplaceSection" class="container">
     <div class="sidebar">
+        <div class="market-kind-toggle" role="tablist" aria-label="Type de produit" style="margin-bottom:12px;">
+            <button type="button" id="btn-kind-figurines" class="active" data-kind-toggle="figurines" onclick="setMarketKind('figurines')" data-i18n="market_kind_figurines">FIGURINES</button>
+            <button type="button" id="btn-kind-statues" data-kind-toggle="statues" onclick="setMarketKind('statues')" data-i18n="market_kind_statues">STATUES</button>
+        </div>
         <h4 id="filter-title" style="color:var(--neon-orange); margin-top:0;" data-key="filter_title">FILTRES DE RECHERCHE</h4>      
         <label data-key="lbl_price_range">Tranche de Prix (€)</label>
         <select id="fPrice" onchange="applyFilters()">
@@ -1106,10 +1110,6 @@
     <div class="grid">
         <div id="spiritMarketLoader" class="spirit-market-loader" style="display:none;" aria-live="polite"></div>
         <div class="market-toolbar">
-            <div class="market-kind-toggle" role="tablist" aria-label="Type de produit">
-                <button type="button" id="btn-kind-figurines" class="active" onclick="setMarketKind('figurines')" data-i18n="market_kind_figurines">FIGURINES</button>
-                <button type="button" id="btn-kind-statues" onclick="setMarketKind('statues')" data-i18n="market_kind_statues">STATUES</button>
-            </div>
             <div class="market-view-box">
                 <span data-i18n="market_view">Vue</span>
                 <select id="marketViewSelect" onchange="setMarketView(this.value)">
@@ -1134,6 +1134,10 @@
         <div id="marketStatuesView" class="statues-market-view">
             <div class="statues-layout">
                 <div class="statues-sidebar">
+                    <div class="market-kind-toggle" role="tablist" aria-label="Type de produit" style="margin-bottom:12px;">
+                        <button type="button" data-kind-toggle="figurines" onclick="setMarketKind('figurines')" data-i18n="market_kind_figurines">FIGURINES</button>
+                        <button type="button" data-kind-toggle="statues" class="active" onclick="setMarketKind('statues')" data-i18n="market_kind_statues">STATUES</button>
+                    </div>
                     <h4 style="color:var(--neon-orange); margin:0 0 8px 0;" data-i18n="statues_filters_title">FILTRES STATUES</h4>
                     <label data-i18n="statues_brand">MARQUE</label>
                     <select id="sBrand" onchange="applyStatuesFilters()">
@@ -3246,15 +3250,40 @@ function spiritBuyerOfferHiddenWrite(uid, ids) {
         localStorage.setItem(spiritBuyerOfferHiddenKey(uid), JSON.stringify(Array.isArray(ids) ? ids : []));
     } catch (e) {}
 }
-function spiritHideBuyerOfferHistory(offerId) {
+async function spiritHideBuyerOfferHistory(offerId) {
     var uid = spiritOwnerId(spiritGetCurrentUserId());
     if (!uid) return;
     var id = String(offerId || '').trim();
     if (!id) return;
+    var deletedRemote = false;
+    try {
+        if (_spirit) {
+            var chk = await _spirit
+                .from('product_offers')
+                .select('id,status,buyer_id')
+                .eq('id', id)
+                .eq('buyer_id', uid)
+                .maybeSingle();
+            if (!chk.error && chk.data) {
+                var st = String(chk.data.status || '').toLowerCase();
+                if (st === 'accepted' || st === 'rejected') {
+                    var del = await _spirit
+                        .from('product_offers')
+                        .delete()
+                        .eq('id', id)
+                        .eq('buyer_id', uid);
+                    deletedRemote = !(del && del.error);
+                }
+            }
+        }
+    } catch (e) {}
     var hidden = spiritBuyerOfferHiddenRead(uid);
     if (hidden.indexOf(id) < 0) hidden.push(id);
     spiritBuyerOfferHiddenWrite(uid, hidden);
     try { if (typeof spiritLoadBuyerOffersSent === 'function') void spiritLoadBuyerOffersSent(); } catch (e) {}
+    if (!deletedRemote) {
+        try { console.warn('[SPIRIT] Suppression DB refusée, masquage local conservé (RLS).'); } catch (e2) {}
+    }
 }
 
 async function spiritLoadBuyerOffersSent() {
@@ -3321,7 +3350,7 @@ async function spiritLoadBuyerOffersSent() {
                     if (hideBtn) hideBtn.onclick = function (ev) {
                         ev.preventDefault();
                         ev.stopPropagation();
-                        spiritHideBuyerOfferHistory(offId);
+                        void spiritHideBuyerOfferHistory(offId);
                     };
                 }
                 box.appendChild(div);
@@ -5233,6 +5262,12 @@ async function confirmPayment(method) {
         const statuesView = document.getElementById('marketStatuesView');
         if (bFig) bFig.classList.toggle('active', marketKindMode === 'figurines');
         if (bSta) bSta.classList.toggle('active', marketKindMode === 'statues');
+        try {
+            document.querySelectorAll('[data-kind-toggle]').forEach(function (btn) {
+                var k = String(btn.getAttribute('data-kind-toggle') || '');
+                btn.classList.toggle('active', k === marketKindMode);
+            });
+        } catch (eSync) {}
         if (leftSidebar) leftSidebar.style.display = marketKindMode === 'statues' ? 'none' : '';
         if (marketTitle) marketTitle.style.display = marketKindMode === 'statues' ? 'none' : '';
         if (gridNative) gridNative.style.display = marketKindMode === 'statues' ? 'none' : '';
