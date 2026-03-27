@@ -847,6 +847,9 @@
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
         }
+        #spiritSanctuaryGrid.spirit-san-mode-insta {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;
+        }
         #spiritSanctuaryGrid.spirit-san-mode-icons-sm {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px;
         }
@@ -877,12 +880,29 @@
             flex-direction: column;
             gap: 10px;
         }
+        #spiritSanctuaryGrid.spirit-san-mode-insta .spirit-san-icons-cell {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #090909;
+            border: 1px solid #1b1b1b;
+            padding: 8px;
+        }
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-icons-desc {
             font-size: 0.75rem;
             color: #aaa;
             line-height: 1.2;
             padding: 0 4px;
             word-break: break-word;
+        }
+        #spiritSanctuaryGrid.spirit-san-mode-insta .spirit-san-icons-desc {
+            font-size: 0.7rem;
+            color: #b3b3b3;
+            line-height: 1.3;
+            padding: 0 2px;
+            word-break: break-word;
+            min-height: 18px;
         }
         /* Actions overlay (loupe + corbeille) */
         .spirit-san-action-btn {
@@ -965,6 +985,9 @@
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
         }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-insta {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;
+        }
         #spiritAccountSanctuaryGrid .spirit-san-add-tile {
             width: 280px; min-width: 280px; aspect-ratio: 1 / 1; min-height: 0; border: 2px dashed rgba(255,102,0,0.5); background: #000;
             display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--neon-orange);
@@ -991,12 +1014,29 @@
             flex-direction: column;
             gap: 10px;
         }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-insta .spirit-san-icons-cell {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #090909;
+            border: 1px solid #1b1b1b;
+            padding: 8px;
+        }
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-icons-desc {
             font-size: 0.75rem;
             color: #aaa;
             line-height: 1.2;
             padding: 0 4px;
             word-break: break-word;
+        }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-insta .spirit-san-icons-desc {
+            font-size: 0.7rem;
+            color: #b3b3b3;
+            line-height: 1.3;
+            padding: 0 2px;
+            word-break: break-word;
+            min-height: 18px;
         }
         #spiritAccountSanctuaryGrid .spirit-san-meta { flex: 1; font-size: 0.75rem; color: #aaa; }
         #spiritAccountSanctuaryGrid .spirit-san-meta input[type="text"] {
@@ -1591,6 +1631,7 @@
             <label style="font-size:0.65rem;color:#888;">Vue</label>
             <button type="button" class="spirit-san-view-acc active" data-sanview="list" onclick="spiritAccountSanctuarySetView('list')">Vue Liste</button>
             <button type="button" class="spirit-san-view-acc" data-sanview="icons-lg" onclick="spiritAccountSanctuarySetView('icons-lg')">Vue Grille</button>
+            <button type="button" class="spirit-san-view-acc" data-sanview="insta" onclick="spiritAccountSanctuarySetView('insta')">Vue Insta</button>
         </div>
         <input type="file" id="spiritAccountSanctuaryFileInput" accept="image/*" style="display:none;" />
         <div id="spiritAccountSanctuaryGrid" class="spirit-san-mode-list"></div>
@@ -1690,7 +1731,7 @@
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;" id="spiritPublicSocialStats">
                 <div class="spirit-pub-badge" style="min-width:90px;">Likes<b id="spiritPublicLikeTotal">0</b></div>
                 <div class="spirit-pub-badge" style="min-width:90px;">Followers<b id="spiritPublicFollowersCount">0</b></div>
-                <div class="spirit-pub-badge" style="min-width:90px;">Je suis<b id="spiritPublicFollowingCount">0</b></div>
+                <div class="spirit-pub-badge" style="min-width:90px;">Following<b id="spiritPublicFollowingCount">0</b></div>
             </div>
             <button type="button" id="spiritPublicAvatarBtn" class="btn-action" style="display:none;margin-top:12px;font-size:0.6rem;padding:6px 12px;" onclick="document.getElementById('spiritPublicAvatarFile').click()">CHANGER LA PHOTO</button>
             <div style="margin-top:12px;display:none;align-items:center;gap:8px;flex-wrap:wrap;" id="spiritPublicCountryEdit">
@@ -1727,6 +1768,7 @@
                 <label style="font-size:0.65rem;color:#888;">Vue</label>
                 <button type="button" class="spirit-san-view active" data-sanview="list" onclick="spiritSanctuarySetView('list')">Vue Liste</button>
                 <button type="button" class="spirit-san-view" data-sanview="icons-lg" onclick="spiritSanctuarySetView('icons-lg')">Vue Grille</button>
+                <button type="button" class="spirit-san-view" data-sanview="insta" onclick="spiritSanctuarySetView('insta')">Vue Insta</button>
             </div>
             <input type="file" id="spiritSanctuaryFileInput" accept="image/*" style="display:none;" />
             <div id="spiritSanctuaryGrid" class="spirit-san-mode-list"></div>
@@ -6918,7 +6960,7 @@ function spiritSanctuaryViewModeGet(ctx) {
     var key = isAcc ? SPIRIT_SAN_VIEW_KEY_ACCOUNT : SPIRIT_SAN_VIEW_KEY_PUBLIC;
     try {
         var saved = localStorage.getItem(key);
-        if (saved === 'list' || saved === 'icons-lg' || saved === 'details') {
+        if (saved === 'list' || saved === 'icons-lg' || saved === 'details' || saved === 'insta') {
             if (isAcc) spiritSanctuaryViewModeAccount = saved;
             else spiritSanctuaryViewMode = saved;
         }
@@ -7489,6 +7531,7 @@ async function spiritSanctuaryRender(ctx) {
     var modeClass = 'spirit-san-mode-list';
     if (vm === 'details') modeClass = 'spirit-san-mode-list spirit-san-mode-details';
     else if (vm === 'icons-lg') modeClass = 'spirit-san-mode-icons-lg';
+    else if (vm === 'insta') modeClass = 'spirit-san-mode-insta';
     grid.className = modeClass;
     grid.innerHTML = '';
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
@@ -7509,7 +7552,7 @@ async function spiritSanctuaryRender(ctx) {
         var comments = spiritSanctuaryComments(itemId);
         var likedByMe = likes.indexOf(String(actorId || '')) >= 0;
         var overlay = document.createElement('div');
-        overlay.style.cssText = 'position:absolute;left:6px;right:6px;bottom:6px;display:flex;gap:6px;z-index:6;';
+        overlay.style.cssText = 'display:flex;gap:6px;margin-top:8px;';
         var bLike = document.createElement('button');
         bLike.type = 'button';
         bLike.style.cssText = 'flex:1;padding:5px 8px;background:rgba(0,0,0,0.6);border:1px solid ' + (likedByMe ? '#ff4d8f' : '#444') + ';color:' + (likedByMe ? '#ff86b0' : '#ddd') + ';font-size:0.62rem;cursor:pointer;';
@@ -7596,7 +7639,7 @@ async function spiritSanctuaryRender(ctx) {
         });
         wrap.appendChild(img);
         var socialUi = spiritSanctuaryBuildSocialUi(rowId, uid, me);
-        wrap.appendChild(socialUi.overlay);
+        
         // (Loupe supprimée) => on ouvre directement la photo en plein écran au clic.
         var btnDel = null;
         if (listLike) {
@@ -7648,6 +7691,7 @@ async function spiritSanctuaryRender(ctx) {
             descSaved.style.cssText = 'margin-top:6px;font-size:0.65rem;color:#9ca3af;word-break:break-word;';
             descSaved.textContent = String(it.desc || '').trim() || 'Aucune description.';
             meta.appendChild(descSaved);
+            meta.appendChild(socialUi.overlay);
             meta.appendChild(socialUi.commentsWrap);
             var styleRow = document.createElement('div');
             styleRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
@@ -7761,6 +7805,7 @@ async function spiritSanctuaryRender(ctx) {
             descEl.className = 'spirit-san-icons-desc';
             descEl.textContent = String(it.desc || '').trim() || 'Aucune description.';
             cell.appendChild(descEl);
+            cell.appendChild(socialUi.overlay);
             cell.appendChild(socialUi.commentsWrap);
 
             grid.appendChild(cell);
