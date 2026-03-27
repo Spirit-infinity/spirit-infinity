@@ -7393,6 +7393,10 @@ async function spiritSanctuarySendChat(ctx) {
         return;
     }
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (!me) {
+        alert('Session utilisateur introuvable. Reconnecte-toi puis réessaie.');
+        return;
+    }
     var targetUid = String(uid || '').trim();
     if (String(ctx) === 'account') {
         var peer = spiritSanctuaryGetActivePeer(ctx);
@@ -7419,6 +7423,10 @@ async function spiritSanctuarySendChat(ctx) {
         }
     }
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
+        if (!targetUid) {
+            alert('Aucun destinataire sélectionné.');
+            return;
+        }
         var labelLocal = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
         spiritSanctuaryPushLocalMessage({
             recipient_id: String(targetUid),
@@ -7434,6 +7442,10 @@ async function spiritSanctuarySendChat(ctx) {
     }
     if (typeof _spirit === 'undefined' || !_spirit) {
         // Pas de client Supabase dispo : rester fonctionnel en mode local.
+        if (!targetUid) {
+            alert('Aucun destinataire sélectionné.');
+            return;
+        }
         var labelNoSb = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
         spiritSanctuaryPushLocalMessage({
             recipient_id: String(targetUid),
