@@ -1481,6 +1481,12 @@
                         <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;margin-right:8px;" onclick="spiritCopyMyPublicUrl()">COPIER L’URL</button>
                         <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#222;color:var(--neon-orange);border:1px solid var(--neon-orange);" onclick="spiritOpenMyPublicProfile()">OUVRIR MON PROFIL PUBLIC</button>
                     </div>
+                    <div style="margin-top:16px;padding:14px;border:1px solid rgba(0,200,255,0.35);background:#090d11;">
+                        <p style="margin:0 0 8px;font-size:0.7rem;color:#5cf;font-weight:800;letter-spacing:1px;">MES AMIS / ABONNEMENTS</p>
+                        <p style="margin:0 0 10px;font-size:0.62rem;color:#777;">Pseudos cliquables pour ouvrir leur profil public.</p>
+                        <div id="spiritFriendsPreview" style="display:flex;flex-direction:column;gap:8px;"></div>
+                        <button type="button" class="btn-action" style="margin-top:10px;font-size:0.6rem;padding:8px 12px;" onclick="spiritOpenFriendsModal()">VOIR LA LISTE COMPLÈTE</button>
+                    </div>
                 </div>
 
             <div id="tab-achats" class="account-page">
@@ -1616,15 +1622,18 @@
     </div>
     <div id="spiritPublicView">
     <div class="spirit-public-hero">
-        <div class="spirit-public-avatar-wrap">
-            <img id="spiritPublicAvatarImg" src="" alt="" style="display:none;" />
-            <div id="spiritPublicAvatarPlaceholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#777;font-size:0.65rem;text-align:center;padding:8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                </svg>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div class="spirit-public-avatar-wrap">
+                <img id="spiritPublicAvatarImg" src="" alt="" style="display:none;" />
+                <div id="spiritPublicAvatarPlaceholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#777;font-size:0.65rem;text-align:center;padding:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                </div>
+                <input type="file" id="spiritPublicAvatarFile" accept="image/*" style="display:none;" />
             </div>
-            <input type="file" id="spiritPublicAvatarFile" accept="image/*" style="display:none;" />
+            <button type="button" id="spiritPublicFollowBtn" class="btn-action" style="display:none;font-size:0.6rem;padding:6px 12px;background:#111;border:1px solid #00ccff;color:#7fe7ff;" onclick="spiritToggleFollowCurrentPublic()">SUIVRE</button>
         </div>
         <div style="flex:1;min-width:200px;">
             <h1 id="spiritPublicPseudo" style="margin:0 0 8px;color:#fff;font-size:1.35rem;letter-spacing:1px;">—</h1>
@@ -1681,6 +1690,15 @@
     </div>
     </div>
 </section>
+
+<div id="spiritFriendsModal" class="overlay" style="display:none;">
+    <div class="modal-content" style="max-width:640px;">
+        <button type="button" onclick="spiritCloseFriendsModal()" style="position:absolute;top:18px;right:18px;background:transparent;border:none;color:#bbb;font-size:18px;cursor:pointer;">✕</button>
+        <h3 style="margin-top:0;color:#fff;letter-spacing:1px;">LISTE D'AMIS</h3>
+        <p style="font-size:0.68rem;color:#777;margin-top:0;">Clique un pseudo pour ouvrir son profil public. Utilise la croix pour supprimer.</p>
+        <div id="spiritFriendsModalList" style="display:flex;flex-direction:column;gap:8px;max-height:56vh;overflow:auto;"></div>
+    </div>
+</div>
 
 <div id="ledgerModal" class="overlay">
     <div class="modal-content" style="max-width:640px;text-align:left;">
@@ -2067,6 +2085,9 @@
     var SPIRIT_MARKET_CACHE_TTL_MS = 8 * 60 * 1000;
     var spiritAuxFetchLast = { fav: 0, notif: 0, annonces: 0 };
     var spiritMarketAuxOnce = false;
+    var spiritAccountLastTab = '';
+    var spiritAccountLastTabTs = 0;
+    var spiritScopedUiLastUserId = '';
 
     // --- PRÉCOMMANDES HOT TOYS (PARTENAIRE OFFICIEL) ---
     // Vitrine indépendante du Marketplace (pas d'achat in-app)
@@ -3715,7 +3736,7 @@ function renderMarket(filteredData = null) {
             }
         });
         
-        console.log(`[SPIRIT MARKET] Rendu de ${dataToRender.length} objets terminé.`);
+        // console.log(`[SPIRIT MARKET] Rendu de ${dataToRender.length} objets terminé.`);
         spiritUpdateLoadMoreUI();
 }
 var renderMarketplace = renderMarket;
@@ -3737,9 +3758,15 @@ async function loadMySales() {
             listBody.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">Supabase indisponible.</div>';
             return;
         }
-        const currentID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+        const currentID = (typeof spiritGetCurrentUserId === 'function')
+            ? String(spiritGetCurrentUserId() || '').trim()
+            : String(window.MY_TEST_ID || MY_TEST_ID || '').trim();
+        if (!currentID) {
+            listBody.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">Connecte-toi pour voir tes ventes.</div>';
+            return;
+        }
         
-        console.log("[SPIRIT LEDGER] Synchronisation des Ventes pour l'ID :", currentID);
+        // console.log("[SPIRIT LEDGER] Synchronisation des Ventes pour l'ID :", currentID);
 
         const { data, error } = await _spirit
             .from('transactions')
@@ -3749,7 +3776,7 @@ async function loadMySales() {
         if (error) throw error;
 
         const rows = Array.isArray(data) ? data : [];
-        console.log(`[SPIRIT LEDGER] ${rows.length} vente(s) trouvée(s) pour ${currentID}`);
+        // console.log(`[SPIRIT LEDGER] ${rows.length} vente(s) trouvée(s) pour ${currentID}`);
 
         listBody.innerHTML = ''; 
 
@@ -4211,7 +4238,7 @@ async function updateUserAnnonces() {
             const { data, error } = await _spirit.from('products_live').select(
                 'id,uuid,title,price,old_price,ia_score,category,brand,ship_size,image_url,description,is_native,status,owner_id,currency,cat,is_smoke_free,is_light_protect,is_first_hand,origin_country,has_coa,amount'
             ).eq('owner_id', currentUserID);
-            console.log("Données reçues brute :", data);
+            // console.log("Données reçues brute :", data);
             if (error) {
                 console.error('[SPIRIT] Mes annonces products_live erreur exacte:', error.message || String(error),
                     error.code != null ? ('code=' + error.code) : '',
@@ -4285,7 +4312,7 @@ async function updateUserAnnonces() {
             container.dataset.spiritAdsLoadedAt = String(Date.now());
         }
     } catch (e) {}
-    console.log(`[SPIRIT SYSTEM] Mise à jour liste utilisateur : ${myAnnonces.length} annonces affichées.`);
+    // console.log(`[SPIRIT SYSTEM] Mise à jour liste utilisateur : ${myAnnonces.length} annonces affichées.`);
 }
 
 async function renderUserAds() {
@@ -4562,9 +4589,9 @@ async function enregistrerVente(method) {
             .insert([{
                 // Supabase: `amount` est `numeric` => envoi sous forme de nombre
                 amount: Number(totalAcheteur),
-                // Règle: forcer `buyer_id`/`seller_id` en chaîne de chiffres (pas un UUID)
-                buyer_id: /^\d+$/.test(String(buyerIdTxt).trim()) ? String(buyerIdTxt).trim() : String(MY_TEST_ID || '').trim(),
-                seller_id: /^\d+$/.test(String(sellerIdTxt).trim()) ? String(sellerIdTxt).trim() : '67890',
+                // IDs texte : on conserve UUID ou numérique (sinon fallback sécurisé)
+                buyer_id: buyerIdTxt || String(MY_TEST_ID || '').trim() || '12345',
+                seller_id: sellerIdTxt || '67890',
                 // Colonnes `numeric` => envoi numérique explicite
                 user_profit: Number(uProfit),
                 firm_profit: Number(fProfit),
@@ -5549,18 +5576,14 @@ window.showAccountTab = function showAccountTab(tab) {
         if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
     } catch (e) {}
 
-    if (tab === 'achats') {
-        try {
-            if (typeof loadUserPurchases === 'function' && spiritPerfShouldRun('tab:achats:loadUserPurchases', 700))
-                spiritPerfRunOnceInFlight('tab:achats:loadUserPurchases', function () { return loadUserPurchases(); });
-        } catch (e) {}
-    }
-    if (tab === 'ventes') {
-        try {
-            if (typeof loadMySales === 'function' && spiritPerfShouldRun('tab:ventes:loadMySales', 700))
-                spiritPerfRunOnceInFlight('tab:ventes:loadMySales', function () { return loadMySales(); });
-        } catch (e) {}
-    }
+    /* Anti double-clic / double-trigger: ignore navigation répétée vers le même onglet. */
+    try {
+        var nowTab = Date.now();
+        var sameTab = (String(tab || '') === String(spiritAccountLastTab || ''));
+        if (sameTab && (nowTab - Number(spiritAccountLastTabTs || 0)) < 900) return;
+        spiritAccountLastTab = String(tab || '');
+        spiritAccountLastTabTs = nowTab;
+    } catch (eDedup) {}
     
     // 1. On nettoie l'interface (Boutons et Pages)
     document.querySelectorAll('.dash-nav button').forEach(b => {
@@ -5577,7 +5600,7 @@ window.showAccountTab = function showAccountTab(tab) {
     if (pageActive) {
         pageActive.style.display = 'block';
         pageActive.classList.add('active');
-        console.log("[SPIRIT NAV] Navigation vers :", tab);
+        // console.log("[SPIRIT NAV] Navigation vers :", tab);
         
         // AJOUT : Nettoyage du message statique "Ici tu verras..." pour laisser place au Ledger
         const staticMsg = pageActive.querySelector('p');
@@ -5638,6 +5661,7 @@ window.showAccountTab = function showAccountTab(tab) {
         try { if (typeof spiritCheckSellerOfferBanner === 'function') spiritCheckSellerOfferBanner(); } catch (e) {}
         try { if (typeof spiritLoadSellerOffersList === 'function') spiritLoadSellerOffersList(); } catch (e) {}
         try { if (typeof spiritLoadBuyerOffersSent === 'function') spiritLoadBuyerOffersSent(); } catch (e) {}
+        try { if (typeof spiritFriendsRefreshList === 'function') spiritFriendsRefreshList(); } catch (e) {}
     }
     if (tab === 'params') {
         console.log("[SPIRIT SYSTEM] Accès paramètres");
@@ -5652,11 +5676,17 @@ window.showAccountTab = function showAccountTab(tab) {
 }
 
 function spiritRefreshUserScopedUi() {
+    var currentScopedUid = '';
+    try { currentScopedUid = spiritOwnerId(spiritGetCurrentUserId()); } catch (eUid) {}
     const activeBtn = document.querySelector('.dash-nav button.active');
-    if(document.getElementById('my-sales-list')) document.getElementById('my-sales-list').innerHTML = '';
-    if(document.getElementById('my-purchases-list')) document.getElementById('my-purchases-list').innerHTML = '';
-    if(document.getElementById('user-annonces-list')) document.getElementById('user-annonces-list').innerHTML = '';
-    if(document.getElementById('user-favorites-list')) document.getElementById('user-favorites-list').innerHTML = '';
+    /* Vider les listes seulement en changement d'utilisateur (évite rerenders + images + requêtes en boucle). */
+    if (currentScopedUid && currentScopedUid !== spiritScopedUiLastUserId) {
+        if(document.getElementById('my-sales-list')) document.getElementById('my-sales-list').innerHTML = '';
+        if(document.getElementById('my-purchases-list')) document.getElementById('my-purchases-list').innerHTML = '';
+        if(document.getElementById('user-annonces-list')) document.getElementById('user-annonces-list').innerHTML = '';
+        if(document.getElementById('user-favorites-list')) document.getElementById('user-favorites-list').innerHTML = '';
+        spiritScopedUiLastUserId = currentScopedUid;
+    }
 
     if (activeBtn) {
         const activeTab = activeBtn.id.replace('btn-', '');
@@ -5797,6 +5827,13 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      created_at timestamptz default now()
    );
    create index if not exists idx_sanctuary_chat_rec on public.sanctuary_chat(recipient_id);
+   create table if not exists public.spirit_follows (
+     follower_id text not null,
+     followee_id text not null,
+     created_at timestamptz default now(),
+     primary key (follower_id, followee_id)
+   );
+   create index if not exists idx_spirit_follows_follower on public.spirit_follows(follower_id, created_at desc);
    Buckets Storage publics : "avatars", "sanctuary" (ou ajuster les noms dans le code).
    --------------------------------------------------------------------------- */
 var spiritPublicViewUserId = null;
@@ -5805,12 +5842,172 @@ var spiritSanctuaryViewModeAccount = 'list';
 var spiritSanctuaryPollTimer = null;
 var SPIRIT_BUCKET_AVATAR = 'sanctuary';
 var SPIRIT_BUCKET_SANCTUARY = 'sanctuary';
+var SPIRIT_FOLLOW_TABLE = 'spirit_follows';
+var spiritFriendsCache = [];
 // Fallback local pour IDs de test (évite les 400 Supabase si non mappés côté backend).
 var spiritLocalSanctuaryChatByRecipient = Object.create(null);
 // Stabilisation: on force le chat Sanctuaire en local (plus de requêtes sanctuary_chat => plus de 400).
 var SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY = true;
 // Persist: stocke la valeur de `user_profiles.avatar_url` (path ou URL) pour recharger l'image au changement de vue.
 var spiritPublicAvatarPersist = '';
+
+function spiritIsUuid(v) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || '').trim());
+}
+function spiritFollowGetCurrentUid() {
+    try {
+        var uid = spiritOwnerId(spiritGetCurrentUserId());
+        uid = String(uid || '').trim();
+        return spiritIsUuid(uid) ? uid : '';
+    } catch (e) { return ''; }
+}
+async function spiritFollowFetchRows(uid) {
+    uid = String(uid || '').trim();
+    if (!spiritIsUuid(uid) || !_spirit) return [];
+    try {
+        var out = await _spirit.from(SPIRIT_FOLLOW_TABLE).select('followee_id,created_at').eq('follower_id', uid).order('created_at', { ascending: false });
+        if (!out.error && Array.isArray(out.data)) return out.data;
+    } catch (e) {}
+    return [];
+}
+async function spiritFollowResolveProfiles(ids) {
+    var out = [];
+    var uniq = [];
+    (ids || []).forEach(function (id) {
+        var s = String(id || '').trim();
+        if (s && uniq.indexOf(s) < 0) uniq.push(s);
+    });
+    if (!uniq.length) return [];
+    var map = {};
+    if (_spirit) {
+        try {
+            var r = await _spirit.from('user_profiles').select('id,pseudo').in('id', uniq);
+            if (!r.error && Array.isArray(r.data)) {
+                r.data.forEach(function (row) { map[String(row.id)] = String(row.pseudo || '').trim(); });
+            }
+        } catch (e) {}
+    }
+    uniq.forEach(function (id) {
+        out.push({ id: id, pseudo: map[id] || spiritPublicDefaultLabel(id) });
+    });
+    return out;
+}
+async function spiritFollowIsFollowing(me, target) {
+    me = String(me || '').trim();
+    target = String(target || '').trim();
+    if (!spiritIsUuid(me) || !spiritIsUuid(target)) return false;
+    if (me === target) return false;
+    if (!_spirit) return false;
+    try {
+        var q = await _spirit.from(SPIRIT_FOLLOW_TABLE).select('follower_id').eq('follower_id', me).eq('followee_id', target).limit(1);
+        if (!q.error && Array.isArray(q.data)) return q.data.length > 0;
+    } catch (e) {}
+    return false;
+}
+async function spiritFollowInsert(me, target) {
+    me = String(me || '').trim();
+    target = String(target || '').trim();
+    if (!spiritIsUuid(me) || !spiritIsUuid(target) || me === target || !_spirit) return false;
+    try {
+        var ins = await _spirit.from(SPIRIT_FOLLOW_TABLE).upsert({ follower_id: me, followee_id: target }, { onConflict: 'follower_id,followee_id' });
+        return !(ins && ins.error);
+    } catch (e) { return false; }
+}
+async function spiritFollowDelete(me, target) {
+    me = String(me || '').trim();
+    target = String(target || '').trim();
+    if (!spiritIsUuid(me) || !spiritIsUuid(target) || !_spirit) return false;
+    try {
+        var del = await _spirit.from(SPIRIT_FOLLOW_TABLE).delete().eq('follower_id', me).eq('followee_id', target);
+        return !(del && del.error);
+    } catch (e) { return false; }
+}
+function spiritFriendsRenderPreview() {
+    var box = document.getElementById('spiritFriendsPreview');
+    if (!box) return;
+    if (!spiritFriendsCache.length) {
+        box.innerHTML = '<div style="font-size:0.65rem;color:#666;">Aucun abonnement pour le moment.</div>';
+        return;
+    }
+    box.innerHTML = spiritFriendsCache.slice(0, 5).map(function (f) {
+        var idEsc = String(f.id || '').replace(/'/g, '&#39;');
+        var pEsc = String(f.pseudo || '').replace(/</g, '&lt;');
+        return '<button type="button" class="btn-action" style="text-align:left;font-size:0.62rem;padding:7px 10px;background:#10151b;border:1px solid #22313f;color:#cfe9ff;" onclick="spiritOpenPublicProfileUI(\'' + idEsc + '\');">' + pEsc + '</button>';
+    }).join('');
+}
+function spiritFriendsRenderModal() {
+    var box = document.getElementById('spiritFriendsModalList');
+    if (!box) return;
+    if (!spiritFriendsCache.length) {
+        box.innerHTML = '<div style="font-size:0.7rem;color:#666;">Aucun ami / abonnement.</div>';
+        return;
+    }
+    box.innerHTML = spiritFriendsCache.map(function (f) {
+        var idEsc = String(f.id || '').replace(/'/g, '&#39;');
+        var pEsc = String(f.pseudo || '').replace(/</g, '&lt;');
+        return '<div style="display:flex;align-items:center;gap:8px;background:#0f1319;border:1px solid #222;padding:8px 10px;">' +
+            '<button type="button" class="btn-action" style="flex:1;text-align:left;font-size:0.66rem;padding:8px 10px;background:#131a22;border:1px solid #2a3a4c;color:#d8ecff;" onclick="spiritOpenPublicProfileUI(\'' + idEsc + '\');spiritCloseFriendsModal();">' + pEsc + '</button>' +
+            '<button type="button" title="Supprimer" style="width:32px;height:32px;border:1px solid #833;background:#1a0f12;color:#ff6b6b;cursor:pointer;font-weight:700;" onclick="spiritFriendsRemove(\'' + idEsc + '\')">✕</button>' +
+            '</div>';
+    }).join('');
+}
+async function spiritFriendsRefreshList() {
+    var me = spiritFollowGetCurrentUid();
+    if (!me) {
+        spiritFriendsCache = [];
+        spiritFriendsRenderPreview();
+        spiritFriendsRenderModal();
+        return;
+    }
+    var rows = await spiritFollowFetchRows(me);
+    var ids = rows.map(function (r) { return String(r.followee_id || '').trim(); }).filter(Boolean);
+    spiritFriendsCache = await spiritFollowResolveProfiles(ids);
+    spiritFriendsRenderPreview();
+    spiritFriendsRenderModal();
+}
+async function spiritPublicRefreshFollowButton() {
+    var btn = document.getElementById('spiritPublicFollowBtn');
+    if (!btn) return;
+    var me = spiritFollowGetCurrentUid();
+    var target = String(spiritPublicViewUserId || '').trim();
+    if (!me || !target || me === target) {
+        btn.style.display = 'none';
+        return;
+    }
+    btn.style.display = 'inline-block';
+    var isFollowing = await spiritFollowIsFollowing(me, target);
+    btn.textContent = isFollowing ? 'ABONNE ✓' : 'SUIVRE';
+    btn.style.borderColor = isFollowing ? '#31d07f' : '#00ccff';
+    btn.style.color = isFollowing ? '#7dffbf' : '#7fe7ff';
+}
+async function spiritToggleFollowCurrentPublic() {
+    var me = spiritFollowGetCurrentUid();
+    var target = String(spiritPublicViewUserId || '').trim();
+    if (!me) { alert('Connecte-toi pour suivre ce profil.'); return; }
+    if (!spiritIsUuid(target) || me === target) return;
+    var isFollowing = await spiritFollowIsFollowing(me, target);
+    var ok = isFollowing ? await spiritFollowDelete(me, target) : await spiritFollowInsert(me, target);
+    if (!ok) { alert('Action impossible (RLS/table spirit_follows).'); return; }
+    await spiritPublicRefreshFollowButton();
+    await spiritFriendsRefreshList();
+}
+async function spiritFriendsRemove(uid) {
+    var me = spiritFollowGetCurrentUid();
+    var target = String(uid || '').trim();
+    if (!me || !target) return;
+    if (!spiritIsUuid(target)) return;
+    await spiritFollowDelete(me, target);
+    await spiritFriendsRefreshList();
+}
+function spiritOpenFriendsModal() {
+    var m = document.getElementById('spiritFriendsModal');
+    if (m) m.style.setProperty('display', 'flex', 'important');
+    try { spiritFriendsRenderModal(); } catch (e) {}
+}
+function spiritCloseFriendsModal() {
+    var m = document.getElementById('spiritFriendsModal');
+    if (m) m.style.setProperty('display', 'none', 'important');
+}
 
 function spiritPublicAvatarObjectPathFromValue(v) {
     v = String(v || '').trim();
@@ -6128,6 +6325,7 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     }
     spiritPublicApplyBadgesFromRow(row);
     await spiritPublicLoadIaScore(spiritPublicViewUserId, row);
+    try { await spiritPublicRefreshFollowButton(); } catch (eBtn) {}
     spiritPublicWireAvatarOnce();
     await spiritPublicLoadAnnonces(spiritPublicViewUserId);
     spiritPublicSetTab(opts.sanctuary ? 'sanctuary' : 'annonces');
@@ -7684,6 +7882,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try { spiritUpdateNavSanctuaryDot(); } catch (e) {}
     try { spiritRefreshDashboardPublicUrl(); } catch (e) {}
     try { spiritSanctuaryStartPoll(); } catch (e) {}
+    try {
+        var fm = document.getElementById('spiritFriendsModal');
+        if (fm) fm.addEventListener('click', function (ev) { if (ev.target === fm) spiritCloseFriendsModal(); });
+    } catch (e) {}
+    try { if (typeof spiritFriendsRefreshList === 'function') spiritFriendsRefreshList(); } catch (e) {}
 });
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
