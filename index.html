@@ -6801,6 +6801,8 @@ async function spiritPublicLoadAnnonces(uid) {
         div.style.cursor = 'pointer';
         div.addEventListener('click', function () {
             try {
+                // Ouverture fiable: objet complet d'abord.
+                if (typeof openProduct === 'function') { void openProduct(Object.assign({}, p)); return; }
                 var pid = (p && p.id != null) ? p.id : null;
                 var puid = (p && p.uuid != null) ? p.uuid : null;
                 void spiritPublicOpenAnnonce(pid, puid);
@@ -6823,7 +6825,17 @@ async function spiritPublicLoadAnnonces(uid) {
         info.innerHTML = '<div style="font-weight:800;color:#fff;font-size:0.8rem;">' + t + '</div>' +
             '<div style="color:var(--neon-orange);font-size:0.85rem;">' + price.toFixed(2) + ' EUR</div>' +
             (sold ? '<span style="color:#e22;font-size:0.65rem;font-weight:800;">VENDU</span>' : '<span style="color:#696;font-size:0.65rem;">DISPONIBLE</span>') +
-            '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:7px 10px;" onclick="event.stopPropagation();spiritPublicOpenAnnonce(\'' + String((p && p.id != null) ? p.id : '').replace(/'/g, '\\&#39;') + '\',\'' + String((p && p.uuid != null) ? p.uuid : '').replace(/'/g, '\\&#39;') + '\')">VOIR L’ANNONCE</button></div>';
+            '<div style="margin-top:8px;"><button type="button" class="btn-action spirit-public-open-btn" style="font-size:0.58rem;padding:7px 10px;">VOIR L’ANNONCE</button></div>';
+        try {
+            var openBtn = info.querySelector('.spirit-public-open-btn');
+            if (openBtn) openBtn.addEventListener('click', function (ev) {
+                try { ev.preventDefault(); ev.stopPropagation(); } catch (e0) {}
+                if (typeof openProduct === 'function') { void openProduct(Object.assign({}, p)); return; }
+                var pid = (p && p.id != null) ? p.id : null;
+                var puid = (p && p.uuid != null) ? p.uuid : null;
+                void spiritPublicOpenAnnonce(pid, puid);
+            });
+        } catch (eBtn) {}
         div.appendChild(info);
         box.appendChild(div);
     });
