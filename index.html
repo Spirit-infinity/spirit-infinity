@@ -1451,6 +1451,7 @@
         <div class="dash-container">
             <div class="dash-nav">
                 <button type="button" id="btn-dashboard" class="active" onclick="showAccountTab('dashboard')">DASHBOARD<span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button id="btn-messages" onclick="showAccountTab('messages')">MESSAGES<span id="messages-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button id="btn-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
                 <button id="btn-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
                 <button id="btn-portefeuille" onclick="showAccountTab('portefeuille')">PORTEFEUILLE</button>
@@ -1495,6 +1496,12 @@
                         <button type="button" class="btn-action" style="margin-top:10px;font-size:0.6rem;padding:8px 12px;" onclick="spiritOpenFriendsModal()">VOIR LA LISTE COMPLÈTE</button>
                     </div>
                 </div>
+
+<div id="tab-messages" class="account-page">
+    <h2>📩 MESSAGES SANCTUAIRE</h2>
+    <p style="font-size:0.72rem;color:#888;">Alertes likes et commentaires sur tes photos du sanctuaire.</p>
+    <div id="spiritMessagesList" style="display:flex;flex-direction:column;gap:10px;"></div>
+</div>
 
             <div id="tab-achats" class="account-page">
     <h2>🛒 MES ACHATS</h2>
@@ -1680,6 +1687,11 @@
             <h1 id="spiritPublicPseudo" style="margin:0 0 8px;color:#fff;font-size:1.35rem;letter-spacing:1px;">—</h1>
             <p id="spiritPublicCountryRow" style="margin:0;font-size:0.8rem;color:#888;"><span id="spiritPublicCountry">—</span></p>
             <p id="spiritPublicIAScore" style="margin:10px 0 0;font-size:0.85rem;color:var(--spirit-green);font-weight:700;">IA Score : —</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;" id="spiritPublicSocialStats">
+                <div class="spirit-pub-badge" style="min-width:90px;">Likes<b id="spiritPublicLikeTotal">0</b></div>
+                <div class="spirit-pub-badge" style="min-width:90px;">Followers<b id="spiritPublicFollowersCount">0</b></div>
+                <div class="spirit-pub-badge" style="min-width:90px;">Je suis<b id="spiritPublicFollowingCount">0</b></div>
+            </div>
             <button type="button" id="spiritPublicAvatarBtn" class="btn-action" style="display:none;margin-top:12px;font-size:0.6rem;padding:6px 12px;" onclick="document.getElementById('spiritPublicAvatarFile').click()">CHANGER LA PHOTO</button>
             <div style="margin-top:12px;display:none;align-items:center;gap:8px;flex-wrap:wrap;" id="spiritPublicCountryEdit">
                 <label style="font-size:0.65rem;color:#666;">Pays (visible publiquement)</label>
@@ -4113,6 +4125,47 @@ async function loadMySales() {
         if (error) throw error;
 
         const rows = Array.isArray(data) ? data : [];
+        const now = new Date();
+        function spiritSalesAddBusinessDays(inputDate, openDays) {
+            var d = new Date(inputDate);
+            if (!(d instanceof Date) || isNaN(d.getTime())) return null;
+            var left = Number(openDays) || 0;
+            while (left > 0) {
+                d.setDate(d.getDate() + 1);
+                var wd = d.getDay();
+                if (wd !== 0 && wd !== 6) left--;
+            }
+            return d;
+        }
+        function spiritSalesInferReleaseDays(tr) {
+            if (tr && (tr.is_native === true || String(tr.sale_type || '').toLowerCase() === 'native')) return 3;
+            var sig = [
+                tr && tr.sale_type,
+                tr && tr.product_kind,
+                tr && tr.type,
+                tr && tr.category,
+                tr && tr.figurine_name
+            ].map(function (v) { return String(v || '').toLowerCase(); }).join(' ');
+            if (sig.indexOf('native') !== -1) return 3;
+            return 4;
+        }
+        function spiritSalesReleaseBadge(tr) {
+            var status = String((tr && tr.status) || '').toUpperCase();
+            if (status.indexOf('LITIGE') !== -1) {
+                return '<span style="display:inline-block;margin-top:6px;padding:3px 8px;border:1px solid #7a1f1f;background:rgba(122,31,31,0.25);color:#ff7a7a;font-size:0.62rem;">PORTEFEUILLE BLOQUÉ (LITIGE)</span>';
+            }
+            if (status.indexOf('LIVRAISON VALID') !== -1 || status.indexOf('TERMINE') !== -1 || status.indexOf('DÉBLOQU') !== -1 || status.indexOf('DEBLOQU') !== -1) {
+                return '<span style="display:inline-block;margin-top:6px;padding:3px 8px;border:1px solid #146c43;background:rgba(20,108,67,0.25);color:#7dffb1;font-size:0.62rem;">PORTEFEUILLE DÉBLOQUÉ (VALIDATION ACHETEUR)</span>';
+            }
+            var days = spiritSalesInferReleaseDays(tr);
+            var unlockAt = spiritSalesAddBusinessDays(tr && tr.created_at ? tr.created_at : new Date(), days);
+            var isUnlocked = !!(unlockAt && unlockAt.getTime() <= now.getTime());
+            var whenTxt = unlockAt ? unlockAt.toLocaleDateString() : '—';
+            if (isUnlocked) {
+                return '<span style="display:inline-block;margin-top:6px;padding:3px 8px;border:1px solid #146c43;background:rgba(20,108,67,0.25);color:#7dffb1;font-size:0.62rem;">PORTEFEUILLE DÉBLOQUÉ AUTO (' + days + 'J OUVRÉS)</span>';
+            }
+            return '<span style="display:inline-block;margin-top:6px;padding:3px 8px;border:1px solid #75601a;background:rgba(117,96,26,0.25);color:#f4d35e;font-size:0.62rem;">DÉBLOCAGE PRÉVU LE ' + whenTxt + ' (' + days + 'J OUVRÉS)</span>';
+        }
         // console.log(`[SPIRIT LEDGER] ${rows.length} vente(s) trouvée(s) pour ${currentID}`);
 
         listBody.innerHTML = ''; 
@@ -4142,6 +4195,7 @@ async function loadMySales() {
                             </div>
                         </div>`;
                 }
+                var releaseBadge = spiritSalesReleaseBadge(tr);
 
                 saleDiv.innerHTML = `
                     <div style="display: flex; align-items: center;">
@@ -4162,6 +4216,7 @@ async function loadMySales() {
                             <div style="margin-top:8px; font-size:0.65rem; color:#444; font-style:italic;">
                                 Protection Spirit Guard Active (8%)
                             </div>
+                            ${releaseBadge}
                             ${shipBlock}
 
                             <div style="margin-top:15px; display:flex; gap:10px;">
@@ -5954,7 +6009,7 @@ window.showAccountTab = function showAccountTab(tab) {
     try {
         var p = (typeof spiritParsePublicHash === 'function') ? spiritParsePublicHash() : null;
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params' || tab === 'portefeuille')) {
+        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params' || tab === 'portefeuille' || tab === 'messages')) {
             tab = 'dashboard';
         }
     } catch (e) {}
@@ -6037,6 +6092,8 @@ window.showAccountTab = function showAccountTab(tab) {
         try { if (typeof spiritSanctuaryWireOnce === 'function') spiritSanctuaryWireOnce(); } catch (e) {}
     } else if (tab === 'portefeuille') {
         try { if (typeof spiritLoadWallet === 'function') spiritLoadWallet(); } catch (eW) {}
+    } else if (tab === 'messages') {
+        try { if (typeof spiritLoadMessagesTab === 'function') spiritLoadMessagesTab(); } catch (eM) {}
     }
 
     if (tab === 'dashboard') {
@@ -6097,6 +6154,7 @@ function spiritRefreshUserScopedUi() {
     } catch (e) {}
 
     try { if (typeof spiritUpdateNavSanctuaryDot === 'function') spiritUpdateNavSanctuaryDot(); } catch (e) {}
+    try { if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot(); } catch (e2) {}
     try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
     try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
     try { if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot(); } catch (e) {}
@@ -6225,6 +6283,37 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      primary key (follower_id, followee_id)
    );
    create index if not exists idx_spirit_follows_follower on public.spirit_follows(follower_id, created_at desc);
+   -- Social Sanctuaire (production)
+   create table if not exists public.spirit_sanctuary_likes (
+     item_id text not null,
+     owner_id text not null,
+     user_id text not null,
+     user_label text,
+     created_at timestamptz default now(),
+     primary key (item_id, user_id)
+   );
+   create index if not exists idx_spirit_san_likes_owner on public.spirit_sanctuary_likes(owner_id, created_at desc);
+   create table if not exists public.spirit_sanctuary_comments (
+     id bigint primary key generated always as identity,
+     item_id text not null,
+     owner_id text not null,
+     user_id text not null,
+     user_label text,
+     comment_text text not null,
+     created_at timestamptz default now()
+   );
+   create index if not exists idx_spirit_san_comments_owner on public.spirit_sanctuary_comments(owner_id, created_at desc);
+   create table if not exists public.spirit_sanctuary_notifications (
+     id bigint primary key generated always as identity,
+     owner_id text not null,
+     type text not null,
+     item_id text,
+     from_uid text not null,
+     text text,
+     is_read boolean default false,
+     created_at timestamptz default now()
+   );
+   create index if not exists idx_spirit_san_notif_owner on public.spirit_sanctuary_notifications(owner_id, is_read, created_at desc);
    Buckets Storage publics : "avatars", "sanctuary" (ou ajuster les noms dans le code).
    --------------------------------------------------------------------------- */
 var spiritPublicViewUserId = null;
@@ -6243,6 +6332,138 @@ var spiritLocalSanctuaryChatByRecipient = Object.create(null);
 var SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY = true;
 // Persist: stocke la valeur de `user_profiles.avatar_url` (path ou URL) pour recharger l'image au changement de vue.
 var spiritPublicAvatarPersist = '';
+var SPIRIT_SAN_VIEW_KEY_PUBLIC = 'spirit_san_view_public_v1';
+var SPIRIT_SAN_VIEW_KEY_ACCOUNT = 'spirit_san_view_account_v1';
+var SPIRIT_SAN_LIKES_TABLE = 'spirit_sanctuary_likes';
+var SPIRIT_SAN_COMMENTS_TABLE = 'spirit_sanctuary_comments';
+var SPIRIT_SAN_NOTIFS_TABLE = 'spirit_sanctuary_notifications';
+var spiritSanctuaryLastUnreadMsgCount = 0;
+var spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
+
+async function spiritSanctuaryLoadSocialCache(ownerId, itemIds, viewerId) {
+    spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
+    if (!_spirit) return spiritSanctuarySocialCache;
+    var ids = (itemIds || []).map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+    if (!ids.length) return spiritSanctuarySocialCache;
+    try {
+        var lk = await _spirit.from(SPIRIT_SAN_LIKES_TABLE).select('item_id,user_id').in('item_id', ids);
+        if (!lk.error && Array.isArray(lk.data)) {
+            lk.data.forEach(function (r) {
+                var iid = String((r && r.item_id) || '').trim();
+                var uid = String((r && r.user_id) || '').trim();
+                if (!iid || !uid) return;
+                if (!Array.isArray(spiritSanctuarySocialCache.likesByItem[iid])) spiritSanctuarySocialCache.likesByItem[iid] = [];
+                spiritSanctuarySocialCache.likesByItem[iid].push(uid);
+                if (viewerId && uid === String(viewerId)) spiritSanctuarySocialCache.myLikes[iid] = true;
+            });
+        }
+    } catch (eLk) {}
+    try {
+        var cm = await _spirit.from(SPIRIT_SAN_COMMENTS_TABLE).select('id,item_id,user_id,user_label,comment_text,created_at').in('item_id', ids).order('created_at', { ascending: true });
+        if (!cm.error && Array.isArray(cm.data)) {
+            cm.data.forEach(function (r) {
+                var iid = String((r && r.item_id) || '').trim();
+                if (!iid) return;
+                if (!Array.isArray(spiritSanctuarySocialCache.commentsByItem[iid])) spiritSanctuarySocialCache.commentsByItem[iid] = [];
+                spiritSanctuarySocialCache.commentsByItem[iid].push({
+                    id: r.id,
+                    uid: String((r && r.user_id) || '').trim(),
+                    label: String((r && (r.user_label || r.user_id)) || '').trim(),
+                    text: String((r && r.comment_text) || '').trim(),
+                    created_at: r && r.created_at
+                });
+            });
+        }
+    } catch (eCm) {}
+    return spiritSanctuarySocialCache;
+}
+async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
+    ownerId = String(ownerId || '').trim();
+    fromUid = String(fromUid || '').trim();
+    if (!ownerId || !fromUid || ownerId === fromUid || !_spirit) return;
+    try {
+        await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).insert({
+            owner_id: ownerId,
+            type: String(type || ''),
+            item_id: String(itemId || ''),
+            from_uid: fromUid,
+            text: String(text || ''),
+            is_read: false
+        });
+    } catch (e) {}
+}
+function spiritSanctuaryRefreshMessagesDot() {
+    var uid = '';
+    try { uid = String(spiritGetCurrentUserId() || '').trim(); } catch (e) {}
+    var dot = document.getElementById('messages-tab-dot');
+    if (!dot) return;
+    if (!uid || !_spirit) { dot.style.display = 'none'; return; }
+    void (async function () {
+        var c = 0;
+        try {
+            var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).eq('owner_id', uid).eq('is_read', false);
+            c = Number((q && q.count) || 0);
+        } catch (eCount) { c = 0; }
+        dot.style.display = c > 0 ? 'inline-block' : 'none';
+        if (c > 0 && c > Number(spiritSanctuaryLastUnreadMsgCount || 0) && typeof spiritSanctuaryShowToast === 'function') {
+            spiritSanctuaryShowToast('Sanctuaire', c + ' nouvelle(s) alerte(s) likes/commentaires.');
+        }
+        spiritSanctuaryLastUnreadMsgCount = c;
+    })();
+}
+function spiritSanctuaryLikeUsers(itemId) {
+    itemId = String(itemId || '').trim();
+    if (!itemId) return [];
+    var lk = spiritSanctuarySocialCache.likesByItem[itemId];
+    return Array.isArray(lk) ? lk.slice() : [];
+}
+function spiritSanctuaryComments(itemId) {
+    itemId = String(itemId || '').trim();
+    if (!itemId) return [];
+    var arr = spiritSanctuarySocialCache.commentsByItem[itemId];
+    return Array.isArray(arr) ? arr : [];
+}
+async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
+    ownerId = String(ownerId || '').trim();
+    itemId = String(itemId || '').trim();
+    actorUid = String(actorUid || '').trim();
+    if (!itemId || !actorUid || !_spirit) return false;
+    var was = !!spiritSanctuarySocialCache.myLikes[itemId];
+    try {
+        if (was) {
+            await _spirit.from(SPIRIT_SAN_LIKES_TABLE).delete().eq('item_id', itemId).eq('user_id', actorUid);
+            spiritSanctuarySocialCache.myLikes[itemId] = false;
+        } else {
+            await _spirit.from(SPIRIT_SAN_LIKES_TABLE).upsert({
+                item_id: itemId,
+                owner_id: ownerId,
+                user_id: actorUid,
+                user_label: (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : spiritPublicDefaultLabel(actorUid)
+            }, { onConflict: 'item_id,user_id' });
+            spiritSanctuarySocialCache.myLikes[itemId] = true;
+            await spiritSanctuaryPushNotif(ownerId, 'like', itemId, actorUid, 'a aimé ta photo');
+        }
+    } catch (e) { return false; }
+    return !was;
+}
+async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
+    ownerId = String(ownerId || '').trim();
+    itemId = String(itemId || '').trim();
+    actorUid = String(actorUid || '').trim();
+    text = String(text || '').trim();
+    if (!itemId || !actorUid || !text || !_spirit) return false;
+    try {
+        await _spirit.from(SPIRIT_SAN_COMMENTS_TABLE).insert({
+            item_id: itemId,
+            owner_id: ownerId,
+            user_id: actorUid,
+            user_label: (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : spiritPublicDefaultLabel(actorUid),
+            comment_text: text
+        });
+    } catch (e) { return false; }
+    await spiritSanctuaryPushNotif(ownerId, 'comment', itemId, actorUid, 'a commenté ta photo');
+    return true;
+}
 
 function spiritIsUuid(v) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || '').trim());
@@ -6358,6 +6579,78 @@ async function spiritFriendsRefreshList() {
     spiritFriendsRenderPreview();
     spiritFriendsRenderModal();
 }
+async function spiritPublicRefreshSocialStats(uid) {
+    uid = String(uid || spiritPublicViewUserId || '').trim();
+    if (!uid) return;
+    var likesEl = document.getElementById('spiritPublicLikeTotal');
+    var folEl = document.getElementById('spiritPublicFollowersCount');
+    var ingEl = document.getElementById('spiritPublicFollowingCount');
+    if (likesEl) likesEl.textContent = '0';
+    if (folEl) folEl.textContent = '0';
+    if (ingEl) ingEl.textContent = '0';
+    if (_spirit) {
+        try {
+            var lk = await _spirit.from(SPIRIT_SAN_LIKES_TABLE).select('item_id').eq('owner_id', uid);
+            if (!lk.error && Array.isArray(lk.data) && likesEl) likesEl.textContent = String(lk.data.length);
+        } catch (eLike) {}
+    }
+    if (_spirit && spiritIsUuid(uid)) {
+        try {
+            var r1 = await _spirit.from(SPIRIT_FOLLOW_TABLE).select('follower_id').eq('followee_id', uid);
+            if (!r1.error && Array.isArray(r1.data) && folEl) folEl.textContent = String(r1.data.length);
+        } catch (e1) {}
+        try {
+            var r2 = await _spirit.from(SPIRIT_FOLLOW_TABLE).select('followee_id').eq('follower_id', uid);
+            if (!r2.error && Array.isArray(r2.data) && ingEl) ingEl.textContent = String(r2.data.length);
+        } catch (e2) {}
+    }
+}
+function spiritLoadMessagesTab() {
+    var box = document.getElementById('spiritMessagesList');
+    if (!box) return;
+    var me = '';
+    try { me = String(spiritGetCurrentUserId() || '').trim(); } catch (e) {}
+    if (!me) {
+        box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Connecte-toi pour voir tes messages.</div>';
+        return;
+    }
+    if (!_spirit) {
+        box.innerHTML = '<div style="font-size:0.68rem;color:#855;">Supabase indisponible.</div>';
+        return;
+    }
+    box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Chargement des alertes...</div>';
+    void (async function () {
+        var rows = [];
+        try {
+            var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
+                .select('id,owner_id,type,item_id,from_uid,text,created_at,is_read')
+                .eq('owner_id', me)
+                .order('created_at', { ascending: false })
+                .range(0, 200);
+            if (!q.error && Array.isArray(q.data)) rows = q.data;
+        } catch (eQ) {}
+        if (!rows.length) {
+            box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Aucune alerte pour le moment.</div>';
+        } else {
+            box.innerHTML = rows.map(function (n) {
+                var from = spiritPublicDefaultLabel(n.from_uid);
+                var dt = n.created_at ? new Date(n.created_at).toLocaleString() : '—';
+                var txt = String(n.text || 'Nouvelle activité');
+                return '<div style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;">' +
+                    '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">' +
+                    '<div style="font-size:0.7rem;color:#ddd;"><b style="color:#7fe7ff;">' + String(from).replace(/</g, '&lt;') + '</b> ' + String(txt).replace(/</g, '&lt;') + '</div>' +
+                    '<div style="font-size:0.6rem;color:#777;white-space:nowrap;">' + dt + '</div>' +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+        }
+        try {
+            var unreadIds = rows.filter(function (r) { return !r.is_read; }).map(function (r) { return r.id; });
+            if (unreadIds.length) await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).update({ is_read: true }).in('id', unreadIds);
+        } catch (eU) {}
+        spiritSanctuaryRefreshMessagesDot();
+    })();
+}
 async function spiritPublicRefreshFollowButton() {
     var btn = document.getElementById('spiritPublicFollowBtn');
     if (!btn) return;
@@ -6383,6 +6676,7 @@ async function spiritToggleFollowCurrentPublic() {
     if (!ok) { alert('Action impossible (RLS/table spirit_follows).'); return; }
     await spiritPublicRefreshFollowButton();
     await spiritFriendsRefreshList();
+    try { await spiritPublicRefreshSocialStats(target); } catch (e3) {}
 }
 async function spiritFriendsRemove(uid) {
     var me = spiritFollowGetCurrentUid();
@@ -6503,7 +6797,7 @@ function spiritSyncAccountTabsForPublicVisitor() {
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
         hide = !!(p && p.userId && me && String(p.userId) !== me);
     } catch (e) {}
-    ['btn-achats', 'btn-ventes', 'btn-portefeuille', 'btn-params'].forEach(function (id) {
+    ['btn-messages', 'btn-achats', 'btn-ventes', 'btn-portefeuille', 'btn-params'].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el) return;
         if (hide) el.style.setProperty('display', 'none', 'important');
@@ -6620,11 +6914,25 @@ function spiritSanctuaryUid(ctx) {
     return spiritPublicViewUserId;
 }
 function spiritSanctuaryViewModeGet(ctx) {
-    return ctx === 'account' ? spiritSanctuaryViewModeAccount : spiritSanctuaryViewMode;
+    var isAcc = ctx === 'account';
+    var key = isAcc ? SPIRIT_SAN_VIEW_KEY_ACCOUNT : SPIRIT_SAN_VIEW_KEY_PUBLIC;
+    try {
+        var saved = localStorage.getItem(key);
+        if (saved === 'list' || saved === 'icons-lg' || saved === 'details') {
+            if (isAcc) spiritSanctuaryViewModeAccount = saved;
+            else spiritSanctuaryViewMode = saved;
+        }
+    } catch (e) {}
+    return isAcc ? spiritSanctuaryViewModeAccount : spiritSanctuaryViewMode;
 }
 function spiritSanctuaryViewModeSet(ctx, m) {
-    if (ctx === 'account') spiritSanctuaryViewModeAccount = m;
-    else spiritSanctuaryViewMode = m;
+    if (ctx === 'account') {
+        spiritSanctuaryViewModeAccount = m;
+        try { localStorage.setItem(SPIRIT_SAN_VIEW_KEY_ACCOUNT, String(m || 'list')); } catch (e1) {}
+    } else {
+        spiritSanctuaryViewMode = m;
+        try { localStorage.setItem(SPIRIT_SAN_VIEW_KEY_PUBLIC, String(m || 'list')); } catch (e2) {}
+    }
 }
 async function spiritStorageUploadPublic(bucket, path, file) {
     if (typeof _spirit === 'undefined' || !_spirit) throw new Error('Supabase indisponible');
@@ -6813,6 +7121,7 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     spiritPublicApplyBadgesFromRow(row);
     await spiritPublicLoadIaScore(spiritPublicViewUserId, row);
     try { await spiritPublicRefreshFollowButton(); } catch (eBtn) {}
+    try { await spiritPublicRefreshSocialStats(spiritPublicViewUserId); } catch (eSoc) {}
     spiritPublicWireAvatarOnce();
     await spiritPublicLoadAnnonces(spiritPublicViewUserId);
     spiritPublicSetTab(opts.sanctuary ? 'sanctuary' : 'annonces');
@@ -7192,8 +7501,61 @@ async function spiritSanctuaryRender(ctx) {
         add.onclick = function () { document.getElementById(d.file).click(); };
         grid.appendChild(add);
     }
+    try { await spiritSanctuaryLoadSocialCache(uid, items.map(function (x) { return x && x.id; }), me); } catch (eSocLoad) {}
     var listLike = vm === 'list' || vm === 'details';
     var neonOpts = [['#ff6600', 'Orange Spirit'], ['#00ff88', 'Vert'], ['#00ccff', 'Cyan'], ['#ff00aa', 'Magenta'], ['#ffffff', 'Blanc'], ['#ffcc00', 'Or']];
+    function spiritSanctuaryBuildSocialUi(itemId, ownerId, actorId) {
+        var likes = spiritSanctuaryLikeUsers(itemId);
+        var comments = spiritSanctuaryComments(itemId);
+        var likedByMe = likes.indexOf(String(actorId || '')) >= 0;
+        var overlay = document.createElement('div');
+        overlay.style.cssText = 'position:absolute;left:6px;right:6px;bottom:6px;display:flex;gap:6px;z-index:6;';
+        var bLike = document.createElement('button');
+        bLike.type = 'button';
+        bLike.style.cssText = 'flex:1;padding:5px 8px;background:rgba(0,0,0,0.6);border:1px solid ' + (likedByMe ? '#ff4d8f' : '#444') + ';color:' + (likedByMe ? '#ff86b0' : '#ddd') + ';font-size:0.62rem;cursor:pointer;';
+        bLike.textContent = '♥ ' + likes.length;
+        bLike.title = 'J’aime';
+        bLike.onclick = async function (e) {
+            e.stopPropagation();
+            if (!actorId) { alert('Connecte-toi pour liker.'); return; }
+            await spiritSanctuaryToggleLike(ownerId, itemId, actorId);
+            if (String(actorId) !== String(ownerId)) spiritSanctuaryRefreshMessagesDot();
+            void spiritSanctuaryRender(ctx);
+            try { if (ctx === 'public') void spiritPublicRefreshSocialStats(ownerId); } catch (e0) {}
+        };
+        var bCom = document.createElement('button');
+        bCom.type = 'button';
+        bCom.style.cssText = 'padding:5px 8px;min-width:62px;background:rgba(0,0,0,0.6);border:1px solid #444;color:#ddd;font-size:0.62rem;cursor:pointer;';
+        bCom.textContent = '💬 ' + comments.length;
+        bCom.title = 'Commenter';
+        bCom.onclick = async function (e) {
+            e.stopPropagation();
+            if (!actorId) { alert('Connecte-toi pour commenter.'); return; }
+            var txt = window.prompt('Ton commentaire :', '');
+            if (txt == null) return;
+            txt = String(txt || '').trim();
+            if (!txt) return;
+            await spiritSanctuaryAddComment(ownerId, itemId, actorId, txt);
+            if (String(actorId) !== String(ownerId)) spiritSanctuaryRefreshMessagesDot();
+            void spiritSanctuaryRender(ctx);
+            try { if (ctx === 'public') void spiritPublicRefreshSocialStats(ownerId); } catch (e1) {}
+        };
+        overlay.appendChild(bLike);
+        overlay.appendChild(bCom);
+        var commentsWrap = document.createElement('div');
+        commentsWrap.style.cssText = 'margin-top:6px;font-size:0.62rem;color:#8e8e8e;line-height:1.3;';
+        if (comments.length) {
+            var last = comments.slice(-2);
+            commentsWrap.innerHTML = last.map(function (c) {
+                var who = String((c && (c.label || c.uid)) || 'User').replace(/</g, '&lt;');
+                var tx = String((c && c.text) || '').replace(/</g, '&lt;');
+                return '<div><span style="color:#79d6ff;">' + who + ':</span> ' + tx + '</div>';
+            }).join('');
+        } else {
+            commentsWrap.textContent = 'Aucun commentaire.';
+        }
+        return { overlay: overlay, commentsWrap: commentsWrap };
+    }
     function spiritSanctuaryFillNeonSelect(stSel, curNeon) {
         neonOpts.forEach(function (opt) {
             var o = document.createElement('option');
@@ -7233,6 +7595,8 @@ async function spiritSanctuaryRender(ctx) {
             if (it && it.src) spiritSanctuaryLightboxOpen(sanctuaryImageSrcs, idx);
         });
         wrap.appendChild(img);
+        var socialUi = spiritSanctuaryBuildSocialUi(rowId, uid, me);
+        wrap.appendChild(socialUi.overlay);
         // (Loupe supprimée) => on ouvre directement la photo en plein écran au clic.
         var btnDel = null;
         if (listLike) {
@@ -7280,6 +7644,11 @@ async function spiritSanctuaryRender(ctx) {
             };
             meta.appendChild(document.createTextNode('Œuvre #' + (idx + 1)));
             meta.appendChild(inp);
+            var descSaved = document.createElement('div');
+            descSaved.style.cssText = 'margin-top:6px;font-size:0.65rem;color:#9ca3af;word-break:break-word;';
+            descSaved.textContent = String(it.desc || '').trim() || 'Aucune description.';
+            meta.appendChild(descSaved);
+            meta.appendChild(socialUi.commentsWrap);
             var styleRow = document.createElement('div');
             styleRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
             var stLab = document.createElement('span');
@@ -7390,12 +7759,17 @@ async function spiritSanctuaryRender(ctx) {
 
             var descEl = document.createElement('div');
             descEl.className = 'spirit-san-icons-desc';
-            descEl.textContent = String(it.desc || '').trim();
+            descEl.textContent = String(it.desc || '').trim() || 'Aucune description.';
             cell.appendChild(descEl);
+            cell.appendChild(socialUi.commentsWrap);
 
             grid.appendChild(cell);
         }
     });
+    try {
+        if (ctx === 'public') void spiritPublicRefreshSocialStats(uid);
+        spiritSanctuaryRefreshMessagesDot();
+    } catch (eRef) {}
 }
 function spiritSanctuaryBindFileInput(ctx) {
     var key = '_bound_' + ctx;
@@ -8688,6 +9062,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { spiritSanctuaryStartPoll(); } catch (e) {}
     try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR0) {}
     try { if (typeof spiritRenderShippingAddressForm === 'function') spiritRenderShippingAddressForm(); } catch (eA0) {}
+    try { if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot(); } catch (eMsg0) {}
     try {
         var fm = document.getElementById('spiritFriendsModal');
         if (fm) fm.addEventListener('click', function (ev) { if (ev.target === fm) spiritCloseFriendsModal(); });
