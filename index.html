@@ -6799,9 +6799,7 @@ async function spiritPublicLoadAnnonces(uid) {
         div.onmouseenter = function () { div.style.borderColor = '#ff4500'; };
         div.onmouseleave = function () { div.style.borderColor = '#333'; };
         div.style.cursor = 'pointer';
-        div.addEventListener('click', function () {
-            void spiritPublicOpenAnnonce(p);
-        });
+        div.addEventListener('click', function () { void spiritPublicOpenAnnonce(p); });
         var urls = (typeof spiritImageUrlList === 'function') ? spiritImageUrlList(p) : [];
         if (urls[0]) {
             var im = document.createElement('img');
@@ -6816,10 +6814,12 @@ async function spiritPublicLoadAnnonces(uid) {
             div.appendChild(im);
         }
         var info = document.createElement('div');
+        var pidSafe = String((p && p.id != null) ? p.id : '').replace(/'/g, '&#39;');
+        var uuidSafe = String((p && p.uuid != null) ? p.uuid : '').replace(/'/g, '&#39;');
         info.innerHTML = '<div style="font-weight:800;color:#fff;font-size:0.8rem;">' + t + '</div>' +
             '<div style="color:var(--neon-orange);font-size:0.85rem;">' + price.toFixed(2) + ' EUR</div>' +
             (sold ? '<span style="color:#e22;font-size:0.65rem;font-weight:800;">VENDU</span>' : '<span style="color:#696;font-size:0.65rem;">DISPONIBLE</span>') +
-            '<div style="margin-top:8px;"><button type="button" class="btn-action spirit-public-open-btn" style="font-size:0.58rem;padding:7px 10px;">VOIR L’ANNONCE</button></div>';
+            '<div style="margin-top:8px;"><button type="button" class="btn-action spirit-public-open-btn" style="font-size:0.58rem;padding:7px 10px;" onclick="event.stopPropagation();window.spiritPublicOpenAnnonce(\'' + pidSafe + '\',\'' + uuidSafe + '\')">VOIR L’ANNONCE</button></div>';
         try {
             var openBtn = info.querySelector('.spirit-public-open-btn');
             if (openBtn) openBtn.addEventListener('click', function (ev) {
@@ -6950,6 +6950,7 @@ async function spiritPublicOpenAnnonce(rowOrPid, puid) {
         alert("Erreur ouverture annonce : " + (e && e.message ? e.message : e));
     }
 }
+try { if (typeof window !== 'undefined') window.spiritPublicOpenAnnonce = spiritPublicOpenAnnonce; } catch (eWPubOpen) {}
 function spiritStoragePublicUrlToObjectPath(bucket, publicUrl) {
     try {
         publicUrl = String(publicUrl || '');
