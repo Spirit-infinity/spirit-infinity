@@ -4775,24 +4775,30 @@ async function enregistrerVente(method) {
     try {
         console.log("[SPIRIT LEDGER] Écriture dans les colonnes Supabase...");
         
-        const { data, error } = await _spirit
-            .from('transactions')
-            .insert([{
-                // Supabase: `amount` est `numeric` => envoi sous forme de nombre
-                amount: Number(totalAcheteur),
-                // IDs texte : on conserve UUID ou numérique (sinon fallback sécurisé)
-                buyer_id: buyerIdTxt || String(MY_TEST_ID || '').trim() || '12345',
-                seller_id: sellerIdTxt || '67890',
-                // Colonnes `numeric` => envoi numérique explicite
-                user_profit: Number(uProfit),
-                firm_profit: Number(fProfit),
-                bank_share: Number(bShare),
-                status: 'SÉQUESTRE ACTIF', 
-                figurine_name: selectedProduct.title || selectedProduct.name || 'Produit',
-                currency: 'EUR',
-            }]);
-
-        if (error) throw error;
+        // Règle business vendeur: amount = prix annonce (hors protection et hors livraison).
+        var txBase = {
+            amount: Number(prixFigurine),
+            buyer_id: buyerIdTxt || String(MY_TEST_ID || '').trim() || '12345',
+            seller_id: sellerIdTxt || '67890',
+            user_profit: Number(uProfit),
+            firm_profit: Number(fProfit),
+            bank_share: Number(bShare),
+            status: 'SÉQUESTRE ACTIF',
+            figurine_name: selectedProduct.title || selectedProduct.name || 'Produit',
+            currency: 'EUR'
+        };
+        // Colonnes optionnelles (à créer côté Supabase): shipping_amount, protection_fee, buyer_total.
+        var txRich = Object.assign({}, txBase, {
+            shipping_amount: Number(fraisLivraison),
+            protection_fee: Number(protectionTotale),
+            buyer_total: Number(totalAcheteur)
+        });
+        var ins = await _spirit.from('transactions').insert([txRich]);
+        if (ins && ins.error) {
+            // Compatibilité schéma: si colonnes optionnelles absentes, retomber sur txBase.
+            ins = await _spirit.from('transactions').insert([txBase]);
+        }
+        if (ins && ins.error) throw ins.error;
 
         let figSoldErr = null;
         const hasFigId = selectedProduct.id != null && String(selectedProduct.id).trim() !== '';
