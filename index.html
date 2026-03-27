@@ -6597,10 +6597,17 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      created_at timestamptz default now()
    );
    create index if not exists idx_spirit_san_notif_owner on public.spirit_sanctuary_notifications(owner_id, is_read, created_at desc);
-   -- Exemple RLS notifications (ajuster si déjà créé) : suppression par le propriétaire (croix Messages)
+   -- RLS notifications : l’acteur (like/comment) doit pouvoir INSÉRER une ligne où owner_id = le proprio de la photo.
+   -- Sans policy INSERT adaptée, les alertes restent vides côté client (l’app affiche alors un repli via likes/comments).
    -- alter table public.spirit_sanctuary_notifications enable row level security;
+   -- drop policy if exists "san_notif_select_own" on public.spirit_sanctuary_notifications;
+   -- create policy "san_notif_select_own" on public.spirit_sanctuary_notifications for select using (auth.uid()::text = owner_id);
+   -- drop policy if exists "san_notif_insert_actor" on public.spirit_sanctuary_notifications;
+   -- create policy "san_notif_insert_actor" on public.spirit_sanctuary_notifications for insert to authenticated with check (from_uid = auth.uid()::text);
    -- drop policy if exists "san_notif_delete_own" on public.spirit_sanctuary_notifications;
    -- create policy "san_notif_delete_own" on public.spirit_sanctuary_notifications for delete using (auth.uid()::text = owner_id);
+   -- drop policy if exists "san_notif_update_own" on public.spirit_sanctuary_notifications;
+   -- create policy "san_notif_update_own" on public.spirit_sanctuary_notifications for update using (auth.uid()::text = owner_id);
    Buckets Storage publics : "avatars", "sanctuary" (ou ajuster les noms dans le code).
    --------------------------------------------------------------------------- */
 var spiritPublicViewUserId = null;
@@ -6700,8 +6707,8 @@ async function spiritSanctuaryLoadSocialCache(ownerId, itemIds, viewerId) {
     return spiritSanctuarySocialCache;
 }
 async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
-    ownerId = String(ownerId || '').trim();
-    fromUid = String(fromUid || '').trim();
+    ownerId = String(ownerId || '').trim().toLowerCase();
+    fromUid = String(fromUid || '').trim().toLowerCase();
     if (!ownerId || !fromUid || ownerId === fromUid || !spiritSanSocialCanUseSupabase()) return;
     if (spiritSanNotifsTableMissing) return;
     try {
@@ -6722,28 +6729,47 @@ async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
         if (!spiritSanNotifsTableMissing) spiritSanSocialHandleSupabaseError(e);
     }
 }
+function spiritSanctuaryActivityUnreadSince(feed, sinceTs) {
+    var now = Date.now();
+    var floor = sinceTs > 0 ? sinceTs : (now - 72 * 3600000);
+    var n = 0;
+    (feed || []).forEach(function (r) {
+        var t = new Date(r && r.created_at ? r.created_at : 0).getTime();
+        if (Number.isFinite(t) && t > floor && t <= now) n++;
+    });
+    return n;
+}
 function spiritSanctuaryRefreshMessagesDot() {
     var uid = '';
-    try { uid = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim(); } catch (e) {}
+    try { uid = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : (typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim()); } catch (e) {}
     var dot = document.getElementById('messages-tab-dot');
     if (!dot) return;
     if (!uid || !spiritSanSocialCanUseSupabase()) { dot.style.display = 'none'; return; }
-    if (spiritSanNotifsTableMissing) { dot.style.display = 'none'; return; }
     void (async function () {
         var c = 0;
-        try {
-            var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).eq('owner_id', uid).eq('is_read', false);
-            if (q && q.error) {
-                spiritSanNotifsMarkMissingIf404(q.error);
-                dot.style.display = 'none';
-                return;
+        var notifErr = false;
+        if (!spiritSanNotifsTableMissing) {
+            try {
+                var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).eq('owner_id', uid).eq('is_read', false);
+                if (q && q.error) {
+                    spiritSanNotifsMarkMissingIf404(q.error);
+                    notifErr = true;
+                } else {
+                    c = Number((q && q.count) || 0);
+                }
+            } catch (eCount) {
+                spiritSanNotifsMarkMissingIf404(eCount);
+                notifErr = true;
             }
-            c = Number((q && q.count) || 0);
-        } catch (eCount) {
-            c = 0;
-            spiritSanNotifsMarkMissingIf404(eCount);
-            dot.style.display = 'none';
         }
+        try {
+            var feed = await spiritSanctuaryFetchSocialActivityFeed(uid);
+            var since = spiritSanctuaryGetActivityLastSeenTs();
+            var aUn = spiritSanctuaryActivityUnreadSince(feed, since);
+            if (notifErr || spiritSanNotifsTableMissing) c = aUn;
+            else if (c > 0) { /* garde le compteur notifs */ }
+            else c = aUn;
+        } catch (eFeed) { /* ignore */ }
         dot.style.display = c > 0 ? 'inline-block' : 'none';
         if (c > 0 && c > Number(spiritSanctuaryLastUnreadMsgCount || 0) && typeof spiritSanctuaryShowToast === 'function') {
             spiritSanctuaryShowToast('Sanctuaire', c + ' nouvelle(s) alerte(s) likes/commentaires.');
@@ -6764,9 +6790,9 @@ function spiritSanctuaryComments(itemId) {
     return Array.isArray(arr) ? arr : [];
 }
 async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
-    ownerId = String(ownerId || '').trim();
+    ownerId = String(ownerId || '').trim().toLowerCase();
     itemId = String(itemId || '').trim();
-    actorUid = String(actorUid || '').trim();
+    actorUid = String(actorUid || '').trim().toLowerCase();
     if (!itemId || !actorUid || !spiritSanSocialCanUseSupabase()) return false;
     var was = !!spiritSanctuarySocialCache.myLikes[itemId];
     try {
@@ -6796,9 +6822,9 @@ async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
     return !was;
 }
 async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
-    ownerId = String(ownerId || '').trim();
+    ownerId = String(ownerId || '').trim().toLowerCase();
     itemId = String(itemId || '').trim();
-    actorUid = String(actorUid || '').trim();
+    actorUid = String(actorUid || '').trim().toLowerCase();
     text = String(text || '').trim();
     if (!itemId || !actorUid || !text || !spiritSanSocialCanUseSupabase()) return false;
     try {
@@ -6829,12 +6855,111 @@ function spiritFollowGetCurrentUid() {
     try {
         var uid = spiritOwnerId(spiritGetCurrentUserId());
         uid = String(uid || '').trim();
-        return spiritIsUuid(uid) ? uid : '';
+        return spiritIsUuid(uid) ? uid.toLowerCase() : '';
     } catch (e) { return ''; }
 }
 /** UUID session pour likes / commentaires / notifs (via spiritGetCurrentUserId, pas seulement MY_TEST_ID). */
 function spiritSocialActorUid() {
     try { return spiritFollowGetCurrentUid(); } catch (e) { return ''; }
+}
+/** Même identifiant que les colonnes owner_id (likes/comments/notifs) — minuscules pour PostgREST. */
+function spiritMessagingOwnerUid() {
+    return spiritSocialActorUid();
+}
+var SPIRIT_SAN_LAST_SEEN_LS = 'spirit_san_msg_activity_last_seen_ts';
+function spiritSanctuaryGetActivityLastSeenTs() {
+    try {
+        var t = parseInt(localStorage.getItem(SPIRIT_SAN_LAST_SEEN_LS) || '0', 10);
+        return Number.isFinite(t) && t > 0 ? t : 0;
+    } catch (e) { return 0; }
+}
+function spiritSanctuarySetActivityLastSeenNow() {
+    try { localStorage.setItem(SPIRIT_SAN_LAST_SEEN_LS, String(Date.now())); } catch (e) {}
+}
+function spiritSanctuaryActivityDedupeKey(n) {
+    var t = new Date(n && n.created_at ? n.created_at : 0).getTime();
+    if (!Number.isFinite(t)) t = 0;
+    t = Math.floor(t / 60000);
+    return String((n && n.type) || '') + '|' + String((n && n.item_id) || '') + '|' + String((n && n.from_uid) || '') + '|' + String(t);
+}
+async function spiritSanctuaryFetchSocialActivityFeed(me) {
+    me = String(me || '').trim().toLowerCase();
+    var out = [];
+    if (!me || !_spirit || !spiritSanSocialCanUseSupabase()) return out;
+    try {
+        var lk = await _spirit.from(SPIRIT_SAN_LIKES_TABLE)
+            .select('item_id,user_id,user_label,created_at')
+            .eq('owner_id', me)
+            .neq('user_id', me)
+            .order('created_at', { ascending: false })
+            .limit(120);
+        if (!lk.error && Array.isArray(lk.data)) {
+            lk.data.forEach(function (r) {
+                out.push({
+                    id: null,
+                    synthetic: true,
+                    owner_id: me,
+                    type: 'like',
+                    item_id: String((r && r.item_id) || ''),
+                    from_uid: String((r && r.user_id) || '').trim().toLowerCase(),
+                    text: 'a aimé ta photo',
+                    created_at: r.created_at,
+                    is_read: false
+                });
+            });
+        }
+    } catch (eLk) { spiritSanSocialHandleSupabaseError(eLk); }
+    try {
+        var cm = await _spirit.from(SPIRIT_SAN_COMMENTS_TABLE)
+            .select('id,item_id,user_id,user_label,comment_text,created_at')
+            .eq('owner_id', me)
+            .neq('user_id', me)
+            .order('created_at', { ascending: false })
+            .limit(120);
+        if (!cm.error && Array.isArray(cm.data)) {
+            cm.data.forEach(function (r) {
+                var snippet = String((r && r.comment_text) || '').trim();
+                if (snippet.length > 120) snippet = snippet.slice(0, 117) + '…';
+                out.push({
+                    id: null,
+                    synthetic: true,
+                    row_comment_id: r.id,
+                    owner_id: me,
+                    type: 'comment',
+                    item_id: String((r && r.item_id) || ''),
+                    from_uid: String((r && r.user_id) || '').trim().toLowerCase(),
+                    text: 'a commenté : ' + snippet,
+                    created_at: r.created_at,
+                    is_read: false
+                });
+            });
+        }
+    } catch (eCm) { spiritSanSocialHandleSupabaseError(eCm); }
+    out.sort(function (a, b) {
+        return (new Date(b.created_at || 0).getTime()) - (new Date(a.created_at || 0).getTime());
+    });
+    return out;
+}
+function spiritSanctuaryMergeNotifRows(dbRows, synRows) {
+    var merged = [];
+    var seen = Object.create(null);
+    (dbRows || []).forEach(function (n) {
+        if (!n) return;
+        seen['id:' + String(n.id)] = true;
+        seen[spiritSanctuaryActivityDedupeKey(n)] = true;
+        merged.push(n);
+    });
+    (synRows || []).forEach(function (n) {
+        if (!n) return;
+        var dk = spiritSanctuaryActivityDedupeKey(n);
+        if (seen[dk]) return;
+        seen[dk] = true;
+        merged.push(n);
+    });
+    merged.sort(function (a, b) {
+        return (new Date(b.created_at || 0).getTime()) - (new Date(a.created_at || 0).getTime());
+    });
+    return merged;
 }
 async function spiritFollowFetchRows(uid) {
     uid = String(uid || '').trim();
@@ -6992,7 +7117,7 @@ function spiritLoadMessagesTab() {
     var box = document.getElementById('spiritMessagesList');
     if (!box) return;
     var me = '';
-    try { me = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim(); } catch (e) {}
+    try { me = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : (typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim()); } catch (e) {}
     if (!me) {
         box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Connecte-toi pour voir tes messages.</div>';
         return;
@@ -7003,64 +7128,71 @@ function spiritLoadMessagesTab() {
     }
     box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Chargement des alertes...</div>';
     void (async function () {
-        if (spiritSanNotifsTableMissing) {
-            box.innerHTML = '<div style="font-size:0.68rem;color:#b85;line-height:1.45;">La table <code style="color:#fa0;">spirit_sanctuary_notifications</code> n’existe pas encore dans Supabase (erreur 404). Dans l’éditeur SQL du projet, exécute le bloc <b>create table … spirit_sanctuary_notifications</b> présent en tête de ce fichier (section SQL commentée), puis recharge la page.</div>';
-            return;
-        }
         var rows = [];
-        try {
-            var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
-                .select('id,owner_id,type,item_id,from_uid,text,created_at,is_read')
-                .eq('owner_id', me)
-                .order('created_at', { ascending: false })
-                .range(0, 200);
-            if (q && q.error) {
-                spiritSanNotifsMarkMissingIf404(q.error);
-                if (spiritSanNotifsTableMissing) {
-                    box.innerHTML = '<div style="font-size:0.68rem;color:#b85;line-height:1.45;">La table des notifications Sanctuaire est introuvable (404). Crée <code style="color:#fa0;">public.spirit_sanctuary_notifications</code> dans Supabase (voir SQL en commentaire en haut du fichier), puis recharge.</div>';
-                    return;
+        var dbOk = true;
+        if (!spiritSanNotifsTableMissing) {
+            try {
+                var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
+                    .select('id,owner_id,type,item_id,from_uid,text,created_at,is_read')
+                    .eq('owner_id', me)
+                    .order('created_at', { ascending: false })
+                    .range(0, 200);
+                if (q && q.error) {
+                    spiritSanNotifsMarkMissingIf404(q.error);
+                    dbOk = !spiritSanNotifsTableMissing;
                 }
+                if (!q.error && Array.isArray(q.data)) rows = q.data;
+            } catch (eQ) {
+                spiritSanNotifsMarkMissingIf404(eQ);
+                dbOk = !spiritSanNotifsTableMissing;
+                spiritSanSocialHandleSupabaseError(eQ);
             }
-            if (!q.error && Array.isArray(q.data)) rows = q.data;
-        } catch (eQ) {
-            spiritSanNotifsMarkMissingIf404(eQ);
-            if (spiritSanNotifsTableMissing) {
-                box.innerHTML = '<div style="font-size:0.68rem;color:#b85;">Notifications : table absente (404). Crée-la dans Supabase puis recharge.</div>';
-                return;
-            }
-            spiritSanSocialHandleSupabaseError(eQ);
+        } else {
+            dbOk = false;
         }
-        if (!rows.length) {
-            box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Aucune alerte pour le moment.</div>';
+        var syn = [];
+        try { syn = await spiritSanctuaryFetchSocialActivityFeed(me); } catch (eSyn) {}
+        var merged = spiritSanctuaryMergeNotifRows(rows, syn);
+        if (!merged.length) {
+            var hint = '';
+            if (!dbOk || spiritSanNotifsTableMissing) {
+                hint = '<div style="font-size:0.62rem;color:#666;margin-top:8px;line-height:1.4;">Astuce : si la table <code style="color:#fa0;">spirit_sanctuary_notifications</code> manque ou les politiques RLS bloquent les insert, les alertes ci-dessus proviennent directement des likes et commentaires. Exécute le SQL du fichier et les policies <b>san_notif_*</b> (commentaires dans le bloc SQL).</div>';
+            }
+            box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Aucune alerte pour le moment.</div>' + hint;
         } else {
             var uidList = [];
-            rows.forEach(function (n) {
+            merged.forEach(function (n) {
                 var u = String(n.from_uid || '').trim();
                 if (u && uidList.indexOf(u) < 0) uidList.push(u);
             });
             var fromMap = await spiritSanctuaryResolvePseudoMap(uidList);
-            box.innerHTML = rows.map(function (n) {
+            box.innerHTML = merged.map(function (n) {
                 var uidFrom = String(n.from_uid || '').trim();
                 var from = fromMap[uidFrom] || spiritSanctuaryFallbackLabel(uidFrom);
                 var dt = n.created_at ? new Date(n.created_at).toLocaleString() : '—';
                 var txt = String(n.text || 'Nouvelle activité');
+                var synTag = n.synthetic ? '<span style="font-size:0.55rem;color:#666;margin-left:6px;">(activité)</span>' : '';
                 var nid = Number(n.id);
-                var idStr = Number.isFinite(nid) ? String(nid) : '0';
+                var idStr = Number.isFinite(nid) && nid > 0 ? String(nid) : '0';
+                var delBtn = (!n.synthetic && idStr !== '0')
+                    ? '<button type="button" title="Supprimer" style="width:26px;height:26px;border:1px solid #633;background:#1a1012;color:#f88;cursor:pointer;font-size:0.75rem;line-height:1;border-radius:3px;padding:0;" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>'
+                    : '';
                 return '<div style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;border-radius:4px;">' +
                     '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">' +
                     '<div style="flex:1;min-width:0;font-size:0.7rem;color:#ddd;">' +
-                    '<b style="color:#7fe7ff;">' + String(from).replace(/</g, '&lt;') + '</b> ' + String(txt).replace(/</g, '&lt;') +
+                    '<b style="color:#7fe7ff;">' + String(from).replace(/</g, '&lt;') + '</b> ' + String(txt).replace(/</g, '&lt;') + synTag +
                     '</div>' +
                     '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
                     '<span style="font-size:0.6rem;color:#777;white-space:nowrap;">' + dt + '</span>' +
-                    '<button type="button" title="Supprimer" style="width:26px;height:26px;border:1px solid #633;background:#1a1012;color:#f88;cursor:pointer;font-size:0.75rem;line-height:1;border-radius:3px;padding:0;" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>' +
+                    delBtn +
                     '</div></div></div>';
             }).join('');
         }
         try {
-            var unreadIds = rows.filter(function (r) { return !r.is_read; }).map(function (r) { return r.id; });
-            if (unreadIds.length) await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).update({ is_read: true }).in('id', unreadIds);
+            var unreadIds = rows.filter(function (r) { return r && !r.is_read && r.id != null; }).map(function (r) { return r.id; });
+            if (unreadIds.length && !spiritSanNotifsTableMissing) await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).update({ is_read: true }).in('id', unreadIds);
         } catch (eU) { spiritSanSocialHandleSupabaseError(eU); }
+        try { spiritSanctuarySetActivityLastSeenNow(); } catch (eLs) {}
         spiritSanctuaryRefreshMessagesDot();
     })();
 }
@@ -7386,7 +7518,13 @@ function spiritSanctuaryCollectLocalForUser(me) {
 }
 function spiritSanctuaryUid(ctx) {
     if (ctx === 'account') {
-        return (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : null;
+        var acc = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+        if (!acc) return null;
+        return spiritIsUuid(acc) ? acc.toLowerCase() : acc;
+    }
+    if (spiritPublicViewUserId != null && String(spiritPublicViewUserId).trim() !== '') {
+        var pv = String(spiritPublicViewUserId).trim();
+        return spiritIsUuid(pv) ? pv.toLowerCase() : pv;
     }
     return spiritPublicViewUserId;
 }
