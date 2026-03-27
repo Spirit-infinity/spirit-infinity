@@ -7347,7 +7347,7 @@ async function spiritSanctuarySendChat(ctx) {
                 spiritSanctuarySetActivePeer(ctx, targetUid);
             }
         }
-        else if (String(targetUid) === String(me)) {
+        if (String(targetUid) === String(me)) {
             alert('Choisis une conversation pour répondre.');
             return;
         }
