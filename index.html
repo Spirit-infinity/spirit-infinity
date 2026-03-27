@@ -185,12 +185,33 @@
         .title { font-size: 0.85rem; color: #ccc; margin-bottom: 0; height: 35px; overflow: hidden; }
         .legende { font-size: 0.7rem; color: var(--text-gray); border-top: 1px solid #222; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top:auto; }
         .badge { position: static; display:inline-block; align-self:flex-start; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; margin-top:6px; }
-        .market-toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin: 8px 0 16px 0; flex-wrap:wrap; }
-        .market-view-box { margin-left:auto; display:flex; align-items:center; gap:8px; color:#777; font-size:0.75rem; flex-wrap:wrap; }
-        .market-view-box select { background:#0b0b0b; color:#fff; border:1px solid #ff6600; padding:8px 12px; border-radius:4px; flex-shrink:0; }
-        /* Évite la coupure du mot « Galerie » dans le sélecteur Vue */
-        #marketViewSelect { min-width: 8.75rem; max-width: 100%; }
-        #marketCurrencySelect { min-width: 4.5rem; }
+        .market-toolbar { display:flex; justify-content:flex-end; align-items:center; gap:12px; margin: 6px 0 12px 0; flex-wrap:nowrap; }
+        /* Vue + Devise compacts, une seule ligne */
+        .market-view-box {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #777;
+            font-size: 0.65rem;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        .market-view-box select {
+            background: #0b0b0b;
+            color: #fff;
+            border: 1px solid #ff6600;
+            padding: 3px 7px;
+            border-radius: 3px;
+            flex-shrink: 0;
+            font-size: 0.62rem;
+            line-height: 1.25;
+            vertical-align: middle;
+        }
+        /* Assez large pour « Galerie » sans boîte disproportionnée */
+        #marketViewSelect { min-width: 6.1rem; max-width: 10rem; }
+        #marketCurrencySelect { min-width: 3.1rem; }
         .market-fee-note { font-size:0.62rem; color:#9a9a9a; margin-top:4px; }
         .market-fee-note.high { color:#ff9b7a; }
         /* Certif modal compact to reduce scrolling */
@@ -1283,7 +1304,7 @@
                     </select>
                 </div>
                 <div class="statues-grid-wrap">
-                    <div class="cat-title market-title" data-i18n="market_statues_title">MARKET STATUES</div>
+                    <div class="cat-title market-title spirit-market-brand-title" data-i18n="market_statues_title">MARKET STATUES</div>
                     <div class="grid-layout" id="marketGridStatues"></div>
                     <div id="spiritMarketPagerStatues" class="spirit-market-pager" style="display:none;">
                         <button type="button" id="spiritMarketLoadMoreSta" class="btn-action btn-load-more" onclick="spiritMarketLoadMore()" data-key="btn_load_more">Charger plus</button>
