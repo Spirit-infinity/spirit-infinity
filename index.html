@@ -6800,13 +6800,7 @@ async function spiritPublicLoadAnnonces(uid) {
         div.onmouseleave = function () { div.style.borderColor = '#333'; };
         div.style.cursor = 'pointer';
         div.addEventListener('click', function () {
-            try {
-                // Ouverture fiable: objet complet d'abord.
-                if (typeof openProduct === 'function') { void openProduct(Object.assign({}, p)); return; }
-                var pid = (p && p.id != null) ? p.id : null;
-                var puid = (p && p.uuid != null) ? p.uuid : null;
-                void spiritPublicOpenAnnonce(pid, puid);
-            } catch (e) {}
+            void spiritPublicOpenAnnonce(p);
         });
         var urls = (typeof spiritImageUrlList === 'function') ? spiritImageUrlList(p) : [];
         if (urls[0]) {
@@ -6830,10 +6824,7 @@ async function spiritPublicLoadAnnonces(uid) {
             var openBtn = info.querySelector('.spirit-public-open-btn');
             if (openBtn) openBtn.addEventListener('click', function (ev) {
                 try { ev.preventDefault(); ev.stopPropagation(); } catch (e0) {}
-                if (typeof openProduct === 'function') { void openProduct(Object.assign({}, p)); return; }
-                var pid = (p && p.id != null) ? p.id : null;
-                var puid = (p && p.uuid != null) ? p.uuid : null;
-                void spiritPublicOpenAnnonce(pid, puid);
+                void spiritPublicOpenAnnonce(p);
             });
         } catch (eBtn) {}
         div.appendChild(info);
@@ -6928,27 +6919,36 @@ function spiritSanctuarySetView(mode, ctx) {
     });
     void spiritSanctuaryRender(ctx);
 }
-async function spiritPublicOpenAnnonce(pid, puid) {
+async function spiritPublicOpenAnnonce(rowOrPid, puid) {
+    var row = (rowOrPid && typeof rowOrPid === 'object') ? Object.assign({}, rowOrPid) : null;
+    var pid = row ? row.id : rowOrPid;
+    var uid = row ? row.uuid : puid;
     try {
-        // Ouvre toujours l'annonce dans le contexte Marketplace principal.
+        // Ouvre l'annonce dans le contexte Marketplace principal.
         try {
             if (typeof spiritExitPublicProfile === 'function') spiritExitPublicProfile();
             if (typeof navigateTo === 'function') navigateTo('market');
             else if (typeof window !== 'undefined' && typeof window.navigateTo === 'function') window.navigateTo('market');
         } catch (eNav) {}
 
-        // 1) Ouvrir depuis l'objet complet si possible (le plus fiable).
-        if (typeof _spirit !== 'undefined' && _spirit) {
+        // Petit délai pour laisser la navigation se stabiliser avant d'ouvrir la fiche.
+        await new Promise(function (resolve) { setTimeout(resolve, 120); });
+
+        if (!row && typeof _spirit !== 'undefined' && _spirit) {
             var q = null;
             if (pid != null && String(pid).trim() !== '') q = await _spirit.from('products_live').select('*').eq('id', pid).maybeSingle();
-            else if (puid != null && String(puid).trim() !== '') q = await _spirit.from('products_live').select('*').eq('uuid', String(puid)).maybeSingle();
-            if (q && !q.error && q.data && typeof openProduct === 'function') { await openProduct(q.data); return; }
-            if (q && !q.error && q.data && typeof showProductDetails === 'function') { void showProductDetails(q.data.id != null ? q.data.id : pid); return; }
+            else if (uid != null && String(uid).trim() !== '') q = await _spirit.from('products_live').select('*').eq('uuid', String(uid)).maybeSingle();
+            if (q && !q.error && q.data) row = q.data;
         }
-        // 2) Fallback ID
-        if (typeof showProductDetails === 'function') { void showProductDetails(pid != null ? pid : puid); return; }
-        if (typeof window !== 'undefined' && typeof window.showProductDetails === 'function') { void window.showProductDetails(pid != null ? pid : puid); return; }
-    } catch (e) {}
+
+        if (row && typeof openProduct === 'function') { await openProduct(row); return; }
+        if (pid != null && pid !== '' && typeof showProductDetails === 'function') { await showProductDetails(pid); return; }
+        if (pid != null && pid !== '' && typeof window !== 'undefined' && typeof window.showProductDetails === 'function') { await window.showProductDetails(pid); return; }
+
+        alert("Impossible d'ouvrir l'annonce (donnée introuvable).");
+    } catch (e) {
+        alert("Erreur ouverture annonce : " + (e && e.message ? e.message : e));
+    }
 }
 function spiritStoragePublicUrlToObjectPath(bucket, publicUrl) {
     try {
