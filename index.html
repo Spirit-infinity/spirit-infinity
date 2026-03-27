@@ -5414,6 +5414,7 @@ async function confirmPayment(method) {
         const bFig = document.getElementById('btn-kind-figurines');
         const bSta = document.getElementById('btn-kind-statues');
         const leftSidebar = document.querySelector('#marketplaceSection > .sidebar');
+        const marketToolbar = document.querySelector('#marketplaceSection .grid .market-toolbar');
         const marketTitle = document.querySelector('#marketplaceSection .grid > .market-title');
         const gridNative = document.getElementById('marketGridNative');
         const statuesView = document.getElementById('marketStatuesView');
@@ -5426,6 +5427,7 @@ async function confirmPayment(method) {
             });
         } catch (eSync) {}
         if (leftSidebar) leftSidebar.style.display = marketKindMode === 'statues' ? 'none' : '';
+        if (marketToolbar) marketToolbar.style.display = marketKindMode === 'statues' ? 'none' : '';
         if (marketTitle) marketTitle.style.display = marketKindMode === 'statues' ? 'none' : '';
         if (gridNative) gridNative.style.display = marketKindMode === 'statues' ? 'none' : '';
         if (statuesView) statuesView.style.display = marketKindMode === 'statues' ? 'block' : 'none';
