@@ -3231,6 +3231,32 @@ function spiritOfferFromFavoritesPrompt(productId, sellerId, originalPrice, curr
     void spiritSubmitProductOffer(pid, sellerId, amt, originalPrice, currency || 'EUR');
 }
 
+function spiritBuyerOfferHiddenKey(uid) {
+    return 'spirit_buyer_offers_hidden__' + String(uid || '');
+}
+function spiritBuyerOfferHiddenRead(uid) {
+    try {
+        var raw = localStorage.getItem(spiritBuyerOfferHiddenKey(uid)) || '[]';
+        var arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr.map(function (x) { return String(x || '').trim(); }).filter(Boolean) : [];
+    } catch (e) { return []; }
+}
+function spiritBuyerOfferHiddenWrite(uid, ids) {
+    try {
+        localStorage.setItem(spiritBuyerOfferHiddenKey(uid), JSON.stringify(Array.isArray(ids) ? ids : []));
+    } catch (e) {}
+}
+function spiritHideBuyerOfferHistory(offerId) {
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) return;
+    var id = String(offerId || '').trim();
+    if (!id) return;
+    var hidden = spiritBuyerOfferHiddenRead(uid);
+    if (hidden.indexOf(id) < 0) hidden.push(id);
+    spiritBuyerOfferHiddenWrite(uid, hidden);
+    try { if (typeof spiritLoadBuyerOffersSent === 'function') void spiritLoadBuyerOffersSent(); } catch (e) {}
+}
+
 async function spiritLoadBuyerOffersSent() {
     var box = document.getElementById('spiritBuyerOffersList');
     if (!box || !_spirit) return;
@@ -3252,6 +3278,8 @@ async function spiritLoadBuyerOffersSent() {
             return;
         }
         var rows = Array.isArray(out.data) ? out.data : [];
+        var hiddenIds = spiritBuyerOfferHiddenRead(uid);
+        rows = rows.filter(function (r) { return hiddenIds.indexOf(String((r && r.id) || '')) < 0; });
         if (rows.length === 0) {
             box.innerHTML = '<div style="font-size:0.65rem;color:#555;">Aucune offre envoyée pour l’instant.</div>';
             return;
@@ -3274,8 +3302,13 @@ async function spiritLoadBuyerOffersSent() {
                 var pseudoLbl = spiritDefaultLabelFromUid(sellerUid);
                 var div = document.createElement('div');
                 div.style.cssText = 'background:#050808;border:1px solid #233;padding:10px;border-radius:4px;cursor:pointer;font-size:0.68rem;color:#ccc;';
+                var canHide = (st === 'accepted' || st === 'rejected');
+                var offId = String((offer && offer.id) || '').replace(/'/g, '&#39;');
                 div.innerHTML =
-                    '<div style="font-weight:800;color:#9d9;margin-bottom:4px;">' + String(title).replace(/</g, '&lt;') + '</div>' +
+                    '<div style="display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:4px;">' +
+                    '<div style="font-weight:800;color:#9d9;">' + String(title).replace(/</g, '&lt;') + '</div>' +
+                    (canHide ? '<button type="button" class="spirit-off-hide" title="Supprimer de l’historique" style="width:24px;height:24px;border:1px solid #833;background:#180d10;color:#ff7a7a;cursor:pointer;font-weight:700;line-height:1;">✕</button>' : '') +
+                    '</div>' +
                     '<div>Vendeur : <span class="spirit-buyer-off-seller" style="color:var(--neon-orange);font-weight:700;">' + String(pseudoLbl).replace(/</g, '&lt;') + '</span> · Statut : ' + stLabel + '</div>' +
                     '<div style="margin-top:4px;">Prix annonce : ' + Number(offer.original_price || 0).toFixed(2) + ' ' + String(offer.currency || 'EUR') +
                     ' · Ton offre : <b style="color:#fff;">' + Number(offer.offer_amount || 0).toFixed(2) + '</b> ' + String(offer.currency || 'EUR') + '</div>';
@@ -3283,6 +3316,14 @@ async function spiritLoadBuyerOffersSent() {
                     var ovr = st === 'accepted' ? Number(offer.offer_amount) : null;
                     void showProductDetails(pid, ovr != null && Number.isFinite(ovr) ? { priceOverride: ovr } : {});
                 };
+                if (canHide) {
+                    var hideBtn = div.querySelector('.spirit-off-hide');
+                    if (hideBtn) hideBtn.onclick = function (ev) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        spiritHideBuyerOfferHistory(offId);
+                    };
+                }
                 box.appendChild(div);
                 void spiritFetchOwnerPseudo(sellerUid).then(function (name) {
                     var nm = String(name || '').trim();
@@ -3521,27 +3562,6 @@ async function spiritFetchOwnerPseudo(uid) {
                     }
                 } catch (e2) {}
 
-                // Fallback schéma alternatif : table `profiles`.
-                try {
-                    var out3 = await _spirit
-                        .from('profiles')
-                        .select('pseudo')
-                        .eq('id', uid.toString())
-                        .maybeSingle();
-                    if (out3 && !out3.error && out3.data && out3.data.pseudo != null) {
-                        return String(out3.data.pseudo).trim();
-                    }
-                } catch (e3) {}
-                try {
-                    var out4 = await _spirit
-                        .from('profiles')
-                        .select('pseudo')
-                        .eq('owner_id', uid.toString())
-                        .maybeSingle();
-                    if (out4 && !out4.error && out4.data && out4.data.pseudo != null) {
-                        return String(out4.data.pseudo).trim();
-                    }
-                } catch (e4) {}
             } catch (e) {}
             return '';
         })();
@@ -4899,12 +4919,6 @@ async function confirmPayment(method) {
                 .from('user_profiles')
                 .upsert([{ id: uid, pseudo: pseudo }], { onConflict: 'id' });
 
-            // Fallback schéma (si ton projet utilise plutôt `profiles`)
-            try {
-                await _spirit
-                    .from('profiles')
-                    .upsert([{ id: uid, owner_id: uid, pseudo: pseudo, username: pseudo }], { onConflict: 'id' });
-            } catch (e2) {}
         } catch (e) {
             // Ne bloque pas l'UI si le schéma diffère un peu.
         }
@@ -5114,8 +5128,8 @@ async function confirmPayment(method) {
 
             // Table principale profil
             var pRes = await _spirit
-                .from('profiles')
-                .upsert([{ id: uid, owner_id: uid, pseudo: nextPseudo, username: nextPseudo }], { onConflict: 'id' });
+                .from('user_profiles')
+                .upsert([{ id: uid, pseudo: nextPseudo }], { onConflict: 'id' });
             if (pRes && pRes.error) throw pRes.error;
 
             currentUser = nextPseudo;
