@@ -3420,16 +3420,52 @@ async function spiritLoadWallet() {
     try {
         var out = await _spirit
             .from('transactions')
-            .select('id,amount,status,created_at,figurine_name,seller_id')
+            .select('*')
             .eq('seller_id', uid)
             .order('created_at', { ascending: false })
             .range(0, 200);
         if (out.error) throw out.error;
         var rows = Array.isArray(out.data) ? out.data : [];
+        var now = new Date();
+        function spiritWalletAddBusinessDays(inputDate, openDays) {
+            var d = new Date(inputDate);
+            if (!(d instanceof Date) || isNaN(d.getTime())) return null;
+            var left = Number(openDays) || 0;
+            while (left > 0) {
+                d.setDate(d.getDate() + 1);
+                var wd = d.getDay();
+                if (wd !== 0 && wd !== 6) left--;
+            }
+            return d;
+        }
+        function spiritWalletInferReleaseDays(r) {
+            if (r && (r.is_native === true || String(r.sale_type || '').toLowerCase() === 'native')) return 3;
+            var sig = [
+                r && r.sale_type,
+                r && r.product_kind,
+                r && r.type,
+                r && r.category,
+                r && r.figurine_name
+            ].map(function (v) { return String(v || '').toLowerCase(); }).join(' ');
+            if (sig.indexOf('native') !== -1) return 3;
+            return 4; // legacy ou autre
+        }
+        function spiritWalletReleaseState(r) {
+            var status = String((r && r.status) || '').toUpperCase();
+            if (status.indexOf('LITIGE') !== -1) return { unlocked: false, mode: 'litige', days: 0, unlockAt: null };
+            if (status.indexOf('LIVRAISON VALID') !== -1 || status.indexOf('TERMINE') !== -1 || status.indexOf('DÉBLOQU') !== -1 || status.indexOf('DEBLOQU') !== -1) {
+                return { unlocked: true, mode: 'buyer', days: 0, unlockAt: null };
+            }
+            var days = spiritWalletInferReleaseDays(r);
+            var unlockAt = spiritWalletAddBusinessDays(r && r.created_at ? r.created_at : new Date(), days);
+            var unlocked = !!(unlockAt && unlockAt.getTime() <= now.getTime());
+            return { unlocked: unlocked, mode: 'auto', days: days, unlockAt: unlockAt };
+        }
         var total = 0;
         rows.forEach(function (r) {
             var a = Number(r && r.amount);
-            if (Number.isFinite(a) && a > 0) total += a;
+            var rel = spiritWalletReleaseState(r);
+            if (rel.unlocked && Number.isFinite(a) && a > 0) total += a;
         });
         spiritWalletCachedTotal = total;
         totalEl.textContent = total.toFixed(2) + ' EUR';
@@ -3442,15 +3478,28 @@ async function spiritLoadWallet() {
                 var status = String((r && r.status) || '—').replace(/</g, '&lt;');
                 var amt = Number(r && r.amount);
                 var v = Number.isFinite(amt) ? amt.toFixed(2) : '0.00';
+                var rel = spiritWalletReleaseState(r);
+                var relTxt = '';
+                if (rel.mode === 'litige') {
+                    relTxt = '<span style="color:#ff7a7a;">Bloqué (litige)</span>';
+                } else if (rel.mode === 'buyer') {
+                    relTxt = '<span style="color:#7dffb1;">Débloqué (validation acheteur)</span>';
+                } else if (rel.unlocked) {
+                    relTxt = '<span style="color:#7dffb1;">Débloqué auto (' + rel.days + 'j ouvrés)</span>';
+                } else {
+                    var whenTxt = rel.unlockAt ? new Date(rel.unlockAt).toLocaleDateString() : '—';
+                    relTxt = '<span style="color:#f4d35e;">En séquestre · auto le ' + whenTxt + ' (' + rel.days + 'j ouvrés)</span>';
+                }
                 return '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;border:1px solid #1f1f1f;background:#090909;padding:8px 10px;">' +
-                    '<div><div style="color:#ddd;font-size:0.68rem;font-weight:700;">' + title + '</div><div style="color:#666;font-size:0.6rem;">' + dt + ' · ' + status + '</div></div>' +
-                    '<div style="color:#7dffb1;font-weight:800;font-size:0.72rem;">+' + v + ' EUR</div>' +
+                    '<div><div style="color:#ddd;font-size:0.68rem;font-weight:700;">' + title + '</div><div style="color:#666;font-size:0.6rem;">' + dt + ' · ' + status + '</div><div style="font-size:0.6rem;margin-top:2px;">' + relTxt + '</div></div>' +
+                    '<div style="color:' + (rel.unlocked ? '#7dffb1' : '#666') + ';font-weight:800;font-size:0.72rem;">' + (rel.unlocked ? '+' : '⏳ ') + v + ' EUR</div>' +
                     '</div>';
             }).join('');
         }
         if (hintEl) {
             var rib = spiritGetRibForUid(uid);
-            hintEl.textContent = rib && rib.iban ? ('RIB utilisé : ' + rib.iban) : 'RIB utilisé : non renseigné (voir paramètres).';
+            var ribTxt = rib && rib.iban ? ('RIB utilisé : ' + rib.iban) : 'RIB utilisé : non renseigné (voir paramètres).';
+            hintEl.textContent = ribTxt + ' · Déblocage : validation acheteur, sinon 3j ouvrés (native) / 4j (legacy/autre).';
         }
     } catch (e) {
         totalEl.textContent = '0.00 EUR';
@@ -4884,6 +4933,9 @@ async function enregistrerVente(method) {
     const protectionTotale = parseFloat(split.totalFee);
 
     const totalAcheteur = (prixFigurine + fraisLivraison + protectionTotale).toFixed(2);
+    const saleType = (selectedProduct && (selectedProduct.is_native === true || String(selectedProduct.type || '').toLowerCase() === 'native'))
+        ? 'native'
+        : 'legacy';
     const buyerShip = (typeof spiritGetShippingAddressForUid === 'function')
         ? (spiritGetShippingAddressForUid(buyerIdTxt) || {})
         : {};
@@ -4912,6 +4964,7 @@ async function enregistrerVente(method) {
             shipping_amount: Number(fraisLivraison),
             protection_fee: Number(protectionTotale),
             buyer_total: Number(totalAcheteur),
+            sale_type: saleType,
             ship_last_name: String(buyerShip.last_name || ''),
             ship_first_name: String(buyerShip.first_name || ''),
             ship_address: String(buyerShip.street || ''),
