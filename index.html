@@ -6470,6 +6470,10 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      created_at timestamptz default now()
    );
    create index if not exists idx_spirit_san_notif_owner on public.spirit_sanctuary_notifications(owner_id, is_read, created_at desc);
+   -- Exemple RLS notifications (ajuster si déjà créé) : suppression par le propriétaire (croix Messages)
+   -- alter table public.spirit_sanctuary_notifications enable row level security;
+   -- drop policy if exists "san_notif_delete_own" on public.spirit_sanctuary_notifications;
+   -- create policy "san_notif_delete_own" on public.spirit_sanctuary_notifications for delete using (auth.uid()::text = owner_id);
    Buckets Storage publics : "avatars", "sanctuary" (ou ajuster les noms dans le code).
    --------------------------------------------------------------------------- */
 var spiritPublicViewUserId = null;
@@ -6638,11 +6642,14 @@ async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
             if (rd && rd.error) throw rd.error;
             spiritSanctuarySocialCache.myLikes[itemId] = false;
         } else {
+            var ulab = '';
+            try { ulab = await spiritSanctuaryActorDisplayLabel(actorUid); } catch (eL) { ulab = ''; }
+            if (!ulab) ulab = spiritSanctuaryFallbackLabel(actorUid);
             var ru = await _spirit.from(SPIRIT_SAN_LIKES_TABLE).upsert({
                 item_id: itemId,
                 owner_id: ownerId,
                 user_id: actorUid,
-                user_label: (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : spiritPublicDefaultLabel(actorUid)
+                user_label: ulab
             }, { onConflict: 'item_id,user_id' });
             if (ru && ru.error) throw ru.error;
             spiritSanctuarySocialCache.myLikes[itemId] = true;
@@ -6662,11 +6669,14 @@ async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
     text = String(text || '').trim();
     if (!itemId || !actorUid || !text || !spiritSanSocialCanUseSupabase()) return false;
     try {
+        var clab = '';
+        try { clab = await spiritSanctuaryActorDisplayLabel(actorUid); } catch (eC) { clab = ''; }
+        if (!clab) clab = spiritSanctuaryFallbackLabel(actorUid);
         var ri = await _spirit.from(SPIRIT_SAN_COMMENTS_TABLE).insert({
             item_id: itemId,
             owner_id: ownerId,
             user_id: actorUid,
-            user_label: (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : spiritPublicDefaultLabel(actorUid),
+            user_label: clab,
             comment_text: text
         });
         if (ri && ri.error) throw ri.error;
@@ -6823,6 +6833,28 @@ async function spiritPublicRefreshSocialStats(uid) {
         } catch (e2) {}
     }
 }
+/** Supprime une alerte Sanctuaire (onglet Messages). Nécessite policy RLS DELETE sur owner_id. */
+async function spiritSanctuaryDeleteNotification(notifId) {
+    notifId = Number(notifId);
+    if (!Number.isFinite(notifId) || notifId <= 0) return;
+    if (typeof _spirit === 'undefined' || !_spirit) return;
+    var me = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : '';
+    if (!me) return;
+    try {
+        var del = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).delete().eq('id', notifId).eq('owner_id', me);
+        if (del && del.error) {
+            try { alert('Suppression impossible : ' + (del.error.message || del.error)); } catch (a) {}
+            return;
+        }
+    } catch (e) {
+        try { alert('Suppression impossible : ' + (e && e.message ? e.message : e)); } catch (a2) {}
+        return;
+    }
+    try { spiritLoadMessagesTab(); } catch (eL) {}
+    try { spiritSanctuaryRefreshMessagesDot(); } catch (eD) {}
+}
+try { window.spiritSanctuaryDeleteNotification = spiritSanctuaryDeleteNotification; } catch (eW) {}
+
 function spiritLoadMessagesTab() {
     var box = document.getElementById('spiritMessagesList');
     if (!box) return;
@@ -6868,16 +6900,28 @@ function spiritLoadMessagesTab() {
         if (!rows.length) {
             box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Aucune alerte pour le moment.</div>';
         } else {
+            var uidList = [];
+            rows.forEach(function (n) {
+                var u = String(n.from_uid || '').trim();
+                if (u && uidList.indexOf(u) < 0) uidList.push(u);
+            });
+            var fromMap = await spiritSanctuaryResolvePseudoMap(uidList);
             box.innerHTML = rows.map(function (n) {
-                var from = spiritPublicDefaultLabel(n.from_uid);
+                var uidFrom = String(n.from_uid || '').trim();
+                var from = fromMap[uidFrom] || spiritSanctuaryFallbackLabel(uidFrom);
                 var dt = n.created_at ? new Date(n.created_at).toLocaleString() : '—';
                 var txt = String(n.text || 'Nouvelle activité');
-                return '<div style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;">' +
-                    '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">' +
-                    '<div style="font-size:0.7rem;color:#ddd;"><b style="color:#7fe7ff;">' + String(from).replace(/</g, '&lt;') + '</b> ' + String(txt).replace(/</g, '&lt;') + '</div>' +
-                    '<div style="font-size:0.6rem;color:#777;white-space:nowrap;">' + dt + '</div>' +
+                var nid = Number(n.id);
+                var idStr = Number.isFinite(nid) ? String(nid) : '0';
+                return '<div style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;border-radius:4px;">' +
+                    '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">' +
+                    '<div style="flex:1;min-width:0;font-size:0.7rem;color:#ddd;">' +
+                    '<b style="color:#7fe7ff;">' + String(from).replace(/</g, '&lt;') + '</b> ' + String(txt).replace(/</g, '&lt;') +
                     '</div>' +
-                    '</div>';
+                    '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
+                    '<span style="font-size:0.6rem;color:#777;white-space:nowrap;">' + dt + '</span>' +
+                    '<button type="button" title="Supprimer" style="width:26px;height:26px;border:1px solid #633;background:#1a1012;color:#f88;cursor:pointer;font-size:0.75rem;line-height:1;border-radius:3px;padding:0;" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>' +
+                    '</div></div></div>';
             }).join('');
         }
         try {
@@ -7019,6 +7063,52 @@ function spiritPublicDefaultLabel(uid) {
     if (u === '12345') return 'MOI';
     if (u === '67890') return 'INVITÉ';
     return 'Spirit Collector';
+}
+/** Libellé court si pas de pseudo en base (évite « Spirit Collector » partout). */
+function spiritSanctuaryFallbackLabel(uid) {
+    var u = String(uid || '').trim();
+    if (!u) return '—';
+    if (u === '12345') return 'MOI';
+    if (u === '67890') return 'INVITÉ';
+    if (u.length <= 14) return u;
+    return u.slice(0, 5) + '…' + u.slice(-4);
+}
+/** Map id → pseudo (user_profiles) pour affichage Sanctuaire / messages. */
+async function spiritSanctuaryResolvePseudoMap(ids) {
+    var map = Object.create(null);
+    var uniq = [];
+    (ids || []).forEach(function (id) {
+        id = String(id || '').trim();
+        if (id && uniq.indexOf(id) < 0) uniq.push(id);
+    });
+    if (!uniq.length || typeof _spirit === 'undefined' || !_spirit) {
+        uniq.forEach(function (id) { map[id] = spiritSanctuaryFallbackLabel(id); });
+        return map;
+    }
+    try {
+        var r = await _spirit.from('user_profiles').select('id,pseudo').in('id', uniq);
+        if (!r.error && Array.isArray(r.data)) {
+            r.data.forEach(function (row) {
+                var id = String(row.id || '').trim();
+                var ps = String(row.pseudo || '').trim();
+                map[id] = ps ? ps : spiritSanctuaryFallbackLabel(id);
+            });
+        }
+    } catch (e) {}
+    uniq.forEach(function (id) {
+        if (!map[id]) map[id] = spiritSanctuaryFallbackLabel(id);
+    });
+    return map;
+}
+async function spiritSanctuaryActorDisplayLabel(actorUid) {
+    actorUid = String(actorUid || '').trim();
+    if (!actorUid) return '';
+    try {
+        var p = await spiritFetchOwnerPseudo(actorUid);
+        if (p) return String(p).trim();
+    } catch (e) {}
+    if (typeof currentUser !== 'undefined' && currentUser) return String(currentUser).trim();
+    return spiritSanctuaryFallbackLabel(actorUid);
 }
 function spiritParsePublicHash() {
     var h = (location.hash || '').replace(/^#/, '').trim();
@@ -7862,9 +7952,25 @@ async function spiritSanctuaryRender(ctx) {
         grid.appendChild(add);
     }
     try { await spiritSanctuaryLoadSocialCache(uid, items.map(function (x) { return x && x.id; }), me); } catch (eSocLoad) {}
+    var socialUids = [];
+    items.forEach(function (it) {
+        var iid = it && it.id;
+        if (!iid) return;
+        spiritSanctuaryLikeUsers(iid).forEach(function (u) {
+            u = String(u || '').trim();
+            if (u && socialUids.indexOf(u) < 0) socialUids.push(u);
+        });
+        spiritSanctuaryComments(iid).forEach(function (c) {
+            var cu = String((c && c.uid) || '').trim();
+            if (cu && socialUids.indexOf(cu) < 0) socialUids.push(cu);
+        });
+    });
+    var socialPseudoMap = Object.create(null);
+    try { socialPseudoMap = await spiritSanctuaryResolvePseudoMap(socialUids); } catch (ePm) {}
     var listLike = vm === 'list' || vm === 'details';
     var neonOpts = [['#ff6600', 'Orange Spirit'], ['#00ff88', 'Vert'], ['#00ccff', 'Cyan'], ['#ff00aa', 'Magenta'], ['#ffffff', 'Blanc'], ['#ffcc00', 'Or']];
-    function spiritSanctuaryBuildSocialUi(itemId, ownerId, actorId) {
+    function spiritSanctuaryBuildSocialUi(itemId, ownerId, actorId, pseudoMap) {
+        pseudoMap = pseudoMap || Object.create(null);
         var likes = spiritSanctuaryLikeUsers(itemId);
         var comments = spiritSanctuaryComments(itemId);
         var likedByMe = !!spiritSanctuarySocialCache.myLikes[itemId] || (actorId && likes.indexOf(String(actorId)) >= 0);
@@ -7907,7 +8013,10 @@ async function spiritSanctuaryRender(ctx) {
         if (comments.length) {
             var last = comments.slice(-2);
             commentsWrap.innerHTML = last.map(function (c) {
-                var who = String((c && (c.label || c.uid)) || 'User').replace(/</g, '&lt;');
+                var uidC = String((c && c.uid) || '').trim();
+                var whoRaw = (uidC && pseudoMap[uidC]) ? pseudoMap[uidC] : String((c && c.label) || '').trim();
+                if (!whoRaw) whoRaw = uidC ? spiritSanctuaryFallbackLabel(uidC) : '—';
+                var who = String(whoRaw).replace(/</g, '&lt;');
                 var tx = String((c && c.text) || '').replace(/</g, '&lt;');
                 return '<div><span style="color:#79d6ff;">' + who + ':</span> ' + tx + '</div>';
             }).join('');
@@ -7955,7 +8064,7 @@ async function spiritSanctuaryRender(ctx) {
             if (it && it.src) spiritSanctuaryLightboxOpen(sanctuaryImageSrcs, idx);
         });
         wrap.appendChild(img);
-        var socialUi = spiritSanctuaryBuildSocialUi(rowId, uid, me);
+        var socialUi = spiritSanctuaryBuildSocialUi(rowId, uid, me, socialPseudoMap);
         
         // (Loupe supprimée) => on ouvre directement la photo en plein écran au clic.
         var btnDel = null;
