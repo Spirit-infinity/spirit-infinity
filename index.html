@@ -2248,15 +2248,22 @@ async function loadUserPurchases() {
         data.forEach(tr => {
             const productTitle = tr.figurine_name || "Produit #" + tr.id;
             const dateStr = new Date(tr.created_at).toLocaleDateString('fr-FR');
+            const buyerTotal = Number(tr && tr.buyer_total);
+            const fallbackTotal = Number(tr && tr.amount);
+            const displayTotal = Number.isFinite(buyerTotal) && buyerTotal > 0
+                ? buyerTotal
+                : (Number.isFinite(fallbackTotal) ? fallbackTotal : 0);
+            const stRaw = String((tr && tr.status) || '');
+            const isEscrowActive = /séquestre/i.test(stRaw);
             
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${dateStr}</td>
                 <td><b style="color:var(--neon-orange)">${productTitle}</b></td>
-                <td>${tr.amount} €</td>
-                <td><span style="color:${tr.status === 'SÉQUESTRE' ? 'orange' : 'var(--spirit-green)'}">${tr.status.toUpperCase()}</span></td>
+                <td>${displayTotal.toFixed(2)} €</td>
+                <td><span style="color:${isEscrowActive ? 'orange' : 'var(--spirit-green)'}">${stRaw.toUpperCase()}</span></td>
                 <td style="text-align:center;">
-                    ${tr.status === 'SÉQUESTRE' ? `
+                    ${isEscrowActive ? `
                         <button class="btn-recu-action" data-id="${tr.id}" onclick="confirmReceipt('${tr.id}')">✅ REÇU</button>
                         <button class="btn-litige-action" data-id="${tr.id}" onclick="openSupport()">⚠️ LITIGE</button>
                     ` : `<span style="font-size:0.7rem; color:#777;">TERMINÉ</span>`}
