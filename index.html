@@ -847,8 +847,19 @@
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
         }
-        #spiritSanctuaryGrid.spirit-san-mode-insta {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;
+        #spiritSanctuaryGrid.spirit-san-mode-style {
+            display: grid;
+            grid-template-columns: minmax(380px, 520px);
+            gap: 18px;
+            justify-content: center;
+            align-content: start;
+        }
+        #spiritSanctuaryGrid.spirit-san-mode-style2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 420px));
+            gap: 18px;
+            justify-content: center;
+            align-content: start;
         }
         #spiritSanctuaryGrid.spirit-san-mode-icons-sm {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px;
@@ -880,14 +891,15 @@
             flex-direction: column;
             gap: 10px;
         }
-        #spiritSanctuaryGrid.spirit-san-mode-insta .spirit-san-icons-cell {
+        #spiritSanctuaryGrid.spirit-san-mode-style .spirit-san-icons-cell,
+        #spiritSanctuaryGrid.spirit-san-mode-style2 .spirit-san-icons-cell {
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 8px;
             background: #090909;
             border: 1px solid #1b1b1b;
-            padding: 8px;
+            padding: 10px;
         }
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-icons-desc {
             font-size: 0.75rem;
@@ -896,13 +908,20 @@
             padding: 0 4px;
             word-break: break-word;
         }
-        #spiritSanctuaryGrid.spirit-san-mode-insta .spirit-san-icons-desc {
+        #spiritSanctuaryGrid.spirit-san-mode-style .spirit-san-icons-desc,
+        #spiritSanctuaryGrid.spirit-san-mode-style2 .spirit-san-icons-desc {
             font-size: 0.7rem;
             color: #b3b3b3;
             line-height: 1.3;
             padding: 0 2px;
             word-break: break-word;
             min-height: 18px;
+        }
+        #spiritSanctuaryGrid.spirit-san-mode-style .spirit-san-thumb-wrap,
+        #spiritSanctuaryGrid.spirit-san-mode-style2 .spirit-san-thumb-wrap {
+            width: 100%;
+            min-width: 0;
+            aspect-ratio: 1 / 1;
         }
         /* Actions overlay (loupe + corbeille) */
         .spirit-san-action-btn {
@@ -985,8 +1004,19 @@
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
         }
-        #spiritAccountSanctuaryGrid.spirit-san-mode-insta {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;
+        #spiritAccountSanctuaryGrid.spirit-san-mode-style {
+            display: grid;
+            grid-template-columns: minmax(380px, 520px);
+            gap: 18px;
+            justify-content: center;
+            align-content: start;
+        }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-style2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 420px));
+            gap: 18px;
+            justify-content: center;
+            align-content: start;
         }
         #spiritAccountSanctuaryGrid .spirit-san-add-tile {
             width: 280px; min-width: 280px; aspect-ratio: 1 / 1; min-height: 0; border: 2px dashed rgba(255,102,0,0.5); background: #000;
@@ -1014,14 +1044,15 @@
             flex-direction: column;
             gap: 10px;
         }
-        #spiritAccountSanctuaryGrid.spirit-san-mode-insta .spirit-san-icons-cell {
+        #spiritAccountSanctuaryGrid.spirit-san-mode-style .spirit-san-icons-cell,
+        #spiritAccountSanctuaryGrid.spirit-san-mode-style2 .spirit-san-icons-cell {
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 8px;
             background: #090909;
             border: 1px solid #1b1b1b;
-            padding: 8px;
+            padding: 10px;
         }
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-icons-desc {
             font-size: 0.75rem;
@@ -1030,13 +1061,20 @@
             padding: 0 4px;
             word-break: break-word;
         }
-        #spiritAccountSanctuaryGrid.spirit-san-mode-insta .spirit-san-icons-desc {
+        #spiritAccountSanctuaryGrid.spirit-san-mode-style .spirit-san-icons-desc,
+        #spiritAccountSanctuaryGrid.spirit-san-mode-style2 .spirit-san-icons-desc {
             font-size: 0.7rem;
             color: #b3b3b3;
             line-height: 1.3;
             padding: 0 2px;
             word-break: break-word;
             min-height: 18px;
+        }
+        #spiritAccountSanctuaryGrid.spirit-san-mode-style .spirit-san-thumb-wrap,
+        #spiritAccountSanctuaryGrid.spirit-san-mode-style2 .spirit-san-thumb-wrap {
+            width: 100%;
+            min-width: 0;
+            aspect-ratio: 1 / 1;
         }
         #spiritAccountSanctuaryGrid .spirit-san-meta { flex: 1; font-size: 0.75rem; color: #aaa; }
         #spiritAccountSanctuaryGrid .spirit-san-meta input[type="text"] {
@@ -1631,7 +1669,8 @@
             <label style="font-size:0.65rem;color:#888;">Vue</label>
             <button type="button" class="spirit-san-view-acc active" data-sanview="list" onclick="spiritAccountSanctuarySetView('list')">Vue Liste</button>
             <button type="button" class="spirit-san-view-acc" data-sanview="icons-lg" onclick="spiritAccountSanctuarySetView('icons-lg')">Vue Grille</button>
-            <button type="button" class="spirit-san-view-acc" data-sanview="insta" onclick="spiritAccountSanctuarySetView('insta')">Vue Insta</button>
+            <button type="button" class="spirit-san-view-acc" data-sanview="style" onclick="spiritAccountSanctuarySetView('style')">Vue Style</button>
+            <button type="button" class="spirit-san-view-acc" data-sanview="style2" onclick="spiritAccountSanctuarySetView('style2')">Vue Style 2</button>
         </div>
         <input type="file" id="spiritAccountSanctuaryFileInput" accept="image/*" style="display:none;" />
         <div id="spiritAccountSanctuaryGrid" class="spirit-san-mode-list"></div>
@@ -1768,7 +1807,8 @@
                 <label style="font-size:0.65rem;color:#888;">Vue</label>
                 <button type="button" class="spirit-san-view active" data-sanview="list" onclick="spiritSanctuarySetView('list')">Vue Liste</button>
                 <button type="button" class="spirit-san-view" data-sanview="icons-lg" onclick="spiritSanctuarySetView('icons-lg')">Vue Grille</button>
-                <button type="button" class="spirit-san-view" data-sanview="insta" onclick="spiritSanctuarySetView('insta')">Vue Insta</button>
+                <button type="button" class="spirit-san-view" data-sanview="style" onclick="spiritSanctuarySetView('style')">Vue Style</button>
+                <button type="button" class="spirit-san-view" data-sanview="style2" onclick="spiritSanctuarySetView('style2')">Vue Style 2</button>
             </div>
             <input type="file" id="spiritSanctuaryFileInput" accept="image/*" style="display:none;" />
             <div id="spiritSanctuaryGrid" class="spirit-san-mode-list"></div>
@@ -6960,7 +7000,8 @@ function spiritSanctuaryViewModeGet(ctx) {
     var key = isAcc ? SPIRIT_SAN_VIEW_KEY_ACCOUNT : SPIRIT_SAN_VIEW_KEY_PUBLIC;
     try {
         var saved = localStorage.getItem(key);
-        if (saved === 'list' || saved === 'icons-lg' || saved === 'details' || saved === 'insta') {
+        if (saved === 'list' || saved === 'icons-lg' || saved === 'details' || saved === 'style' || saved === 'style2' || saved === 'insta') {
+            if (saved === 'insta') saved = 'style';
             if (isAcc) spiritSanctuaryViewModeAccount = saved;
             else spiritSanctuaryViewMode = saved;
         }
@@ -7531,7 +7572,8 @@ async function spiritSanctuaryRender(ctx) {
     var modeClass = 'spirit-san-mode-list';
     if (vm === 'details') modeClass = 'spirit-san-mode-list spirit-san-mode-details';
     else if (vm === 'icons-lg') modeClass = 'spirit-san-mode-icons-lg';
-    else if (vm === 'insta') modeClass = 'spirit-san-mode-insta';
+    else if (vm === 'style' || vm === 'insta') modeClass = 'spirit-san-mode-style';
+    else if (vm === 'style2') modeClass = 'spirit-san-mode-style2';
     grid.className = modeClass;
     grid.innerHTML = '';
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
