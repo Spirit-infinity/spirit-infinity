@@ -6495,6 +6495,8 @@ var SPIRIT_SAN_COMMENTS_TABLE = 'spirit_sanctuary_comments';
 var SPIRIT_SAN_NOTIFS_TABLE = 'spirit_sanctuary_notifications';
 var spiritSanctuaryLastUnreadMsgCount = 0;
 var spiritSanSocialSupabaseEnabled = true;
+/** Mis à true si l’API renvoie 404 / table absente — évite le spam de requêtes sur les notifs. */
+var spiritSanNotifsTableMissing = false;
 var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 2 * 60 * 1000;
 var SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS = 3 * 60 * 1000;
 var SPIRIT_PUBLIC_PROFILE_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -6509,6 +6511,16 @@ function spiritSanSocialHandleSupabaseError(err) {
     // Ne désactive que si la table / relation est absente (évite de couper tout le module après un simple refus RLS).
     if (msg.indexOf('does not exist') >= 0 || (msg.indexOf('relation') >= 0 && msg.indexOf('does not exist') >= 0)) {
         spiritSanSocialSupabaseEnabled = false;
+    }
+}
+/** Table notifications absente ou non exposée (404 PostgREST / PGRST301). */
+function spiritSanNotifsMarkMissingIf404(err) {
+    if (!err) return;
+    var st = Number(err.status || err.statusCode || (err.response && err.response.status) || 0);
+    var c = String(err.code || '').toLowerCase();
+    var msg = String((err.message || err.details || err.hint || '') || '').toLowerCase();
+    if (st === 404 || c === 'pgrst301' || c === '42p01' || msg.indexOf('schema cache') >= 0 || msg.indexOf('could not find the table') >= 0) {
+        spiritSanNotifsTableMissing = true;
     }
 }
 var spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
@@ -6554,6 +6566,7 @@ async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
     ownerId = String(ownerId || '').trim();
     fromUid = String(fromUid || '').trim();
     if (!ownerId || !fromUid || ownerId === fromUid || !spiritSanSocialCanUseSupabase()) return;
+    if (spiritSanNotifsTableMissing) return;
     try {
         var ins = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).insert({
             owner_id: ownerId,
@@ -6563,8 +6576,14 @@ async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
             text: String(text || ''),
             is_read: false
         });
-        if (ins && ins.error) spiritSanSocialHandleSupabaseError(ins.error);
-    } catch (e) { spiritSanSocialHandleSupabaseError(e); }
+        if (ins && ins.error) {
+            spiritSanNotifsMarkMissingIf404(ins.error);
+            if (!spiritSanNotifsTableMissing) spiritSanSocialHandleSupabaseError(ins.error);
+        }
+    } catch (e) {
+        spiritSanNotifsMarkMissingIf404(e);
+        if (!spiritSanNotifsTableMissing) spiritSanSocialHandleSupabaseError(e);
+    }
 }
 function spiritSanctuaryRefreshMessagesDot() {
     var uid = '';
@@ -6572,12 +6591,22 @@ function spiritSanctuaryRefreshMessagesDot() {
     var dot = document.getElementById('messages-tab-dot');
     if (!dot) return;
     if (!uid || !spiritSanSocialCanUseSupabase()) { dot.style.display = 'none'; return; }
+    if (spiritSanNotifsTableMissing) { dot.style.display = 'none'; return; }
     void (async function () {
         var c = 0;
         try {
             var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).eq('owner_id', uid).eq('is_read', false);
+            if (q && q.error) {
+                spiritSanNotifsMarkMissingIf404(q.error);
+                dot.style.display = 'none';
+                return;
+            }
             c = Number((q && q.count) || 0);
-        } catch (eCount) { c = 0; spiritSanSocialHandleSupabaseError(eCount); }
+        } catch (eCount) {
+            c = 0;
+            spiritSanNotifsMarkMissingIf404(eCount);
+            dot.style.display = 'none';
+        }
         dot.style.display = c > 0 ? 'inline-block' : 'none';
         if (c > 0 && c > Number(spiritSanctuaryLastUnreadMsgCount || 0) && typeof spiritSanctuaryShowToast === 'function') {
             spiritSanctuaryShowToast('Sanctuaire', c + ' nouvelle(s) alerte(s) likes/commentaires.');
@@ -6809,6 +6838,10 @@ function spiritLoadMessagesTab() {
     }
     box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Chargement des alertes...</div>';
     void (async function () {
+        if (spiritSanNotifsTableMissing) {
+            box.innerHTML = '<div style="font-size:0.68rem;color:#b85;line-height:1.45;">La table <code style="color:#fa0;">spirit_sanctuary_notifications</code> n’existe pas encore dans Supabase (erreur 404). Dans l’éditeur SQL du projet, exécute le bloc <b>create table … spirit_sanctuary_notifications</b> présent en tête de ce fichier (section SQL commentée), puis recharge la page.</div>';
+            return;
+        }
         var rows = [];
         try {
             var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
@@ -6816,8 +6849,22 @@ function spiritLoadMessagesTab() {
                 .eq('owner_id', me)
                 .order('created_at', { ascending: false })
                 .range(0, 200);
+            if (q && q.error) {
+                spiritSanNotifsMarkMissingIf404(q.error);
+                if (spiritSanNotifsTableMissing) {
+                    box.innerHTML = '<div style="font-size:0.68rem;color:#b85;line-height:1.45;">La table des notifications Sanctuaire est introuvable (404). Crée <code style="color:#fa0;">public.spirit_sanctuary_notifications</code> dans Supabase (voir SQL en commentaire en haut du fichier), puis recharge.</div>';
+                    return;
+                }
+            }
             if (!q.error && Array.isArray(q.data)) rows = q.data;
-        } catch (eQ) { spiritSanSocialHandleSupabaseError(eQ); }
+        } catch (eQ) {
+            spiritSanNotifsMarkMissingIf404(eQ);
+            if (spiritSanNotifsTableMissing) {
+                box.innerHTML = '<div style="font-size:0.68rem;color:#b85;">Notifications : table absente (404). Crée-la dans Supabase puis recharge.</div>';
+                return;
+            }
+            spiritSanSocialHandleSupabaseError(eQ);
+        }
         if (!rows.length) {
             box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Aucune alerte pour le moment.</div>';
         } else {
