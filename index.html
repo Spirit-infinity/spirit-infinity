@@ -7141,6 +7141,27 @@ function spiritSanctuarySanitizeChat(text) {
     if (/\bcash\s*app\b/i.test(lower)) return { ok: false, reason: 'payment' };
     return { ok: true, text: raw };
 }
+function spiritSanctuaryPushLocalMessage(msg) {
+    msg = msg || {};
+    var rec = String(msg.recipient_id || '').trim();
+    var sen = String(msg.sender_id || '').trim();
+    if (!rec || !sen) return;
+    var base = {
+        recipient_id: rec,
+        sender_id: sen,
+        sender_label: String(msg.sender_label || sen),
+        body: String(msg.body || ''),
+        is_read: !!msg.is_read,
+        created_at: String(msg.created_at || new Date().toISOString())
+    };
+    if (!Array.isArray(spiritLocalSanctuaryChatByRecipient[rec])) spiritLocalSanctuaryChatByRecipient[rec] = [];
+    spiritLocalSanctuaryChatByRecipient[rec].push(base);
+    // Copie côté expéditeur : permet de voir l'historique après switch utilisateur.
+    if (sen !== rec) {
+        if (!Array.isArray(spiritLocalSanctuaryChatByRecipient[sen])) spiritLocalSanctuaryChatByRecipient[sen] = [];
+        spiritLocalSanctuaryChatByRecipient[sen].push(Object.assign({}, base, { is_read: true }));
+    }
+}
 async function spiritSanctuaryRenderChat(ctx) {
     ctx = ctx === 'account' ? 'account' : 'public';
     var uid = spiritSanctuaryUid(ctx);
@@ -7150,6 +7171,9 @@ async function spiritSanctuaryRenderChat(ctx) {
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
         var keyLocal = String(uid);
         var arrLocal = spiritLocalSanctuaryChatByRecipient[keyLocal] || [];
+        arrLocal = arrLocal.slice().sort(function (a, b) {
+            return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        });
         box.innerHTML = arrLocal.map(function (m) {
             var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
             var tx = String(m.body || '').replace(/</g, '&lt;');
@@ -7163,6 +7187,9 @@ async function spiritSanctuaryRenderChat(ctx) {
     if (!resolvedUid) {
         var key = String(uid);
         var arr = spiritLocalSanctuaryChatByRecipient[key] || [];
+        arr = arr.slice().sort(function (a, b) {
+            return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        });
         box.innerHTML = arr.map(function (m) {
             var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
             var tx = String(m.body || '').replace(/</g, '&lt;');
@@ -7194,10 +7221,8 @@ async function spiritSanctuarySendChat(ctx) {
     }
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
-        var keyLocal = String(uid);
-        if (!Array.isArray(spiritLocalSanctuaryChatByRecipient[keyLocal])) spiritLocalSanctuaryChatByRecipient[keyLocal] = [];
         var labelLocal = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
-        spiritLocalSanctuaryChatByRecipient[keyLocal].push({
+        spiritSanctuaryPushLocalMessage({
             recipient_id: String(uid),
             sender_id: String(me),
             sender_label: labelLocal,
@@ -7214,9 +7239,7 @@ async function spiritSanctuarySendChat(ctx) {
     var resolvedMe = await spiritResolveUserIdForFakeTestId(me);
     var label = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
     if (!resolvedUid || !resolvedMe) {
-        var key = String(uid);
-        if (!Array.isArray(spiritLocalSanctuaryChatByRecipient[key])) spiritLocalSanctuaryChatByRecipient[key] = [];
-        spiritLocalSanctuaryChatByRecipient[key].push({
+        spiritSanctuaryPushLocalMessage({
             recipient_id: String(uid),
             sender_id: String(me),
             sender_label: label,
