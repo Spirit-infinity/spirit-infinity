@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spirit Infinity | Écosystème Global</title>
     <link rel="preconnect" href="https://eagmxrbtcajqlhivvpww.supabase.co" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
@@ -160,6 +163,13 @@
         .sidebar { width: 280px; background: var(--card-bg); padding: 20px; border: 1px solid var(--border); height: fit-content; }
         .grid { flex: 1; }
         .cat-title { color: var(--neon-orange); font-size: 1.2rem; font-weight: 900; margin: 30px 0 15px 0; border-left: 4px solid var(--neon-orange); padding-left: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .spirit-market-brand-title {
+            font-family: 'Orbitron', system-ui, sans-serif;
+            font-weight: 900;
+            font-size: 1.28rem;
+            letter-spacing: 0.22em;
+            text-shadow: 0 0 14px rgba(255, 102, 0, 0.55), 0 0 32px rgba(255, 102, 0, 0.22);
+        }
         .market-title { text-align: center; border-left: none; padding-left: 0; }
         .grid-layout { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .grid-layout.list-view { display: block; }
@@ -176,8 +186,11 @@
         .legende { font-size: 0.7rem; color: var(--text-gray); border-top: 1px solid #222; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top:auto; }
         .badge { position: static; display:inline-block; align-self:flex-start; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; margin-top:6px; }
         .market-toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin: 8px 0 16px 0; flex-wrap:wrap; }
-        .market-view-box { margin-left:auto; display:flex; align-items:center; gap:8px; color:#777; font-size:0.75rem; }
-        .market-view-box select { background:#0b0b0b; color:#fff; border:1px solid #ff6600; padding:8px 10px; border-radius:4px; }
+        .market-view-box { margin-left:auto; display:flex; align-items:center; gap:8px; color:#777; font-size:0.75rem; flex-wrap:wrap; }
+        .market-view-box select { background:#0b0b0b; color:#fff; border:1px solid #ff6600; padding:8px 12px; border-radius:4px; flex-shrink:0; }
+        /* Évite la coupure du mot « Galerie » dans le sélecteur Vue */
+        #marketViewSelect { min-width: 8.75rem; max-width: 100%; }
+        #marketCurrencySelect { min-width: 4.5rem; }
         .market-fee-note { font-size:0.62rem; color:#9a9a9a; margin-top:4px; }
         .market-fee-note.high { color:#ff9b7a; }
         /* Certif modal compact to reduce scrolling */
@@ -1203,7 +1216,7 @@
                 </select>
             </div>
         </div>
-        <div class="cat-title market-title">MARKET SPIRIT</div>
+        <div class="cat-title market-title spirit-market-brand-title">MARKET SPIRIT</div>
         <div class="grid-layout" id="marketGridNative"></div>
         <div id="spiritMarketPagerFigurines" class="spirit-market-pager" style="display:none;">
             <button type="button" id="spiritMarketLoadMoreFig" class="btn-action btn-load-more" onclick="spiritMarketLoadMore()" data-key="btn_load_more">Charger plus</button>
