@@ -6411,6 +6411,36 @@ function spiritSanctuaryInferLatestPeerGlobal(me) {
     } catch (e) {}
     return bestPeer;
 }
+function spiritSanctuaryCollectLocalForUser(me) {
+    me = String(me || '').trim();
+    if (!me) return [];
+    var out = [];
+    var seen = Object.create(null);
+    try {
+        Object.keys(spiritLocalSanctuaryChatByRecipient || {}).forEach(function (k) {
+            var arr = spiritLocalSanctuaryChatByRecipient[k];
+            if (!Array.isArray(arr)) return;
+            arr.forEach(function (m) {
+                var sid = String((m && m.sender_id) || '').trim();
+                var rid = String((m && m.recipient_id) || '').trim();
+                if (sid !== me && rid !== me) return;
+                var key = [
+                    sid,
+                    rid,
+                    String((m && m.created_at) || ''),
+                    String((m && m.body) || '')
+                ].join('|');
+                if (seen[key]) return;
+                seen[key] = true;
+                out.push(m);
+            });
+        });
+    } catch (e) {}
+    out.sort(function (a, b) {
+        return new Date((a && a.created_at) || 0).getTime() - new Date((b && b.created_at) || 0).getTime();
+    });
+    return out;
+}
 function spiritSanctuaryUid(ctx) {
     if (ctx === 'account') {
         return (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : null;
@@ -7266,11 +7296,16 @@ async function spiritSanctuaryRenderChat(ctx) {
     if (!box || !uid) return;
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
         var keyLocal = String(uid);
-        var arrLocal = spiritLocalSanctuaryChatByRecipient[keyLocal] || [];
-        arrLocal = arrLocal.slice().sort(function (a, b) {
-            return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-        });
         var meLocal = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+        var arrLocal = [];
+        // En vue compte: agréger tout l'historique local de cet utilisateur (sinon impression "1 seul message").
+        if (ctx === 'account' && meLocal) arrLocal = spiritSanctuaryCollectLocalForUser(meLocal);
+        else {
+            arrLocal = spiritLocalSanctuaryChatByRecipient[keyLocal] || [];
+            arrLocal = arrLocal.slice().sort(function (a, b) {
+                return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+            });
+        }
         var peers = [];
         var peerSeen = Object.create(null);
         arrLocal.forEach(function (m) {
