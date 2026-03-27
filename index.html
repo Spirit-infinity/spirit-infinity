@@ -9,8 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
     <style>
         #precommandes-hot-toys { display: none !important; min-height: 100vh; width: 100%; background: #050505 !important; position: fixed; inset: 0; overflow-y: auto; z-index: 9999; }
         :root {
@@ -2622,6 +2620,7 @@ function spiritInvalidateMarketCache() {
     spiritMarketBucket.statue.hasMore = false;
     spiritRenderMarketSig = '';
     try { localStorage.removeItem(SPIRIT_MARKET_LS_KEY); } catch (e) {}
+    try { spiritPublicAnnoncesSessionRows = Object.create(null); } catch (eAnn) {}
 }
 function spiritMarketCacheRead(key) {
     try {
@@ -4407,8 +4406,33 @@ async function loadMySales() {
         document.querySelectorAll('.step').forEach((s, i) => s.className = i===0 ? 'step active' : 'step');
     }
 
+    var spiritTfjsMobilenetLoadPromise = null;
+    function spiritEnsureTfjsMobilenet() {
+        if (typeof mobilenet !== 'undefined' && mobilenet && typeof mobilenet.load === 'function') {
+            return Promise.resolve();
+        }
+        if (spiritTfjsMobilenetLoadPromise) return spiritTfjsMobilenetLoadPromise;
+        spiritTfjsMobilenetLoadPromise = new Promise(function (resolve, reject) {
+            var s1 = document.createElement('script');
+            s1.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs';
+            s1.async = true;
+            s1.onload = function () {
+                var s2 = document.createElement('script');
+                s2.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet';
+                s2.async = true;
+                s2.onload = function () { resolve(); };
+                s2.onerror = function () { spiritTfjsMobilenetLoadPromise = null; reject(new Error('mobilenet')); };
+                document.head.appendChild(s2);
+            };
+            s1.onerror = function () { spiritTfjsMobilenetLoadPromise = null; reject(new Error('tfjs')); };
+            document.head.appendChild(s1);
+        });
+        return spiritTfjsMobilenetLoadPromise;
+    }
+
     function startCertification() {
         resetSellForm();
+        spiritEnsureTfjsMobilenet().catch(function (e) { console.error('Spirit TFJS:', e); });
         document.getElementById('certifModal').style.setProperty('display', 'flex', 'important');
     }
 
@@ -4462,6 +4486,7 @@ async function goToScan() {
     statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse des vecteurs et textures...</span>";
 
     try {
+        await spiritEnsureTfjsMobilenet();
         // --- CHARGEMENT DU MOTEUR IA ---
         const model = await mobilenet.load();
         const predictions = await model.classify(imgToScan);
@@ -5826,7 +5851,7 @@ async function confirmPayment(method) {
         try { if (typeof loadMyPurchases === 'function') loadMyPurchases(); } catch (e1) {}
         try { if (typeof loadMySales === 'function') loadMySales(); } catch (e2) {}
         try { if (typeof spiritLoadWallet === 'function') spiritLoadWallet(); } catch (e3) {}
-        try { if (typeof spiritPublicLoadAnnonces === 'function' && spiritPublicViewUserId) spiritPublicLoadAnnonces(spiritPublicViewUserId); } catch (e4) {}
+        try { if (typeof spiritPublicLoadAnnonces === 'function' && spiritPublicViewUserId) spiritPublicLoadAnnonces(spiritPublicViewUserId, { force: true }); } catch (e4) {}
         try { if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier(); } catch (e5) {}
     }
     window.setMarketCurrency = setMarketCurrency;
@@ -6501,8 +6526,12 @@ var spiritSanctuaryLastUnreadMsgCount = 0;
 var spiritSanSocialSupabaseEnabled = true;
 /** Mis à true si l’API renvoie 404 / table absente — évite le spam de requêtes sur les notifs. */
 var spiritSanNotifsTableMissing = false;
-var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 2 * 60 * 1000;
-var SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS = 3 * 60 * 1000;
+var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 20 * 60 * 1000;
+/** Dernières photos Sanctuaire par user_id (session) — complète le cache localStorage. */
+var spiritSanctuaryItemsSessionRows = Object.create(null);
+var SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS = 20 * 60 * 1000;
+/** Dernières lignes affichées par profil (même onglet) — évite rechargement à chaque retour sur le profil public. */
+var spiritPublicAnnoncesSessionRows = Object.create(null);
 var SPIRIT_PUBLIC_PROFILE_CACHE_TTL_MS = 5 * 60 * 1000;
 var SPIRIT_PUBLIC_IASCORE_CACHE_TTL_MS = 5 * 60 * 1000;
 var spiritSanctuaryItemsInFlight = Object.create(null);
@@ -7073,7 +7102,7 @@ function spiritSanctuaryFallbackLabel(uid) {
     if (u.length <= 14) return u;
     return u.slice(0, 5) + '…' + u.slice(-4);
 }
-/** Map id → pseudo (user_profiles) pour affichage Sanctuaire / messages. */
+/** Map id → pseudo (user_profiles) pour affichage Sanctuaire / messages — réutilise spiritOwnerPseudoCache + 1 requête batch pour les manquants. */
 async function spiritSanctuaryResolvePseudoMap(ids) {
     var map = Object.create(null);
     var uniq = [];
@@ -7081,22 +7110,40 @@ async function spiritSanctuaryResolvePseudoMap(ids) {
         id = String(id || '').trim();
         if (id && uniq.indexOf(id) < 0) uniq.push(id);
     });
-    if (!uniq.length || typeof _spirit === 'undefined' || !_spirit) {
-        uniq.forEach(function (id) { map[id] = spiritSanctuaryFallbackLabel(id); });
+    if (!uniq.length) return map;
+    var toFetch = [];
+    uniq.forEach(function (id) {
+        if (Object.prototype.hasOwnProperty.call(spiritOwnerPseudoCache, id)) {
+            var c = spiritOwnerPseudoCache[id];
+            map[id] = (c && String(c).trim()) ? String(c).trim() : spiritSanctuaryFallbackLabel(id);
+        } else {
+            toFetch.push(id);
+        }
+    });
+    if (!toFetch.length) return map;
+    if (typeof _spirit === 'undefined' || !_spirit) {
+        toFetch.forEach(function (id) {
+            spiritOwnerPseudoCache[id] = '';
+            map[id] = spiritSanctuaryFallbackLabel(id);
+        });
         return map;
     }
     try {
-        var r = await _spirit.from('user_profiles').select('id,pseudo').in('id', uniq);
+        var r = await _spirit.from('user_profiles').select('id,pseudo').in('id', toFetch);
         if (!r.error && Array.isArray(r.data)) {
             r.data.forEach(function (row) {
                 var id = String(row.id || '').trim();
                 var ps = String(row.pseudo || '').trim();
+                spiritOwnerPseudoCache[id] = ps;
                 map[id] = ps ? ps : spiritSanctuaryFallbackLabel(id);
             });
         }
     } catch (e) {}
-    uniq.forEach(function (id) {
-        if (!map[id]) map[id] = spiritSanctuaryFallbackLabel(id);
+    toFetch.forEach(function (id) {
+        if (map[id]) return;
+        if (!Object.prototype.hasOwnProperty.call(spiritOwnerPseudoCache, id)) spiritOwnerPseudoCache[id] = '';
+        var c = spiritOwnerPseudoCache[id];
+        map[id] = (c && String(c).trim()) ? String(c).trim() : spiritSanctuaryFallbackLabel(id);
     });
     return map;
 }
@@ -7292,14 +7339,26 @@ function spiritLsCacheWrite(key, rows) {
     } catch (e) {}
 }
 function spiritSanctuaryItemsCacheInvalidate(uid) {
+    uid = String(uid || '').trim();
     try { localStorage.removeItem(spiritSanctuaryItemsCacheKey(uid)); } catch (e) {}
+    try { delete spiritSanctuaryItemsSessionRows[uid]; } catch (e2) {}
 }
+
+</think>
+Fixing a mistaken patch — the last replace introduced a stray closing fence.
+
+<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
+Read
+/** Côté le plus long max (px) avant upload — réduit poids + bande passante Storage. */
+var SPIRIT_UPLOAD_MAX_IMAGE_EDGE = 2048;
+/** Qualité WebP après redimensionnement éventuel (0–1). */
+var SPIRIT_UPLOAD_WEBP_QUALITY = 0.82;
 async function spiritMaybeConvertToWebp(file) {
     try {
         if (!file) return { file: file, ext: '', converted: false };
         var type = String(file.type || '').toLowerCase();
-        // Conversion ciblée: JPEG/PNG uniquement (GIF/SVG exclus).
-        if (type !== 'image/jpeg' && type !== 'image/jpg' && type !== 'image/png') {
+        // JPEG / PNG / WebP raster (GIF/SVG/HEIC exclus — pas dessinables correctement).
+        if (type !== 'image/jpeg' && type !== 'image/jpg' && type !== 'image/png' && type !== 'image/webp') {
             return { file: file, ext: '', converted: false };
         }
         var url = URL.createObjectURL(file);
@@ -7309,19 +7368,41 @@ async function spiritMaybeConvertToWebp(file) {
             im.onerror = reject;
             im.src = url;
         });
+        var w = Math.max(1, Number(img.naturalWidth || img.width || 1));
+        var h = Math.max(1, Number(img.naturalHeight || img.height || 1));
+        var maxEdge = Math.max(256, Math.min(8192, Number(SPIRIT_UPLOAD_MAX_IMAGE_EDGE) || 2048));
+        var scale = 1;
+        if (w > maxEdge || h > maxEdge) {
+            scale = maxEdge / Math.max(w, h);
+        }
+        var tw = Math.max(1, Math.round(w * scale));
+        var th = Math.max(1, Math.round(h * scale));
+        var resized = scale < 1;
         var canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Number(img.naturalWidth || img.width || 1));
-        canvas.height = Math.max(1, Number(img.naturalHeight || img.height || 1));
+        canvas.width = tw;
+        canvas.height = th;
         var ctx = canvas.getContext('2d');
         if (!ctx) { URL.revokeObjectURL(url); return { file: file, ext: '', converted: false }; }
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        var webpBlob = await new Promise(function (resolve) {
-            canvas.toBlob(function (b) { resolve(b || null); }, 'image/webp', 0.82);
-        });
+        if (type === 'image/png') {
+            try { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; } catch (eSm) {}
+        }
+        ctx.drawImage(img, 0, 0, tw, th);
         URL.revokeObjectURL(url);
+        var q = typeof SPIRIT_UPLOAD_WEBP_QUALITY === 'number' ? SPIRIT_UPLOAD_WEBP_QUALITY : 0.82;
+        if (q < 0.5) q = 0.5;
+        if (q > 0.95) q = 0.95;
+        var webpBlob = await new Promise(function (resolve) {
+            canvas.toBlob(function (b) { resolve(b || null); }, 'image/webp', q);
+        });
         if (!webpBlob) return { file: file, ext: '', converted: false };
-        // Garde l'original si gain trop faible (<8%).
-        if (Number(webpBlob.size || 0) >= Number(file.size || 0) * 0.92) {
+        var origSize = Number(file.size || 0) || 1;
+        var outSize = Number(webpBlob.size || 0);
+        // Pas de redimensionnement : garde l'original si gain WebP &lt; 8 % (comme avant).
+        if (!resized && outSize >= origSize * 0.92) {
+            return { file: file, ext: '', converted: false };
+        }
+        // Image réduite : on garde le WebP sauf si nettement plus lourd que l’original (cas rare).
+        if (resized && outSize > origSize * 1.08) {
             return { file: file, ext: '', converted: false };
         }
         var webpFile = (typeof File !== 'undefined')
@@ -7679,30 +7760,20 @@ async function spiritPublicLoadIaScore(uid, row) {
         }
     } catch (e) { el.textContent = 'IA Score : —'; }
 }
-async function spiritPublicLoadAnnonces(uid) {
+async function spiritPublicLoadAnnonces(uid, opts) {
+    opts = opts || {};
+    var force = !!opts.force;
+    uid = String(uid || '').trim();
     var box = document.getElementById('spiritPublicAnnoncesList');
     if (!box) return;
-    box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Chargement…</p>';
-    var rows = spiritLsCacheRead(spiritPublicAnnoncesCacheKey(uid), SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS) || [];
-    if (typeof _spirit !== 'undefined' && _spirit) {
-        try {
-            var out = await _spirit.from('products_live').select('*').eq('owner_id', String(uid)).order('id', { ascending: false }).limit(48);
-            if (out && !out.error && Array.isArray(out.data)) {
-                rows = out.data;
-                spiritLsCacheWrite(spiritPublicAnnoncesCacheKey(uid), rows);
-            }
-        } catch (e) {}
-    }
-    if (!rows.length && typeof marketData !== 'undefined' && Array.isArray(marketData)) {
-        var suid = String(uid);
-        rows = marketData.filter(function (m) { return spiritOwnerId(m.owner_id) === suid; });
-    }
-    if (!rows.length) {
-        box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Aucune annonce publique.</p>';
-        return;
-    }
-    box.innerHTML = '';
-    rows.forEach(function (p) {
+    function renderAnnonceRows(rows) {
+        rows = Array.isArray(rows) ? rows : [];
+        if (!rows.length) {
+            box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Aucune annonce publique.</p>';
+            return;
+        }
+        box.innerHTML = '';
+        rows.forEach(function (p) {
         var t = String(p.title || p.name || 'Sans titre').replace(/</g, '&lt;');
         var price = (typeof spiritProductsLivePriceEUR === 'function') ? spiritProductsLivePriceEUR(p) : Number(p.price || 0);
         var priceTxt = spiritFormatMoney(price, String(p.currency || 'EUR'));
@@ -7743,15 +7814,51 @@ async function spiritPublicLoadAnnonces(uid) {
         } catch (eBtn) {}
         div.appendChild(info);
         box.appendChild(div);
-    });
+        });
+    }
+    /* 1) Mémoire session : retour instantané sur le même profil sans requête */
+    if (!force && spiritPublicAnnoncesSessionRows[uid] && Array.isArray(spiritPublicAnnoncesSessionRows[uid])) {
+        renderAnnonceRows(spiritPublicAnnoncesSessionRows[uid]);
+        return;
+    }
+    /* 2) localStorage (TTL) */
+    var cachedLs = spiritLsCacheRead(spiritPublicAnnoncesCacheKey(uid), SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS);
+    if (!force && cachedLs !== null && Array.isArray(cachedLs)) {
+        spiritPublicAnnoncesSessionRows[uid] = cachedLs;
+        renderAnnonceRows(cachedLs);
+        return;
+    }
+    box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Chargement…</p>';
+    var rows = [];
+    if (typeof _spirit !== 'undefined' && _spirit) {
+        try {
+            var out = await _spirit.from('products_live').select('*').eq('owner_id', String(uid)).order('id', { ascending: false }).limit(48);
+            if (out && !out.error && Array.isArray(out.data)) {
+                rows = out.data;
+                spiritLsCacheWrite(spiritPublicAnnoncesCacheKey(uid), rows);
+            }
+        } catch (e) {}
+    }
+    if (!rows.length && typeof marketData !== 'undefined' && Array.isArray(marketData)) {
+        var suid = String(uid);
+        rows = marketData.filter(function (m) { return spiritOwnerId(m.owner_id) === suid; });
+    }
+    spiritPublicAnnoncesSessionRows[uid] = rows;
+    renderAnnonceRows(rows);
 }
 async function spiritSanctuaryFetchItems(uid) {
     if (typeof _spirit === 'undefined' || !_spirit) return [];
     uid = String(uid || '').trim();
     if (!uid) return [];
+    if (spiritSanctuaryItemsSessionRows[uid] && Array.isArray(spiritSanctuaryItemsSessionRows[uid])) {
+        return spiritSanctuaryItemsSessionRows[uid].slice();
+    }
     var cKey = spiritSanctuaryItemsCacheKey(uid);
     var cached = spiritLsCacheRead(cKey, SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS);
-    if (Array.isArray(cached)) return cached;
+    if (Array.isArray(cached)) {
+        spiritSanctuaryItemsSessionRows[uid] = cached;
+        return cached;
+    }
     if (spiritSanctuaryItemsInFlight[uid]) return spiritSanctuaryItemsInFlight[uid];
     spiritSanctuaryItemsInFlight[uid] = (async function () {
     try {
@@ -7773,6 +7880,7 @@ async function spiritSanctuaryFetchItems(uid) {
     })();
     var rowsOut = await spiritSanctuaryItemsInFlight[uid];
     delete spiritSanctuaryItemsInFlight[uid];
+    if (Array.isArray(rowsOut)) spiritSanctuaryItemsSessionRows[uid] = rowsOut;
     return rowsOut;
 }
 async function spiritSanctuaryMarkReadForOwner(uid) {
@@ -9170,6 +9278,7 @@ async function startAIAnalysis() {
     statusText.innerHTML = "🔍 <span style='color:orange;'>SPIRIT EYES : Analyse de conformité...</span>";
 
     try {
+        await spiritEnsureTfjsMobilenet();
         const model = await mobilenet.load();
         const predictions = await model.classify(img);
         const top = predictions[0].className.toLowerCase();
@@ -9229,6 +9338,7 @@ async function startExpertScan() {
     statusText.innerHTML = "🔍 <span style='color:orange;'>SPIRIT EYES : Analyse de conformité...</span>";
 
     try {
+        await spiritEnsureTfjsMobilenet();
         const model = await mobilenet.load();
         
         // 1. ANALYSE MULTI-POINTS
