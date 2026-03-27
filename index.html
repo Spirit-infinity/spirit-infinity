@@ -161,7 +161,7 @@
         /* LAYOUT */
         .container { display: flex; padding: 20px 5%; gap: 20px; }
         .sidebar { width: 280px; background: var(--card-bg); padding: 20px; border: 1px solid var(--border); height: fit-content; }
-        .grid { flex: 1; min-width: 0; /* évite la coupe des sélecteurs Vue / Devise dans la colonne flex */ }
+        .grid { flex: 1; min-width: 0; }
         .cat-title { color: var(--neon-orange); font-size: 1.2rem; font-weight: 900; margin: 30px 0 15px 0; border-left: 4px solid var(--neon-orange); padding-left: 15px; text-transform: uppercase; letter-spacing: 1px; }
         .spirit-market-brand-title {
             font-family: 'Orbitron', system-ui, sans-serif;
@@ -192,15 +192,7 @@
             gap: 8px;
             margin: 6px 0 12px 0;
             flex-wrap: nowrap;
-            max-width: 100%;
-            min-width: 0;
-            overflow-x: auto;
-            overflow-y: visible;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 2px;
         }
-        .market-toolbar::-webkit-scrollbar { height: 4px; }
-        .market-toolbar::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
         /* Vue + Devise compacts, une seule ligne */
         .market-view-box {
             margin-left: auto;
@@ -211,33 +203,24 @@
             font-size: 0.62rem;
             flex-wrap: nowrap;
             white-space: nowrap;
-            max-width: 100%;
-            min-width: 0;
         }
         .market-view-box select {
             background: #0b0b0b;
             color: #fff;
             border: 1px solid #ff6600;
-            padding: 3px 7px;
             border-radius: 3px;
             flex-shrink: 0;
-            font-size: 0.62rem;
             line-height: 1.25;
             vertical-align: middle;
         }
-        /* Galerie : plus étroit pour laisser la place au sélecteur devise */
-        #marketViewSelect {
+        /* Même format pour Vue (Galerie) et Devise */
+        #marketViewSelect,
+        #marketCurrencySelect {
             min-width: 4.85rem;
             max-width: 6.5rem;
             width: auto;
             padding: 1px 4px;
             font-size: 0.57rem;
-        }
-        #marketCurrencySelect {
-            min-width: 2.85rem;
-            min-height: 1.35rem;
-            padding: 2px 5px;
-            flex-shrink: 0;
         }
         .market-fee-note { font-size:0.62rem; color:#9a9a9a; margin-top:4px; }
         .market-fee-note.high { color:#ff9b7a; }
