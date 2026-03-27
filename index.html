@@ -1,3 +1,4 @@
+<!-- (c) 2026 Spirit Infinity - Tous droits réservés -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1479,11 +1480,11 @@
                 <div id="pBox4" onclick="triggerFile('file4')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 4</div>
                 <div id="pBox5" onclick="triggerFile('file5')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 5</div>
             </div>
-            <input type="file" id="file1" style="display:none" onchange="previewSale(this, 'pBox1', 0)">
-            <input type="file" id="file2" style="display:none" onchange="previewSale(this, 'pBox2', 1)">
-            <input type="file" id="file3" style="display:none" onchange="previewSale(this, 'pBox3', 2)">
-            <input type="file" id="file4" style="display:none" onchange="previewSale(this, 'pBox4', 3)">
-            <input type="file" id="file5" style="display:none" onchange="previewSale(this, 'pBox5', 4)">
+            <input type="file" id="file1" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox1', 0)">
+            <input type="file" id="file2" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox2', 1)">
+            <input type="file" id="file3" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox3', 2)">
+            <input type="file" id="file4" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox4', 3)">
+            <input type="file" id="file5" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox5', 4)">
             <div id="diag-link" style="background:rgba(0,255,170,0.1); padding:8px; border:1px solid var(--spirit-green); margin-bottom:6px; display:none;">
                 <span style="color:var(--spirit-green); font-size:0.8rem;">✓ Auto-diagnostic Puce Spirit lié à cette annonce</span>
             </div>
@@ -4682,6 +4683,34 @@ async function publierAnnonce() {
     var photoUrls = (typeof previewPhotos !== 'undefined' && Array.isArray(previewPhotos))
         ? previewPhotos.filter(function (p) { return p != null && String(p).trim() !== ''; })
         : [];
+    var ownerIdPub = String(MY_TEST_ID || '').trim();
+    var listingFolderKey = uuidVal;
+    if (typeof editingId !== 'undefined' && editingId != null && String(editingId).trim() !== '') {
+        listingFolderKey = String(editingId);
+        try {
+            if (typeof _spirit !== 'undefined' && _spirit) {
+                var _fkRow = await _spirit.from('products_live').select('uuid').eq('id', editingId).maybeSingle();
+                if (!_fkRow.error && _fkRow.data && _fkRow.data.uuid) listingFolderKey = String(_fkRow.data.uuid);
+            }
+        } catch (eFk) {}
+    }
+    var needsUpload = photoUrls.some(function (x) { return String(x || '').indexOf('data:') === 0; });
+    if (needsUpload) {
+        if (typeof _spirit === 'undefined' || !_spirit) {
+            alert("ERREUR : Supabase indisponible, envoi des photos impossible.");
+            return;
+        }
+        if (!ownerIdPub) {
+            alert("Connexion requise pour enregistrer les photos sur le stockage Spirit.");
+            return;
+        }
+        try {
+            photoUrls = await spiritMaybeUploadListingImagesFromPreviews(ownerIdPub, listingFolderKey, photoUrls);
+        } catch (eUp) {
+            alert("Upload des photos impossible : " + (eUp && eUp.message ? eUp.message : eUp));
+            return;
+        }
+    }
     var imageUrlPayload = null;
     if (photoUrls.length === 1) imageUrlPayload = photoUrls[0];
     else if (photoUrls.length > 1) imageUrlPayload = JSON.stringify(photoUrls);
@@ -4983,6 +5012,20 @@ async function editAnnonce(id) {
     if(document.getElementById('saleFirstHand')) document.getElementById('saleFirstHand').checked = !!item.is_first_hand;
     if(document.getElementById('saleHasCoa')) document.getElementById('saleHasCoa').checked = !!(item.has_coa === true || item.has_coa === 'true' || item.has_coa === 1);
     if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize || 'medium';
+    try {
+        var _urlsEd = typeof spiritImageUrlList === 'function' ? spiritImageUrlList(item) : [];
+        previewPhotos = [null, null, null, null, null];
+        for (var _ui = 0; _ui < 5; _ui++) {
+            var _u = _urlsEd[_ui];
+            if (!_u) continue;
+            previewPhotos[_ui] = _u;
+            var _pbx = document.getElementById('pBox' + (_ui + 1));
+            if (_pbx) {
+                var _esc = String(_u).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+                _pbx.innerHTML = '<img src="' + _esc + '" alt="" style="width:100%;height:100%;object-fit:cover;">';
+            }
+        }
+    } catch (ePrevEd) {}
     console.log("[SPIRIT SYSTEM] Mode édition activé pour:", item.title);
 }
 
@@ -5782,16 +5825,22 @@ async function confirmPayment(method) {
     }
 
     function triggerFile(id) { document.getElementById(id).click(); }
-    function previewSale(input, boxId, index) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById(boxId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
-                previewPhotos[index] = e.target.result;
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
+    async function previewSale(input, boxId, index) {
+        if (!input.files || !input.files[0]) return;
+        var raw = input.files[0];
+        var conv = (typeof window !== 'undefined' && typeof window.spiritMaybeConvertToWebp === 'function')
+            ? window.spiritMaybeConvertToWebp
+            : (typeof spiritMaybeConvertToWebp === 'function' ? spiritMaybeConvertToWebp : null);
+        var prep = conv ? await conv(raw, { forceWebp: true }) : { file: raw };
+        var finalFile = prep && prep.file ? prep.file : raw;
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById(boxId).innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
+            previewPhotos[index] = e.target.result;
+        };
+        reader.readAsDataURL(finalFile);
     }
+    try { window.previewSale = previewSale; window.triggerFile = triggerFile; } catch (ePs) {}
 
     function applyFilters() {
         if (marketKindMode === 'statues') {
@@ -6562,6 +6611,8 @@ var spiritSanctuaryChatPeerAccount = '';
 var spiritSanctuaryPollTimer = null;
 var SPIRIT_BUCKET_AVATAR = 'sanctuary';
 var SPIRIT_BUCKET_SANCTUARY = 'sanctuary';
+/** Annonces marketplace : même bucket public, chemins `{ownerId}/listings/{listingUuid}/…`. */
+var SPIRIT_BUCKET_LISTINGS = 'sanctuary';
 var SPIRIT_FOLLOW_TABLE = 'spirit_follows';
 var spiritFriendsCache = [];
 // Fallback local pour IDs de test (évite les 400 Supabase si non mappés côté backend).
@@ -7401,11 +7452,92 @@ function spiritSanctuaryItemsCacheInvalidate(uid) {
 var SPIRIT_UPLOAD_MAX_WIDTH_PX = 1200;
 /** Qualité WebP (0–1). */
 var SPIRIT_UPLOAD_WEBP_QUALITY = 0.8;
-async function spiritMaybeConvertToWebp(file) {
+var spiritHeic2anyLoadPromise = null;
+function spiritEnsureHeic2any() {
+    var g = (typeof window !== 'undefined' && window.heic2any) ? window.heic2any : (typeof heic2any !== 'undefined' ? heic2any : null);
+    if (typeof g === 'function') return Promise.resolve();
+    if (spiritHeic2anyLoadPromise) return spiritHeic2anyLoadPromise;
+    spiritHeic2anyLoadPromise = new Promise(function (resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+        s.async = true;
+        s.onload = function () { resolve(); };
+        s.onerror = function () { spiritHeic2anyLoadPromise = null; reject(new Error('heic2any')); };
+        document.head.appendChild(s);
+    });
+    return spiritHeic2anyLoadPromise;
+}
+function spiritDataUrlToBlob(dataUrl) {
+    var s = String(dataUrl || '');
+    var comma = s.indexOf(',');
+    if (comma < 0) throw new Error('Data URL invalide');
+    var head = s.slice(0, comma);
+    var b64 = s.slice(comma + 1);
+    var mime = 'application/octet-stream';
+    var m = head.match(/^data:([^;,]+)/);
+    if (m) mime = m[1];
+    var bin = atob(b64);
+    var u8 = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    return new Blob([u8], { type: mime });
+}
+/**
+ * Publie les previews (data URL → Storage). Les URL https existantes sont conservées.
+ */
+async function spiritMaybeUploadListingImagesFromPreviews(ownerId, folderKey, urls) {
+    if (!ownerId || !folderKey || !Array.isArray(urls)) return urls;
+    if (typeof _spirit === 'undefined' || !_spirit || typeof spiritStorageUploadPublic !== 'function') return urls;
+    var out = [];
+    var safeFolder = String(folderKey).replace(/[^a-zA-Z0-9\-._]/g, '_').slice(0, 120);
+    for (var i = 0; i < urls.length; i++) {
+        var raw = urls[i];
+        if (raw == null || String(raw).trim() === '') continue;
+        var s = String(raw).trim();
+        if (/^https?:\/\//i.test(s)) {
+            out.push(s);
+            continue;
+        }
+        if (s.indexOf('data:') !== 0) {
+            out.push(s);
+            continue;
+        }
+        var blob = spiritDataUrlToBlob(s);
+        var mime = blob.type || 'image/webp';
+        var ext = 'webp';
+        if (mime.indexOf('png') >= 0) ext = 'png';
+        else if (mime.indexOf('jpeg') >= 0 || mime.indexOf('jpg') >= 0) ext = 'jpg';
+        var fname = 'listing_' + i + '.' + ext;
+        var f = new File([blob], fname, { type: mime });
+        var path = String(ownerId) + '/listings/' + safeFolder + '/' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2) + '.' + ext;
+        var pub = await spiritStorageUploadPublic(SPIRIT_BUCKET_LISTINGS, path, f);
+        out.push(pub);
+    }
+    return out;
+}
+async function spiritMaybeConvertToWebp(file, opts) {
+    opts = opts || {};
+    var forceWebp = opts.forceWebp === true;
     try {
         if (!file) return { file: file, ext: '', converted: false };
         var type = String(file.type || '').toLowerCase();
-        // JPEG / PNG / WebP raster (GIF/SVG/HEIC exclus — pas dessinables correctement).
+        var nameLow = String(file.name || '').toLowerCase();
+        var looksHeic = (type === 'image/heic' || type === 'image/heif' || /\.(heic|heif)$/.test(nameLow));
+        if (looksHeic) {
+            try {
+                await spiritEnsureHeic2any();
+                var h2a = (typeof window !== 'undefined' && typeof window.heic2any === 'function') ? window.heic2any : (typeof heic2any === 'function' ? heic2any : null);
+                if (!h2a) return { file: file, ext: '', converted: false };
+                var out = await h2a({ blob: file, toType: 'image/jpeg', quality: 0.92 });
+                var hb = Array.isArray(out) ? out[0] : out;
+                if (!hb || !(hb instanceof Blob)) return { file: file, ext: '', converted: false };
+                var jpegName = String(file.name || 'photo').replace(/\.(heic|heif)$/i, '') + '.jpg';
+                file = new File([hb], jpegName, { type: 'image/jpeg' });
+                type = 'image/jpeg';
+            } catch (eHeic) {
+                return { file: file, ext: '', converted: false };
+            }
+        }
+        // JPEG / PNG / WebP raster (GIF/SVG exclus — pas dessinables correctement).
         if (type !== 'image/jpeg' && type !== 'image/jpg' && type !== 'image/png' && type !== 'image/webp') {
             return { file: file, ext: '', converted: false };
         }
@@ -7441,10 +7573,23 @@ async function spiritMaybeConvertToWebp(file) {
         var webpBlob = await new Promise(function (resolve) {
             canvas.toBlob(function (b) { resolve(b || null); }, 'image/webp', q);
         });
+        if (!webpBlob) {
+            try {
+                var dataUrl = canvas.toDataURL('image/webp', q);
+                if (dataUrl && dataUrl.indexOf('data:image/webp') === 0) {
+                    var comma = dataUrl.indexOf(',');
+                    var b64 = comma >= 0 ? dataUrl.slice(comma + 1) : '';
+                    var bin = atob(b64);
+                    var u8 = new Uint8Array(bin.length);
+                    for (var bi = 0; bi < bin.length; bi++) u8[bi] = bin.charCodeAt(bi);
+                    webpBlob = new Blob([u8], { type: 'image/webp' });
+                }
+            } catch (eTd) {}
+        }
         if (!webpBlob) return { file: file, ext: '', converted: false };
         var origSize = Number(file.size || 0) || 1;
         var outSize = Number(webpBlob.size || 0);
-        if (outSize > origSize * 1.25) {
+        if (!forceWebp && outSize > origSize * 1.25) {
             return { file: file, ext: '', converted: false };
         }
         var webpFile = (typeof File !== 'undefined')
@@ -7455,6 +7600,7 @@ async function spiritMaybeConvertToWebp(file) {
         return { file: file, ext: '', converted: false };
     }
 }
+try { window.spiritMaybeConvertToWebp = spiritMaybeConvertToWebp; } catch (eWwebp) {}
 async function spiritStorageUploadPublic(bucket, path, file) {
     if (typeof _spirit === 'undefined' || !_spirit) throw new Error('Supabase indisponible');
     var prep = await spiritMaybeConvertToWebp(file);
