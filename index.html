@@ -1590,6 +1590,10 @@
         <div class="spirit-sanctuary-chat" style="margin-top:20px;">
             <h4 style="color:var(--neon-orange);font-size:0.7rem;">CHAT DU SANCTUAIRE</h4>
             <p style="font-size:0.6rem;color:#555;margin:0 0 8px;">@, .com et numéros de téléphone sont bloqués — marketplace Spirit.</p>
+            <div style="margin:0 0 8px;">
+                <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:4px;">Conversation</label>
+                <select id="spiritAccountSanctuaryChatPeer" style="width:100%;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;"></select>
+            </div>
             <div class="spirit-san-chat-msgs" id="spiritAccountSanctuaryChatMsgs"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;">
                 <input type="text" id="spiritAccountSanctuaryChatInput" placeholder="Message…" style="flex:1;min-width:160px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
@@ -1702,6 +1706,10 @@
             <div class="spirit-sanctuary-chat">
                 <h4>CHAT DU SANCTUAIRE</h4>
                 <p style="font-size:0.62rem;color:#555;margin:0 0 8px;">Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.</p>
+                <div style="margin:0 0 8px;">
+                    <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:4px;">Conversation</label>
+                    <select id="spiritSanctuaryChatPeer" style="width:100%;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;"></select>
+                </div>
                 <div class="spirit-san-chat-msgs" id="spiritSanctuaryChatMsgs"></div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                     <input type="text" id="spiritSanctuaryChatInput" placeholder="Message…" style="flex:1;min-width:180px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
@@ -6050,6 +6058,8 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
 var spiritPublicViewUserId = null;
 var spiritSanctuaryViewMode = 'list';
 var spiritSanctuaryViewModeAccount = 'list';
+var spiritSanctuaryChatPeerPublic = '';
+var spiritSanctuaryChatPeerAccount = '';
 var spiritSanctuaryPollTimer = null;
 var SPIRIT_BUCKET_AVATAR = 'sanctuary';
 var SPIRIT_BUCKET_SANCTUARY = 'sanctuary';
@@ -6338,6 +6348,7 @@ function spiritSanctuaryDom(ctx) {
             neon: 'spiritAccountSanctuaryNeonSelect',
             chatMsgs: 'spiritAccountSanctuaryChatMsgs',
             chatIn: 'spiritAccountSanctuaryChatInput',
+            chatPeer: 'spiritAccountSanctuaryChatPeer',
             viewSel: '#spiritAccountSanctuaryRoot .spirit-san-view-acc'
         };
     }
@@ -6347,8 +6358,17 @@ function spiritSanctuaryDom(ctx) {
         neon: 'spiritSanctuaryNeonSelect',
         chatMsgs: 'spiritSanctuaryChatMsgs',
         chatIn: 'spiritSanctuaryChatInput',
+        chatPeer: 'spiritSanctuaryChatPeer',
         viewSel: '#spiritSanctuaryRoot .spirit-san-view'
     };
+}
+function spiritSanctuaryGetActivePeer(ctx) {
+    return ctx === 'account' ? spiritSanctuaryChatPeerAccount : spiritSanctuaryChatPeerPublic;
+}
+function spiritSanctuarySetActivePeer(ctx, uid) {
+    uid = String(uid || '').trim();
+    if (ctx === 'account') spiritSanctuaryChatPeerAccount = uid;
+    else spiritSanctuaryChatPeerPublic = uid;
 }
 function spiritSanctuaryUid(ctx) {
     if (ctx === 'account') {
@@ -7167,6 +7187,7 @@ async function spiritSanctuaryRenderChat(ctx) {
     var uid = spiritSanctuaryUid(ctx);
     var d = spiritSanctuaryDom(ctx);
     var box = document.getElementById(d.chatMsgs);
+    var peerSel = document.getElementById(d.chatPeer);
     if (!box || !uid) return;
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
         var keyLocal = String(uid);
@@ -7174,7 +7195,47 @@ async function spiritSanctuaryRenderChat(ctx) {
         arrLocal = arrLocal.slice().sort(function (a, b) {
             return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
         });
-        box.innerHTML = arrLocal.map(function (m) {
+        var meLocal = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+        var peers = [];
+        var peerSeen = Object.create(null);
+        arrLocal.forEach(function (m) {
+            var sid = String(m.sender_id || '').trim();
+            var rid = String(m.recipient_id || '').trim();
+            var p = '';
+            if (sid === meLocal) p = rid;
+            else if (rid === meLocal) p = sid;
+            else if (sid && sid !== uid) p = sid;
+            else if (rid && rid !== uid) p = rid;
+            if (p && p !== meLocal && !peerSeen[p]) { peerSeen[p] = true; peers.push(p); }
+        });
+        if (uid && uid !== meLocal && !peerSeen[uid]) peers.unshift(uid);
+        var activePeer = spiritSanctuaryGetActivePeer(ctx);
+        if (activePeer && peers.indexOf(activePeer) < 0) activePeer = '';
+        if (!activePeer) activePeer = peers.length ? peers[0] : '';
+        spiritSanctuarySetActivePeer(ctx, activePeer);
+        if (peerSel) {
+            peerSel.innerHTML = peers.length
+                ? peers.map(function (p) {
+                    var lbl = spiritPublicDefaultLabel(p).replace(/</g, '&lt;');
+                    return '<option value="' + String(p).replace(/"/g, '&quot;') + '">' + lbl + ' (' + String(p).replace(/</g, '&lt;') + ')</option>';
+                }).join('')
+                : '<option value="">Aucune conversation</option>';
+            peerSel.value = activePeer || '';
+            if (!peerSel.__spiritBound) {
+                peerSel.__spiritBound = true;
+                peerSel.addEventListener('change', function () {
+                    spiritSanctuarySetActivePeer(ctx, peerSel.value || '');
+                    void spiritSanctuaryRenderChat(ctx);
+                });
+            }
+        }
+        var filteredLocal = arrLocal.filter(function (m) {
+            if (!activePeer) return true;
+            var sid = String(m.sender_id || '').trim();
+            var rid = String(m.recipient_id || '').trim();
+            return (sid === activePeer && rid === meLocal) || (sid === meLocal && rid === activePeer);
+        });
+        box.innerHTML = filteredLocal.map(function (m) {
             var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
             var tx = String(m.body || '').replace(/</g, '&lt;');
             return '<div class="spirit-san-chat-line"><span class="who">' + who + '</span> — ' + tx + '</div>';
@@ -7190,6 +7251,7 @@ async function spiritSanctuaryRenderChat(ctx) {
         arr = arr.slice().sort(function (a, b) {
             return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
         });
+        if (peerSel) peerSel.innerHTML = '<option value="">Conversation active</option>';
         box.innerHTML = arr.map(function (m) {
             var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
             var tx = String(m.body || '').replace(/</g, '&lt;');
@@ -7200,6 +7262,7 @@ async function spiritSanctuaryRenderChat(ctx) {
     }
     var out = await _spirit.from('sanctuary_chat').select('*').eq('recipient_id', String(resolvedUid)).order('created_at', { ascending: true }).limit(200);
     if (out.error || !out.data) { box.innerHTML = '<p style="color:#555;font-size:0.65rem;">—</p>'; return; }
+    if (peerSel) peerSel.innerHTML = '<option value="">Conversation active</option>';
     box.innerHTML = out.data.map(function (m) {
         var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
         var tx = String(m.body || '').replace(/</g, '&lt;');
@@ -7220,14 +7283,23 @@ async function spiritSanctuarySendChat(ctx) {
         return;
     }
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    var targetUid = String(uid || '').trim();
+    if (String(ctx) === 'account') {
+        var peer = spiritSanctuaryGetActivePeer(ctx);
+        if (peer && String(peer).trim() !== me) targetUid = String(peer).trim();
+        else if (String(targetUid) === String(me)) {
+            alert('Choisis une conversation pour répondre.');
+            return;
+        }
+    }
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
         var labelLocal = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
         spiritSanctuaryPushLocalMessage({
-            recipient_id: String(uid),
+            recipient_id: String(targetUid),
             sender_id: String(me),
             sender_label: labelLocal,
             body: chk.text,
-            is_read: String(me) === String(uid),
+            is_read: String(me) === String(targetUid),
             created_at: new Date().toISOString()
         });
         inp.value = '';
@@ -7235,16 +7307,16 @@ async function spiritSanctuarySendChat(ctx) {
         return;
     }
     if (typeof _spirit === 'undefined' || !_spirit) return;
-    var resolvedUid = await spiritResolveUserIdForFakeTestId(uid);
+    var resolvedUid = await spiritResolveUserIdForFakeTestId(targetUid);
     var resolvedMe = await spiritResolveUserIdForFakeTestId(me);
     var label = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
     if (!resolvedUid || !resolvedMe) {
         spiritSanctuaryPushLocalMessage({
-            recipient_id: String(uid),
+            recipient_id: String(targetUid),
             sender_id: String(me),
             sender_label: label,
             body: chk.text,
-            is_read: String(me) === String(uid),
+            is_read: String(me) === String(targetUid),
             created_at: new Date().toISOString()
         });
         inp.value = '';
