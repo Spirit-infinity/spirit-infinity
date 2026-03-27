@@ -6370,6 +6370,23 @@ function spiritSanctuarySetActivePeer(ctx, uid) {
     if (ctx === 'account') spiritSanctuaryChatPeerAccount = uid;
     else spiritSanctuaryChatPeerPublic = uid;
 }
+function spiritSanctuaryInferPeerFromLocal(uid, me) {
+    uid = String(uid || '').trim();
+    me = String(me || '').trim();
+    if (!uid || !me) return '';
+    var arr = spiritLocalSanctuaryChatByRecipient[String(uid)] || [];
+    if (!Array.isArray(arr) || !arr.length) return '';
+    // Prend l'interlocuteur à partir du dernier message disponible
+    for (var i = arr.length - 1; i >= 0; i--) {
+        var m = arr[i] || {};
+        var sid = String(m.sender_id || '').trim();
+        var rid = String(m.recipient_id || '').trim();
+        if (!sid || !rid) continue;
+        if (sid === me && rid !== me) return rid;
+        if (rid === me && sid !== me) return sid;
+    }
+    return '';
+}
 function spiritSanctuaryUid(ctx) {
     if (ctx === 'account') {
         return (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : null;
@@ -7149,16 +7166,50 @@ function spiritSanctuaryWireOnce() {
 function spiritSanctuarySanitizeChat(text) {
     var raw = String(text || '').trim();
     if (!raw) return { ok: false, reason: 'empty' };
-    if (raw.indexOf('@') >= 0) return { ok: false, reason: 'at' };
-    if (raw.toLowerCase().indexOf('.com') >= 0) return { ok: false, reason: 'com' };
     var lower = raw.toLowerCase();
+
+    // Normalisation anti-triche (ex: "p a y p a l" => paypal)
+    var norm = '';
+    try {
+        norm = lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    } catch (e) {
+        norm = lower;
+    }
+    norm = norm.replace(/[^a-z0-9]/g, '');
+
+    // Blocures directes
+    if (raw.indexOf('@') >= 0) return { ok: false, reason: 'at' };
+    if (lower.indexOf('.com') >= 0) return { ok: false, reason: 'com' };
+    if (/http[s]?:\/\//i.test(lower) || /www\./i.test(lower)) return { ok: false, reason: 'url' };
     if (/\S+@\S+\.\S+/.test(raw) || /@[a-z0-9.-]+\.[a-z]{2,}/i.test(raw)) return { ok: false, reason: 'email' };
-    if (/(\+?\d[\d\s.\-()]{8,}\d)/.test(raw) && /\d{7,}/.test(raw.replace(/\D/g, ''))) return { ok: false, reason: 'phone' };
-    if (/\bwhatsapp\b|\btelegram\b|\bsignal\b|\binstagram\b|\bdiscord\b/i.test(lower)) return { ok: false, reason: 'contact' };
-    if (/\bpaypal\b|\bemail\b|\btéléphone\b|\btelephone\b|\bmail\b|\bgsm\b|\bphone\b/i.test(lower)) return { ok: false, reason: 'contact' };
-    if (/paypal|virement\s+entre|envoi\s+entre\s+proches|iban|bic\s*:|numéro\s+de\s+téléphone|no\s+tel|mailto:/i.test(lower)) return { ok: false, reason: 'contact' };
-    if (/\b(stripe|revolut|wise|transferwise|venmo|zelle|skrill|payoneer|western\s+union|moneygram|n26|bunq|klarna|mollie|adyen|sumup|paysend|remitly|xoom|binance|coinbase|cryptocom|crypto\s*dot\s*com|google\s*pay|apple\s*pay)\b/i.test(lower)) return { ok: false, reason: 'payment' };
-    if (/\bcash\s*app\b/i.test(lower)) return { ok: false, reason: 'payment' };
+    // Téléphones / chiffres en masse (très approximatif mais efficace)
+    if (/(\+?\d[\d\s.\-()]{6,}\d)/.test(raw) && /\d{7,}/.test(raw.replace(/\D/g, ''))) return { ok: false, reason: 'phone' };
+
+    // Contacts / messageries (paiement hors marketplace)
+    if (/\b(whatsapp|telegram|signal|instagram|discord)\b/i.test(lower)) return { ok: false, reason: 'contact' };
+    // Mails / téléphone / adresse
+    if (/\b(email|téléphone|telephone|mail|gsm|phone|tel)\b/i.test(lower)) return { ok: false, reason: 'contact' };
+    if (/\b(adresse|address|livraison|shipping|expedition|envoi)\b/i.test(lower)) return { ok: false, reason: 'contact' };
+    if (/paypal|virement|transfer|transfert|rib|iban|bic|swift|mail/i.test(lower)) return { ok: false, reason: 'payment' };
+
+    // Détection mots-clés paiement (avec norm sans séparateurs)
+    var paymentTokens = [
+        'paypal', 'virement', 'transfer', 'transfert', 'rib', 'iban', 'bic', 'swift', 'wire',
+        'paiement', 'payment', 'argent', 'cash', 'cashapp',
+        'stripe', 'revolut', 'wise', 'transferwise', 'venmo', 'zelle', 'skrill', 'payoneer',
+        'westernunion', 'moneygram', 'n26', 'bunq', 'klarna', 'mollie', 'adyen', 'sumup', 'paysend', 'remitly', 'xoom',
+        'binance', 'coinbase', 'cryptocom', 'cryptodotcom',
+        'bitcoin', 'btc', 'ethereum', 'eth', 'usdt', 'usdc',
+        'metamask', 'wallet', 'seed', 'mnemonic', 'passphrase'
+    ];
+    for (var i = 0; i < paymentTokens.length; i++) {
+        var t = paymentTokens[i];
+        if (t && norm.indexOf(t) >= 0) return { ok: false, reason: 'payment' };
+    }
+
+    // Crypto en mode "crypto dot com"
+    if (/\b(crypto\s*dot\s*com|cryptocom)\b/i.test(lower)) return { ok: false, reason: 'payment' };
+
     return { ok: true, text: raw };
 }
 function spiritSanctuaryPushLocalMessage(msg) {
@@ -7287,6 +7338,15 @@ async function spiritSanctuarySendChat(ctx) {
     if (String(ctx) === 'account') {
         var peer = spiritSanctuaryGetActivePeer(ctx);
         if (peer && String(peer).trim() !== me) targetUid = String(peer).trim();
+        else {
+            // Robustesse après switch utilisateur : si la conversation sélectionnée n'existe plus,
+            // on infère l'interlocuteur depuis l'historique local.
+            var inferred = spiritSanctuaryInferPeerFromLocal(uid, me);
+            if (inferred && inferred !== me) {
+                targetUid = inferred;
+                spiritSanctuarySetActivePeer(ctx, targetUid);
+            }
+        }
         else if (String(targetUid) === String(me)) {
             alert('Choisis une conversation pour répondre.');
             return;
