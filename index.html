@@ -6506,14 +6506,8 @@ function spiritSanSocialCanUseSupabase() {
 }
 function spiritSanSocialHandleSupabaseError(err) {
     var msg = String((err && err.message) || err || '').toLowerCase();
-    // Si table/policy absente ou requête refusée, on coupe les appels social pour éviter le spam d'erreurs.
-    if (
-        msg.indexOf('does not exist') >= 0 ||
-        msg.indexOf('relation') >= 0 ||
-        msg.indexOf('permission denied') >= 0 ||
-        msg.indexOf('row-level security') >= 0 ||
-        msg.indexOf('rls') >= 0
-    ) {
+    // Ne désactive que si la table / relation est absente (évite de couper tout le module après un simple refus RLS).
+    if (msg.indexOf('does not exist') >= 0 || (msg.indexOf('relation') >= 0 && msg.indexOf('does not exist') >= 0)) {
         spiritSanSocialSupabaseEnabled = false;
     }
 }
@@ -6561,7 +6555,7 @@ async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
     fromUid = String(fromUid || '').trim();
     if (!ownerId || !fromUid || ownerId === fromUid || !spiritSanSocialCanUseSupabase()) return;
     try {
-        await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).insert({
+        var ins = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).insert({
             owner_id: ownerId,
             type: String(type || ''),
             item_id: String(itemId || ''),
@@ -6569,11 +6563,12 @@ async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
             text: String(text || ''),
             is_read: false
         });
+        if (ins && ins.error) spiritSanSocialHandleSupabaseError(ins.error);
     } catch (e) { spiritSanSocialHandleSupabaseError(e); }
 }
 function spiritSanctuaryRefreshMessagesDot() {
     var uid = '';
-    try { uid = String(spiritGetCurrentUserId() || '').trim(); } catch (e) {}
+    try { uid = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim(); } catch (e) {}
     var dot = document.getElementById('messages-tab-dot');
     if (!dot) return;
     if (!uid || !spiritSanSocialCanUseSupabase()) { dot.style.display = 'none'; return; }
@@ -6610,19 +6605,25 @@ async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
     var was = !!spiritSanctuarySocialCache.myLikes[itemId];
     try {
         if (was) {
-            await _spirit.from(SPIRIT_SAN_LIKES_TABLE).delete().eq('item_id', itemId).eq('user_id', actorUid);
+            var rd = await _spirit.from(SPIRIT_SAN_LIKES_TABLE).delete().eq('item_id', itemId).eq('user_id', actorUid);
+            if (rd && rd.error) throw rd.error;
             spiritSanctuarySocialCache.myLikes[itemId] = false;
         } else {
-            await _spirit.from(SPIRIT_SAN_LIKES_TABLE).upsert({
+            var ru = await _spirit.from(SPIRIT_SAN_LIKES_TABLE).upsert({
                 item_id: itemId,
                 owner_id: ownerId,
                 user_id: actorUid,
                 user_label: (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : spiritPublicDefaultLabel(actorUid)
             }, { onConflict: 'item_id,user_id' });
+            if (ru && ru.error) throw ru.error;
             spiritSanctuarySocialCache.myLikes[itemId] = true;
             await spiritSanctuaryPushNotif(ownerId, 'like', itemId, actorUid, 'a aimé ta photo');
         }
-    } catch (e) { spiritSanSocialHandleSupabaseError(e); return false; }
+    } catch (e) {
+        spiritSanSocialHandleSupabaseError(e);
+        try { alert('Like : impossible — ' + (e && e.message ? e.message : e)); } catch (a) {}
+        return false;
+    }
     return !was;
 }
 async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
@@ -6632,14 +6633,19 @@ async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
     text = String(text || '').trim();
     if (!itemId || !actorUid || !text || !spiritSanSocialCanUseSupabase()) return false;
     try {
-        await _spirit.from(SPIRIT_SAN_COMMENTS_TABLE).insert({
+        var ri = await _spirit.from(SPIRIT_SAN_COMMENTS_TABLE).insert({
             item_id: itemId,
             owner_id: ownerId,
             user_id: actorUid,
             user_label: (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : spiritPublicDefaultLabel(actorUid),
             comment_text: text
         });
-    } catch (e) { spiritSanSocialHandleSupabaseError(e); return false; }
+        if (ri && ri.error) throw ri.error;
+    } catch (e) {
+        spiritSanSocialHandleSupabaseError(e);
+        try { alert('Commentaire : impossible — ' + (e && e.message ? e.message : e)); } catch (a) {}
+        return false;
+    }
     await spiritSanctuaryPushNotif(ownerId, 'comment', itemId, actorUid, 'a commenté ta photo');
     return true;
 }
@@ -6653,6 +6659,10 @@ function spiritFollowGetCurrentUid() {
         uid = String(uid || '').trim();
         return spiritIsUuid(uid) ? uid : '';
     } catch (e) { return ''; }
+}
+/** UUID session pour likes / commentaires / notifs (via spiritGetCurrentUserId, pas seulement MY_TEST_ID). */
+function spiritSocialActorUid() {
+    try { return spiritFollowGetCurrentUid(); } catch (e) { return ''; }
 }
 async function spiritFollowFetchRows(uid) {
     uid = String(uid || '').trim();
@@ -6788,7 +6798,7 @@ function spiritLoadMessagesTab() {
     var box = document.getElementById('spiritMessagesList');
     if (!box) return;
     var me = '';
-    try { me = String(spiritGetCurrentUserId() || '').trim(); } catch (e) {}
+    try { me = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim(); } catch (e) {}
     if (!me) {
         box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Connecte-toi pour voir tes messages.</div>';
         return;
@@ -7262,8 +7272,8 @@ function spiritSanctuarySyncPublicChrome() {
         hdr.textContent = p ? (String(p.textContent || '').trim() || '—') : '—';
     }
     var uid = spiritPublicViewUserId;
-    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-    if (own) own.style.display = (visible && uid && me === String(uid)) ? 'flex' : 'none';
+    var me = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : '';
+    if (own) own.style.display = (visible && uid && me && String(me) === String(uid)) ? 'flex' : 'none';
 }
 function spiritPublicSetTab(which) {
     var a = document.getElementById('spiritPublicPaneAnnonces');
@@ -7330,13 +7340,14 @@ function spiritPublicApplyBadgesFromRow(row) {
 async function spiritOpenPublicProfileUI(userId, opts) {
     opts = opts || {};
     spiritPublicViewUserId = String(userId).trim();
+    try { spiritSanSocialSupabaseEnabled = true; } catch (eRe) {}
     if (typeof window.hideAllSections === 'function') window.hideAllSections();
     document.body.classList.add('spirit-public-active');
     var sec = document.getElementById('spiritPublicProfileSection');
     if (sec) sec.style.setProperty('display', 'flex', 'important');
     var row = await spiritPublicFetchUserProfile(spiritPublicViewUserId);
-    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-    var isOwner = me === spiritPublicViewUserId;
+    var me = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : '';
+    var isOwner = me && String(me) === String(spiritPublicViewUserId);
     var pseudoEl = document.getElementById('spiritPublicPseudo');
     if (pseudoEl) {
         var dispName = (row && row.pseudo) ? String(row.pseudo) : spiritPublicDefaultLabel(spiritPublicViewUserId);
@@ -7793,8 +7804,8 @@ async function spiritSanctuaryRender(ctx) {
     else if (vm === 'style2') modeClass = 'spirit-san-mode-style2';
     grid.className = modeClass;
     grid.innerHTML = '';
-    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-    var isOwner = me === String(uid);
+    var me = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : '';
+    var isOwner = me && String(me) === String(uid);
     if (isOwner && ctx !== 'public' && items.length < 15) {
         var add = document.createElement('div');
         add.className = 'spirit-san-add-tile';
@@ -7809,7 +7820,7 @@ async function spiritSanctuaryRender(ctx) {
     function spiritSanctuaryBuildSocialUi(itemId, ownerId, actorId) {
         var likes = spiritSanctuaryLikeUsers(itemId);
         var comments = spiritSanctuaryComments(itemId);
-        var likedByMe = likes.indexOf(String(actorId || '')) >= 0;
+        var likedByMe = !!spiritSanctuarySocialCache.myLikes[itemId] || (actorId && likes.indexOf(String(actorId)) >= 0);
         var overlay = document.createElement('div');
         overlay.style.cssText = 'display:flex;gap:6px;margin-top:8px;';
         var bLike = document.createElement('button');
