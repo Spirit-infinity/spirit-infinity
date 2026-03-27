@@ -6423,6 +6423,8 @@ var spiritSanctuaryLastUnreadMsgCount = 0;
 var spiritSanSocialSupabaseEnabled = true;
 var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 2 * 60 * 1000;
 var SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS = 3 * 60 * 1000;
+var SPIRIT_PUBLIC_PROFILE_CACHE_TTL_MS = 5 * 60 * 1000;
+var SPIRIT_PUBLIC_IASCORE_CACHE_TTL_MS = 5 * 60 * 1000;
 var spiritSanctuaryItemsInFlight = Object.create(null);
 
 function spiritSanSocialCanUseSupabase() {
@@ -7044,6 +7046,12 @@ function spiritSanctuaryItemsCacheKey(uid) {
 function spiritPublicAnnoncesCacheKey(uid) {
     return 'spirit_pub_ann_v1__' + String(uid || '');
 }
+function spiritPublicProfileCacheKey(uid) {
+    return 'spirit_pub_profile_v1__' + String(uid || '');
+}
+function spiritPublicIaScoreCacheKey(uid) {
+    return 'spirit_pub_iascore_v1__' + String(uid || '');
+}
 function spiritLsCacheRead(key, ttlMs) {
     try {
         var raw = localStorage.getItem(String(key || '')) || '';
@@ -7220,15 +7228,21 @@ async function spiritResolveUserIdForFakeTestId(v, opts) {
     return null;
 }
 async function spiritPublicFetchUserProfile(uid) {
+    uid = String(uid || '').trim();
+    if (!uid) return null;
+    var cached = spiritLsCacheRead(spiritPublicProfileCacheKey(uid), SPIRIT_PUBLIC_PROFILE_CACHE_TTL_MS);
+    if (cached && typeof cached === 'object' && !Array.isArray(cached)) return cached;
     if (typeof _spirit === 'undefined' || !_spirit) return null;
     try {
-        var rawUid = String(uid || '').trim();
+        var rawUid = uid;
         if (rawUid === '12345' || rawUid === '67890') return null;
         var userId = await spiritResolveUserIdForFakeTestId(uid);
         if (!userId) return null;
         var out = await _spirit.from('user_profiles').select('*').eq('id', userId.toString()).maybeSingle();
         if (out.error) return null;
-        return out.data || null;
+        var row = out.data || null;
+        if (row && typeof row === 'object') spiritLsCacheWrite(spiritPublicProfileCacheKey(uid), row);
+        return row;
     } catch (e) { return null; }
 }
 function spiritPublicApplyBadgesFromRow(row) {
@@ -7350,6 +7364,7 @@ async function spiritPublicSaveMeta() {
         alert('Erreur Supabase : ' + (err && err.message ? err.message : err));
         return;
     }
+    try { localStorage.removeItem(spiritPublicProfileCacheKey(String(targetUserId || '').trim())); } catch (eClr) {}
     alert('Profil public mis à jour.');
 }
 function spiritPublicWireAvatarOnce() {
@@ -7409,20 +7424,35 @@ function spiritPublicWireAvatarOnce() {
 async function spiritPublicLoadIaScore(uid, row) {
     var el = document.getElementById('spiritPublicIAScore');
     if (!el) return;
+    uid = String(uid || '').trim();
+    if (!uid) { el.textContent = 'IA Score : —'; return; }
     if (row && row.ia_score != null && row.ia_score !== '' && Number.isFinite(Number(row.ia_score))) {
-        el.textContent = 'IA Score : ' + Math.round(Number(row.ia_score));
+        var scoreRow = Math.round(Number(row.ia_score));
+        el.textContent = 'IA Score : ' + scoreRow;
+        spiritLsCacheWrite(spiritPublicIaScoreCacheKey(uid), [{ score: scoreRow }]);
+        return;
+    }
+    var c = spiritLsCacheRead(spiritPublicIaScoreCacheKey(uid), SPIRIT_PUBLIC_IASCORE_CACHE_TTL_MS);
+    if (Array.isArray(c) && c[0] && Number.isFinite(Number(c[0].score))) {
+        el.textContent = 'IA Score : ' + Math.round(Number(c[0].score));
         return;
     }
     if (typeof _spirit === 'undefined' || !_spirit) { el.textContent = 'IA Score : —'; return; }
     try {
-        var out = await _spirit.from('products_live').select('ia_score').eq('owner_id', String(uid));
+        var out = await _spirit.from('products_live').select('ia_score').eq('owner_id', uid);
         if (out.error || !out.data || !out.data.length) { el.textContent = 'IA Score : —'; return; }
         var sum = 0, n = 0;
         out.data.forEach(function (r) {
             var v = Number(r.ia_score);
             if (Number.isFinite(v)) { sum += v; n++; }
         });
-        el.textContent = n ? ('IA Score moy. : ' + Math.round(sum / n)) : 'IA Score : —';
+        if (n) {
+            var avg = Math.round(sum / n);
+            el.textContent = 'IA Score moy. : ' + avg;
+            spiritLsCacheWrite(spiritPublicIaScoreCacheKey(uid), [{ score: avg }]);
+        } else {
+            el.textContent = 'IA Score : —';
+        }
     } catch (e) { el.textContent = 'IA Score : —'; }
 }
 async function spiritPublicLoadAnnonces(uid) {
