@@ -6930,12 +6930,19 @@ function spiritSanctuarySetView(mode, ctx) {
 }
 async function spiritPublicOpenAnnonce(pid, puid) {
     try {
+        // Ouvre toujours l'annonce dans le contexte Marketplace principal.
+        try {
+            if (typeof spiritExitPublicProfile === 'function') spiritExitPublicProfile();
+            if (typeof navigateTo === 'function') navigateTo('market');
+            else if (typeof window !== 'undefined' && typeof window.navigateTo === 'function') window.navigateTo('market');
+        } catch (eNav) {}
+
         // 1) Ouvrir depuis l'objet complet si possible (le plus fiable).
         if (typeof _spirit !== 'undefined' && _spirit) {
             var q = null;
             if (pid != null && String(pid).trim() !== '') q = await _spirit.from('products_live').select('*').eq('id', pid).maybeSingle();
             else if (puid != null && String(puid).trim() !== '') q = await _spirit.from('products_live').select('*').eq('uuid', String(puid)).maybeSingle();
-            if (q && !q.error && q.data && typeof openProduct === 'function') { openProduct(q.data); return; }
+            if (q && !q.error && q.data && typeof openProduct === 'function') { await openProduct(q.data); return; }
             if (q && !q.error && q.data && typeof showProductDetails === 'function') { void showProductDetails(q.data.id != null ? q.data.id : pid); return; }
         }
         // 2) Fallback ID
