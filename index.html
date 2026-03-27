@@ -1050,11 +1050,12 @@
 
 <div id="marketplaceSection" class="container">
     <div class="sidebar">
-        <div class="market-kind-toggle" role="tablist" aria-label="Type de produit" style="margin-bottom:12px;">
+        <div class="market-kind-toggle" role="tablist" aria-label="Type de produit" style="margin-bottom:16px;">
             <button type="button" id="btn-kind-figurines" class="active" data-kind-toggle="figurines" onclick="setMarketKind('figurines')" data-i18n="market_kind_figurines">FIGURINES</button>
             <button type="button" id="btn-kind-statues" data-kind-toggle="statues" onclick="setMarketKind('statues')" data-i18n="market_kind_statues">STATUES</button>
         </div>
-        <h4 id="filter-title" style="color:var(--neon-orange); margin-top:0;" data-key="filter_title">FILTRES DE RECHERCHE</h4>      
+        <hr style="border:0.5px solid #222; margin:0 0 14px 0;">
+        <h4 id="filter-title" style="color:var(--neon-orange); margin:0 0 10px 0;" data-key="filter_title">FILTRES DE RECHERCHE</h4>      
         <label data-key="lbl_price_range">Tranche de Prix (€)</label>
         <select id="fPrice" onchange="applyFilters()">
             <option value="all" data-key="opt_all_prices">Tous les prix</option>
@@ -1134,11 +1135,12 @@
         <div id="marketStatuesView" class="statues-market-view">
             <div class="statues-layout">
                 <div class="statues-sidebar">
-                    <div class="market-kind-toggle" role="tablist" aria-label="Type de produit" style="margin-bottom:12px;">
+                    <div class="market-kind-toggle" role="tablist" aria-label="Type de produit" style="margin-bottom:16px;">
                         <button type="button" data-kind-toggle="figurines" onclick="setMarketKind('figurines')" data-i18n="market_kind_figurines">FIGURINES</button>
                         <button type="button" data-kind-toggle="statues" class="active" onclick="setMarketKind('statues')" data-i18n="market_kind_statues">STATUES</button>
                     </div>
-                    <h4 style="color:var(--neon-orange); margin:0 0 8px 0;" data-i18n="statues_filters_title">FILTRES STATUES</h4>
+                    <hr style="border:0.5px solid #222; margin:0 0 14px 0;">
+                    <h4 style="color:var(--neon-orange); margin:0 0 10px 0;" data-i18n="statues_filters_title">FILTRES STATUES</h4>
                     <label data-i18n="statues_brand">MARQUE</label>
                     <select id="sBrand" onchange="applyStatuesFilters()">
                         <option value="all" data-i18n="opt_all_brands">Toutes les marques</option>
