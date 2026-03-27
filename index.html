@@ -1623,6 +1623,21 @@
             <button type="button" class="btn-action" style="font-size:0.62rem; padding:8px 12px;" onclick="spiritUpdatePseudo()">ENREGISTRER LE PSEUDO</button>
         </div>
     </div>
+    <div style="margin-top:12px; padding:10px; border:1px solid #333; background:#101010;">
+        <label style="display:block; font-size:0.68rem; color:#aaa; margin-bottom:8px;">ADRESSE POSTALE (LIVRAISON)</label>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px;">
+            <input id="shipLastName" type="text" maxlength="60" placeholder="Nom" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
+            <input id="shipFirstName" type="text" maxlength="60" placeholder="Prénom" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
+            <input id="shipStreet" type="text" maxlength="140" placeholder="Adresse" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem; grid-column:1 / -1;">
+            <input id="shipPostalCode" type="text" maxlength="20" placeholder="Code postal" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
+            <input id="shipCity" type="text" maxlength="80" placeholder="Ville" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
+            <input id="shipCountry" type="text" maxlength="80" placeholder="Pays" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; align-items:center;">
+            <button type="button" class="btn-action" style="font-size:0.62rem; padding:8px 12px;" onclick="spiritSaveShippingAddress()">ENREGISTRER ADRESSE</button>
+            <span id="shipAddrStatus" style="font-size:0.64rem; color:#888;">Renseignée une seule fois puis réutilisée à chaque achat.</span>
+        </div>
+    </div>
     <button class="btn-action" style="margin-top:10px; font-size:0.7rem;" onclick="changeRIB()">METTRE / CHANGER UN RIB ACTIF</button>
     <button class="btn-action" style="margin-top:10px; font-size:0.7rem; background:#222; color:#fff; border:1px solid #555;" onclick="spiritLogout()">DÉCONNEXION</button>
 </div>
@@ -3272,6 +3287,71 @@ var spiritWalletCachedTotal = 0;
 function spiritRibStorageKey(uid) {
     return 'spirit_rib_v1__' + String(uid || '');
 }
+function spiritShippingAddressStorageKey(uid) {
+    return 'spirit_ship_addr_v1__' + String(uid || '');
+}
+function spiritGetShippingAddressForUid(uid) {
+    uid = String(uid || '').trim();
+    if (!uid) return null;
+    try {
+        var raw = localStorage.getItem(spiritShippingAddressStorageKey(uid)) || '';
+        if (!raw) return null;
+        var obj = JSON.parse(raw);
+        if (!obj || typeof obj !== 'object') return null;
+        return {
+            last_name: String(obj.last_name || '').trim(),
+            first_name: String(obj.first_name || '').trim(),
+            street: String(obj.street || '').trim(),
+            postal_code: String(obj.postal_code || '').trim(),
+            city: String(obj.city || '').trim(),
+            country: String(obj.country || '').trim()
+        };
+    } catch (e) { return null; }
+}
+function spiritRenderShippingAddressForm() {
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    var d = spiritGetShippingAddressForUid(uid) || {};
+    var setVal = function (id, val) {
+        var el = document.getElementById(id);
+        if (el) el.value = String(val || '');
+    };
+    setVal('shipLastName', d.last_name);
+    setVal('shipFirstName', d.first_name);
+    setVal('shipStreet', d.street);
+    setVal('shipPostalCode', d.postal_code);
+    setVal('shipCity', d.city);
+    setVal('shipCountry', d.country);
+    var st = document.getElementById('shipAddrStatus');
+    if (st) {
+        st.textContent = d.street ? 'Adresse de livraison enregistrée.' : 'Renseignée une seule fois puis réutilisée à chaque achat.';
+    }
+}
+function spiritSaveShippingAddress() {
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) { alert('Connecte-toi pour enregistrer ton adresse.'); return; }
+    var v = function (id) {
+        var el = document.getElementById(id);
+        return String((el && el.value) || '').trim();
+    };
+    var data = {
+        last_name: v('shipLastName'),
+        first_name: v('shipFirstName'),
+        street: v('shipStreet'),
+        postal_code: v('shipPostalCode'),
+        city: v('shipCity'),
+        country: v('shipCountry')
+    };
+    if (!data.last_name || !data.first_name || !data.street || !data.city || !data.country) {
+        alert('Complète au moins Nom, Prénom, Adresse, Ville, Pays.');
+        return;
+    }
+    try {
+        localStorage.setItem(spiritShippingAddressStorageKey(uid), JSON.stringify(data));
+    } catch (e) {}
+    var st = document.getElementById('shipAddrStatus');
+    if (st) st.textContent = 'Adresse de livraison enregistrée.';
+    alert('Adresse postale enregistrée.');
+}
 function spiritGetRibForUid(uid) {
     uid = String(uid || '').trim();
     if (!uid) return null;
@@ -3998,6 +4078,21 @@ async function loadMySales() {
                 // On utilise image_url (principale) ou img1 si disponible
                 const mainImg = tr.image_url || tr.img1 || "";
                 const saleImg = mainImg ? `<img src="${mainImg}" alt="" loading="lazy" decoding="async" style="width:60px; height:60px; object-fit:cover; border:1px solid #333; margin-right:15px; border-radius:2px;">` : `<div style="width:60px; height:60px; background:#222; margin-right:15px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#555; border:1px solid #333;">NO IMG</div>`;
+                var shipBlock = '';
+                if (tr && tr.ship_address && tr.ship_city && tr.ship_country) {
+                    var shipFullName = [String(tr.ship_first_name || '').trim(), String(tr.ship_last_name || '').trim()].join(' ').trim();
+                    var shipPostal = String(tr.ship_postal_code || '').trim();
+                    shipBlock = `
+                        <div style="margin-top:10px; border:1px solid #2e2e2e; background:#0b0b0b; padding:8px; border-radius:4px;">
+                            <div style="font-size:0.62rem; color:#999; text-transform:uppercase; margin-bottom:4px;">Adresse livraison acheteur</div>
+                            <div style="font-size:0.7rem; color:#ddd; line-height:1.35;">
+                                <div>${String(shipFullName || '—').replace(/</g, '&lt;')}</div>
+                                <div>${String(tr.ship_address || '').replace(/</g, '&lt;')}</div>
+                                <div>${String((shipPostal ? shipPostal + ' ' : '') + tr.ship_city).replace(/</g, '&lt;')}</div>
+                                <div>${String(tr.ship_country || '').replace(/</g, '&lt;')}</div>
+                            </div>
+                        </div>`;
+                }
 
                 saleDiv.innerHTML = `
                     <div style="display: flex; align-items: center;">
@@ -4018,6 +4113,7 @@ async function loadMySales() {
                             <div style="margin-top:8px; font-size:0.65rem; color:#444; font-style:italic;">
                                 Protection Spirit Guard Active (8%)
                             </div>
+                            ${shipBlock}
 
                             <div style="margin-top:15px; display:flex; gap:10px;">
                                 <button onclick="generateSpiritLabel('${tr.id}')" style="flex:1; background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px; cursor:pointer; text-transform:uppercase; font-size:0.7rem;">📦 Générer Bordereau</button>
@@ -4788,6 +4884,13 @@ async function enregistrerVente(method) {
     const protectionTotale = parseFloat(split.totalFee);
 
     const totalAcheteur = (prixFigurine + fraisLivraison + protectionTotale).toFixed(2);
+    const buyerShip = (typeof spiritGetShippingAddressForUid === 'function')
+        ? (spiritGetShippingAddressForUid(buyerIdTxt) || {})
+        : {};
+    if (!buyerShip.street || !buyerShip.city || !buyerShip.country || !buyerShip.last_name || !buyerShip.first_name) {
+        alert("Complète ton adresse postale dans Paramètres (Nom, Prénom, Adresse, Ville, Pays) avant l'achat.");
+        return;
+    }
 
     try {
         console.log("[SPIRIT LEDGER] Écriture dans les colonnes Supabase...");
@@ -4808,12 +4911,27 @@ async function enregistrerVente(method) {
         var txRich = Object.assign({}, txBase, {
             shipping_amount: Number(fraisLivraison),
             protection_fee: Number(protectionTotale),
-            buyer_total: Number(totalAcheteur)
+            buyer_total: Number(totalAcheteur),
+            ship_last_name: String(buyerShip.last_name || ''),
+            ship_first_name: String(buyerShip.first_name || ''),
+            ship_address: String(buyerShip.street || ''),
+            ship_postal_code: String(buyerShip.postal_code || ''),
+            ship_city: String(buyerShip.city || ''),
+            ship_country: String(buyerShip.country || '')
         });
         var ins = await _spirit.from('transactions').insert([txRich]);
         if (ins && ins.error) {
-            // Compatibilité schéma: si colonnes optionnelles absentes, retomber sur txBase.
-            ins = await _spirit.from('transactions').insert([txBase]);
+            // Compatibilité schéma: tentative avec colonnes financières optionnelles uniquement.
+            var txSemiRich = Object.assign({}, txBase, {
+                shipping_amount: Number(fraisLivraison),
+                protection_fee: Number(protectionTotale),
+                buyer_total: Number(totalAcheteur)
+            });
+            ins = await _spirit.from('transactions').insert([txSemiRich]);
+            if (ins && ins.error) {
+                // Compatibilité schéma maximale.
+                ins = await _spirit.from('transactions').insert([txBase]);
+            }
         }
         if (ins && ins.error) throw ins.error;
 
@@ -5884,6 +6002,7 @@ window.showAccountTab = function showAccountTab(tab) {
     if (tab === 'params') {
         console.log("[SPIRIT SYSTEM] Accès paramètres");
         try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR) {}
+        try { if (typeof spiritRenderShippingAddressForm === 'function') spiritRenderShippingAddressForm(); } catch (eA) {}
     }
 
 
@@ -8328,6 +8447,11 @@ window.generateSpiritLabel = async function(transactionId) {
             .single();
 
         if (error || !tr) return alert("Erreur : Transaction introuvable.");
+        var recip = [String(tr.ship_first_name || '').trim(), String(tr.ship_last_name || '').trim()].join(' ').trim();
+        var recipStreet = String(tr.ship_address || '').trim();
+        var recipCityLine = String(((tr.ship_postal_code || '') ? (String(tr.ship_postal_code).trim() + ' ') : '') + (tr.ship_city || '')).trim();
+        var recipCountry = String(tr.ship_country || '').trim();
+        var hasRecipient = !!(recipStreet && recipCityLine && recipCountry);
 
         // Ouverture immédiate pour éviter les bloqueurs de pub
         const w = window.open('', '_blank');
@@ -8339,6 +8463,16 @@ window.generateSpiritLabel = async function(transactionId) {
                     <h1 style="border-bottom:2px solid #000;">SPIRIT LOGISTICS</h1>
                     <p><b>OBJET :</b> ${tr.figurine_name}</p>
                     <p><b>VALEUR :</b> ${tr.amount} €</p>
+                    <div style="margin:12px 0; border:1px solid #222; padding:10px;">
+                        <p style="margin:0 0 6px;"><b>DESTINATAIRE :</b></p>
+                        ${hasRecipient
+                            ? `<p style="margin:0;">${String(recip || '—').replace(/</g,'&lt;')}</p>
+                               <p style="margin:0;">${String(recipStreet).replace(/</g,'&lt;')}</p>
+                               <p style="margin:0;">${String(recipCityLine).replace(/</g,'&lt;')}</p>
+                               <p style="margin:0;">${String(recipCountry).replace(/</g,'&lt;')}</p>`
+                            : `<p style="margin:0;">Adresse postale non renseignée par l'acheteur.</p>`
+                        }
+                    </div>
                     <div style="background:#000; color:#fff; padding:20px; text-align:center; font-size:1.5rem; font-weight:bold;">
                         REF-${transactionId.substring(0,8).toUpperCase()}
                     </div>
@@ -8500,6 +8634,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { spiritRefreshDashboardPublicUrl(); } catch (e) {}
     try { spiritSanctuaryStartPoll(); } catch (e) {}
     try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR0) {}
+    try { if (typeof spiritRenderShippingAddressForm === 'function') spiritRenderShippingAddressForm(); } catch (eA0) {}
     try {
         var fm = document.getElementById('spiritFriendsModal');
         if (fm) fm.addEventListener('click', function (ev) { if (ev.target === fm) spiritCloseFriendsModal(); });
