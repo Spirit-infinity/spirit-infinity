@@ -6801,14 +6801,9 @@ async function spiritPublicLoadAnnonces(uid) {
         div.style.cursor = 'pointer';
         div.addEventListener('click', function () {
             try {
-                // Priorité: ouverture directe avec l'objet (gère aussi les IDs non numériques).
-                if (typeof openProduct === 'function') {
-                    openProduct(Object.assign({}, p));
-                    return;
-                }
-                var pid = (p && p.id != null) ? p.id : ((p && p.uuid != null) ? p.uuid : '');
-                if (typeof showProductDetails === 'function') void showProductDetails(pid);
-                else if (typeof window !== 'undefined' && typeof window.showProductDetails === 'function') void window.showProductDetails(pid);
+                var pid = (p && p.id != null) ? p.id : null;
+                var puid = (p && p.uuid != null) ? p.uuid : null;
+                void spiritPublicOpenAnnonce(pid, puid);
             } catch (e) {}
         });
         var urls = (typeof spiritImageUrlList === 'function') ? spiritImageUrlList(p) : [];
@@ -6827,7 +6822,8 @@ async function spiritPublicLoadAnnonces(uid) {
         var info = document.createElement('div');
         info.innerHTML = '<div style="font-weight:800;color:#fff;font-size:0.8rem;">' + t + '</div>' +
             '<div style="color:var(--neon-orange);font-size:0.85rem;">' + price.toFixed(2) + ' EUR</div>' +
-            (sold ? '<span style="color:#e22;font-size:0.65rem;font-weight:800;">VENDU</span>' : '<span style="color:#696;font-size:0.65rem;">DISPONIBLE</span>');
+            (sold ? '<span style="color:#e22;font-size:0.65rem;font-weight:800;">VENDU</span>' : '<span style="color:#696;font-size:0.65rem;">DISPONIBLE</span>') +
+            '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:7px 10px;" onclick="event.stopPropagation();spiritPublicOpenAnnonce(\'' + String((p && p.id != null) ? p.id : '').replace(/'/g, '\\&#39;') + '\',\'' + String((p && p.uuid != null) ? p.uuid : '').replace(/'/g, '\\&#39;') + '\')">VOIR L’ANNONCE</button></div>';
         div.appendChild(info);
         box.appendChild(div);
     });
@@ -6919,6 +6915,21 @@ function spiritSanctuarySetView(mode, ctx) {
         b.classList.toggle('active', b.getAttribute('data-sanview') === mode);
     });
     void spiritSanctuaryRender(ctx);
+}
+async function spiritPublicOpenAnnonce(pid, puid) {
+    try {
+        // 1) Ouvrir depuis l'objet complet si possible (le plus fiable).
+        if (typeof _spirit !== 'undefined' && _spirit) {
+            var q = null;
+            if (pid != null && String(pid).trim() !== '') q = await _spirit.from('products_live').select('*').eq('id', pid).maybeSingle();
+            else if (puid != null && String(puid).trim() !== '') q = await _spirit.from('products_live').select('*').eq('uuid', String(puid)).maybeSingle();
+            if (q && !q.error && q.data && typeof openProduct === 'function') { openProduct(q.data); return; }
+            if (q && !q.error && q.data && typeof showProductDetails === 'function') { void showProductDetails(q.data.id != null ? q.data.id : pid); return; }
+        }
+        // 2) Fallback ID
+        if (typeof showProductDetails === 'function') { void showProductDetails(pid != null ? pid : puid); return; }
+        if (typeof window !== 'undefined' && typeof window.showProductDetails === 'function') { void window.showProductDetails(pid != null ? pid : puid); return; }
+    } catch (e) {}
 }
 function spiritStoragePublicUrlToObjectPath(bucket, publicUrl) {
     try {
