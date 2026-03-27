@@ -2209,6 +2209,10 @@
     let marketViewMode = 'gallery';
     let marketKindMode = 'figurines';
     let marketCurrencyMode = 'EUR';
+    try {
+        var _curSaved = String(localStorage.getItem('spirit_market_currency') || '').toUpperCase();
+        if (_curSaved === 'EUR' || _curSaved === 'USD' || _curSaved === 'CNY') marketCurrencyMode = _curSaved;
+    } catch (eCurInit) {}
 
     var SPIRIT_MARKET_PAGE_SIZE = 12;
     var spiritMarketBucket = {
@@ -3505,7 +3509,7 @@ async function spiritLoadWallet() {
     if (!totalEl || !listEl) return;
     var uid = spiritOwnerId(spiritGetCurrentUserId());
     if (!uid || !_spirit) {
-        totalEl.textContent = '0.00 EUR';
+        totalEl.textContent = spiritFormatMoney(0, 'EUR');
         listEl.innerHTML = '<div style="font-size:0.66rem;color:#666;">Connecte-toi pour voir ton portefeuille.</div>';
         if (hintEl) hintEl.textContent = 'RIB utilisé : paramètres du compte.';
         spiritWalletCachedTotal = 0;
@@ -3562,7 +3566,7 @@ async function spiritLoadWallet() {
             if (rel.unlocked && Number.isFinite(a) && a > 0) total += a;
         });
         spiritWalletCachedTotal = total;
-        totalEl.textContent = total.toFixed(2) + ' EUR';
+        totalEl.textContent = spiritFormatMoney(total, 'EUR');
         if (!rows.length) {
             listEl.innerHTML = '<div style="font-size:0.66rem;color:#666;">Aucune vente créditée pour le moment.</div>';
         } else {
@@ -3571,7 +3575,7 @@ async function spiritLoadWallet() {
                 var title = String((r && r.figurine_name) || 'Vente').replace(/</g, '&lt;');
                 var status = String((r && r.status) || '—').replace(/</g, '&lt;');
                 var amt = Number(r && r.amount);
-                var v = Number.isFinite(amt) ? amt.toFixed(2) : '0.00';
+                var v = Number.isFinite(amt) ? spiritFormatMoney(amt, 'EUR') : spiritFormatMoney(0, 'EUR');
                 var rel = spiritWalletReleaseState(r);
                 var relTxt = '';
                 if (rel.mode === 'litige') {
@@ -3586,7 +3590,7 @@ async function spiritLoadWallet() {
                 }
                 return '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;border:1px solid #1f1f1f;background:#090909;padding:8px 10px;">' +
                     '<div><div style="color:#ddd;font-size:0.68rem;font-weight:700;">' + title + '</div><div style="color:#666;font-size:0.6rem;">' + dt + ' · ' + status + '</div><div style="font-size:0.6rem;margin-top:2px;">' + relTxt + '</div></div>' +
-                    '<div style="color:' + (rel.unlocked ? '#7dffb1' : '#666') + ';font-weight:800;font-size:0.72rem;">' + (rel.unlocked ? '+' : '⏳ ') + v + ' EUR</div>' +
+                    '<div style="color:' + (rel.unlocked ? '#7dffb1' : '#666') + ';font-weight:800;font-size:0.72rem;">' + (rel.unlocked ? '+' : '⏳ ') + v + '</div>' +
                     '</div>';
             }).join('');
         }
@@ -3596,7 +3600,7 @@ async function spiritLoadWallet() {
             hintEl.textContent = ribTxt + ' · Déblocage : validation acheteur, sinon 3j ouvrés (native) / 4j (legacy/autre).';
         }
     } catch (e) {
-        totalEl.textContent = '0.00 EUR';
+        totalEl.textContent = spiritFormatMoney(0, 'EUR');
         listEl.innerHTML = '<div style="font-size:0.66rem;color:#855;">Impossible de charger le portefeuille.</div>';
         spiritWalletCachedTotal = 0;
     }
@@ -3613,7 +3617,7 @@ function spiritRequestBankTransfer() {
         alert('Solde insuffisant pour un virement.');
         return;
     }
-    var msg = 'Demande de virement enregistrée.\n\nMontant : ' + spiritWalletCachedTotal.toFixed(2) + ' EUR\nIBAN : ' + rib.iban + '\nBIC : ' + (rib.bic || '—');
+    var msg = 'Demande de virement enregistrée.\n\nMontant : ' + spiritFormatMoney(spiritWalletCachedTotal, 'EUR') + '\nIBAN : ' + rib.iban + '\nBIC : ' + (rib.bic || '—');
     alert(msg);
 }
 
@@ -4279,6 +4283,7 @@ async function loadMySales() {
                 }
                 var releaseBadge = spiritSalesReleaseBadge(tr);
 
+                var amountTxt = spiritFormatMoney(Number(tr.amount || 0), String(tr.currency || 'EUR'));
                 saleDiv.innerHTML = `
                     <div style="display: flex; align-items: center;">
                         ${saleImg}
@@ -4287,7 +4292,7 @@ async function loadMySales() {
                                 <div>
                                     <small style="color: #666; font-family: monospace;">LEDGER-ID: ${tr.id}</small>
                                     <h3 style="margin: 2px 0; color: white; text-transform: uppercase; letter-spacing:1px; font-size:0.9rem;">${(tr.figurine_name || tr.listing_title || tr.title || 'OBJET SPIRIT')}</h3>
-                                    <p style="margin: 0; color: var(--spirit-green); font-weight: bold; font-size:1.1rem;">${tr.amount} €</p>
+                                    <p style="margin: 0; color: var(--spirit-green); font-weight: bold; font-size:1.1rem;">${amountTxt}</p>
                                 </div>
                                 <div style="text-align:right;">
                                     <span style="display:block; font-size: 0.7rem; color: #888;">${new Date(tr.created_at).toLocaleString()}</span>
@@ -5760,8 +5765,18 @@ async function confirmPayment(method) {
 
     function setMarketCurrency(currency) {
         marketCurrencyMode = ['EUR', 'USD', 'CNY'].includes(String(currency).toUpperCase()) ? String(currency).toUpperCase() : 'EUR';
+        try { localStorage.setItem('spirit_market_currency', marketCurrencyMode); } catch (eLsCur) {}
+        try {
+            var selCur = document.getElementById('marketCurrencySelect');
+            if (selCur) selCur.value = marketCurrencyMode;
+        } catch (eSelCur) {}
         if (typeof applyFilters === 'function') applyFilters();
-        else renderMarket();
+        else if (typeof renderMarket === 'function') renderMarket();
+        try { if (typeof loadMyPurchases === 'function') loadMyPurchases(); } catch (e1) {}
+        try { if (typeof loadMySales === 'function') loadMySales(); } catch (e2) {}
+        try { if (typeof spiritLoadWallet === 'function') spiritLoadWallet(); } catch (e3) {}
+        try { if (typeof spiritPublicLoadAnnonces === 'function' && spiritPublicViewUserId) spiritPublicLoadAnnonces(spiritPublicViewUserId); } catch (e4) {}
+        try { if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier(); } catch (e5) {}
     }
     window.setMarketCurrency = setMarketCurrency;
 
@@ -5771,6 +5786,13 @@ async function confirmPayment(method) {
         const to = rates[String(toCurrency || 'EUR').toUpperCase()] || 1;
         const eur = Number(amount || 0) / from;
         return eur * to;
+    }
+    function spiritFormatMoney(amount, fromCurrency, toCurrency) {
+        var toCur = String(toCurrency || marketCurrencyMode || 'EUR').toUpperCase();
+        var fromCur = String(fromCurrency || 'EUR').toUpperCase();
+        var n = spiritConvertCurrency(Number(amount || 0), fromCur, toCur);
+        if (!Number.isFinite(n)) n = 0;
+        return n.toFixed(2) + ' ' + toCur;
     }
 
     function spiritGetBuyerCountry() {
@@ -5793,6 +5815,7 @@ async function confirmPayment(method) {
         sel.id = 'marketCurrencySelect';
         sel.onchange = function () { setMarketCurrency(this.value); };
         sel.innerHTML = '<option value="EUR">EUR</option><option value="USD">USD</option><option value="CNY">CNY</option>';
+        try { sel.value = marketCurrencyMode; } catch (eVal) {}
         box.appendChild(lbl);
         box.appendChild(sel);
     }
@@ -5812,11 +5835,11 @@ async function confirmPayment(method) {
         var basePx = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(selectedProduct) : parseFloat(selectedProduct.price || 0);
         const split = (typeof calculateSpiritSplit === 'function') ? calculateSpiritSplit(basePx) : null;
         const prot = split ? parseFloat(split.totalFee) : (basePx * 0.08);
-        document.getElementById('sumPrice').innerText = basePx + " €";
-        document.getElementById('sumShip').innerText = shipCost.toFixed(2) + " €";
+        document.getElementById('sumPrice').innerText = spiritFormatMoney(basePx, 'EUR');
+        document.getElementById('sumShip').innerText = spiritFormatMoney(shipCost, 'EUR');
         document.getElementById('sumCarrierName').innerText = carrierName;
-        document.getElementById('sumProt').innerText = prot.toFixed(2) + " €";
-        document.getElementById('sumTotal').innerText = (basePx + shipCost + prot).toFixed(2) + " €";
+        document.getElementById('sumProt').innerText = spiritFormatMoney(prot, 'EUR');
+        document.getElementById('sumTotal').innerText = spiritFormatMoney(basePx + shipCost + prot, 'EUR');
     }
 
     // --- NAVIGATION SPIRIT : 1 MENU = 1 SECTION (sans reload) ---
@@ -7481,6 +7504,7 @@ async function spiritPublicLoadAnnonces(uid) {
     rows.forEach(function (p) {
         var t = String(p.title || p.name || 'Sans titre').replace(/</g, '&lt;');
         var price = (typeof spiritProductsLivePriceEUR === 'function') ? spiritProductsLivePriceEUR(p) : Number(p.price || 0);
+        var priceTxt = spiritFormatMoney(price, String(p.currency || 'EUR'));
         var st = String(p.status || '').toLowerCase();
         var sold = st === 'sold' || st === 'vendu';
         var div = document.createElement('div');
@@ -7506,7 +7530,7 @@ async function spiritPublicLoadAnnonces(uid) {
         var pidSafe = String((p && p.id != null) ? p.id : '').replace(/'/g, '&#39;');
         var uuidSafe = String((p && p.uuid != null) ? p.uuid : '').replace(/'/g, '&#39;');
         info.innerHTML = '<div style="font-weight:800;color:#fff;font-size:0.8rem;">' + t + '</div>' +
-            '<div style="color:var(--neon-orange);font-size:0.85rem;">' + price.toFixed(2) + ' EUR</div>' +
+            '<div style="color:var(--neon-orange);font-size:0.85rem;">' + priceTxt + '</div>' +
             (sold ? '<span style="color:#e22;font-size:0.65rem;font-weight:800;">VENDU</span>' : '<span style="color:#696;font-size:0.65rem;">DISPONIBLE</span>') +
             '<div style="margin-top:8px;"><button type="button" class="btn-action spirit-public-open-btn" style="font-size:0.58rem;padding:7px 10px;" onclick="event.stopPropagation();window.spiritPublicOpenAnnonce(\'' + pidSafe + '\',\'' + uuidSafe + '\')">VOIR L’ANNONCE</button></div>';
         try {
