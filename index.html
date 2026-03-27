@@ -1451,6 +1451,7 @@
                 <button type="button" id="btn-dashboard" class="active" onclick="showAccountTab('dashboard')">DASHBOARD<span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button id="btn-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
                 <button id="btn-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
+                <button id="btn-portefeuille" onclick="showAccountTab('portefeuille')">PORTEFEUILLE</button>
                 <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
                 <button type="button" id="btn-favoris" onclick="showAccountTab('favoris')"><span data-key="account_favorites">MES FAVORIS</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-sanctuary" onclick="showAccountTab('sanctuary')">SANCTUAIRE</button>
@@ -1529,6 +1530,21 @@
     <div id="labelPreview" style="display:none;">
         <div class="shipping-label" id="labelContent"></div>
         <button class="btn-action" style="margin-top:10px; width:100%; background:#222; color:white;" onclick="document.getElementById('labelPreview').style.display='none'">FERMER L'APERCU</button>
+    </div>
+</div>
+
+<div id="tab-portefeuille" class="account-page">
+    <h2>🏦 MON PORTEFEUILLE</h2>
+    <p style="font-size:0.72rem;color:#888;">Les montants de tes ventes sont cumulés ici.</p>
+    <div style="background:#0b1115;border:1px solid #1e3344;padding:14px;border-radius:6px;">
+        <div style="font-size:0.72rem;color:#7ea5c0;letter-spacing:1px;">SOLDE DISPONIBLE</div>
+        <div id="spiritWalletTotal" style="font-size:1.6rem;font-weight:900;color:#8ce8ff;margin-top:6px;">0.00 EUR</div>
+        <button type="button" class="btn-action" style="margin-top:12px;font-size:0.68rem;padding:9px 14px;background:#0f1c25;border:1px solid #2a546f;color:#c9eeff;" onclick="spiritRequestBankTransfer()">VIREMENT BANCAIRE</button>
+        <div id="spiritWalletHint" style="font-size:0.62rem;color:#6f8594;margin-top:8px;">RIB utilisé : paramètres du compte.</div>
+    </div>
+    <div style="margin-top:14px;padding:12px;border:1px solid #222;background:#0b0b0b;">
+        <div style="font-size:0.72rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;margin-bottom:8px;">HISTORIQUE DES ENTRÉES (VENTES)</div>
+        <div id="spiritWalletSalesList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
 </div>
 
@@ -3233,6 +3249,132 @@ function spiritOfferFromFavoritesPrompt(productId, sellerId, originalPrice, curr
     if (raw == null) return;
     var amt = parseFloat(String(raw).replace(',', '.').trim());
     void spiritSubmitProductOffer(pid, sellerId, amt, originalPrice, currency || 'EUR');
+}
+
+var spiritWalletCachedTotal = 0;
+function spiritRibStorageKey(uid) {
+    return 'spirit_rib_v1__' + String(uid || '');
+}
+function spiritGetRibForUid(uid) {
+    uid = String(uid || '').trim();
+    if (!uid) return null;
+    try {
+        var raw = localStorage.getItem(spiritRibStorageKey(uid)) || '';
+        if (!raw) return null;
+        var obj = JSON.parse(raw);
+        if (!obj || typeof obj !== 'object') return null;
+        return {
+            bank: String(obj.bank || '').trim(),
+            iban: String(obj.iban || '').trim(),
+            bic: String(obj.bic || '').trim()
+        };
+    } catch (e) { return null; }
+}
+function spiritRenderRibDisplay() {
+    var box = document.getElementById('rib-display');
+    if (!box) return;
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    var rib = spiritGetRibForUid(uid);
+    if (!rib || !rib.iban) {
+        box.innerHTML = 'BANQUE : —<br>IBAN : —<br>BIC : —';
+        return;
+    }
+    box.innerHTML =
+        'BANQUE : ' + String(rib.bank || '—').replace(/</g, '&lt;') + '<br>' +
+        'IBAN : ' + String(rib.iban || '—').replace(/</g, '&lt;') + '<br>' +
+        'BIC : ' + String(rib.bic || '—').replace(/</g, '&lt;');
+}
+function changeRIB() {
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) { alert('Connecte-toi pour enregistrer ton RIB.'); return; }
+    var prev = spiritGetRibForUid(uid) || {};
+    var bank = window.prompt('Nom de la banque :', prev.bank || 'SPIRIT DIGITAL BANK');
+    if (bank == null) return;
+    var iban = window.prompt('IBAN :', prev.iban || '');
+    if (iban == null) return;
+    iban = String(iban || '').trim().toUpperCase();
+    if (iban.length < 12) { alert('IBAN invalide.'); return; }
+    var bic = window.prompt('BIC :', prev.bic || '');
+    if (bic == null) return;
+    bic = String(bic || '').trim().toUpperCase();
+    try {
+        localStorage.setItem(spiritRibStorageKey(uid), JSON.stringify({
+            bank: String(bank || '').trim(),
+            iban: iban,
+            bic: bic
+        }));
+    } catch (e) {}
+    spiritRenderRibDisplay();
+    alert('RIB enregistré.');
+}
+async function spiritLoadWallet() {
+    var totalEl = document.getElementById('spiritWalletTotal');
+    var listEl = document.getElementById('spiritWalletSalesList');
+    var hintEl = document.getElementById('spiritWalletHint');
+    if (!totalEl || !listEl) return;
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid || !_spirit) {
+        totalEl.textContent = '0.00 EUR';
+        listEl.innerHTML = '<div style="font-size:0.66rem;color:#666;">Connecte-toi pour voir ton portefeuille.</div>';
+        if (hintEl) hintEl.textContent = 'RIB utilisé : paramètres du compte.';
+        spiritWalletCachedTotal = 0;
+        return;
+    }
+    try {
+        var out = await _spirit
+            .from('transactions')
+            .select('id,amount,status,created_at,figurine_name,seller_id')
+            .eq('seller_id', uid)
+            .order('created_at', { ascending: false })
+            .range(0, 200);
+        if (out.error) throw out.error;
+        var rows = Array.isArray(out.data) ? out.data : [];
+        var total = 0;
+        rows.forEach(function (r) {
+            var a = Number(r && r.amount);
+            if (Number.isFinite(a) && a > 0) total += a;
+        });
+        spiritWalletCachedTotal = total;
+        totalEl.textContent = total.toFixed(2) + ' EUR';
+        if (!rows.length) {
+            listEl.innerHTML = '<div style="font-size:0.66rem;color:#666;">Aucune vente créditée pour le moment.</div>';
+        } else {
+            listEl.innerHTML = rows.map(function (r) {
+                var dt = r && r.created_at ? new Date(r.created_at).toLocaleString() : '—';
+                var title = String((r && r.figurine_name) || 'Vente').replace(/</g, '&lt;');
+                var status = String((r && r.status) || '—').replace(/</g, '&lt;');
+                var amt = Number(r && r.amount);
+                var v = Number.isFinite(amt) ? amt.toFixed(2) : '0.00';
+                return '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;border:1px solid #1f1f1f;background:#090909;padding:8px 10px;">' +
+                    '<div><div style="color:#ddd;font-size:0.68rem;font-weight:700;">' + title + '</div><div style="color:#666;font-size:0.6rem;">' + dt + ' · ' + status + '</div></div>' +
+                    '<div style="color:#7dffb1;font-weight:800;font-size:0.72rem;">+' + v + ' EUR</div>' +
+                    '</div>';
+            }).join('');
+        }
+        if (hintEl) {
+            var rib = spiritGetRibForUid(uid);
+            hintEl.textContent = rib && rib.iban ? ('RIB utilisé : ' + rib.iban) : 'RIB utilisé : non renseigné (voir paramètres).';
+        }
+    } catch (e) {
+        totalEl.textContent = '0.00 EUR';
+        listEl.innerHTML = '<div style="font-size:0.66rem;color:#855;">Impossible de charger le portefeuille.</div>';
+        spiritWalletCachedTotal = 0;
+    }
+}
+function spiritRequestBankTransfer() {
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) { alert('Connecte-toi pour demander un virement.'); return; }
+    var rib = spiritGetRibForUid(uid);
+    if (!rib || !rib.iban) {
+        alert('RIB manquant. Ajoute ton RIB dans Paramètres avant de demander un virement.');
+        return;
+    }
+    if (!Number.isFinite(spiritWalletCachedTotal) || spiritWalletCachedTotal <= 0) {
+        alert('Solde insuffisant pour un virement.');
+        return;
+    }
+    var msg = 'Demande de virement enregistrée.\n\nMontant : ' + spiritWalletCachedTotal.toFixed(2) + ' EUR\nIBAN : ' + rib.iban + '\nBIC : ' + (rib.bic || '—');
+    alert(msg);
 }
 
 function spiritBuyerOfferHiddenKey(uid) {
@@ -5616,7 +5758,7 @@ window.showAccountTab = function showAccountTab(tab) {
     try {
         var p = (typeof spiritParsePublicHash === 'function') ? spiritParsePublicHash() : null;
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params')) {
+        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params' || tab === 'portefeuille')) {
             tab = 'dashboard';
         }
     } catch (e) {}
@@ -5697,6 +5839,8 @@ window.showAccountTab = function showAccountTab(tab) {
     } else if (tab === 'sanctuary') {
         try { if (typeof spiritAccountSanctuaryTabEnter === 'function') void spiritAccountSanctuaryTabEnter(); } catch (e) {}
         try { if (typeof spiritSanctuaryWireOnce === 'function') spiritSanctuaryWireOnce(); } catch (e) {}
+    } else if (tab === 'portefeuille') {
+        try { if (typeof spiritLoadWallet === 'function') spiritLoadWallet(); } catch (eW) {}
     }
 
     if (tab === 'dashboard') {
@@ -5714,6 +5858,7 @@ window.showAccountTab = function showAccountTab(tab) {
     }
     if (tab === 'params') {
         console.log("[SPIRIT SYSTEM] Accès paramètres");
+        try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR) {}
     }
 
 
@@ -6159,7 +6304,7 @@ function spiritSyncAccountTabsForPublicVisitor() {
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
         hide = !!(p && p.userId && me && String(p.userId) !== me);
     } catch (e) {}
-    ['btn-achats', 'btn-ventes', 'btn-params'].forEach(function (id) {
+    ['btn-achats', 'btn-ventes', 'btn-portefeuille', 'btn-params'].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el) return;
         if (hide) el.style.setProperty('display', 'none', 'important');
@@ -7931,6 +8076,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { spiritUpdateNavSanctuaryDot(); } catch (e) {}
     try { spiritRefreshDashboardPublicUrl(); } catch (e) {}
     try { spiritSanctuaryStartPoll(); } catch (e) {}
+    try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR0) {}
     try {
         var fm = document.getElementById('spiritFriendsModal');
         if (fm) fm.addEventListener('click', function (ev) { if (ev.target === fm) spiritCloseFriendsModal(); });
