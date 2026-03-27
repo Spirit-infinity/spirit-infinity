@@ -1761,6 +1761,7 @@
                 </div>
                 <input type="file" id="spiritPublicAvatarFile" accept="image/*" style="display:none;" />
             </div>
+            <button type="button" id="spiritPublicAvatarBtn" class="btn-action" style="display:none;font-size:0.58rem;padding:6px 10px;" onclick="document.getElementById('spiritPublicAvatarFile').click()">CHANGER LA PHOTO</button>
             <button type="button" id="spiritPublicSanctuaryAddBtn" class="btn-action" style="display:none;font-size:0.58rem;padding:6px 10px;background:#131313;border:1px solid #444;color:#ddd;" onclick="document.getElementById('spiritSanctuaryFileInput').click()">+ PHOTO SANCTUAIRE</button>
             <button type="button" id="spiritPublicFollowBtn" class="btn-action" style="display:none;font-size:0.6rem;padding:6px 12px;background:#111;border:1px solid #00ccff;color:#7fe7ff;" onclick="spiritToggleFollowCurrentPublic()">SUIVRE</button>
         </div>
@@ -1773,7 +1774,6 @@
                 <div class="spirit-pub-badge" style="min-width:90px;">Followers<b id="spiritPublicFollowersCount">0</b></div>
                 <div class="spirit-pub-badge" style="min-width:90px;">Following<b id="spiritPublicFollowingCount">0</b></div>
             </div>
-            <button type="button" id="spiritPublicAvatarBtn" class="btn-action" style="display:none;margin-top:12px;font-size:0.6rem;padding:6px 12px;" onclick="document.getElementById('spiritPublicAvatarFile').click()">CHANGER LA PHOTO</button>
             <div style="margin-top:12px;display:none;align-items:center;gap:8px;flex-wrap:wrap;" id="spiritPublicCountryEdit">
                 <label style="font-size:0.65rem;color:#666;">Pays (visible publiquement)</label>
                 <input type="text" id="spiritPublicCountryInput" placeholder="France" style="padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;max-width:200px;" />
