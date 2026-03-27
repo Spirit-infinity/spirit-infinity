@@ -1761,6 +1761,7 @@
                 </div>
                 <input type="file" id="spiritPublicAvatarFile" accept="image/*" style="display:none;" />
             </div>
+            <button type="button" id="spiritPublicSanctuaryAddBtn" class="btn-action" style="display:none;font-size:0.58rem;padding:6px 10px;background:#131313;border:1px solid #444;color:#ddd;" onclick="document.getElementById('spiritSanctuaryFileInput').click()">+ PHOTO SANCTUAIRE</button>
             <button type="button" id="spiritPublicFollowBtn" class="btn-action" style="display:none;font-size:0.6rem;padding:6px 12px;background:#111;border:1px solid #00ccff;color:#7fe7ff;" onclick="spiritToggleFollowCurrentPublic()">SUIVRE</button>
         </div>
         <div style="flex:1;min-width:200px;">
@@ -7301,6 +7302,8 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     if (cEd) cEd.style.display = isOwner ? 'flex' : 'none';
     var avBtn = document.getElementById('spiritPublicAvatarBtn');
     if (avBtn) avBtn.style.display = isOwner ? 'inline-block' : 'none';
+    var sanAddBtn = document.getElementById('spiritPublicSanctuaryAddBtn');
+    if (sanAddBtn) sanAddBtn.style.display = isOwner ? 'inline-block' : 'none';
     // Visiteur: aucun contrôle de personnalisation sur le Sanctuaire public d'un autre compte.
     try {
         var neonSel = document.getElementById('spiritSanctuaryNeonSelect');
@@ -7742,7 +7745,7 @@ async function spiritSanctuaryRender(ctx) {
     grid.innerHTML = '';
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
     var isOwner = me === String(uid);
-    if (isOwner && items.length < 15) {
+    if (isOwner && ctx !== 'public' && items.length < 15) {
         var add = document.createElement('div');
         add.className = 'spirit-san-add-tile';
         add.setAttribute('title', 'Ajouter une photo');
@@ -8014,6 +8017,20 @@ async function spiritSanctuaryRender(ctx) {
             descEl.className = 'spirit-san-icons-desc';
             descEl.textContent = String(it.desc || '').trim() || 'Aucune description.';
             cell.appendChild(descEl);
+            if (isOwner) {
+                var descInp = document.createElement('input');
+                descInp.type = 'text';
+                descInp.value = String(it.desc || '');
+                descInp.placeholder = 'Description';
+                descInp.style.cssText = 'width:100%;margin-top:4px;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.68rem;';
+                descInp.onchange = function () {
+                    if (!rowId || typeof _spirit === 'undefined' || !_spirit) return;
+                    void _spirit.from('sanctuary_items').update({ description: descInp.value }).eq('id', String(rowId));
+                    spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
+                    descEl.textContent = String(descInp.value || '').trim() || 'Aucune description.';
+                };
+                cell.appendChild(descInp);
+            }
             cell.appendChild(socialUi.overlay);
             cell.appendChild(socialUi.commentsWrap);
 
