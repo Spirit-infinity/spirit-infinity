@@ -6387,6 +6387,30 @@ function spiritSanctuaryInferPeerFromLocal(uid, me) {
     }
     return '';
 }
+function spiritSanctuaryInferLatestPeerGlobal(me) {
+    me = String(me || '').trim();
+    if (!me) return '';
+    var bestPeer = '';
+    var bestTs = 0;
+    try {
+        Object.keys(spiritLocalSanctuaryChatByRecipient || {}).forEach(function (k) {
+            var arr = spiritLocalSanctuaryChatByRecipient[k];
+            if (!Array.isArray(arr)) return;
+            arr.forEach(function (m) {
+                var sid = String((m && m.sender_id) || '').trim();
+                var rid = String((m && m.recipient_id) || '').trim();
+                if (!sid || !rid) return;
+                var peer = '';
+                if (sid === me && rid !== me) peer = rid;
+                else if (rid === me && sid !== me) peer = sid;
+                if (!peer) return;
+                var ts = new Date((m && m.created_at) || 0).getTime();
+                if (Number.isFinite(ts) && ts >= bestTs) { bestTs = ts; bestPeer = peer; }
+            });
+        });
+    } catch (e) {}
+    return bestPeer;
+}
 function spiritSanctuaryUid(ctx) {
     if (ctx === 'account') {
         return (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : null;
@@ -7326,7 +7350,7 @@ async function spiritSanctuarySendChat(ctx) {
     var uid = spiritSanctuaryUid(ctx);
     var d = spiritSanctuaryDom(ctx);
     var inp = document.getElementById(d.chatIn);
-    if (!uid || !inp || typeof _spirit === 'undefined' || !_spirit) return;
+    if (!uid || !inp) return;
     var chk = spiritSanctuarySanitizeChat(inp.value);
     if (!chk.ok) {
         if (chk.reason === 'empty') return;
@@ -7344,6 +7368,13 @@ async function spiritSanctuarySendChat(ctx) {
             var inferred = spiritSanctuaryInferPeerFromLocal(uid, me);
             if (inferred && inferred !== me) {
                 targetUid = inferred;
+                spiritSanctuarySetActivePeer(ctx, targetUid);
+            }
+        }
+        if (String(targetUid) === String(me)) {
+            var inferredGlobal = spiritSanctuaryInferLatestPeerGlobal(me);
+            if (inferredGlobal && inferredGlobal !== me) {
+                targetUid = inferredGlobal;
                 spiritSanctuarySetActivePeer(ctx, targetUid);
             }
         }
@@ -7366,7 +7397,21 @@ async function spiritSanctuarySendChat(ctx) {
         await spiritSanctuaryRenderChat(ctx);
         return;
     }
-    if (typeof _spirit === 'undefined' || !_spirit) return;
+    if (typeof _spirit === 'undefined' || !_spirit) {
+        // Pas de client Supabase dispo : rester fonctionnel en mode local.
+        var labelNoSb = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
+        spiritSanctuaryPushLocalMessage({
+            recipient_id: String(targetUid),
+            sender_id: String(me),
+            sender_label: labelNoSb,
+            body: chk.text,
+            is_read: String(me) === String(targetUid),
+            created_at: new Date().toISOString()
+        });
+        inp.value = '';
+        await spiritSanctuaryRenderChat(ctx);
+        return;
+    }
     var resolvedUid = await spiritResolveUserIdForFakeTestId(targetUid);
     var resolvedMe = await spiritResolveUserIdForFakeTestId(me);
     var label = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
