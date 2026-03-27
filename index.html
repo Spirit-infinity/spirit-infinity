@@ -6421,6 +6421,9 @@ var SPIRIT_SAN_COMMENTS_TABLE = 'spirit_sanctuary_comments';
 var SPIRIT_SAN_NOTIFS_TABLE = 'spirit_sanctuary_notifications';
 var spiritSanctuaryLastUnreadMsgCount = 0;
 var spiritSanSocialSupabaseEnabled = true;
+var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 2 * 60 * 1000;
+var SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS = 3 * 60 * 1000;
+var spiritSanctuaryItemsInFlight = Object.create(null);
 
 function spiritSanSocialCanUseSupabase() {
     return !!(spiritSanSocialSupabaseEnabled && _spirit);
@@ -7035,6 +7038,33 @@ function spiritSanctuaryViewModeSet(ctx, m) {
         try { localStorage.setItem(SPIRIT_SAN_VIEW_KEY_PUBLIC, String(m || 'list')); } catch (e2) {}
     }
 }
+function spiritSanctuaryItemsCacheKey(uid) {
+    return 'spirit_san_items_v1__' + String(uid || '');
+}
+function spiritPublicAnnoncesCacheKey(uid) {
+    return 'spirit_pub_ann_v1__' + String(uid || '');
+}
+function spiritLsCacheRead(key, ttlMs) {
+    try {
+        var raw = localStorage.getItem(String(key || '')) || '';
+        if (!raw) return null;
+        var obj = JSON.parse(raw);
+        if (!obj || typeof obj !== 'object' || !Array.isArray(obj.rows) || !obj.ts) return null;
+        if ((Date.now() - Number(obj.ts)) > Number(ttlMs || 0)) return null;
+        return obj.rows;
+    } catch (e) { return null; }
+}
+function spiritLsCacheWrite(key, rows) {
+    try {
+        localStorage.setItem(String(key || ''), JSON.stringify({
+            ts: Date.now(),
+            rows: Array.isArray(rows) ? rows : []
+        }));
+    } catch (e) {}
+}
+function spiritSanctuaryItemsCacheInvalidate(uid) {
+    try { localStorage.removeItem(spiritSanctuaryItemsCacheKey(uid)); } catch (e) {}
+}
 async function spiritStorageUploadPublic(bucket, path, file) {
     if (typeof _spirit === 'undefined' || !_spirit) throw new Error('Supabase indisponible');
     var up = await _spirit.storage.from(bucket).upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
@@ -7355,11 +7385,14 @@ async function spiritPublicLoadAnnonces(uid) {
     var box = document.getElementById('spiritPublicAnnoncesList');
     if (!box) return;
     box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Chargement…</p>';
-    var rows = [];
+    var rows = spiritLsCacheRead(spiritPublicAnnoncesCacheKey(uid), SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS) || [];
     if (typeof _spirit !== 'undefined' && _spirit) {
         try {
             var out = await _spirit.from('products_live').select('*').eq('owner_id', String(uid)).order('id', { ascending: false }).limit(48);
-            if (out && !out.error && Array.isArray(out.data)) rows = out.data;
+            if (out && !out.error && Array.isArray(out.data)) {
+                rows = out.data;
+                spiritLsCacheWrite(spiritPublicAnnoncesCacheKey(uid), rows);
+            }
         } catch (e) {}
     }
     if (!rows.length && typeof marketData !== 'undefined' && Array.isArray(marketData)) {
@@ -7415,10 +7448,17 @@ async function spiritPublicLoadAnnonces(uid) {
 }
 async function spiritSanctuaryFetchItems(uid) {
     if (typeof _spirit === 'undefined' || !_spirit) return [];
+    uid = String(uid || '').trim();
+    if (!uid) return [];
+    var cKey = spiritSanctuaryItemsCacheKey(uid);
+    var cached = spiritLsCacheRead(cKey, SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS);
+    if (Array.isArray(cached)) return cached;
+    if (spiritSanctuaryItemsInFlight[uid]) return spiritSanctuaryItemsInFlight[uid];
+    spiritSanctuaryItemsInFlight[uid] = (async function () {
     try {
-        var out = await _spirit.from('sanctuary_items').select(SPIRIT_SANCTUARY_ITEM_COLS).eq('user_id', String(uid)).order(SPIRIT_SANCTUARY_SORT_KEY, { ascending: true }).limit(15);
+        var out = await _spirit.from('sanctuary_items').select(SPIRIT_SANCTUARY_ITEM_COLS).eq('user_id', uid).order(SPIRIT_SANCTUARY_SORT_KEY, { ascending: true }).limit(15);
         if (out.error || !out.data) return [];
-        return out.data.map(function (r) {
+        var rows = out.data.map(function (r) {
             var so = r[SPIRIT_SANCTUARY_SORT_KEY];
             return {
                 id: r.id,
@@ -7428,7 +7468,13 @@ async function spiritSanctuaryFetchItems(uid) {
                 sort_order: (so != null && so !== '') ? Number(so) : 0
             };
         });
+        spiritLsCacheWrite(cKey, rows);
+        return rows;
     } catch (e) { return []; }
+    })();
+    var rowsOut = await spiritSanctuaryItemsInFlight[uid];
+    delete spiritSanctuaryItemsInFlight[uid];
+    return rowsOut;
 }
 async function spiritSanctuaryMarkReadForOwner(uid) {
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
@@ -7554,6 +7600,7 @@ async function spiritSanctuaryPersistSortOrder(ctx, gridEl) {
             upd[SPIRIT_SANCTUARY_SORT_KEY] = idx;
             return _spirit.from('sanctuary_items').update(upd).eq('id', id);
         }));
+        spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
     } catch (e) {}
 }
 async function spiritSanctuaryDeleteItem(ctx, itemId, imageUrl) {
@@ -7569,6 +7616,7 @@ async function spiritSanctuaryDeleteItem(ctx, itemId, imageUrl) {
         }
         // 2) Supprime la ligne Supabase
         try { await _spirit.from('sanctuary_items').delete().eq('id', id); } catch (e2) {}
+        spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
         await spiritSanctuaryRender(ctx);
     } catch (e3) {}
 }
@@ -7744,6 +7792,7 @@ async function spiritSanctuaryRender(ctx) {
             inp.onchange = function () {
                 if (!rowId || typeof _spirit === 'undefined' || !_spirit) return;
                 void _spirit.from('sanctuary_items').update({ description: inp.value }).eq('id', String(rowId));
+                spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
             };
             meta.appendChild(document.createTextNode('Œuvre #' + (idx + 1)));
             meta.appendChild(inp);
@@ -7771,6 +7820,7 @@ async function spiritSanctuaryRender(ctx) {
                         await _spirit.from('sanctuary_items').update({ neon_color: c }).eq('id', String(rowId));
                         wrap.style.border = '3px solid ' + c;
                         wrap.style.boxShadow = '0 0 14px ' + c + '44';
+                        spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
                     })();
                 };
             }
@@ -7856,6 +7906,7 @@ async function spiritSanctuaryRender(ctx) {
                         await _spirit.from('sanctuary_items').update({ neon_color: c }).eq('id', String(rowId));
                         wrap.style.border = '3px solid ' + c;
                         wrap.style.boxShadow = '0 0 14px ' + c + '44';
+                        spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
                     })();
                 };
             }
@@ -7910,6 +7961,7 @@ function spiritSanctuaryBindFileInput(ctx) {
                     sort_order: Number(so)
                 });
                 if (ins.error) throw ins.error;
+                spiritSanctuaryItemsCacheInvalidate(uid);
                 await spiritSanctuaryRender(ctx);
             } catch (err) {
                 alert('Import Sanctuaire impossible (bucket « ' + SPIRIT_BUCKET_SANCTUARY + ' » / RLS) : ' + (err && err.message ? err.message : err));
@@ -9273,7 +9325,6 @@ function closeModals() {
 </html>
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
 <!-- DUPLICATE_CLOSING_TAGS_REMOVED: </body></html> -->
-
 
 
 
