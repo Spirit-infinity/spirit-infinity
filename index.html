@@ -7287,6 +7287,21 @@ function spiritSanctuaryPushLocalMessage(msg) {
         spiritLocalSanctuaryChatByRecipient[sen].push(Object.assign({}, base, { is_read: true }));
     }
 }
+function spiritSanctuaryShowToast(title, detail) {
+    try {
+        var existing = document.getElementById('spiritSanctuaryToast');
+        if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+    } catch (e) {}
+    var el = document.createElement('div');
+    el.id = 'spiritSanctuaryToast';
+    el.style.cssText = 'position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:999999;background:rgba(0,0,0,0.92);border:1px solid rgba(255,102,0,0.55);color:#fff;padding:12px 14px;max-width:92vw;width:520px;border-radius:10px;box-shadow:0 16px 40px rgba(0,0,0,0.6);';
+    el.innerHTML = '<div style="font-weight:900;color:var(--neon-orange);letter-spacing:0.6px;text-transform:uppercase;font-size:0.75rem;">' +
+        String(title || 'SPIRIT') + '</div>' +
+        '<div style="margin-top:6px;font-size:0.7rem;color:#cfcfcf;line-height:1.25;">' +
+        String(detail || '') + '</div>';
+    document.body.appendChild(el);
+    try { setTimeout(function () { try { var e = document.getElementById('spiritSanctuaryToast'); if (e) e.remove(); } catch (e2) {} }, 4200); } catch (e3) {}
+}
 async function spiritSanctuaryRenderChat(ctx) {
     ctx = ctx === 'account' ? 'account' : 'public';
     var uid = spiritSanctuaryUid(ctx);
@@ -7306,6 +7321,20 @@ async function spiritSanctuaryRenderChat(ctx) {
                 return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
             });
         }
+        // Inbox locale : dernier message NON LU destiné à l'utilisateur courant.
+        var latestUnread = null;
+        if (ctx === 'account' && meLocal && Array.isArray(arrLocal)) {
+            var incoming = arrLocal.filter(function (m) {
+                var rec = String((m && m.recipient_id) || '').trim();
+                var sen = String((m && m.sender_id) || '').trim();
+                var read = !!(m && m.is_read);
+                return rec === String(meLocal) && sen !== String(meLocal) && !read;
+            });
+            incoming.sort(function (a, b) {
+                return new Date((a && a.created_at) || 0).getTime() - new Date((b && b.created_at) || 0).getTime();
+            });
+            if (incoming.length) latestUnread = incoming[incoming.length - 1];
+        }
         var peers = [];
         var peerSeen = Object.create(null);
         arrLocal.forEach(function (m) {
@@ -7321,8 +7350,34 @@ async function spiritSanctuaryRenderChat(ctx) {
         if (uid && uid !== meLocal && !peerSeen[uid]) peers.unshift(uid);
         var activePeer = spiritSanctuaryGetActivePeer(ctx);
         if (activePeer && peers.indexOf(activePeer) < 0) activePeer = '';
-        if (!activePeer) activePeer = peers.length ? peers[0] : '';
+        if (!activePeer) {
+            // Priorité: conversation du dernier message non lu (pour pouvoir répondre tout de suite).
+            if (latestUnread && latestUnread.sender_id && peers.indexOf(String(latestUnread.sender_id)) >= 0) {
+                activePeer = String(latestUnread.sender_id);
+            } else {
+                activePeer = peers.length ? peers[0] : '';
+            }
+        }
         spiritSanctuarySetActivePeer(ctx, activePeer);
+
+        // Notif: nouveau message pour ton compte (local-only).
+        if (latestUnread && ctx === 'account') {
+            try {
+                var toastKey = 'spirit_san_toast_last__' + String(meLocal);
+                var lastRaw = localStorage.getItem(toastKey) || '';
+                var last = null;
+                try { last = JSON.parse(lastRaw); } catch (e0) {}
+                var now = Date.now();
+                var sender = String(latestUnread.sender_label || latestUnread.sender_id || '').trim();
+                var lastSender = last && last.sender ? String(last.sender) : '';
+                var lastTs = last && last.ts ? Number(last.ts) : 0;
+                if (!lastTs || (now - lastTs) > 30000 || (sender && sender !== lastSender)) {
+                    localStorage.setItem(toastKey, JSON.stringify({ ts: now, sender: sender }));
+                    spiritSanctuaryShowToast('NOUVEAU MESSAGE', 'De : ' + sender);
+                }
+            } catch (eN) {}
+        }
+
         if (peerSel) {
             peerSel.innerHTML = peers.length
                 ? peers.map(function (p) {
