@@ -6420,13 +6420,41 @@ var SPIRIT_SAN_LIKES_TABLE = 'spirit_sanctuary_likes';
 var SPIRIT_SAN_COMMENTS_TABLE = 'spirit_sanctuary_comments';
 var SPIRIT_SAN_NOTIFS_TABLE = 'spirit_sanctuary_notifications';
 var spiritSanctuaryLastUnreadMsgCount = 0;
+var spiritSanSocialSupabaseEnabled = true;
+var spiritSanSocialCacheMeta = { key: '', ts: 0 };
+var spiritMessagesDotLastFetchTs = 0;
+var spiritMessagesDotInFlight = null;
+var spiritPublicSocialStatsLastTs = 0;
+var spiritPublicSocialStatsLastUid = '';
+
+function spiritSanSocialCanUseSupabase() {
+    return !!(spiritSanSocialSupabaseEnabled && _spirit);
+}
+function spiritSanSocialHandleSupabaseError(err) {
+    var msg = String((err && err.message) || err || '').toLowerCase();
+    // Si table/policy absente ou requête refusée, on coupe les appels social pour éviter le spam d'erreurs.
+    if (
+        msg.indexOf('does not exist') >= 0 ||
+        msg.indexOf('relation') >= 0 ||
+        msg.indexOf('permission denied') >= 0 ||
+        msg.indexOf('row-level security') >= 0 ||
+        msg.indexOf('rls') >= 0
+    ) {
+        spiritSanSocialSupabaseEnabled = false;
+    }
+}
 var spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
 
 async function spiritSanctuaryLoadSocialCache(ownerId, itemIds, viewerId) {
-    spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
-    if (!_spirit) return spiritSanctuarySocialCache;
+    if (!spiritSanSocialCanUseSupabase()) return spiritSanctuarySocialCache;
     var ids = (itemIds || []).map(function (x) { return String(x || '').trim(); }).filter(Boolean);
     if (!ids.length) return spiritSanctuarySocialCache;
+    var now = Date.now();
+    var cacheKey = String(ownerId || '') + '|' + ids.join(',') + '|' + String(viewerId || '');
+    if (spiritSanSocialCacheMeta.key === cacheKey && (now - Number(spiritSanSocialCacheMeta.ts || 0)) < 1800) {
+        return spiritSanctuarySocialCache;
+    }
+    spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
     try {
         var lk = await _spirit.from(SPIRIT_SAN_LIKES_TABLE).select('item_id,user_id').in('item_id', ids);
         if (!lk.error && Array.isArray(lk.data)) {
@@ -6439,7 +6467,7 @@ async function spiritSanctuaryLoadSocialCache(ownerId, itemIds, viewerId) {
                 if (viewerId && uid === String(viewerId)) spiritSanctuarySocialCache.myLikes[iid] = true;
             });
         }
-    } catch (eLk) {}
+    } catch (eLk) { spiritSanSocialHandleSupabaseError(eLk); }
     try {
         var cm = await _spirit.from(SPIRIT_SAN_COMMENTS_TABLE).select('id,item_id,user_id,user_label,comment_text,created_at').in('item_id', ids).order('created_at', { ascending: true });
         if (!cm.error && Array.isArray(cm.data)) {
@@ -6456,13 +6484,14 @@ async function spiritSanctuaryLoadSocialCache(ownerId, itemIds, viewerId) {
                 });
             });
         }
-    } catch (eCm) {}
+    } catch (eCm) { spiritSanSocialHandleSupabaseError(eCm); }
+    spiritSanSocialCacheMeta = { key: cacheKey, ts: now };
     return spiritSanctuarySocialCache;
 }
 async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
     ownerId = String(ownerId || '').trim();
     fromUid = String(fromUid || '').trim();
-    if (!ownerId || !fromUid || ownerId === fromUid || !_spirit) return;
+    if (!ownerId || !fromUid || ownerId === fromUid || !spiritSanSocialCanUseSupabase()) return;
     try {
         await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).insert({
             owner_id: ownerId,
@@ -6472,25 +6501,30 @@ async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
             text: String(text || ''),
             is_read: false
         });
-    } catch (e) {}
+    } catch (e) { spiritSanSocialHandleSupabaseError(e); }
 }
 function spiritSanctuaryRefreshMessagesDot() {
     var uid = '';
     try { uid = String(spiritGetCurrentUserId() || '').trim(); } catch (e) {}
     var dot = document.getElementById('messages-tab-dot');
     if (!dot) return;
-    if (!uid || !_spirit) { dot.style.display = 'none'; return; }
-    void (async function () {
+    if (!uid || !spiritSanSocialCanUseSupabase()) { dot.style.display = 'none'; return; }
+    var now = Date.now();
+    if (spiritMessagesDotInFlight) return;
+    if ((now - Number(spiritMessagesDotLastFetchTs || 0)) < 12000) return;
+    spiritMessagesDotInFlight = (async function () {
         var c = 0;
         try {
             var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).eq('owner_id', uid).eq('is_read', false);
             c = Number((q && q.count) || 0);
-        } catch (eCount) { c = 0; }
+        } catch (eCount) { c = 0; spiritSanSocialHandleSupabaseError(eCount); }
         dot.style.display = c > 0 ? 'inline-block' : 'none';
         if (c > 0 && c > Number(spiritSanctuaryLastUnreadMsgCount || 0) && typeof spiritSanctuaryShowToast === 'function') {
             spiritSanctuaryShowToast('Sanctuaire', c + ' nouvelle(s) alerte(s) likes/commentaires.');
         }
         spiritSanctuaryLastUnreadMsgCount = c;
+        spiritMessagesDotLastFetchTs = Date.now();
+        spiritMessagesDotInFlight = null;
     })();
 }
 function spiritSanctuaryLikeUsers(itemId) {
@@ -6509,7 +6543,7 @@ async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
     ownerId = String(ownerId || '').trim();
     itemId = String(itemId || '').trim();
     actorUid = String(actorUid || '').trim();
-    if (!itemId || !actorUid || !_spirit) return false;
+    if (!itemId || !actorUid || !spiritSanSocialCanUseSupabase()) return false;
     var was = !!spiritSanctuarySocialCache.myLikes[itemId];
     try {
         if (was) {
@@ -6525,7 +6559,7 @@ async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
             spiritSanctuarySocialCache.myLikes[itemId] = true;
             await spiritSanctuaryPushNotif(ownerId, 'like', itemId, actorUid, 'a aimé ta photo');
         }
-    } catch (e) { return false; }
+    } catch (e) { spiritSanSocialHandleSupabaseError(e); return false; }
     return !was;
 }
 async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
@@ -6533,7 +6567,7 @@ async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
     itemId = String(itemId || '').trim();
     actorUid = String(actorUid || '').trim();
     text = String(text || '').trim();
-    if (!itemId || !actorUid || !text || !_spirit) return false;
+    if (!itemId || !actorUid || !text || !spiritSanSocialCanUseSupabase()) return false;
     try {
         await _spirit.from(SPIRIT_SAN_COMMENTS_TABLE).insert({
             item_id: itemId,
@@ -6542,7 +6576,7 @@ async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
             user_label: (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : spiritPublicDefaultLabel(actorUid),
             comment_text: text
         });
-    } catch (e) { return false; }
+    } catch (e) { spiritSanSocialHandleSupabaseError(e); return false; }
     await spiritSanctuaryPushNotif(ownerId, 'comment', itemId, actorUid, 'a commenté ta photo');
     return true;
 }
@@ -6664,17 +6698,21 @@ async function spiritFriendsRefreshList() {
 async function spiritPublicRefreshSocialStats(uid) {
     uid = String(uid || spiritPublicViewUserId || '').trim();
     if (!uid) return;
+    var now = Date.now();
+    if (uid === String(spiritPublicSocialStatsLastUid || '') && (now - Number(spiritPublicSocialStatsLastTs || 0)) < 12000) return;
+    spiritPublicSocialStatsLastUid = uid;
+    spiritPublicSocialStatsLastTs = now;
     var likesEl = document.getElementById('spiritPublicLikeTotal');
     var folEl = document.getElementById('spiritPublicFollowersCount');
     var ingEl = document.getElementById('spiritPublicFollowingCount');
     if (likesEl) likesEl.textContent = '0';
     if (folEl) folEl.textContent = '0';
     if (ingEl) ingEl.textContent = '0';
-    if (_spirit) {
+    if (spiritSanSocialCanUseSupabase()) {
         try {
             var lk = await _spirit.from(SPIRIT_SAN_LIKES_TABLE).select('item_id').eq('owner_id', uid);
             if (!lk.error && Array.isArray(lk.data) && likesEl) likesEl.textContent = String(lk.data.length);
-        } catch (eLike) {}
+        } catch (eLike) { spiritSanSocialHandleSupabaseError(eLike); }
     }
     if (_spirit && spiritIsUuid(uid)) {
         try {
@@ -6696,7 +6734,7 @@ function spiritLoadMessagesTab() {
         box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Connecte-toi pour voir tes messages.</div>';
         return;
     }
-    if (!_spirit) {
+    if (!spiritSanSocialCanUseSupabase()) {
         box.innerHTML = '<div style="font-size:0.68rem;color:#855;">Supabase indisponible.</div>';
         return;
     }
@@ -6710,7 +6748,7 @@ function spiritLoadMessagesTab() {
                 .order('created_at', { ascending: false })
                 .range(0, 200);
             if (!q.error && Array.isArray(q.data)) rows = q.data;
-        } catch (eQ) {}
+        } catch (eQ) { spiritSanSocialHandleSupabaseError(eQ); }
         if (!rows.length) {
             box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Aucune alerte pour le moment.</div>';
         } else {
@@ -6729,7 +6767,7 @@ function spiritLoadMessagesTab() {
         try {
             var unreadIds = rows.filter(function (r) { return !r.is_read; }).map(function (r) { return r.id; });
             if (unreadIds.length) await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).update({ is_read: true }).in('id', unreadIds);
-        } catch (eU) {}
+        } catch (eU) { spiritSanSocialHandleSupabaseError(eU); }
         spiritSanctuaryRefreshMessagesDot();
     })();
 }
