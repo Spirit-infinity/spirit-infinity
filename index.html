@@ -5426,6 +5426,13 @@ async function publierAnnonce() {
         try {
             var newId = insRows && insRows[0] && insRows[0].id != null ? insRows[0].id : null;
             var pubUid = typeof spiritNormUid === 'function' ? spiritNormUid(MY_TEST_ID) : String(MY_TEST_ID || '').trim().toLowerCase();
+            try {
+                if (_spirit && _spirit.auth && typeof _spirit.auth.getSession === 'function') {
+                    var _sessPub = await _spirit.auth.getSession();
+                    var _uidJwt = _sessPub && _sessPub.data && _sessPub.data.session && _sessPub.data.session.user && _sessPub.data.session.user.id;
+                    if (_uidJwt) pubUid = typeof spiritNormUid === 'function' ? spiritNormUid(_uidJwt) : String(_uidJwt).trim().toLowerCase();
+                }
+            } catch (eSessPub) { /* garde MY_TEST_ID */ }
             if (newId != null && pubUid && typeof spiritNotifyFollowersNewListing === 'function') {
                 await spiritNotifyFollowersNewListing(pubUid, newId, title);
             }
@@ -7433,7 +7440,14 @@ async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
         });
         if (ins && ins.error) {
             spiritSanNotifsMarkMissingIf404(ins.error);
-            if (!spiritSanNotifsTableMissing) spiritSanSocialHandleSupabaseError(ins.error);
+            if (!spiritSanNotifsTableMissing) {
+                var _ec = ins.error && ins.error.code;
+                var _em = String((ins.error && ins.error.message) || '').toLowerCase();
+                if (_ec === '42501' || _em.indexOf('row-level security') >= 0 || _em.indexOf('rls') >= 0) {
+                    console.warn('[SPIRIT] Insert notification refusé (vérifie RLS from_uid = auth.uid) :', ins.error.message || ins.error);
+                }
+                spiritSanSocialHandleSupabaseError(ins.error);
+            }
         }
     } catch (e) {
         spiritSanNotifsMarkMissingIf404(e);
@@ -7453,7 +7467,10 @@ async function spiritNotifyFollowersNewListing(sellerUid, listingId, listingTitl
     var msg = 'a publié une nouvelle annonce : ' + (tit || 'Sans titre');
     try {
         var q = await _spirit.from(SPIRIT_FOLLOW_TABLE).select('follower_id').eq('followee_id', sellerUid);
-        if (q && q.error) return;
+        if (q && q.error) {
+            console.warn('[SPIRIT] Impossible de lire les abonnés (spirit_follows) pour les notifs « nouvelle annonce » — exécute les policies RLS followee/follower ou vérifie la table :', q.error.message || q.error);
+            return;
+        }
         var rows = Array.isArray(q.data) ? q.data : [];
         for (var i = 0; i < rows.length; i++) {
             var fid = typeof spiritNormUid === 'function' ? spiritNormUid(rows[i] && rows[i].follower_id) : String((rows[i] && rows[i].follower_id) || '').trim().toLowerCase();
