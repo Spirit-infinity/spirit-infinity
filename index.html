@@ -1453,6 +1453,14 @@
         <input type="text" id="regUser" placeholder="Nom d'utilisateur">
         <input type="email" id="regEmail" placeholder="Email">
         <input type="password" id="regPass" placeholder="Mot de passe">
+        <label for="regCountry" style="display:block;margin-top:10px;font-size:0.78rem;color:#bbb;" data-key="lbl_reg_country">Pays / région</label>
+        <select id="regCountry" style="width:100%;margin-top:4px;padding:8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.85rem;">
+            <option value="" data-key="reg_country_placeholder">— Choisir un pays —</option>
+            <option value="FR" data-key="reg_country_fr">France</option>
+            <option value="USA" data-key="reg_country_usa">États-Unis</option>
+            <option value="CN" data-key="reg_country_cn">Chine</option>
+            <option value="ES" data-key="reg_country_es">Espagne</option>
+        </select>
         <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:0.78rem; color:#bbb;">
             <input type="checkbox" id="regRemember" checked>
             <span>Rester connectée</span>
@@ -2280,7 +2288,10 @@
             'account_favorites_hint': 'Tout ce que tu ajoutes avec le cœur sur le marché apparaît ici.',
             'account_favorites_seller_note': 'Le vendeur est notifié dans Mon compte → Favoris.',
             'account_favorites_empty': 'Ta liste d’envie est vide.', 'fav_price_drop': 'PRIX EN BAISSE', 'fav_price_drop_badge': 'BAISSE DE PRIX', 'fav_sold': 'VENDU', 'fav_open': 'Voir',
-            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Félicitations ! Votre achat est confirmé. L\'annonce a été retirée du marché. Montant en séquestre Spirit : {amount} €.'
+            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Félicitations ! Votre achat est confirmé. L\'annonce a été retirée du marché. Montant en séquestre Spirit : {amount} €.',
+            'lbl_reg_country': 'Pays / région', 'reg_country_placeholder': '— Choisir un pays —',
+            'reg_country_fr': 'France', 'reg_country_usa': 'États-Unis', 'reg_country_cn': 'Chine', 'reg_country_es': 'Espagne',
+            'reg_err_country': 'Choisis ton pays ou ta région : la langue et la devise du site s’alignent dessus.'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -2319,7 +2330,10 @@
             'account_favorites_hint': 'Anything you heart on the market appears here.',
             'account_favorites_seller_note': 'The seller is notified under My Account → Favorites.',
             'account_favorites_empty': 'Your wishlist is empty.', 'fav_price_drop': 'PRICE DROP', 'fav_price_drop_badge': 'PRICE DROP', 'fav_sold': 'SOLD', 'fav_open': 'View',
-            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Congratulations! Your purchase is confirmed. The listing has been removed from the market. Escrow amount: {amount} €.'
+            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Congratulations! Your purchase is confirmed. The listing has been removed from the market. Escrow amount: {amount} €.',
+            'lbl_reg_country': 'Country / region', 'reg_country_placeholder': '— Choose a country —',
+            'reg_country_fr': 'France', 'reg_country_usa': 'United States', 'reg_country_cn': 'China', 'reg_country_es': 'Spain',
+            'reg_err_country': 'Choose your country or region: the site language and currency will match.'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -2358,7 +2372,10 @@
             'account_favorites_hint': 'Lo que marques con el corazón aparece aquí.',
             'account_favorites_seller_note': 'El vendedor recibe aviso en Mi cuenta → Favoritos.',
             'account_favorites_empty': 'Tu lista de deseos está vacía.', 'fav_price_drop': 'PRECIO A LA BAJA', 'fav_price_drop_badge': 'BAJA DE PRECIO', 'fav_sold': 'VENDIDO', 'fav_open': 'Ver',
-            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '¡Enhorabuena! Tu compra está confirmada. El anuncio se ha retirado del mercado. Importe en depósito: {amount} €.'
+            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '¡Enhorabuena! Tu compra está confirmada. El anuncio se ha retirado del mercado. Importe en depósito: {amount} €.',
+            'lbl_reg_country': 'País / región', 'reg_country_placeholder': '— Elige un país —',
+            'reg_country_fr': 'Francia', 'reg_country_usa': 'Estados Unidos', 'reg_country_cn': 'China', 'reg_country_es': 'España',
+            'reg_err_country': 'Elige tu país o región: el idioma y la divisa del sitio se ajustarán.'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -2397,7 +2414,10 @@
             'account_favorites_hint': '你点红心的商品会显示在这里。',
             'account_favorites_seller_note': '卖家在「我的账户 → 收藏」会收到通知。',
             'account_favorites_empty': '心愿单还是空的。', 'fav_price_drop': '降价', 'fav_price_drop_badge': '降价促销', 'fav_sold': '已售', 'fav_open': '查看',
-            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '恭喜！购买已确认。该商品已从市场下架。托管金额：{amount} 欧元。'
+            'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '恭喜！购买已确认。该商品已从市场下架。托管金额：{amount} 欧元。',
+            'lbl_reg_country': '国家 / 地区', 'reg_country_placeholder': '— 请选择国家 —',
+            'reg_country_fr': '法国', 'reg_country_usa': '美国', 'reg_country_cn': '中国', 'reg_country_es': '西班牙',
+            'reg_err_country': '请选择国家或地区：网站语言与货币将据此设置。'
         }
     };
 
@@ -2638,9 +2658,16 @@ async function loadUserPurchases() {
     }
 
     function switchLanguage(lang) {
-        const normalized = String(lang || 'FR').toUpperCase() === 'CN' ? 'ZH' : String(lang || 'FR').toUpperCase();
-        const set = translations[normalized] || translations['FR'];
-        document.documentElement.lang = normalized.toLowerCase();
+        var raw = String(lang || 'FR').toUpperCase();
+        if (raw === 'CN') raw = 'ZH';
+        const use = ['FR', 'EN', 'ES', 'ZH'].indexOf(raw) >= 0 ? raw : 'FR';
+        const set = translations[use] || translations['FR'];
+        try {
+            var lsEl = document.querySelector('.lang-selector');
+            if (lsEl) lsEl.value = use;
+        } catch (eLs) {}
+        try { localStorage.setItem('spirit_ui_lang', use); } catch (eL1) {}
+        document.documentElement.lang = use.toLowerCase();
         document.querySelectorAll('[data-key], [data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n') || el.getAttribute('data-key');
             if (!key || !set[key]) return;
@@ -2650,8 +2677,44 @@ async function loadUserPurchases() {
         try {
             if (typeof renderMarket === 'function' && Array.isArray(marketData) && marketData.length) renderMarket();
         } catch (e) { /* ignore */ }
+        try { if (typeof applyFilters === 'function') applyFilters(); } catch (eF) {}
     }
     function changeLang(lang) { switchLanguage(lang); }
+
+    function spiritCountryToLocaleAndCurrency(code) {
+        var c = String(code || '').trim().toUpperCase();
+        if (c === 'FR') return { lang: 'FR', currency: 'EUR', buyerCountry: 'France' };
+        if (c === 'USA' || c === 'US') return { lang: 'EN', currency: 'USD', buyerCountry: 'United States' };
+        if (c === 'CN' || c === 'CHN') return { lang: 'ZH', currency: 'CNY', buyerCountry: 'China' };
+        if (c === 'ES' || c === 'ESP') return { lang: 'ES', currency: 'EUR', buyerCountry: 'Spain' };
+        return null;
+    }
+    try { window.spiritCountryToLocaleAndCurrency = spiritCountryToLocaleAndCurrency; } catch (eWc) {}
+
+    function spiritApplyUserLocaleFromMetadata(user) {
+        try {
+            if (!user || !user.user_metadata) return;
+            var m = user.user_metadata;
+            var lang = String(m.spirit_locale || '').toUpperCase();
+            var cur = String(m.spirit_currency || '').toUpperCase();
+            if (!lang || !cur) {
+                var mapped = spiritCountryToLocaleAndCurrency(m.spirit_country);
+                if (mapped) {
+                    lang = mapped.lang;
+                    cur = mapped.currency;
+                }
+            }
+            if (['FR', 'EN', 'ES', 'ZH'].indexOf(lang) < 0) return;
+            if (['EUR', 'USD', 'CNY'].indexOf(cur) < 0) return;
+            if (typeof switchLanguage === 'function') switchLanguage(lang);
+            if (typeof setMarketCurrency === 'function') setMarketCurrency(cur);
+            var b = String(m.spirit_buyer_country || '').trim();
+            if (b) {
+                try { localStorage.setItem('spirit_buyer_country', b); } catch (eB) {}
+            }
+        } catch (e) {}
+    }
+    try { window.spiritApplyUserLocaleFromMetadata = spiritApplyUserLocaleFromMetadata; } catch (eWm) {}
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
@@ -6240,6 +6303,7 @@ async function confirmPayment(method) {
         if (btnReg) btnReg.innerText = finalName.toUpperCase();
         var nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
         if (nameEl) nameEl.innerText = finalName.toUpperCase();
+        try { spiritApplyUserLocaleFromMetadata(user); } catch (eLoc) {}
     }
 
     async function spiritUpsertUserProfileFromAuth(user, pseudoFallback) {
@@ -6322,12 +6386,13 @@ async function confirmPayment(method) {
         if (typeof window !== 'undefined') {
             if (window.__spiritAuthBusy) return;
         }
-        if (typeof window !== 'undefined') window.__spiritAuthBusy = true;
 
         const u = String((document.getElementById('regUser') || {}).value || '').trim();
         const email = String((document.getElementById('regEmail') || {}).value || '').trim().toLowerCase();
         const pass = String((document.getElementById('regPass') || {}).value || '');
         const remember = !!(document.getElementById('regRemember') && document.getElementById('regRemember').checked);
+        const regCountryEl = document.getElementById('regCountry');
+        const countryRaw = regCountryEl ? String(regCountryEl.value || '').trim() : '';
 
         if (!email || !pass) {
             alert("Email et mot de passe requis.");
@@ -6337,6 +6402,17 @@ async function confirmPayment(method) {
             alert("Supabase indisponible. Impossible de se connecter.");
             return;
         }
+        if (!countryRaw) {
+            alert(typeof spiritT === 'function' ? spiritT('reg_err_country') : 'Choisis ton pays ou ta région.');
+            return;
+        }
+        var countryPrefs = typeof spiritCountryToLocaleAndCurrency === 'function' ? spiritCountryToLocaleAndCurrency(countryRaw) : null;
+        if (!countryPrefs) {
+            alert(typeof spiritT === 'function' ? spiritT('reg_err_country') : 'Pays non reconnu.');
+            return;
+        }
+
+        if (typeof window !== 'undefined') window.__spiritAuthBusy = true;
 
         spiritRememberSessionChoice(remember);
 
@@ -6376,7 +6452,16 @@ async function confirmPayment(method) {
             var signUp = await _spirit.auth.signUp({
                 email: email,
                 password: pass,
-                options: { data: { username: u || email.split('@')[0], pseudo: u || email.split('@')[0] } }
+                options: {
+                    data: {
+                        username: u || email.split('@')[0],
+                        pseudo: u || email.split('@')[0],
+                        spirit_country: countryRaw,
+                        spirit_locale: countryPrefs.lang,
+                        spirit_currency: countryPrefs.currency,
+                        spirit_buyer_country: countryPrefs.buyerCountry
+                    }
+                }
             });
             if (signUp.error) throw signUp.error;
 
@@ -6876,6 +6961,9 @@ async function confirmPayment(method) {
         setActiveNav('nav-market');
         var cb = document.getElementById('regRemember');
         if (cb) cb.checked = spiritShouldRememberSession();
+        try {
+            if (typeof switchLanguage === 'function') switchLanguage(typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR');
+        } catch (eRegI18n) {}
         document.getElementById('registerModal').style.setProperty('display', 'flex', 'important');
     }
     function openLedger() { navigateTo('ledger'); }
@@ -10850,31 +10938,52 @@ async function fetchAnnonces() {
 
 // BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
 document.addEventListener('DOMContentLoaded', () => {
-    try { ensureMarketCurrencySelect(); } catch (e) {}
-    try {
-        const ls = document.querySelector('.lang-selector');
-        if (ls) switchLanguage(ls.value);
-    } catch (e) {}
-    try { loadAnnonces(); } catch (e) {}
-    try { spiritMarketInitScrollObserver(); } catch (e) {}
-    try { spiritInitFavoriteClickDelegation(); } catch (e) {}
-    try { window.addEventListener('hashchange', function () { spiritApplyPublicHashRoute(); }); } catch (e) {}
-    try { spiritApplyPublicHashRoute(); } catch (e) {}
-    try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
-    try { spiritUpdateNavSanctuaryDot(); } catch (e) {}
-    try { spiritRefreshDashboardPublicUrl(); } catch (e) {}
-    try { spiritSanctuaryStartPoll(); } catch (e) {}
-    try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR0) {}
-    try { if (typeof spiritRenderShippingAddressForm === 'function') spiritRenderShippingAddressForm(); } catch (eA0) {}
-    try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (eMsg0) {}
-    setTimeout(function () {
-        try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (eD1) {}
-    }, 800);
-    try {
-        var fm = document.getElementById('spiritFriendsModal');
-        if (fm) fm.addEventListener('click', function (ev) { if (ev.target === fm) spiritCloseFriendsModal(); });
-    } catch (e) {}
-    try { if (typeof spiritFriendsRefreshList === 'function') spiritFriendsRefreshList(); } catch (e) {}
+    void (async function spiritDomReady() {
+        try { ensureMarketCurrencySelect(); } catch (e) {}
+        var appliedFromSession = false;
+        try {
+            if (typeof _spirit !== 'undefined' && _spirit && _spirit.auth && typeof _spirit.auth.getSession === 'function') {
+                var sr = await _spirit.auth.getSession();
+                var uBoot = sr && sr.data && sr.data.session && sr.data.session.user;
+                if (uBoot && uBoot.user_metadata && (uBoot.user_metadata.spirit_locale || uBoot.user_metadata.spirit_country)) {
+                    if (typeof spiritApplyUserLocaleFromMetadata === 'function') {
+                        spiritApplyUserLocaleFromMetadata(uBoot);
+                        appliedFromSession = true;
+                    }
+                }
+            }
+        } catch (eSessBoot) {}
+        if (!appliedFromSession) {
+            try {
+                var savedLang = '';
+                try { savedLang = String(localStorage.getItem('spirit_ui_lang') || '').toUpperCase(); } catch (eL0) {}
+                if (savedLang === 'CN') savedLang = 'ZH';
+                var lsBoot = document.querySelector('.lang-selector');
+                if (lsBoot && savedLang && ['FR', 'EN', 'ES', 'ZH'].indexOf(savedLang) >= 0) lsBoot.value = savedLang;
+                if (lsBoot && typeof switchLanguage === 'function') switchLanguage(lsBoot.value);
+            } catch (eLangBoot) {}
+        }
+        try { await loadAnnonces(); } catch (e) {}
+        try { spiritMarketInitScrollObserver(); } catch (e) {}
+        try { spiritInitFavoriteClickDelegation(); } catch (e) {}
+        try { window.addEventListener('hashchange', function () { spiritApplyPublicHashRoute(); }); } catch (e) {}
+        try { spiritApplyPublicHashRoute(); } catch (e) {}
+        try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
+        try { spiritUpdateNavSanctuaryDot(); } catch (e) {}
+        try { spiritRefreshDashboardPublicUrl(); } catch (e) {}
+        try { spiritSanctuaryStartPoll(); } catch (e) {}
+        try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR0) {}
+        try { if (typeof spiritRenderShippingAddressForm === 'function') spiritRenderShippingAddressForm(); } catch (eA0) {}
+        try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (eMsg0) {}
+        setTimeout(function () {
+            try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (eD1) {}
+        }, 800);
+        try {
+            var fm = document.getElementById('spiritFriendsModal');
+            if (fm) fm.addEventListener('click', function (ev) { if (ev.target === fm) spiritCloseFriendsModal(); });
+        } catch (e) {}
+        try { if (typeof spiritFriendsRefreshList === 'function') spiritFriendsRefreshList(); } catch (e) {}
+    })();
 });
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
