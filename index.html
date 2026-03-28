@@ -330,6 +330,7 @@
             border-radius: 50%;
             background: #e22;
             box-shadow: 0 0 6px rgba(255, 50, 50, 0.9);
+            transform-origin: center center;
         }
         #btn-liste-envie .spirit-fav-menu-sold {
             display: none;
@@ -897,12 +898,30 @@
             box-shadow: 0 0 32px rgba(255,102,0,0.35), 0 12px 40px rgba(0,0,0,0.65); pointer-events: none; position: fixed; z-index: 200120 !important;
             background-repeat: no-repeat; background-color: #050505; overflow: hidden;
         }
+        /* Mon compte : clignote tant qu’une pastille (compte ou Sanctuaire) est active */
+        #nav-account.spirit-nav-account-blink,
         #nav-account.spirit-nav-sanctuary-blink {
-            animation: spiritNavSanBlink 1.05s ease-in-out infinite;
+            animation: spiritNavAccountBlink 1.05s ease-in-out infinite;
         }
-        @keyframes spiritNavSanBlink {
+        @keyframes spiritNavAccountBlink {
             0%, 100% { box-shadow: 0 0 0 transparent; filter: brightness(1); }
-            50% { box-shadow: 0 0 16px rgba(255,102,0,0.75); filter: brightness(1.2); }
+            50% { box-shadow: 0 0 18px rgba(255,102,0,0.9); filter: brightness(1.22); }
+        }
+        /* Sous-menu compte : onglet concerné clignote avec sa pastille */
+        .dash-nav button.spirit-tab-notif-pulse {
+            animation: spiritDashTabNotifPulse 1.12s ease-in-out infinite;
+        }
+        @keyframes spiritDashTabNotifPulse {
+            0%, 100% { outline: 2px solid transparent; outline-offset: 2px; }
+            50% { outline: 2px solid rgba(255, 102, 0, 0.95); outline-offset: 2px; }
+        }
+        .spirit-tab-notif.spirit-notif-dot-pulse,
+        #nav-account-sanctuary-dot.spirit-notif-dot-pulse {
+            animation: spiritNotifDotPulse 0.88s ease-in-out infinite;
+        }
+        @keyframes spiritNotifDotPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.45); opacity: 0.88; }
         }
         #spiritSanctuaryRoot .spirit-sanctuary-toolbar {
             display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px;
@@ -2885,64 +2904,116 @@ function spiritSyncFavoriteButtonDOM(productIdInt, flashBtn) {
         setTimeout(endFlash, 800);
     }
 }
+/** Pastille réellement visible (inline ou computed). */
+function spiritNotifDotVisible(el) {
+    if (!el) return false;
+    try {
+        if (el.style && el.style.display === 'none') return false;
+        var cs = window.getComputedStyle(el);
+        if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+        var op = parseFloat(cs.opacity);
+        if (Number.isFinite(op) && op < 0.05) return false;
+        return true;
+    } catch (e) { return false; }
+}
+/** Clignotement « Mon compte » + onglet concerné tant qu’une notif non lue ; s’arrête quand les pastilles sont masquées. */
+function spiritSyncAccountNotificationPulse() {
+    var pairs = [
+        ['dashboard-tab-dot', 'btn-dashboard'],
+        ['messages-tab-dot', 'btn-messages'],
+        ['favorites-tab-dot', 'btn-liste-envie']
+    ];
+    var any = false;
+    pairs.forEach(function (pr) {
+        var d = document.getElementById(pr[0]);
+        var b = document.getElementById(pr[1]);
+        var on = spiritNotifDotVisible(d);
+        if (b) b.classList.toggle('spirit-tab-notif-pulse', on);
+        if (d) {
+            if (on) d.classList.add('spirit-notif-dot-pulse');
+            else d.classList.remove('spirit-notif-dot-pulse');
+        }
+        if (on) any = true;
+    });
+    var nav = document.getElementById('nav-account');
+    var san = document.getElementById('nav-account-sanctuary-dot');
+    var sanOn = spiritNotifDotVisible(san);
+    var btnSan = document.getElementById('btn-sanctuary');
+    if (btnSan) btnSan.classList.toggle('spirit-tab-notif-pulse', sanOn);
+    if (san) {
+        if (sanOn) san.classList.add('spirit-notif-dot-pulse');
+        else san.classList.remove('spirit-notif-dot-pulse');
+    }
+    if (sanOn) any = true;
+    if (nav) {
+        nav.classList.toggle('spirit-nav-account-blink', any);
+        if (!any) nav.classList.remove('spirit-nav-sanctuary-blink');
+    }
+}
+try { window.spiritSyncAccountNotificationPulse = spiritSyncAccountNotificationPulse; } catch (ePulse) {}
+
 /** Alertes favoris : uniquement Supabase (favorites × products_live), zéro localStorage. */
 async function checkGlobalNotifications() {
     try { localStorage.removeItem('spirit_fav_snap_v2'); } catch (e) {}
     var dot = document.getElementById('favorites-tab-dot');
     var soldLbl = document.getElementById('favorites-tab-sold');
-    if (!_spirit) {
-        if (dot) dot.style.display = 'none';
-        if (soldLbl) soldLbl.style.display = 'none';
-        return;
-    }
-    var uid = typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '';
-    var uidN = spiritNormUid(uid);
-    if (!uidN) {
-        if (dot) dot.style.display = 'none';
-        if (soldLbl) soldLbl.style.display = 'none';
-        return;
-    }
     try {
-        var uidCandidates = [uidN];
-        var uRaw = String(uid || '').trim();
-        if (uRaw && uidCandidates.indexOf(uRaw) === -1) uidCandidates.push(uRaw);
-        var favOut = await _spirit.from('favorites').select('product_id').in('user_id', uidCandidates);
-        if (favOut.error || !favOut.data || favOut.data.length === 0) {
-            favOut = await _spirit.from('favorites').select('product_id').eq('user_id', uidN);
-        }
-        if ((favOut.error || !favOut.data || favOut.data.length === 0) && uRaw) {
-            favOut = await _spirit.from('favorites').select('product_id').eq('user_id', uRaw);
-        }
-        if (favOut.error || !favOut.data || favOut.data.length === 0) {
+        if (!_spirit) {
             if (dot) dot.style.display = 'none';
             if (soldLbl) soldLbl.style.display = 'none';
             return;
         }
-        var ids = favOut.data.map(function (r) { return Number(r.product_id); }).filter(function (n) { return Number.isFinite(n); });
-        if (ids.length === 0) {
+        var uid = typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '';
+        var uidN = spiritNormUid(uid);
+        if (!uidN) {
             if (dot) dot.style.display = 'none';
             if (soldLbl) soldLbl.style.display = 'none';
             return;
         }
-        var pl = await _spirit.from('products_live').select('id,status,price,old_price').in('id', ids);
-        if (pl.error) return;
-        var anySold = false;
-        var anyPriceDrop = false;
-        (pl.data || []).forEach(function (row) {
-            var x = String(row.status || '').toLowerCase();
-            if (x === 'sold' || x === 'vendu') anySold = true;
-            var cur = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(row) : Number(row.price || 0);
-            var oldP = Number(row.old_price);
-            if (Number.isFinite(cur) && Number.isFinite(oldP) && oldP > 0 && cur < oldP) anyPriceDrop = true;
-        });
-        if (soldLbl) {
-            if (typeof window.spiritT === 'function') soldLbl.textContent = window.spiritT('fav_sold');
-            soldLbl.style.display = anySold ? 'inline' : 'none';
+        try {
+            var uidCandidates = [uidN];
+            var uRaw = String(uid || '').trim();
+            if (uRaw && uidCandidates.indexOf(uRaw) === -1) uidCandidates.push(uRaw);
+            var favOut = await _spirit.from('favorites').select('product_id').in('user_id', uidCandidates);
+            if (favOut.error || !favOut.data || favOut.data.length === 0) {
+                favOut = await _spirit.from('favorites').select('product_id').eq('user_id', uidN);
+            }
+            if ((favOut.error || !favOut.data || favOut.data.length === 0) && uRaw) {
+                favOut = await _spirit.from('favorites').select('product_id').eq('user_id', uRaw);
+            }
+            if (favOut.error || !favOut.data || favOut.data.length === 0) {
+                if (dot) dot.style.display = 'none';
+                if (soldLbl) soldLbl.style.display = 'none';
+                return;
+            }
+            var ids = favOut.data.map(function (r) { return Number(r.product_id); }).filter(function (n) { return Number.isFinite(n); });
+            if (ids.length === 0) {
+                if (dot) dot.style.display = 'none';
+                if (soldLbl) soldLbl.style.display = 'none';
+                return;
+            }
+            var pl = await _spirit.from('products_live').select('id,status,price,old_price').in('id', ids);
+            if (pl.error) return;
+            var anySold = false;
+            var anyPriceDrop = false;
+            (pl.data || []).forEach(function (row) {
+                var x = String(row.status || '').toLowerCase();
+                if (x === 'sold' || x === 'vendu') anySold = true;
+                var cur = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(row) : Number(row.price || 0);
+                var oldP = Number(row.old_price);
+                if (Number.isFinite(cur) && Number.isFinite(oldP) && oldP > 0 && cur < oldP) anyPriceDrop = true;
+            });
+            if (soldLbl) {
+                if (typeof window.spiritT === 'function') soldLbl.textContent = window.spiritT('fav_sold');
+                soldLbl.style.display = anySold ? 'inline' : 'none';
+            }
+            if (dot) dot.style.display = (anySold || anyPriceDrop) ? 'inline-block' : 'none';
+        } catch (e) {
+            if (dot) dot.style.display = 'none';
+            if (soldLbl) soldLbl.style.display = 'none';
         }
-        if (dot) dot.style.display = (anySold || anyPriceDrop) ? 'inline-block' : 'none';
-    } catch (e) {
-        if (dot) dot.style.display = 'none';
-        if (soldLbl) soldLbl.style.display = 'none';
+    } finally {
+        try { spiritSyncAccountNotificationPulse(); } catch (eP2) {}
     }
 }
 try { window.checkGlobalNotifications = checkGlobalNotifications; } catch (e) {}
@@ -2952,6 +3023,7 @@ function spiritAcknowledgeFavoriteTab() {
     if (dot) dot.style.display = 'none';
     var soldLbl = document.getElementById('favorites-tab-sold');
     if (soldLbl) soldLbl.style.display = 'none';
+    try { spiritSyncAccountNotificationPulse(); } catch (eP3) {}
 }
 /* Supabase: favorites.user_id = text ; product_id = bigint (FK products_live.id).
    Colonnes recommandées (SQL Supabase, une fois chacune) :
@@ -3340,34 +3412,39 @@ function spiritAckDashboardOfferDot() {
     try { localStorage.setItem(spiritGetDashboardOfferSeenKey(uid), new Date().toISOString()); } catch (e) {}
     var dot = document.getElementById('dashboard-tab-dot');
     if (dot) dot.style.display = 'none';
+    try { spiritSyncAccountNotificationPulse(); } catch (eP4) {}
 }
 
 async function spiritCheckDashboardOfferDot() {
     var dot = document.getElementById('dashboard-tab-dot');
-    if (!dot || !_spirit) return;
-    var uid = spiritOwnerId(spiritGetCurrentUserId());
-    if (!uid) { dot.style.display = 'none'; return; }
-    var seenRaw = '';
-    try { seenRaw = localStorage.getItem(spiritGetDashboardOfferSeenKey(uid)) || ''; } catch (e) {}
-    var seenTs = seenRaw ? new Date(seenRaw).getTime() : 0;
-    if (!Number.isFinite(seenTs)) seenTs = 0;
     try {
-        var out = await _spirit
-            .from('product_offers')
-            .select('id,created_at')
-            .eq('seller_id', uid)
-            .eq('status', 'pending')
-            .order('created_at', { ascending: false })
-            .range(0, 12);
-        if (out.error || !out.data) { dot.style.display = 'none'; return; }
-        var anyNew = false;
-        (out.data || []).forEach(function (r) {
-            var ct = r && r.created_at ? new Date(r.created_at).getTime() : 0;
-            if (Number.isFinite(ct) && ct > seenTs) anyNew = true;
-        });
-        dot.style.display = anyNew ? 'inline-block' : 'none';
-    } catch (e) {
-        dot.style.display = 'none';
+        if (!dot || !_spirit) return;
+        var uid = spiritOwnerId(spiritGetCurrentUserId());
+        if (!uid) { dot.style.display = 'none'; return; }
+        var seenRaw = '';
+        try { seenRaw = localStorage.getItem(spiritGetDashboardOfferSeenKey(uid)) || ''; } catch (e) {}
+        var seenTs = seenRaw ? new Date(seenRaw).getTime() : 0;
+        if (!Number.isFinite(seenTs)) seenTs = 0;
+        try {
+            var out = await _spirit
+                .from('product_offers')
+                .select('id,created_at')
+                .eq('seller_id', uid)
+                .eq('status', 'pending')
+                .order('created_at', { ascending: false })
+                .range(0, 12);
+            if (out.error || !out.data) { dot.style.display = 'none'; return; }
+            var anyNew = false;
+            (out.data || []).forEach(function (r) {
+                var ct = r && r.created_at ? new Date(r.created_at).getTime() : 0;
+                if (Number.isFinite(ct) && ct > seenTs) anyNew = true;
+            });
+            dot.style.display = anyNew ? 'inline-block' : 'none';
+        } catch (e) {
+            dot.style.display = 'none';
+        }
+    } finally {
+        try { spiritSyncAccountNotificationPulse(); } catch (eP5) {}
     }
 }
 
@@ -6770,38 +6847,46 @@ function spiritSanctuaryRefreshMessagesDot() {
     var uid = '';
     try { uid = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : (typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim()); } catch (e) {}
     var dot = document.getElementById('messages-tab-dot');
-    if (!dot) return;
-    if (!uid || !spiritSanSocialCanUseSupabase()) { dot.style.display = 'none'; return; }
+    if (!dot) { try { spiritSyncAccountNotificationPulse(); } catch (ePm0) {} return; }
+    if (!uid || !spiritSanSocialCanUseSupabase()) {
+        dot.style.display = 'none';
+        try { spiritSyncAccountNotificationPulse(); } catch (ePm1) {}
+        return;
+    }
     void (async function () {
-        var c = 0;
-        var notifErr = false;
-        if (!spiritSanNotifsTableMissing) {
-            try {
-                var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).eq('owner_id', uid).eq('is_read', false);
-                if (q && q.error) {
-                    spiritSanNotifsMarkMissingIf404(q.error);
-                    notifErr = true;
-                } else {
-                    c = Number((q && q.count) || 0);
-                }
-            } catch (eCount) {
-                spiritSanNotifsMarkMissingIf404(eCount);
-                notifErr = true;
-            }
-        }
         try {
-            var feed = await spiritSanctuaryFetchSocialActivityFeed(uid);
-            var since = spiritSanctuaryGetActivityLastSeenTs();
-            var aUn = spiritSanctuaryActivityUnreadSince(feed, since);
-            if (notifErr || spiritSanNotifsTableMissing) c = aUn;
-            else if (c > 0) { /* garde le compteur notifs */ }
-            else c = aUn;
-        } catch (eFeed) { /* ignore */ }
-        dot.style.display = c > 0 ? 'inline-block' : 'none';
-        if (c > 0 && c > Number(spiritSanctuaryLastUnreadMsgCount || 0) && typeof spiritSanctuaryShowToast === 'function') {
-            spiritSanctuaryShowToast('Sanctuaire', c + ' nouvelle(s) alerte(s) likes/commentaires.');
+            var c = 0;
+            var notifErr = false;
+            if (!spiritSanNotifsTableMissing) {
+                try {
+                    var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).eq('owner_id', uid).eq('is_read', false);
+                    if (q && q.error) {
+                        spiritSanNotifsMarkMissingIf404(q.error);
+                        notifErr = true;
+                    } else {
+                        c = Number((q && q.count) || 0);
+                    }
+                } catch (eCount) {
+                    spiritSanNotifsMarkMissingIf404(eCount);
+                    notifErr = true;
+                }
+            }
+            try {
+                var feed = await spiritSanctuaryFetchSocialActivityFeed(uid);
+                var since = spiritSanctuaryGetActivityLastSeenTs();
+                var aUn = spiritSanctuaryActivityUnreadSince(feed, since);
+                if (notifErr || spiritSanNotifsTableMissing) c = aUn;
+                else if (c > 0) { /* garde le compteur notifs */ }
+                else c = aUn;
+            } catch (eFeed) { /* ignore */ }
+            dot.style.display = c > 0 ? 'inline-block' : 'none';
+            if (c > 0 && c > Number(spiritSanctuaryLastUnreadMsgCount || 0) && typeof spiritSanctuaryShowToast === 'function') {
+                spiritSanctuaryShowToast('Sanctuaire', c + ' nouvelle(s) alerte(s) likes/commentaires.');
+            }
+            spiritSanctuaryLastUnreadMsgCount = c;
+        } finally {
+            try { spiritSyncAccountNotificationPulse(); } catch (ePm2) {}
         }
-        spiritSanctuaryLastUnreadMsgCount = c;
     })();
 }
 function spiritSanctuaryLikeUsers(itemId) {
@@ -9158,73 +9243,70 @@ async function spiritSanctuarySendChat(ctx) {
 async function spiritUpdateNavSanctuaryDot() {
     var dot = document.getElementById('nav-account-sanctuary-dot');
     var fix = document.getElementById('spiritSanctuaryNotifDot');
-    var nav = document.getElementById('nav-account');
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
     var resolvedMe = me;
     try { resolvedMe = await spiritResolveUserIdForFakeTestId(me); } catch (e2) {}
-    if (!me || typeof _spirit === 'undefined' || !_spirit) {
-        if (dot) dot.style.display = 'none';
-        if (fix) fix.style.display = 'none';
-        if (nav) nav.classList.remove('spirit-nav-sanctuary-blink');
-        return;
-    }
-
-    if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
-        var unreadLocal = 0;
-        try {
-            Object.keys(spiritLocalSanctuaryChatByRecipient || {}).forEach(function (k) {
-                var arr = spiritLocalSanctuaryChatByRecipient[k];
-                if (!Array.isArray(arr)) return;
-                arr.forEach(function (m) {
-                    var rec = String((m && m.recipient_id) || '').trim();
-                    var sen = String((m && m.sender_id) || '').trim();
-                    if (rec === String(me) && sen !== String(me) && !m.is_read) unreadLocal++;
-                });
-            });
-        } catch (eLU) {}
-        var showLocal = unreadLocal > 0;
-        if (dot) dot.style.display = showLocal ? 'block' : 'none';
-        if (fix) fix.style.display = showLocal ? 'block' : 'none';
-        if (nav) nav.classList.toggle('spirit-nav-sanctuary-blink', showLocal);
-        return;
-    }
-
-    // Anti-spam/anti-erreurs: ne pas interroger `sanctuary_chat` tant que l'utilisateur
-    // n'est pas sur l'onglet `tab-sanctuary` (sinon on déclenche des 400 côté Supabase).
-    var tabS = document.getElementById('tab-sanctuary');
-    var tabSActive = tabS && (tabS.classList.contains('active') || tabS.style.display === 'block');
-    if (!tabSActive) {
-        if (dot) dot.style.display = 'none';
-        if (fix) fix.style.display = 'none';
-        if (nav) nav.classList.remove('spirit-nav-sanctuary-blink');
-        return;
-    }
-
     try {
-        if (!resolvedMe) {
-            // Mode local (IDs de test non mappés Supabase): dot basé sur cache local.
-            var arr = spiritLocalSanctuaryChatByRecipient[String(me)] || [];
-            var showLocal = Array.isArray(arr) && arr.length > 0;
-            if (dot) dot.style.display = showLocal ? 'block' : 'none';
-            if (fix) fix.style.display = showLocal ? 'block' : 'none';
-            if (nav) nav.classList.toggle('spirit-nav-sanctuary-blink', showLocal);
+        if (!me || typeof _spirit === 'undefined' || !_spirit) {
+            if (dot) dot.style.display = 'none';
+            if (fix) fix.style.display = 'none';
             return;
         }
-        // Raison: éviter de dépendre de `is_read`/`count/head/order` (ça génère des 400 chez toi).
-        // On affiche le dot si une ligne existe pour ce `recipient_id` (dot = activité chat côté serveur).
-        var q = await _spirit.from('sanctuary_chat')
-            .select('*')
-            // Utilise la valeur "compte" (MY_TEST_ID) pour matcher la donnée stockée côté serveur.
-            .eq('recipient_id', String(resolvedMe))
-            .limit(1);
-        var show = !!(q && !q.error && q.data && Array.isArray(q.data) && q.data.length > 0);
-        if (dot) dot.style.display = show ? 'block' : 'none';
-        if (fix) fix.style.display = show ? 'block' : 'none';
-        if (nav) nav.classList.toggle('spirit-nav-sanctuary-blink', show);
-    } catch (e) {
-        if (dot) dot.style.display = 'none';
-        if (fix) fix.style.display = 'none';
-        if (nav) nav.classList.remove('spirit-nav-sanctuary-blink');
+
+        if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
+            var unreadLocal = 0;
+            try {
+                Object.keys(spiritLocalSanctuaryChatByRecipient || {}).forEach(function (k) {
+                    var arr = spiritLocalSanctuaryChatByRecipient[k];
+                    if (!Array.isArray(arr)) return;
+                    arr.forEach(function (m) {
+                        var rec = String((m && m.recipient_id) || '').trim();
+                        var sen = String((m && m.sender_id) || '').trim();
+                        if (rec === String(me) && sen !== String(me) && !m.is_read) unreadLocal++;
+                    });
+                });
+            } catch (eLU) {}
+            var showLocal = unreadLocal > 0;
+            if (dot) dot.style.display = showLocal ? 'block' : 'none';
+            if (fix) fix.style.display = showLocal ? 'block' : 'none';
+            return;
+        }
+
+        // Anti-spam/anti-erreurs: ne pas interroger `sanctuary_chat` tant que l'utilisateur
+        // n'est pas sur l'onglet `tab-sanctuary` (sinon on déclenche des 400 côté Supabase).
+        var tabS = document.getElementById('tab-sanctuary');
+        var tabSActive = tabS && (tabS.classList.contains('active') || tabS.style.display === 'block');
+        if (!tabSActive) {
+            if (dot) dot.style.display = 'none';
+            if (fix) fix.style.display = 'none';
+            return;
+        }
+
+        try {
+            if (!resolvedMe) {
+                // Mode local (IDs de test non mappés Supabase): dot basé sur cache local.
+                var arr = spiritLocalSanctuaryChatByRecipient[String(me)] || [];
+                var showLocal2 = Array.isArray(arr) && arr.length > 0;
+                if (dot) dot.style.display = showLocal2 ? 'block' : 'none';
+                if (fix) fix.style.display = showLocal2 ? 'block' : 'none';
+                return;
+            }
+            // Raison: éviter de dépendre de `is_read`/`count/head/order` (ça génère des 400 chez toi).
+            // On affiche le dot si une ligne existe pour ce `recipient_id` (dot = activité chat côté serveur).
+            var q = await _spirit.from('sanctuary_chat')
+                .select('*')
+                // Utilise la valeur "compte" (MY_TEST_ID) pour matcher la donnée stockée côté serveur.
+                .eq('recipient_id', String(resolvedMe))
+                .limit(1);
+            var show = !!(q && !q.error && q.data && Array.isArray(q.data) && q.data.length > 0);
+            if (dot) dot.style.display = show ? 'block' : 'none';
+            if (fix) fix.style.display = show ? 'block' : 'none';
+        } catch (e) {
+            if (dot) dot.style.display = 'none';
+            if (fix) fix.style.display = 'none';
+        }
+    } finally {
+        try { spiritSyncAccountNotificationPulse(); } catch (eSanPulse) {}
     }
 }
 function spiritSanctuaryStartPoll() {
