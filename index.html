@@ -1902,6 +1902,20 @@
         </div>
     </div>
     <div style="margin-top:12px; padding:10px; border:1px solid #333; background:#101010;">
+        <label for="accountCountryPrefs" style="display:block; font-size:0.68rem; color:#aaa; margin-bottom:4px;" data-key="account_locale_block_title">Langue du site &amp; devise</label>
+        <p style="margin:0 0 8px; font-size:0.6rem; color:#666; line-height:1.35;" data-key="account_locale_hint">Choisis ton pays : l’interface et les prix du marché suivent (comptes déjà créés inclus).</p>
+        <select id="accountCountryPrefs" style="width:100%; max-width:360px; padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.75rem;">
+            <option value="" data-key="reg_country_placeholder">— Choisir un pays —</option>
+            <option value="FR" data-key="reg_country_fr">France</option>
+            <option value="USA" data-key="reg_country_usa">États-Unis</option>
+            <option value="CN" data-key="reg_country_cn">Chine</option>
+            <option value="ES" data-key="reg_country_es">Espagne</option>
+        </select>
+        <div style="margin-top:8px;">
+            <button type="button" class="btn-action" style="font-size:0.62rem; padding:8px 12px;" onclick="spiritSaveAccountCountryPrefs()" data-key="account_save_locale_btn">Appliquer langue &amp; devise</button>
+        </div>
+    </div>
+    <div style="margin-top:12px; padding:10px; border:1px solid #333; background:#101010;">
         <label style="display:block; font-size:0.68rem; color:#aaa; margin-bottom:8px;">ADRESSE POSTALE (LIVRAISON)</label>
         <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px;">
             <input id="shipLastName" type="text" maxlength="60" placeholder="Nom" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
@@ -2291,7 +2305,10 @@
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Félicitations ! Votre achat est confirmé. L\'annonce a été retirée du marché. Montant en séquestre Spirit : {amount} €.',
             'lbl_reg_country': 'Pays / région', 'reg_country_placeholder': '— Choisir un pays —',
             'reg_country_fr': 'France', 'reg_country_usa': 'États-Unis', 'reg_country_cn': 'Chine', 'reg_country_es': 'Espagne',
-            'reg_err_country': 'Choisis ton pays ou ta région : la langue et la devise du site s’alignent dessus.'
+            'reg_err_country': 'Choisis ton pays ou ta région : la langue et la devise du site s’alignent dessus.',
+            'account_locale_block_title': 'Langue du site & devise', 'account_locale_hint': 'Choisis ton pays : l’interface et les prix du marché suivent (comptes déjà créés inclus).',
+            'account_save_locale_btn': 'Appliquer langue & devise', 'account_locale_saved': 'Langue et devise enregistrées sur ton compte.',
+            'auth_err_email_exists': 'Un compte existe déjà avec cet e-mail. Vérifie ton mot de passe (le pays n’est requis qu’à la création du compte — tu peux le régler dans Paramètres).'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -2333,7 +2350,10 @@
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Congratulations! Your purchase is confirmed. The listing has been removed from the market. Escrow amount: {amount} €.',
             'lbl_reg_country': 'Country / region', 'reg_country_placeholder': '— Choose a country —',
             'reg_country_fr': 'France', 'reg_country_usa': 'United States', 'reg_country_cn': 'China', 'reg_country_es': 'Spain',
-            'reg_err_country': 'Choose your country or region: the site language and currency will match.'
+            'reg_err_country': 'Choose your country or region: the site language and currency will match.',
+            'account_locale_block_title': 'Site language & currency', 'account_locale_hint': 'Pick your country: the UI and marketplace prices follow (existing accounts too).',
+            'account_save_locale_btn': 'Apply language & currency', 'account_locale_saved': 'Language and currency saved to your account.',
+            'auth_err_email_exists': 'An account already exists for this email. Check your password (country is only required when signing up — set it under Settings).'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -2375,7 +2395,10 @@
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '¡Enhorabuena! Tu compra está confirmada. El anuncio se ha retirado del mercado. Importe en depósito: {amount} €.',
             'lbl_reg_country': 'País / región', 'reg_country_placeholder': '— Elige un país —',
             'reg_country_fr': 'Francia', 'reg_country_usa': 'Estados Unidos', 'reg_country_cn': 'China', 'reg_country_es': 'España',
-            'reg_err_country': 'Elige tu país o región: el idioma y la divisa del sitio se ajustarán.'
+            'reg_err_country': 'Elige tu país o región: el idioma y la divisa del sitio se ajustarán.',
+            'account_locale_block_title': 'Idioma del sitio y divisa', 'account_locale_hint': 'Elige tu país: la interfaz y los precios del mercado se adaptan (también cuentas antiguas).',
+            'account_save_locale_btn': 'Aplicar idioma y divisa', 'account_locale_saved': 'Idioma y divisa guardados en tu cuenta.',
+            'auth_err_email_exists': 'Ya existe una cuenta con este correo. Revisa la contraseña (el país solo hace falta al registrarse — configúralo en Ajustes).'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -2417,7 +2440,10 @@
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '恭喜！购买已确认。该商品已从市场下架。托管金额：{amount} 欧元。',
             'lbl_reg_country': '国家 / 地区', 'reg_country_placeholder': '— 请选择国家 —',
             'reg_country_fr': '法国', 'reg_country_usa': '美国', 'reg_country_cn': '中国', 'reg_country_es': '西班牙',
-            'reg_err_country': '请选择国家或地区：网站语言与货币将据此设置。'
+            'reg_err_country': '请选择国家或地区：网站语言与货币将据此设置。',
+            'account_locale_block_title': '网站语言与货币', 'account_locale_hint': '选择国家：界面与市场价格会随之切换（老账号也可在此设置）。',
+            'account_save_locale_btn': '应用语言与货币', 'account_locale_saved': '语言与货币已保存到账户。',
+            'auth_err_email_exists': '该邮箱已有账户，请检查密码（国家仅在注册时需要，也可在「设置」中修改）。'
         }
     };
 
@@ -6402,15 +6428,6 @@ async function confirmPayment(method) {
             alert("Supabase indisponible. Impossible de se connecter.");
             return;
         }
-        if (!countryRaw) {
-            alert(typeof spiritT === 'function' ? spiritT('reg_err_country') : 'Choisis ton pays ou ta région.');
-            return;
-        }
-        var countryPrefs = typeof spiritCountryToLocaleAndCurrency === 'function' ? spiritCountryToLocaleAndCurrency(countryRaw) : null;
-        if (!countryPrefs) {
-            alert(typeof spiritT === 'function' ? spiritT('reg_err_country') : 'Pays non reconnu.');
-            return;
-        }
 
         if (typeof window !== 'undefined') window.__spiritAuthBusy = true;
 
@@ -6449,6 +6466,16 @@ async function confirmPayment(method) {
                 return;
             }
 
+            if (!countryRaw) {
+                alert(typeof spiritT === 'function' ? spiritT('reg_err_country') : 'Choisis ton pays ou ta région.');
+                return;
+            }
+            var countryPrefs = typeof spiritCountryToLocaleAndCurrency === 'function' ? spiritCountryToLocaleAndCurrency(countryRaw) : null;
+            if (!countryPrefs) {
+                alert(typeof spiritT === 'function' ? spiritT('reg_err_country') : 'Pays non reconnu.');
+                return;
+            }
+
             var signUp = await _spirit.auth.signUp({
                 email: email,
                 password: pass,
@@ -6463,7 +6490,14 @@ async function confirmPayment(method) {
                     }
                 }
             });
-            if (signUp.error) throw signUp.error;
+            if (signUp.error) {
+                var emSu = String((signUp.error && (signUp.error.message || signUp.error.msg)) || '').toLowerCase();
+                if (emSu.indexOf('already') >= 0 || emSu.indexOf('registered') >= 0 || emSu.indexOf('exists') >= 0) {
+                    alert(typeof spiritT === 'function' ? spiritT('auth_err_email_exists') : 'Compte existant : vérifie le mot de passe.');
+                    return;
+                }
+                throw signUp.error;
+            }
 
             if (signUp.data && signUp.data.user) {
                 spiritApplyAuthUser(signUp.data.user, u);
@@ -6549,7 +6583,8 @@ async function confirmPayment(method) {
             var uid = String(user.id);
 
             if (_spirit.auth && typeof _spirit.auth.updateUser === 'function') {
-                var upd = await _spirit.auth.updateUser({ data: { username: nextPseudo, pseudo: nextPseudo } });
+                var metaPrev = Object.assign({}, user.user_metadata || {}, { username: nextPseudo, pseudo: nextPseudo });
+                var upd = await _spirit.auth.updateUser({ data: metaPrev });
                 if (upd && upd.error) console.warn('[SPIRIT] updateUser meta:', upd.error.message);
             }
 
@@ -6571,6 +6606,61 @@ async function confirmPayment(method) {
             alert("Erreur mise à jour pseudo : " + (err && err.message ? err.message : err));
         }
     }
+
+    async function spiritSyncAccountCountrySelectFromUser() {
+        var sel = document.getElementById('accountCountryPrefs');
+        if (!sel || !_spirit || !_spirit.auth || typeof _spirit.auth.getUser !== 'function') return;
+        try {
+            var gu = await _spirit.auth.getUser();
+            var user = gu && gu.data ? gu.data.user : null;
+            var c = user && user.user_metadata ? String(user.user_metadata.spirit_country || '').trim().toUpperCase() : '';
+            var ok = { FR: 1, USA: 1, US: 1, CN: 1, ES: 1 };
+            if (c === 'US') c = 'USA';
+            if (ok[c]) sel.value = c;
+            else sel.value = '';
+        } catch (e) {}
+    }
+    try { window.spiritSyncAccountCountrySelectFromUser = spiritSyncAccountCountrySelectFromUser; } catch (eSyn) {}
+
+    async function spiritSaveAccountCountryPrefs() {
+        var sel = document.getElementById('accountCountryPrefs');
+        var countryRaw = sel ? String(sel.value || '').trim() : '';
+        if (!countryRaw) {
+            alert(typeof spiritT === 'function' ? spiritT('reg_err_country') : 'Choisis un pays.');
+            return;
+        }
+        var prefs = typeof spiritCountryToLocaleAndCurrency === 'function' ? spiritCountryToLocaleAndCurrency(countryRaw) : null;
+        if (!prefs) {
+            alert(typeof spiritT === 'function' ? spiritT('reg_err_country') : 'Pays non reconnu.');
+            return;
+        }
+        if (!_spirit || !_spirit.auth || typeof _spirit.auth.getUser !== 'function' || typeof _spirit.auth.updateUser !== 'function') {
+            alert('Session indisponible.');
+            return;
+        }
+        try {
+            var gu = await _spirit.auth.getUser();
+            var user = gu && gu.data ? gu.data.user : null;
+            if (!user || !user.id) {
+                alert('Connecte-toi pour enregistrer.');
+                return;
+            }
+            var meta = Object.assign({}, user.user_metadata || {}, {
+                spirit_country: countryRaw,
+                spirit_locale: prefs.lang,
+                spirit_currency: prefs.currency,
+                spirit_buyer_country: prefs.buyerCountry
+            });
+            var upd = await _spirit.auth.updateUser({ data: meta });
+            if (upd && upd.error) throw upd.error;
+            var refreshed = upd && upd.data && upd.data.user ? upd.data.user : user;
+            try { spiritApplyAuthUser(refreshed, currentUser); } catch (eA) {}
+            alert(typeof spiritT === 'function' ? spiritT('account_locale_saved') : 'Enregistré.');
+        } catch (err) {
+            alert('Erreur : ' + (err && err.message ? err.message : err));
+        }
+    }
+    try { window.spiritSaveAccountCountryPrefs = spiritSaveAccountCountryPrefs; } catch (eSav) {}
 
     function triggerFile(id) { document.getElementById(id).click(); }
     async function previewSale(input, boxId, index) {
@@ -7201,6 +7291,10 @@ window.showAccountTab = function showAccountTab(tab) {
         console.log("[SPIRIT SYSTEM] Accès paramètres");
         try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR) {}
         try { if (typeof spiritRenderShippingAddressForm === 'function') spiritRenderShippingAddressForm(); } catch (eA) {}
+        try {
+            if (typeof switchLanguage === 'function') switchLanguage(typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR');
+        } catch (eI18nP) {}
+        try { void spiritSyncAccountCountrySelectFromUser(); } catch (eCo) {}
     }
 
 
