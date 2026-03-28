@@ -1575,6 +1575,15 @@
                 <option value="Queen Studios">Queen Studios</option>
                 <option value="Autre">Autre</option>
             </select>
+            <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;">PAYS / ZONE D'EXPÉDITION DU COLIS</label>
+            <select id="saleOriginCountry" title="Depuis où l'objet est expédié (filtre marketplace)">
+                <option value="">-- CHOISIR UN PAYS --</option>
+                <option value="France">France</option>
+                <option value="Europe">Europe</option>
+                <option value="Chine">Chine</option>
+                <option value="USA">USA</option>
+                <option value="Hong Kong">Hong Kong</option>
+            </select>
             <div id="statueMatiereRow" style="display:none;">
                 <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;">MATIÈRE</label>
                 <select id="saleMatiere">
@@ -4996,6 +5005,7 @@ async function loadMySales() {
         }
         document.getElementById('diag-link').style.display = 'none';
         if (document.getElementById('saleHasCoa')) document.getElementById('saleHasCoa').checked = false;
+        if (document.getElementById('saleOriginCountry')) document.getElementById('saleOriginCountry').value = '';
         document.getElementById('stepMethod').style.display = 'block';
         document.getElementById('stepInfo').style.display = 'none';
         document.getElementById('stepScan').style.display = 'none';
@@ -5070,6 +5080,11 @@ async function goToScan() {
     var pScan = parseFloat(price);
     if (!Number.isFinite(pScan) || pScan <= 0) {
         alert('PRIX INVALIDE : indiquez un montant supérieur à 0.');
+        return;
+    }
+    var ocGo = document.getElementById('saleOriginCountry');
+    if (!ocGo || !String(ocGo.value || '').trim()) {
+        alert("PAYS D'EXPÉDITION REQUIS : choisissez le pays ou la zone depuis laquelle vous expédiez.");
         return;
     }
     if(!imgToScan) {
@@ -5253,6 +5268,12 @@ async function publierAnnonce() {
     const isFirstHand = !!(document.getElementById('saleFirstHand') && document.getElementById('saleFirstHand').checked);
     const hasCoa = !!(document.getElementById('saleHasCoa') && document.getElementById('saleHasCoa').checked);
     const shipSize = document.getElementById('saleShip') ? document.getElementById('saleShip').value : 'Moyen';
+    var saleOriginCountryEl = document.getElementById('saleOriginCountry');
+    var saleOriginCountry = saleOriginCountryEl && saleOriginCountryEl.value ? String(saleOriginCountryEl.value).trim() : '';
+    if (!saleOriginCountry) {
+        alert("PAYS D'EXPÉDITION REQUIS : choisissez le pays ou la zone depuis laquelle vous expédiez.");
+        return;
+    }
     const fromHardwarePanneau = (typeof currentMethod !== 'undefined' && currentMethod === 'hot_native');
     const uuidVal = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
         ? crypto.randomUUID()
@@ -5312,7 +5333,9 @@ async function publierAnnonce() {
         is_smoke_free: isSmokeFree,
         is_light_protect: isLightProtect,
         is_first_hand: isFirstHand,
-        has_coa: hasCoa
+        has_coa: hasCoa,
+        origin_country: saleOriginCountry,
+        country: saleOriginCountry
     };
 
     try {
@@ -5346,7 +5369,9 @@ async function publierAnnonce() {
                 is_smoke_free: isSmokeFree,
                 is_light_protect: isLightProtect,
                 is_first_hand: isFirstHand,
-                has_coa: hasCoa
+                has_coa: hasCoa,
+                origin_country: saleOriginCountry,
+                country: saleOriginCountry
             };
             if (photoUrls.length > 0) {
                 updateRow.image_url = photoUrls.length === 1 ? photoUrls[0] : JSON.stringify(photoUrls);
@@ -5592,6 +5617,14 @@ async function editAnnonce(id) {
     if(document.getElementById('saleMatiere') && mExEd.matiere) document.getElementById('saleMatiere').value = mExEd.matiere;
     if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat || 'figurine';
     if(document.getElementById('saleBrand')) document.getElementById('saleBrand').value = item.brand || '';
+    try {
+        var ocEd = String(item.origin_country || item.country || '').trim();
+        var ocSel = document.getElementById('saleOriginCountry');
+        if (ocSel) {
+            var ocAllowed = { 'France': 1, 'Europe': 1, 'Chine': 1, 'USA': 1, 'Hong Kong': 1 };
+            ocSel.value = ocAllowed[ocEd] ? ocEd : '';
+        }
+    } catch (eOc) {}
     if(document.getElementById('saleSmokeFree')) document.getElementById('saleSmokeFree').checked = !!item.is_smoke_free;
     if(document.getElementById('saleLightProtect')) document.getElementById('saleLightProtect').checked = !!item.is_light_protect;
     if(document.getElementById('saleFirstHand')) document.getElementById('saleFirstHand').checked = !!item.is_first_hand;
@@ -6012,7 +6045,7 @@ async function confirmPayment(method) {
         document.getElementById('pTitle').innerText = item.title || "Sans Titre";
         
         // AJOUT : Fallback pour les données pays et condition
-        const displayCountry = item.country || "France";
+        const displayCountry = item.origin_country || item.country || "France";
         const displayCond = item.cond || "Certifié Spirit";
         document.getElementById('pOrigin').innerText = displayCountry + " | " + displayCond;
         
