@@ -5420,8 +5420,18 @@ async function publierAnnonce() {
             return;
         }
 
-        const { data, error } = await _spirit.from('products_live').insert([newItem]);
+        const { data: insRows, error } = await _spirit.from('products_live').insert([newItem]).select('id');
         if (error) throw error;
+
+        try {
+            var newId = insRows && insRows[0] && insRows[0].id != null ? insRows[0].id : null;
+            var pubUid = typeof spiritNormUid === 'function' ? spiritNormUid(MY_TEST_ID) : String(MY_TEST_ID || '').trim().toLowerCase();
+            if (newId != null && pubUid && typeof spiritNotifyFollowersNewListing === 'function') {
+                await spiritNotifyFollowersNewListing(pubUid, newId, title);
+            }
+        } catch (eNf) {
+            console.warn('[SPIRIT] Notifications abonnés (nouvelle annonce):', eNf && eNf.message ? eNf.message : eNf);
+        }
 
         const ledgerRow = {
             listing_title: title,
@@ -7265,6 +7275,8 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      primary key (follower_id, followee_id)
    );
    create index if not exists idx_spirit_follows_follower on public.spirit_follows(follower_id, created_at desc);
+   create index if not exists idx_spirit_follows_followee on public.spirit_follows(followee_id);
+   -- Notifs « nouvelle annonce » : type listing_new dans spirit_sanctuary_notifications (insert par le vendeur, owner_id = abonné).
    -- Social Sanctuaire (production)
    create table if not exists public.spirit_sanctuary_likes (
      item_id text not null,
@@ -7428,6 +7440,62 @@ async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
         if (!spiritSanNotifsTableMissing) spiritSanSocialHandleSupabaseError(e);
     }
 }
+
+/** Notifie tous les abonnés (spirit_follows) qu’un compte a publié une nouvelle annonce — même table que Sanctuaire (type listing_new). */
+async function spiritNotifyFollowersNewListing(sellerUid, listingId, listingTitle) {
+    sellerUid = typeof spiritNormUid === 'function' ? spiritNormUid(sellerUid) : String(sellerUid || '').trim().toLowerCase();
+    if (!sellerUid || !_spirit || !spiritSanSocialCanUseSupabase()) return;
+    if (spiritSanNotifsTableMissing) return;
+    var lid = listingId != null ? String(listingId).trim() : '';
+    if (!lid) return;
+    var tit = String(listingTitle || '').trim();
+    if (tit.length > 140) tit = tit.slice(0, 137) + '…';
+    var msg = 'a publié une nouvelle annonce : ' + (tit || 'Sans titre');
+    try {
+        var q = await _spirit.from(SPIRIT_FOLLOW_TABLE).select('follower_id').eq('followee_id', sellerUid);
+        if (q && q.error) return;
+        var rows = Array.isArray(q.data) ? q.data : [];
+        for (var i = 0; i < rows.length; i++) {
+            var fid = typeof spiritNormUid === 'function' ? spiritNormUid(rows[i] && rows[i].follower_id) : String((rows[i] && rows[i].follower_id) || '').trim().toLowerCase();
+            if (!fid || fid === sellerUid) continue;
+            await spiritSanctuaryPushNotif(fid, 'listing_new', lid, sellerUid, msg);
+        }
+    } catch (e) {
+        spiritSanNotifsMarkMissingIf404(e);
+    }
+}
+
+async function spiritOpenListingFromNotif(listingId) {
+    listingId = String(listingId != null ? listingId : '').trim();
+    if (!listingId) return;
+    try {
+        try { if (typeof closeModals === 'function') closeModals(); } catch (eC) {}
+        var row = null;
+        if (typeof _spirit !== 'undefined' && _spirit) {
+            try {
+                var sel = await _spirit.from('products_live').select('*').eq('id', listingId).maybeSingle();
+                if (!sel.error && sel.data) row = sel.data;
+            } catch (eS) {}
+        }
+        if (!row && typeof marketData !== 'undefined' && Array.isArray(marketData)) {
+            row = marketData.find(function (m) { return String(m && m.id) === String(listingId); }) || null;
+        }
+        if (!row) {
+            alert("Annonce introuvable ou retirée du marché.");
+            return;
+        }
+        try {
+            if (typeof navigateTo === 'function') navigateTo('market');
+            else if (typeof window.navigateTo === 'function') window.navigateTo('market');
+        } catch (eN) {}
+        if (typeof openProduct === 'function') await openProduct(row);
+        else if (typeof window.openProduct === 'function') await window.openProduct(row);
+    } catch (e) {
+        console.warn('[SPIRIT] spiritOpenListingFromNotif', e);
+    }
+}
+try { window.spiritOpenListingFromNotif = spiritOpenListingFromNotif; } catch (eWolf) {}
+
 function spiritSanctuaryActivityUnreadSince(feed, sinceTs) {
     var now = Date.now();
     var floor = sinceTs > 0 ? sinceTs : (now - 72 * 3600000);
@@ -7706,8 +7774,8 @@ async function spiritFollowResolveProfiles(ids) {
     return out;
 }
 async function spiritFollowIsFollowing(me, target) {
-    me = String(me || '').trim();
-    target = String(target || '').trim();
+    me = typeof spiritNormUid === 'function' ? spiritNormUid(me) : String(me || '').trim().toLowerCase();
+    target = typeof spiritNormUid === 'function' ? spiritNormUid(target) : String(target || '').trim().toLowerCase();
     if (!spiritIsUuid(me) || !spiritIsUuid(target)) return false;
     if (me === target) return false;
     if (!_spirit) return false;
@@ -7718,8 +7786,8 @@ async function spiritFollowIsFollowing(me, target) {
     return false;
 }
 async function spiritFollowInsert(me, target) {
-    me = String(me || '').trim();
-    target = String(target || '').trim();
+    me = typeof spiritNormUid === 'function' ? spiritNormUid(me) : String(me || '').trim().toLowerCase();
+    target = typeof spiritNormUid === 'function' ? spiritNormUid(target) : String(target || '').trim().toLowerCase();
     if (!spiritIsUuid(me) || !spiritIsUuid(target) || me === target || !_spirit) return false;
     try {
         var ins = await _spirit.from(SPIRIT_FOLLOW_TABLE).upsert({ follower_id: me, followee_id: target }, { onConflict: 'follower_id,followee_id' });
@@ -7727,8 +7795,8 @@ async function spiritFollowInsert(me, target) {
     } catch (e) { return false; }
 }
 async function spiritFollowDelete(me, target) {
-    me = String(me || '').trim();
-    target = String(target || '').trim();
+    me = typeof spiritNormUid === 'function' ? spiritNormUid(me) : String(me || '').trim().toLowerCase();
+    target = typeof spiritNormUid === 'function' ? spiritNormUid(target) : String(target || '').trim().toLowerCase();
     if (!spiritIsUuid(me) || !spiritIsUuid(target) || !_spirit) return false;
     try {
         var del = await _spirit.from(SPIRIT_FOLLOW_TABLE).delete().eq('follower_id', me).eq('followee_id', target);
@@ -7887,6 +7955,12 @@ function spiritLoadMessagesTab() {
                 var synTag = n.synthetic ? '<span style="font-size:0.55rem;color:#666;margin-left:6px;">(activité)</span>' : '';
                 var nid = Number(n.id);
                 var idStr = Number.isFinite(nid) && nid > 0 ? String(nid) : '0';
+                var nType = String(n.type || '');
+                var itemIdRaw = String(n.item_id || '').trim().replace(/[^a-zA-Z0-9-]/g, '');
+                var itemIdEsc = itemIdRaw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                var listingBtn = (nType === 'listing_new' && itemIdRaw)
+                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1a3a2a;border:1px solid #2a8a5a;color:#9f9;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Voir l’annonce</button></div>'
+                    : '';
                 var delBtn = (!n.synthetic && idStr !== '0')
                     ? '<button type="button" title="Supprimer" style="width:26px;height:26px;border:1px solid #633;background:#1a1012;color:#f88;cursor:pointer;font-size:0.75rem;line-height:1;border-radius:3px;padding:0;" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>'
                     : '';
@@ -7894,6 +7968,7 @@ function spiritLoadMessagesTab() {
                     '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">' +
                     '<div style="flex:1;min-width:0;font-size:0.7rem;color:#ddd;">' +
                     '<b style="color:#7fe7ff;">' + String(from).replace(/</g, '&lt;') + '</b> ' + String(txt).replace(/</g, '&lt;') + synTag +
+                    listingBtn +
                     '</div>' +
                     '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
                     '<span style="font-size:0.6rem;color:#777;white-space:nowrap;">' + dt + '</span>' +
