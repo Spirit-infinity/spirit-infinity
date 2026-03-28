@@ -106,6 +106,9 @@
             white-space: nowrap;
             position: relative;
             line-height: 1.1;
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: nowrap;
         }
         .menu-center button + button::before {
             content: '|';
@@ -333,6 +336,37 @@
             background: #e22;
             box-shadow: 0 0 6px rgba(255, 50, 50, 0.9);
             transform-origin: center center;
+        }
+        /* Force affichage au-dessus de toute autre règle (header / flex) */
+        .spirit-tab-notif.spirit-notif-dot-on {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-width: 10px;
+            min-height: 10px;
+            z-index: 5;
+        }
+        .spirit-nav-account-notif-pill {
+            display: none;
+            margin-left: 5px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #e22;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 900;
+            line-height: 18px;
+            text-align: center;
+            vertical-align: middle;
+            box-shadow: 0 0 12px rgba(255, 0, 0, 0.85);
+            flex-shrink: 0;
+        }
+        #nav-account.spirit-nav-has-notif .spirit-nav-account-notif-pill {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
         }
         #btn-liste-envie .spirit-fav-menu-sold {
             display: none;
@@ -906,8 +940,8 @@
             animation: spiritNavAccountBlink 1.05s ease-in-out infinite;
         }
         @keyframes spiritNavAccountBlink {
-            0%, 100% { box-shadow: 0 0 0 transparent; filter: brightness(1); }
-            50% { box-shadow: 0 0 18px rgba(255,102,0,0.9); filter: brightness(1.22); }
+            0%, 100% { box-shadow: 0 0 0 transparent; filter: brightness(1); outline: 2px solid transparent; outline-offset: 2px; }
+            50% { box-shadow: 0 0 22px rgba(255,102,0,0.95); filter: brightness(1.28); outline: 2px solid rgba(255,102,0,0.85); outline-offset: 2px; }
         }
         /* Sous-menu compte : onglet concerné clignote avec sa pastille */
         .dash-nav button.spirit-tab-notif-pulse {
@@ -1056,9 +1090,20 @@
             display: none; position: absolute; top: 2px; right: 2px; width: 9px; height: 9px; border-radius: 50%;
             background: #e22; box-shadow: 0 0 8px #f00; pointer-events: none;
         }
+        #nav-account-sanctuary-dot.spirit-notif-dot-on {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 6;
+        }
         #spiritSanctuaryNotifDot {
             display: none; position: fixed; top: 12px; right: 14px; width: 11px; height: 11px; border-radius: 50%;
             background: #e22; box-shadow: 0 0 10px rgba(255,0,0,0.85); z-index: 100400; pointer-events: none;
+        }
+        #spiritSanctuaryNotifDot.spirit-notif-dot-on {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         body.spirit-public-active #spiritSanctuaryNotifDot { display: none !important; }
         #spiritPublicView.spirit-public-visitor #spiritPublicIAScore { display: none !important; }
@@ -1196,7 +1241,7 @@
         <button id="nav-market" class="active" onclick="showMarketplace()" data-key="nav_market">MARKETPLACE</button>
         <button id="nav-ledger" class="nav-item" onclick="showLedgerModal()" data-key="nav_ledger"> <i class="fas fa-microchip"></i>PANNEAU DE CONTROLE</button>
         <button id="nav-forum" onclick="showForum()" data-key="nav_forum">FORUM</button>
-        <button id="nav-account" onclick="showMonCompte()" data-key="nav_account">MON COMPTE<span id="nav-account-sanctuary-dot" aria-hidden="true"></span></button>
+        <button id="nav-account" type="button" onclick="showMonCompte()" data-key="nav_account"><span class="spirit-nav-account-label">MON COMPTE</span><span id="nav-account-notif-pill" class="spirit-nav-account-notif-pill" aria-hidden="true"></span><span id="nav-account-sanctuary-dot" aria-hidden="true"></span></button>
         <button id="nav-func" onclick="showSecurite()" data-key="nav_security">SÉCURITÉ</button>
         <button id="nav-preorders" onclick="showPrecommandesHotToys()" data-key="nav_preorders">PRÉCOMMANDES HOT TOYS</button>
         <button id="nav-sav" onclick="showSupport()" data-key="nav_support">SUPPORT SPIRIT</button>
@@ -2914,11 +2959,13 @@ function spiritSetNotifDotVisible(el, show, displayWhenVisible) {
         disp = (el.id === 'nav-account-sanctuary-dot' || el.id === 'spiritSanctuaryNotifDot') ? 'block' : 'inline-block';
     }
     if (show) {
-        el.style.display = disp;
+        try { el.classList.add('spirit-notif-dot-on'); } catch (eC) {}
         el.setAttribute('data-spirit-notif-on', '1');
+        try { el.style.setProperty('display', disp, 'important'); } catch (eS) { el.style.display = disp; }
     } else {
-        el.style.display = 'none';
+        try { el.classList.remove('spirit-notif-dot-on'); } catch (eC2) {}
         el.removeAttribute('data-spirit-notif-on');
+        try { el.style.removeProperty('display'); } catch (eR) { el.style.display = 'none'; }
     }
 }
 /** Pastille réellement visible (inline ou computed). */
@@ -2969,10 +3016,28 @@ function spiritSyncAccountNotificationPulse() {
     if (sanOn) any = true;
     if (nav) {
         nav.classList.toggle('spirit-nav-account-blink', any);
+        nav.classList.toggle('spirit-nav-has-notif', any);
         if (!any) nav.classList.remove('spirit-nav-sanctuary-blink');
     }
+    var pill = document.getElementById('nav-account-notif-pill');
+    if (pill) pill.textContent = any ? '!' : '';
 }
 try { window.spiritSyncAccountNotificationPulse = spiritSyncAccountNotificationPulse; } catch (ePulse) {}
+
+/** Recharge toutes les pastilles (favoris, offres, Sanctuaire) puis pulse — à appeler après login. */
+function spiritRefreshAllAccountNotifs() {
+    try {
+        if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot();
+        if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
+        if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot();
+        if (typeof spiritUpdateNavSanctuaryDot === 'function') void spiritUpdateNavSanctuaryDot();
+    } catch (e) {}
+    /* Recalcul une fois les requêtes terminées (plusieurs finally peuvent se chevaucher). */
+    setTimeout(function () {
+        try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (e2) {}
+    }, 900);
+}
+try { window.spiritRefreshAllAccountNotifs = spiritRefreshAllAccountNotifs; } catch (eRAN) {}
 
 /** Alertes favoris : uniquement Supabase (favorites × products_live), zéro localStorage. */
 async function checkGlobalNotifications() {
@@ -6298,12 +6363,7 @@ async function confirmPayment(method) {
                 if (account) account.style.setProperty('display', 'flex', 'important');
                 try { if (typeof showAccountTab === 'function') showAccountTab('dashboard'); } catch (e) {}
                 try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
-                try {
-                    if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot();
-                    if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
-                    if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot();
-                    if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse();
-                } catch (eNot) {}
+                try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (eNot) {}
                 break;
 
             case 'security':
@@ -6375,11 +6435,7 @@ async function confirmPayment(method) {
         try {
             if (typeof document !== 'undefined' && document.visibilityState && document.visibilityState !== 'visible') return;
             if (typeof spiritGetCurrentUserId !== 'function' || !spiritGetCurrentUserId()) return;
-            if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot();
-            if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
-            if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot();
-            if (typeof spiritUpdateNavSanctuaryDot === 'function') void spiritUpdateNavSanctuaryDot();
-            if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse();
+            if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs();
         } catch (eN) {}
     }, 45000);
     function setHotToysMainImage(thumb) {
@@ -6613,11 +6669,9 @@ function spiritRefreshUserScopedUi() {
         } else if (typeof fetchMarketplaceFromSupabase === 'function') fetchMarketplaceFromSupabase({ reset: true });
     } catch (e) {}
 
-    try { if (typeof spiritUpdateNavSanctuaryDot === 'function') spiritUpdateNavSanctuaryDot(); } catch (e) {}
-    try { if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot(); } catch (e2) {}
     try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
     try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
-    try { if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot(); } catch (e) {}
+    try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (eN) {}
 }
 
 var spiritLoupeCleanup = null;
@@ -10228,10 +10282,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try { spiritSanctuaryStartPoll(); } catch (e) {}
     try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR0) {}
     try { if (typeof spiritRenderShippingAddressForm === 'function') spiritRenderShippingAddressForm(); } catch (eA0) {}
-    try { if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot(); } catch (eMsg0) {}
-    try { if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications(); } catch (eGn0) {}
-    try { if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot(); } catch (eDb0) {}
-    try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (ePl0) {}
+    try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (eMsg0) {}
+    setTimeout(function () {
+        try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (eD1) {}
+    }, 800);
     try {
         var fm = document.getElementById('spiritFriendsModal');
         if (fm) fm.addEventListener('click', function (ev) { if (ev.target === fm) spiritCloseFriendsModal(); });
