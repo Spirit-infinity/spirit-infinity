@@ -320,6 +320,8 @@
         .spirit-card-fav-btn.spirit-fav-flash .spirit-fav-count { color: var(--neon-orange); }
         #btn-liste-envie { position: relative; }
         #btn-dashboard { position: relative; }
+        #btn-messages { position: relative; }
+        #btn-sanctuary { position: relative; }
         .spirit-tab-notif {
             display: none;
             position: absolute;
@@ -2908,7 +2910,11 @@ function spiritSyncFavoriteButtonDOM(productIdInt, flashBtn) {
 function spiritNotifDotVisible(el) {
     if (!el) return false;
     try {
-        if (el.style && el.style.display === 'none') return false;
+        var inline = el.style ? String(el.style.display || '').trim().toLowerCase() : '';
+        if (inline === 'none') return false;
+        /* Le modal compte est souvent fermé : le navigateur peut calculer display:none sur les pastilles
+           alors que le JS les a explicitement affichées — on se fie au style inline pour le pulse header. */
+        if (inline !== '' && inline !== 'initial' && inline !== 'inherit') return true;
         var cs = window.getComputedStyle(el);
         if (cs.display === 'none' || cs.visibility === 'hidden') return false;
         var op = parseFloat(cs.opacity);
@@ -6243,6 +6249,12 @@ async function confirmPayment(method) {
                 if (account) account.style.setProperty('display', 'flex', 'important');
                 try { if (typeof showAccountTab === 'function') showAccountTab('dashboard'); } catch (e) {}
                 try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
+                try {
+                    if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot();
+                    if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
+                    if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot();
+                    if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse();
+                } catch (eNot) {}
                 break;
 
             case 'security':
@@ -6976,7 +6988,13 @@ function spiritSocialActorUid() {
 }
 /** Même identifiant que les colonnes owner_id (likes/comments/notifs) — minuscules pour PostgREST. */
 function spiritMessagingOwnerUid() {
-    return spiritSocialActorUid();
+    var u = '';
+    try { u = spiritSocialActorUid(); } catch (e) {}
+    if (u) return u;
+    try {
+        var raw = spiritNormUid(spiritGetCurrentUserId());
+        return raw || '';
+    } catch (e2) { return ''; }
 }
 var SPIRIT_SAN_LAST_SEEN_LS = 'spirit_san_msg_activity_last_seen_ts';
 function spiritSanctuaryGetActivityLastSeenTs() {
