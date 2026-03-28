@@ -3568,6 +3568,52 @@ async function spiritCheckSellerReceivedFavDot() {
 }
 try { window.spiritCheckSellerReceivedFavDot = spiritCheckSellerReceivedFavDot; } catch (eChkSf) {}
 
+/** Offres reçues : même idée que « Faire offre » côté acheteur, mais tu es vendeur → Dashboard. */
+function spiritSellerReceivedFavGoOffers(ev) {
+    if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+    try { if (typeof showAccountTab === 'function') showAccountTab('dashboard'); } catch (e) {}
+    setTimeout(function () {
+        var el = document.getElementById('spiritSellerOffersList');
+        if (el) try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e2) {}
+    }, 250);
+}
+
+/** Retire le cœur d’un membre sur ton annonce (table favorites — selon RLS Supabase). */
+async function spiritSellerRemoveReceivedFavorite(productId, buyerUid) {
+    if (!_spirit) return;
+    var me = spiritOwnerId(spiritGetCurrentUserId());
+    var pid = spiritParseFavoriteProductId(productId);
+    if (pid == null || !me) return;
+    var buyerRaw = String(buyerUid || '').trim();
+    var buyerN = spiritNormUid(buyerRaw);
+    if (!buyerRaw && !buyerN) return;
+    try {
+        var chk = await _spirit.from('products_live').select('id,owner_id').eq('id', pid).maybeSingle();
+        if (chk.error || !chk.data) {
+            alert('Annonce introuvable.');
+            return;
+        }
+        if (spiritOwnerId(chk.data.owner_id) !== me) {
+            alert('Action réservée au vendeur de l’annonce.');
+            return;
+        }
+    } catch (eChk) {
+        alert('Vérification impossible.');
+        return;
+    }
+    var del = await _spirit.from('favorites').delete().eq('product_id', pid).eq('user_id', buyerN || buyerRaw);
+    if (del.error && buyerN && buyerRaw && buyerN !== buyerRaw) {
+        del = await _spirit.from('favorites').delete().eq('product_id', pid).eq('user_id', buyerRaw);
+    }
+    if (del.error) {
+        alert(del.error.message || 'Suppression impossible (vérifie les droits RLS sur favorites).');
+        return;
+    }
+    try { if (typeof spiritRenderSellerReceivedFavorites === 'function') void spiritRenderSellerReceivedFavorites(); } catch (eR) {}
+    try { if (typeof spiritCheckSellerReceivedFavDot === 'function') void spiritCheckSellerReceivedFavDot(); } catch (eD) {}
+}
+try { window.spiritSellerRemoveReceivedFavorite = spiritSellerRemoveReceivedFavorite; } catch (eSR) {}
+
 async function spiritRenderSellerReceivedFavorites() {
     var root = document.getElementById('spirit-seller-received-favorites-list');
     if (!root) return;
@@ -3628,48 +3674,107 @@ async function spiritRenderSellerReceivedFavorites() {
             root.innerHTML = '<p style="font-size:0.72rem;color:#888;">' + String(tEmpty).replace(/</g, '&lt;') + '</p>';
             return;
         }
+        var sliceRows = rows.slice(0, 48);
+        var uniqPid = {};
+        sliceRows.forEach(function (r) {
+            var idn = Number(r && r.product_id);
+            if (Number.isFinite(idn)) uniqPid[idn] = true;
+        });
+        var idList = Object.keys(uniqPid).map(function (k) { return Number(k); }).filter(function (n) { return Number.isFinite(n); });
+        var prows = [];
+        try {
+            prows = await spiritFetchProductsLiveForFavoriteIds(idList);
+        } catch (ePl) {}
+        var prodByPid = {};
+        (prows || []).forEach(function (p) {
+            var id = spiritFavoriteProductId(p);
+            if (id != null) prodByPid[id] = p;
+        });
         root.innerHTML = '';
-        rows.slice(0, 48).forEach(function (r) {
+        var openTxt = (typeof window.spiritT === 'function') ? window.spiritT('fav_open') : 'Voir';
+        if (!openTxt || openTxt === 'fav_open') openTxt = 'Voir';
+        sliceRows.forEach(function (r) {
             var pid = Number(r && r.product_id);
-            var title = Number.isFinite(pid) ? (pidToTitle[pid] || ('#' + pid)) : '—';
+            if (!Number.isFinite(pid)) return;
+            var p = prodByPid[pid];
+            if (!p) {
+                p = {
+                    id: pid,
+                    title: pidToTitle[pid] || ('Annonce #' + pid),
+                    price: 0,
+                    currency: 'EUR',
+                    owner_id: uid,
+                    description: '',
+                    status: 'available'
+                };
+            }
+            var curAmt = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(p) : Number(p.price || 0);
+            var st = String(p.status || '').toLowerCase();
+            var isSold = (st === 'sold' || st === 'vendu');
+            var oldP = Number(p.old_price);
+            var hasOldPrice = Number.isFinite(oldP) && oldP > 0;
+            var priceDrop = hasOldPrice && Number.isFinite(curAmt) && curAmt < oldP;
+            var tags = '';
+            if (isSold) {
+                var soldTxt = (typeof window.spiritT === 'function') ? window.spiritT('fav_sold') : 'VENDU';
+                tags += '<span style="color:#e22;font-size:0.65rem;font-weight:800;margin-left:8px;" data-key="fav_sold">' + String(soldTxt).replace(/</g, '&lt;') + '</span>';
+            }
+            if (priceDrop) {
+                var dropTxt = (typeof window.spiritT === 'function') ? window.spiritT('fav_price_drop_badge') : 'BAISSE DE PRIX';
+                tags += '<span class="spirit-fav-price-drop-badge" data-key="fav_price_drop_badge">' + String(dropTxt).replace(/</g, '&lt;') + '</span>';
+            }
             var when = '';
             try {
                 if (r && r.created_at) when = new Date(r.created_at).toLocaleString();
             } catch (eD) {}
             var buyer = String(r && r.user_id ? r.user_id : '').trim();
+            var titleEsc = String(p.title || p.name || pidToTitle[pid] || '—').replace(/</g, '&lt;');
             var div = document.createElement('div');
-            div.style.cssText = 'padding:12px 14px;border:1px solid rgba(255,102,0,0.35);background:#0c0c0c;border-radius:4px;font-size:0.72rem;color:#ccc;';
-            var h = document.createElement('div');
-            h.style.cssText = 'color:var(--neon-orange);font-weight:800;margin-bottom:6px;';
-            h.textContent = title;
-            div.appendChild(h);
-            var dWhen = document.createElement('div');
-            dWhen.style.cssText = 'color:#888;font-size:0.65rem;';
-            dWhen.textContent = when;
-            div.appendChild(dWhen);
-            var rowBt = document.createElement('div');
-            rowBt.style.marginTop = '6px';
-            var lbl = document.createElement('span');
-            lbl.style.color = '#666';
-            lbl.textContent = tMem;
-            rowBt.appendChild(lbl);
-            var bt = document.createElement('button');
-            bt.type = 'button';
-            bt.className = 'btn-action';
-            bt.style.cssText = 'font-size:0.62rem;padding:4px 10px;vertical-align:middle;';
-            bt.textContent = '…';
-            if (buyer) {
-                bt.onclick = function (ev) { spiritOpenPublicProfileUIWithStop(ev, buyer); };
+            div.className = ((isSold || priceDrop) ? 'spirit-fav-row-alert ' : '') + 'spirit-fav-account-row';
+            div.style.cssText = 'background:#111;border:1px solid #333;padding:12px;display:flex;flex-direction:column;gap:10px;cursor:default;';
+            div.innerHTML =
+                '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">' +
+                '<div style="flex:1;min-width:180px;">' +
+                '<div style="font-weight:bold;color:#fff;font-size:0.85rem;">' + titleEsc + '</div>' +
+                '<div style="color:var(--neon-orange);font-size:0.8rem;margin-top:4px;">' + curAmt.toFixed(2) + ' ' + String(p.currency || 'EUR') + tags + '</div>' +
+                (when ? '<div style="margin-top:6px;font-size:0.62rem;color:#777;">' + String(when).replace(/</g, '&lt;') + '</div>' : '') +
+                '<div style="margin-top:8px;font-size:0.68rem;color:#888;">' + String(tMem).replace(/</g, '&lt;') +
+                '<button type="button" class="btn-action spirit-fav-seller-pseudo" data-spirit-buyer="' + buyer.replace(/"/g, '') + '" style="font-size:0.58rem;padding:4px 10px;vertical-align:middle;margin-left:6px;">…</button>' +
+                '</div></div>' +
+                '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">' +
+                '<button type="button" class="btn-action spirit-fav-btn-open" style="font-size:0.6rem;padding:8px;" data-key="fav_open">' + String(openTxt).replace(/</g, '&lt;') + '</button>' +
+                '<button type="button" class="btn-action spirit-fav-btn-offer" style="font-size:0.58rem;padding:8px;background:#222;color:var(--neon-orange);border:1px solid rgba(255,102,0,0.4);">FAIRE OFFRE</button>' +
+                '<button type="button" class="btn-action spirit-fav-btn-remove" style="font-size:0.58rem;padding:8px;background:#2a1515;color:#e66;border:1px solid rgba(200,60,60,0.45);">SUPPRIMER</button>' +
+                '</div></div>';
+            var btOpen = div.querySelector('.spirit-fav-btn-open');
+            var btOff = div.querySelector('.spirit-fav-btn-offer');
+            var btRm = div.querySelector('.spirit-fav-btn-remove');
+            var btPseudo = div.querySelector('.spirit-fav-seller-pseudo');
+            if (btOpen) {
+                btOpen.onclick = function (ev) {
+                    if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+                    void showProductDetails(pid);
+                };
+            }
+            if (btOff) {
+                btOff.onclick = function (ev) { spiritSellerReceivedFavGoOffers(ev); };
+            }
+            if (btRm) {
+                btRm.onclick = function (ev) {
+                    if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+                    if (typeof spiritSellerRemoveReceivedFavorite === 'function') void spiritSellerRemoveReceivedFavorite(pid, buyer);
+                };
+            }
+            if (btPseudo && buyer) {
+                btPseudo.onclick = function (ev) { spiritOpenPublicProfileUIWithStop(ev, buyer); };
                 void spiritFetchOwnerPseudo(buyer).then(function (name) {
                     var nm = String(name || '').trim();
-                    if (nm) bt.textContent = nm;
-                    else bt.textContent = buyer.slice(0, 12) + (buyer.length > 12 ? '…' : '');
+                    if (nm) btPseudo.textContent = nm;
+                    else btPseudo.textContent = buyer.slice(0, 12) + (buyer.length > 12 ? '…' : '');
                 });
-            } else {
-                bt.style.display = 'none';
+            } else if (btPseudo) {
+                btPseudo.style.display = 'none';
             }
-            rowBt.appendChild(bt);
-            div.appendChild(rowBt);
             root.appendChild(div);
         });
     } catch (e) {
