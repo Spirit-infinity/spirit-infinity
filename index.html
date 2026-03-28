@@ -217,6 +217,7 @@
             justify-content: center;
             align-items: center;
         }
+        .spirit-market-search-bar input[type="text"],
         .spirit-market-search-bar input[type="search"] {
             width: min(100%, 420px);
             max-width: 420px;
@@ -228,6 +229,7 @@
             border-radius: 4px;
             color: #eee;
         }
+        .spirit-market-search-bar input[type="text"]:focus,
         .spirit-market-search-bar input[type="search"]:focus {
             outline: none;
             border-color: var(--neon-orange);
@@ -1349,7 +1351,7 @@
 
     <div class="grid">
         <div class="spirit-market-search-bar">
-            <input type="search" id="spiritMarketSearchInput" data-key="market_search_ph" placeholder="Rechercher une annonce (ex. Spider-Man)…" autocomplete="off" oninput="if(typeof applyFilters==='function')applyFilters();" aria-label="Recherche annonces">
+            <input type="text" inputmode="search" enterkeyhint="search" id="marketAnnonceSearchInput" name="market_annonce_q" value="" data-key="market_search_ph" placeholder="Rechercher une annonce (ex. Spider-Man)…" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="if(typeof applyFilters==='function')applyFilters();" aria-label="Recherche annonces" role="searchbox">
         </div>
         <div id="spiritMarketLoader" class="spirit-market-loader" style="display:none;" aria-live="polite"></div>
         <div class="market-toolbar">
@@ -6681,7 +6683,7 @@ async function confirmPayment(method) {
     try { window.previewSale = previewSale; window.triggerFile = triggerFile; } catch (ePs) {}
 
     function spiritMarketSearchMatches(item) {
-        var inp = document.getElementById('spiritMarketSearchInput');
+        var inp = document.getElementById('marketAnnonceSearchInput');
         var raw = inp && inp.value != null ? String(inp.value) : '';
         var q = raw.trim().toLowerCase().replace(/\s+/g, ' ');
         if (!q) return true;
@@ -11057,6 +11059,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (lsBoot && typeof switchLanguage === 'function') switchLanguage(lsBoot.value);
             } catch (eLangBoot) {}
         }
+        try {
+            var _msi = document.getElementById('marketAnnonceSearchInput');
+            if (_msi) _msi.value = '';
+        } catch (eClrMs) {}
         try { await loadAnnonces(); } catch (e) {}
         try { spiritMarketInitScrollObserver(); } catch (e) {}
         try { spiritInitFavoriteClickDelegation(); } catch (e) {}
