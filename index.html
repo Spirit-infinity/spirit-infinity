@@ -4709,9 +4709,9 @@ function renderMarket(filteredData = null) {
             const displayCountry = item.origin_country || item.country || "France";
             const displayDiag = isNative ? 'Hardware Ledger' : 'IA Scan';
             const buyerCountry = spiritGetBuyerCountry();
-            const isImport = String(displayCountry).toLowerCase() !== String(buyerCountry).toLowerCase();
-            const customs = isImport ? (safePrice * 0.12) : 0;
-            const shipping = safePrice * (isImport ? 0.04 : 0.02);
+            const showCustoms = typeof spiritShowCustomsEstimate === 'function' ? spiritShowCustomsEstimate(displayCountry, buyerCountry) : (String(displayCountry).toLowerCase() !== String(buyerCountry).toLowerCase());
+            const customs = showCustoms ? (safePrice * 0.12) : 0;
+            const shipping = safePrice * (showCustoms ? 0.04 : 0.02);
             const protection = safePrice * 0.08; // 3% Spirit + 3% Firme + 2% Banque
             const totalArrival = safePrice + customs + shipping + protection;
             const extraRate = safePrice > 0 ? ((customs + shipping + protection) / safePrice) : 0;
@@ -4738,7 +4738,10 @@ function renderMarket(filteredData = null) {
                         <span class="badge ${badgeClass}">${badgeText}</span>${hasCoa ? `<span class="badge badge-coa">${spiritT('badge_with_coa')}</span>` : ''}
                     </div>
                     <div class="price">${safePrice.toFixed(2)} ${marketCurrencyMode}</div>
-                    ${isImport ? `<div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}">Estimation Import : ${customs.toFixed(2)} ${marketCurrencyMode} | Total estimé à l'arrivée : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>` : ''}
+                    <div class="market-fee-note" style="margin-top:4px;line-height:1.35;">
+                        Livr. estimée : ${shipping.toFixed(2)} ${marketCurrencyMode} · Protection : ${protection.toFixed(2)} ${marketCurrencyMode}${showCustoms ? ' · Douane estimée : ' + customs.toFixed(2) + ' ' + marketCurrencyMode : ''}
+                    </div>
+                    <div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}" style="margin-top:2px;">Total estimé : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>
                     <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
                     <div style="margin-top:6px; font-size:0.72rem; color:#aaa;">
                         Vendeur :
@@ -6012,7 +6015,7 @@ async function confirmPayment(method) {
         document.getElementById('pTitle').innerText = item.title || "Sans Titre";
         
         // AJOUT : Fallback pour les données pays et condition
-        const displayCountry = item.country || "France";
+        const displayCountry = item.origin_country || item.country || "France";
         const displayCond = item.cond || "Certifié Spirit";
         document.getElementById('pOrigin').innerText = displayCountry + " | " + displayCond;
         
@@ -6595,6 +6598,35 @@ async function confirmPayment(method) {
         return 'France';
     }
 
+    /** Zone « douane » pour l’estimation affichée (pas le droit réel). UE = marché unique ; Chine inclut Hong Kong ; USA. */
+    function spiritCustomsLaneKey(raw) {
+        var s = String(raw || '').trim().toLowerCase();
+        if (!s) return 'OTHER';
+        if (s === 'europe' || s === 'eu' || s === 'ue') return 'EU';
+        if (s === 'france' || s === 'fr') return 'EU';
+        if (/^(allemagne|germany|deutschland|italie|italy|italia|espagne|spain|españa|belgique|belgium|pays-bas|netherlands|nederland|portugal|autriche|austria|österreich|suède|sweden|sverige|pologne|poland|polska|grèce|greece|irlande|ireland|danemark|denmark|finlande|finland|luxembourg|malte|malta|chypre|cyprus|hongrie|hungary|roumanie|romania|bulgarie|bulgaria|croatie|croatia|slovénie|slovenia|slovaquie|slovakia|république tchèque|czech|estonie|estonia|lettonie|latvia|lituanie|lithuania)$/.test(s)) return 'EU';
+        if (s.includes('hong kong') || s.includes('hongkong') || s === 'hk') return 'CN';
+        if (s.includes('chine') || s.includes('china') || s.includes('中国') || s === 'cn') return 'CN';
+        if (s.includes('usa') || s.includes('united states') || s.includes('états-unis') || s.includes('etats-unis') || s === 'us') return 'US';
+        return 'OTHER';
+    }
+
+    /** Estimation douanière affichée : non si même zone (ex. France–France, UE–France, Chine–Chine) ; oui si trajets type France–Chine, USA–Chine, etc. */
+    function spiritShowCustomsEstimate(sellerRaw, buyerRaw) {
+        var s = spiritCustomsLaneKey(sellerRaw);
+        var b = spiritCustomsLaneKey(buyerRaw);
+        if (s === 'EU' && b === 'EU') return false;
+        if (s === 'CN' && b === 'CN') return false;
+        if (s === 'US' && b === 'US') return false;
+        if (s === 'OTHER' || b === 'OTHER') {
+            var a = String(sellerRaw || '').trim().toLowerCase();
+            var c = String(buyerRaw || '').trim().toLowerCase();
+            if (!a || !c) return false;
+            return a !== c;
+        }
+        return s !== b;
+    }
+
     function ensureMarketCurrencySelect() {
         const box = document.querySelector('.market-view-box');
         if (!box) return;
@@ -6629,7 +6661,22 @@ async function confirmPayment(method) {
         document.getElementById('sumShip').innerText = spiritFormatMoney(shipCost, 'EUR');
         document.getElementById('sumCarrierName').innerText = carrierName;
         document.getElementById('sumProt').innerText = spiritFormatMoney(prot, 'EUR');
-        document.getElementById('sumTotal').innerText = spiritFormatMoney(basePx + shipCost + prot, 'EUR');
+        var sellerC = selectedProduct.origin_country || selectedProduct.country || 'France';
+        var buyerC = typeof spiritGetBuyerCountry === 'function' ? spiritGetBuyerCountry() : 'France';
+        var showDuty = typeof spiritShowCustomsEstimate === 'function' ? spiritShowCustomsEstimate(sellerC, buyerC) : false;
+        var dutyAmt = showDuty ? (basePx * 0.12) : 0;
+        var dutyLine = document.getElementById('dutyLine');
+        var sumDuty = document.getElementById('sumDuty');
+        if (dutyLine && sumDuty) {
+            if (showDuty) {
+                dutyLine.style.display = '';
+                sumDuty.textContent = spiritFormatMoney(dutyAmt, 'EUR');
+            } else {
+                dutyLine.style.display = 'none';
+                sumDuty.textContent = spiritFormatMoney(0, 'EUR');
+            }
+        }
+        document.getElementById('sumTotal').innerText = spiritFormatMoney(basePx + shipCost + prot + dutyAmt, 'EUR');
     }
 
     // --- NAVIGATION SPIRIT : 1 MENU = 1 SECTION (sans reload) ---
