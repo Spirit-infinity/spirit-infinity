@@ -249,6 +249,7 @@
         }
         .market-fee-note { font-size:0.62rem; color:#9a9a9a; margin-top:4px; }
         .market-fee-note.high { color:#ff9b7a; }
+        #productModal #dutyLine.spirit-duty-line-hidden { display: none !important; }
         /* Certif modal compact to reduce scrolling */
         #certifModal .modal-content { padding: 10px 11px; }
         #certifModal .steps { margin-bottom: 10px; }
@@ -1472,7 +1473,7 @@
                     <div class="summary-line"><span data-key="lbl_price">Prix</span> <span id="sumPrice">0 €</span></div>
                     <div class="summary-line"><span>Livraison (<span id="sumCarrierName">Sélectionner</span>)</span> <span id="sumShip">0.00 €</span></div>
                     <div class="summary-line"><span>Protection Acheteur Spirit (Garantie Fonds)</span> <span id="sumProt">0 €</span></div>
-                    <div id="dutyLine" class="summary-line" style="color:orange; display:none;"><span data-key="lbl_duty">Frais de Douane Est.</span> <span id="sumDuty">0 €</span></div>
+                    <div id="dutyLine" class="summary-line spirit-duty-line-hidden" style="color:orange;"><span data-key="lbl_duty">Estimation frais de douane</span> <span id="sumDuty">0 €</span></div>
                     <hr style="border-color:#333;">
                     <div class="summary-line" style="font-weight:bold; font-size:1.1rem; color:var(--neon-orange);"><span data-key="lbl_total_pay">TOTAL À PAYER</span> <span id="sumTotal">0 €</span></div>
                 </div>
@@ -2217,7 +2218,7 @@
             'cond_new': 'Neuf (Scellé)', 'cond_vgood': 'Très bon état', 'cond_good': 'Bon état', 'cond_mid': 'Moyen', 'cond_ok': 'Satisfaisant',
             'lbl_prot_text': 'Protection Spirit 100% active sur toutes les transactions.', 'cat_native_title': '1. Équipées Spirit (Hardware Ledger)',
             'cat_legacy_title': '2. Anciennes Collections & Multimarques (IA Scan)', 'modal_reg_title': 'CREER UN COMPTE', 'btn_reg_confirm': "S'INSCRIRE",
-            'safety_msg_escrow': 'SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).', 'lbl_price': 'Prix', 'lbl_duty': 'Frais de Douane Est.',
+            'safety_msg_escrow': 'SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).', 'lbl_price': 'Prix', 'lbl_duty': 'Estimation frais de douane',
             'lbl_total_pay': 'TOTAL À PAYER', 'btn_buy': 'ACHAT DIRECT', 'btn_offer': 'FAIRE OFFRE',
             'market_kind_figurines': 'FIGURINES', 'market_kind_statues': 'STATUES', 'market_view': 'Vue',
             'market_gallery': 'Galerie', 'market_list': 'Liste', 'market_currency': 'Devise',
@@ -4708,13 +4709,6 @@ function renderMarket(filteredData = null) {
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
             const displayCountry = item.origin_country || item.country || "France";
             const displayDiag = isNative ? 'Hardware Ledger' : 'IA Scan';
-            const buyerCountry = spiritGetBuyerCountry();
-            const showCustoms = typeof spiritShowCustomsEstimate === 'function' ? spiritShowCustomsEstimate(displayCountry, buyerCountry) : (String(displayCountry).toLowerCase() !== String(buyerCountry).toLowerCase());
-            const customs = showCustoms ? (safePrice * 0.12) : 0;
-            const shipping = safePrice * (showCustoms ? 0.04 : 0.02);
-            const protection = safePrice * 0.08; // 3% Spirit + 3% Firme + 2% Banque
-            const totalArrival = safePrice + customs + shipping + protection;
-            const extraRate = safePrice > 0 ? ((customs + shipping + protection) / safePrice) : 0;
 
             // AJOUT / CORRECTION : owner_id est stocké en texte (Image 2). 
             // AJOUT : .trim() pour éviter les échecs de comparaison dus à des espaces invisibles.
@@ -4738,10 +4732,6 @@ function renderMarket(filteredData = null) {
                         <span class="badge ${badgeClass}">${badgeText}</span>${hasCoa ? `<span class="badge badge-coa">${spiritT('badge_with_coa')}</span>` : ''}
                     </div>
                     <div class="price">${safePrice.toFixed(2)} ${marketCurrencyMode}</div>
-                    <div class="market-fee-note" style="margin-top:4px;line-height:1.35;">
-                        Livr. estimée : ${shipping.toFixed(2)} ${marketCurrencyMode} · Protection : ${protection.toFixed(2)} ${marketCurrencyMode}${showCustoms ? ' · Douane estimée : ' + customs.toFixed(2) + ' ' + marketCurrencyMode : ''}
-                    </div>
-                    <div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}" style="margin-top:2px;">Total estimé : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>
                     <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
                     <div style="margin-top:6px; font-size:0.72rem; color:#aaa;">
                         Vendeur :
@@ -6669,11 +6659,11 @@ async function confirmPayment(method) {
         var sumDuty = document.getElementById('sumDuty');
         if (dutyLine && sumDuty) {
             if (showDuty) {
-                dutyLine.style.display = '';
-                sumDuty.textContent = spiritFormatMoney(dutyAmt, 'EUR');
+                dutyLine.classList.remove('spirit-duty-line-hidden');
+                sumDuty.innerText = spiritFormatMoney(dutyAmt, 'EUR');
             } else {
-                dutyLine.style.display = 'none';
-                sumDuty.textContent = spiritFormatMoney(0, 'EUR');
+                dutyLine.classList.add('spirit-duty-line-hidden');
+                sumDuty.innerText = spiritFormatMoney(0, 'EUR');
             }
         }
         document.getElementById('sumTotal').innerText = spiritFormatMoney(basePx + shipCost + prot + dutyAmt, 'EUR');
