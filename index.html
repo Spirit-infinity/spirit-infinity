@@ -210,6 +210,25 @@
         .title { font-size: 0.85rem; color: #ccc; margin-bottom: 0; height: 35px; overflow: hidden; }
         .legende { font-size: 0.7rem; color: var(--text-gray); border-top: 1px solid #222; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top:auto; }
         .badge { position: static; display:inline-block; align-self:flex-start; padding: 4px 10px; font-size: 0.65rem; font-weight: 900; border-radius: 2px; z-index: 10; margin-top:6px; }
+        .spirit-market-search-bar {
+            width: 100%;
+            margin: 0 0 14px 0;
+        }
+        .spirit-market-search-bar input[type="search"] {
+            width: 100%;
+            max-width: 420px;
+            box-sizing: border-box;
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #eee;
+        }
+        .spirit-market-search-bar input[type="search"]:focus {
+            outline: none;
+            border-color: var(--neon-orange);
+        }
         .market-toolbar {
             display: flex;
             justify-content: flex-end;
@@ -1326,6 +1345,9 @@
     </div>
 
     <div class="grid">
+        <div class="spirit-market-search-bar">
+            <input type="search" id="spiritMarketSearchInput" data-key="market_search_ph" placeholder="Rechercher une annonce (ex. Spider-Man)…" autocomplete="off" oninput="if(typeof applyFilters==='function')applyFilters();" aria-label="Recherche annonces">
+        </div>
         <div id="spiritMarketLoader" class="spirit-market-loader" style="display:none;" aria-live="polite"></div>
         <div class="market-toolbar">
             <div class="market-view-box">
@@ -2229,7 +2251,7 @@
             'safety_msg_escrow': 'SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).', 'lbl_price': 'Prix', 'lbl_duty': 'Frais de Douane Est.',
             'lbl_total_pay': 'TOTAL À PAYER', 'btn_buy': 'ACHAT DIRECT', 'btn_offer': 'FAIRE OFFRE',
             'market_kind_figurines': 'FIGURINES', 'market_kind_statues': 'STATUES', 'market_view': 'Vue',
-            'market_gallery': 'Galerie', 'market_list': 'Liste', 'market_currency': 'Devise',
+            'market_gallery': 'Galerie', 'market_list': 'Liste', 'market_currency': 'Devise', 'market_search_ph': 'Rechercher une annonce (ex. Spider-Man)…',
             'statues_filters_title': 'FILTRES STATUES', 'statues_brand': 'MARQUE', 'statues_price': 'PRIX',
             'statues_zone': "ZONE D'EXPÉDITION", 'statues_scale': 'ÉCHELLE / FORMAT', 'statues_condition': "ÉTAT DE L'OBJET",
             'market_statues_title': 'MARKET STATUES', 'cond_new_short': 'Neuf', 'cond_used': 'Occasion', 'cond_sealed': 'Scellé',
@@ -2268,7 +2290,7 @@
             'safety_msg_escrow': 'SECURITY: Funds secured. Release: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Price', 'lbl_duty': 'Estimated Customs',
             'lbl_total_pay': 'TOTAL TO PAY', 'btn_buy': 'BUY NOW', 'btn_offer': 'MAKE OFFER',
             'market_kind_figurines': 'FIGURINES', 'market_kind_statues': 'STATUES', 'market_view': 'View',
-            'market_gallery': 'Gallery', 'market_list': 'List', 'market_currency': 'Currency',
+            'market_gallery': 'Gallery', 'market_list': 'List', 'market_currency': 'Currency', 'market_search_ph': 'Search listings (e.g. Spider-Man)…',
             'statues_filters_title': 'STATUE FILTERS', 'statues_brand': 'BRAND', 'statues_price': 'PRICE',
             'statues_zone': 'SHIPPING ZONE', 'statues_scale': 'SCALE / FORMAT', 'statues_condition': 'ITEM CONDITION',
             'market_statues_title': 'STATUES MARKET', 'cond_new_short': 'New', 'cond_used': 'Used', 'cond_sealed': 'Sealed',
@@ -2307,7 +2329,7 @@
             'safety_msg_escrow': 'SEGURIDAD: Fondos protegidos. Liberacion: 4d (Legacy) / 3d (Native).', 'lbl_price': 'Precio', 'lbl_duty': 'Aduana estimada',
             'lbl_total_pay': 'TOTAL A PAGAR', 'btn_buy': 'COMPRA DIRECTA', 'btn_offer': 'HACER OFERTA',
             'market_kind_figurines': 'FIGURINAS', 'market_kind_statues': 'ESTATUAS', 'market_view': 'Vista',
-            'market_gallery': 'Galeria', 'market_list': 'Lista', 'market_currency': 'Divisa',
+            'market_gallery': 'Galeria', 'market_list': 'Lista', 'market_currency': 'Divisa', 'market_search_ph': 'Buscar anuncio (ej. Spider-Man)…',
             'statues_filters_title': 'FILTROS ESTATUAS', 'statues_brand': 'MARCA', 'statues_price': 'PRECIO',
             'statues_zone': 'ZONA DE ENVIO', 'statues_scale': 'ESCALA / FORMATO', 'statues_condition': 'ESTADO DEL ARTICULO',
             'market_statues_title': 'MERCADO ESTATUAS', 'cond_new_short': 'Nuevo', 'cond_used': 'Usado', 'cond_sealed': 'Sellado',
@@ -2346,7 +2368,7 @@
             'safety_msg_escrow': '安全：资金托管。放款：Legacy 4天 / Native 3天。', 'lbl_price': '价格', 'lbl_duty': '预估关税',
             'lbl_total_pay': '应付总额', 'btn_buy': '立即购买', 'btn_offer': '出价',
             'market_kind_figurines': '可动人偶', 'market_kind_statues': '雕像', 'market_view': '视图',
-            'market_gallery': '画廊', 'market_list': '列表', 'market_currency': '货币',
+            'market_gallery': '画廊', 'market_list': '列表', 'market_currency': '货币', 'market_search_ph': '搜索商品（如 Spider-Man）…',
             'statues_filters_title': '雕像筛选', 'statues_brand': '品牌', 'statues_price': '价格',
             'statues_zone': '发货区域', 'statues_scale': '比例 / 规格', 'statues_condition': '成色',
             'market_statues_title': '雕像市场', 'cond_new_short': '全新', 'cond_used': '二手', 'cond_sealed': '未拆封',
@@ -6463,6 +6485,18 @@ async function confirmPayment(method) {
     }
     try { window.previewSale = previewSale; window.triggerFile = triggerFile; } catch (ePs) {}
 
+    function spiritMarketSearchMatches(item) {
+        var inp = document.getElementById('spiritMarketSearchInput');
+        var raw = inp && inp.value != null ? String(inp.value) : '';
+        var q = raw.trim().toLowerCase().replace(/\s+/g, ' ');
+        if (!q) return true;
+        var blob = [
+            item.title, item.name, item.description, item.desc,
+            item.brand, item.category, item.cat
+        ].map(function (x) { return String(x == null ? '' : x).toLowerCase(); }).join(' ');
+        return blob.indexOf(q) >= 0;
+    }
+
     function applyFilters() {
         if (marketKindMode === 'statues') {
             applyStatuesFilters();
@@ -6483,7 +6517,7 @@ async function confirmPayment(method) {
                     matchPrice = itemPriceEur >= min && itemPriceEur <= max;
                 }
             }
-            return matchPrice && (country === 'all' || item.country === country) &&
+            return spiritMarketSearchMatches(item) && matchPrice && (country === 'all' || item.country === country) &&
                    (brand === 'all' || item.brand === brand) && (cat === 'all' || (item.cat || item.category) === cat) &&
                    (cond === 'all' || item.cond === cond);
         });
@@ -6512,7 +6546,7 @@ async function confirmPayment(method) {
             const itemCountry = item.origin_country || item.country || '';
             const itemScale = normalizeSpiritScale(item.scale || item.format || item.category || '');
             const itemCond = item.cond || item.condition || '';
-            return matchPrice &&
+            return spiritMarketSearchMatches(item) && matchPrice &&
                 (brand === 'all' || String(item.brand || '') === brand) &&
                 (country === 'all' || String(itemCountry) === country) &&
                 (scale === 'all' || String(itemScale) === String(scale)) &&
