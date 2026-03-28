@@ -249,7 +249,6 @@
         }
         .market-fee-note { font-size:0.62rem; color:#9a9a9a; margin-top:4px; }
         .market-fee-note.high { color:#ff9b7a; }
-        #productModal #dutyLine.spirit-duty-line-hidden { display: none !important; }
         /* Certif modal compact to reduce scrolling */
         #certifModal .modal-content { padding: 10px 11px; }
         #certifModal .steps { margin-bottom: 10px; }
@@ -1473,7 +1472,7 @@
                     <div class="summary-line"><span data-key="lbl_price">Prix</span> <span id="sumPrice">0 €</span></div>
                     <div class="summary-line"><span>Livraison (<span id="sumCarrierName">Sélectionner</span>)</span> <span id="sumShip">0.00 €</span></div>
                     <div class="summary-line"><span>Protection Acheteur Spirit (Garantie Fonds)</span> <span id="sumProt">0 €</span></div>
-                    <div id="dutyLine" class="summary-line spirit-duty-line-hidden" style="color:orange;"><span data-key="lbl_duty">Estimation frais de douane</span> <span id="sumDuty">0 €</span></div>
+                    <div id="dutyLine" class="summary-line" style="color:orange; display:none;"><span data-key="lbl_duty">Frais de Douane Est.</span> <span id="sumDuty">0 €</span></div>
                     <hr style="border-color:#333;">
                     <div class="summary-line" style="font-weight:bold; font-size:1.1rem; color:var(--neon-orange);"><span data-key="lbl_total_pay">TOTAL À PAYER</span> <span id="sumTotal">0 €</span></div>
                 </div>
@@ -2218,7 +2217,7 @@
             'cond_new': 'Neuf (Scellé)', 'cond_vgood': 'Très bon état', 'cond_good': 'Bon état', 'cond_mid': 'Moyen', 'cond_ok': 'Satisfaisant',
             'lbl_prot_text': 'Protection Spirit 100% active sur toutes les transactions.', 'cat_native_title': '1. Équipées Spirit (Hardware Ledger)',
             'cat_legacy_title': '2. Anciennes Collections & Multimarques (IA Scan)', 'modal_reg_title': 'CREER UN COMPTE', 'btn_reg_confirm': "S'INSCRIRE",
-            'safety_msg_escrow': 'SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).', 'lbl_price': 'Prix', 'lbl_duty': 'Estimation frais de douane',
+            'safety_msg_escrow': 'SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).', 'lbl_price': 'Prix', 'lbl_duty': 'Frais de Douane Est.',
             'lbl_total_pay': 'TOTAL À PAYER', 'btn_buy': 'ACHAT DIRECT', 'btn_offer': 'FAIRE OFFRE',
             'market_kind_figurines': 'FIGURINES', 'market_kind_statues': 'STATUES', 'market_view': 'Vue',
             'market_gallery': 'Galerie', 'market_list': 'Liste', 'market_currency': 'Devise',
@@ -4709,6 +4708,13 @@ function renderMarket(filteredData = null) {
             // AJOUT : Gestion des valeurs par défaut pour les colonnes Supabase
             const displayCountry = item.origin_country || item.country || "France";
             const displayDiag = isNative ? 'Hardware Ledger' : 'IA Scan';
+            const buyerCountry = spiritGetBuyerCountry();
+            const isImport = String(displayCountry).toLowerCase() !== String(buyerCountry).toLowerCase();
+            const customs = isImport ? (safePrice * 0.12) : 0;
+            const shipping = safePrice * (isImport ? 0.04 : 0.02);
+            const protection = safePrice * 0.08; // 3% Spirit + 3% Firme + 2% Banque
+            const totalArrival = safePrice + customs + shipping + protection;
+            const extraRate = safePrice > 0 ? ((customs + shipping + protection) / safePrice) : 0;
 
             // AJOUT / CORRECTION : owner_id est stocké en texte (Image 2). 
             // AJOUT : .trim() pour éviter les échecs de comparaison dus à des espaces invisibles.
@@ -4732,6 +4738,7 @@ function renderMarket(filteredData = null) {
                         <span class="badge ${badgeClass}">${badgeText}</span>${hasCoa ? `<span class="badge badge-coa">${spiritT('badge_with_coa')}</span>` : ''}
                     </div>
                     <div class="price">${safePrice.toFixed(2)} ${marketCurrencyMode}</div>
+                    ${isImport ? `<div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}">Estimation Import : ${customs.toFixed(2)} ${marketCurrencyMode} | Total estimé à l'arrivée : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>` : ''}
                     <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
                     <div style="margin-top:6px; font-size:0.72rem; color:#aaa;">
                         Vendeur :
@@ -6005,7 +6012,7 @@ async function confirmPayment(method) {
         document.getElementById('pTitle').innerText = item.title || "Sans Titre";
         
         // AJOUT : Fallback pour les données pays et condition
-        const displayCountry = item.origin_country || item.country || "France";
+        const displayCountry = item.country || "France";
         const displayCond = item.cond || "Certifié Spirit";
         document.getElementById('pOrigin').innerText = displayCountry + " | " + displayCond;
         
@@ -6588,35 +6595,6 @@ async function confirmPayment(method) {
         return 'France';
     }
 
-    /** Zone « douane » pour l’estimation affichée (pas le droit réel). UE = marché unique ; Chine inclut Hong Kong ; USA. */
-    function spiritCustomsLaneKey(raw) {
-        var s = String(raw || '').trim().toLowerCase();
-        if (!s) return 'OTHER';
-        if (s === 'europe' || s === 'eu' || s === 'ue') return 'EU';
-        if (s === 'france' || s === 'fr') return 'EU';
-        if (/^(allemagne|germany|deutschland|italie|italy|italia|espagne|spain|españa|belgique|belgium|pays-bas|netherlands|nederland|portugal|autriche|austria|österreich|suède|sweden|sverige|pologne|poland|polska|grèce|greece|irlande|ireland|danemark|denmark|finlande|finland|luxembourg|malte|malta|chypre|cyprus|hongrie|hungary|roumanie|romania|bulgarie|bulgaria|croatie|croatia|slovénie|slovenia|slovaquie|slovakia|république tchèque|czech|estonie|estonia|lettonie|latvia|lituanie|lithuania)$/.test(s)) return 'EU';
-        if (s.includes('hong kong') || s.includes('hongkong') || s === 'hk') return 'CN';
-        if (s.includes('chine') || s.includes('china') || s.includes('中国') || s === 'cn') return 'CN';
-        if (s.includes('usa') || s.includes('united states') || s.includes('états-unis') || s.includes('etats-unis') || s === 'us') return 'US';
-        return 'OTHER';
-    }
-
-    /** Estimation douanière affichée : non si même zone (ex. France–France, UE–France, Chine–Chine) ; oui si trajets type France–Chine, USA–Chine, etc. */
-    function spiritShowCustomsEstimate(sellerRaw, buyerRaw) {
-        var s = spiritCustomsLaneKey(sellerRaw);
-        var b = spiritCustomsLaneKey(buyerRaw);
-        if (s === 'EU' && b === 'EU') return false;
-        if (s === 'CN' && b === 'CN') return false;
-        if (s === 'US' && b === 'US') return false;
-        if (s === 'OTHER' || b === 'OTHER') {
-            var a = String(sellerRaw || '').trim().toLowerCase();
-            var c = String(buyerRaw || '').trim().toLowerCase();
-            if (!a || !c) return false;
-            return a !== c;
-        }
-        return s !== b;
-    }
-
     function ensureMarketCurrencySelect() {
         const box = document.querySelector('.market-view-box');
         if (!box) return;
@@ -6651,22 +6629,7 @@ async function confirmPayment(method) {
         document.getElementById('sumShip').innerText = spiritFormatMoney(shipCost, 'EUR');
         document.getElementById('sumCarrierName').innerText = carrierName;
         document.getElementById('sumProt').innerText = spiritFormatMoney(prot, 'EUR');
-        var sellerC = selectedProduct.origin_country || selectedProduct.country || 'France';
-        var buyerC = typeof spiritGetBuyerCountry === 'function' ? spiritGetBuyerCountry() : 'France';
-        var showDuty = typeof spiritShowCustomsEstimate === 'function' ? spiritShowCustomsEstimate(sellerC, buyerC) : false;
-        var dutyAmt = showDuty ? (basePx * 0.12) : 0;
-        var dutyLine = document.getElementById('dutyLine');
-        var sumDuty = document.getElementById('sumDuty');
-        if (dutyLine && sumDuty) {
-            if (showDuty) {
-                dutyLine.classList.remove('spirit-duty-line-hidden');
-                sumDuty.innerText = spiritFormatMoney(dutyAmt, 'EUR');
-            } else {
-                dutyLine.classList.add('spirit-duty-line-hidden');
-                sumDuty.innerText = spiritFormatMoney(0, 'EUR');
-            }
-        }
-        document.getElementById('sumTotal').innerText = spiritFormatMoney(basePx + shipCost + prot + dutyAmt, 'EUR');
+        document.getElementById('sumTotal').innerText = spiritFormatMoney(basePx + shipCost + prot, 'EUR');
     }
 
     // --- NAVIGATION SPIRIT : 1 MENU = 1 SECTION (sans reload) ---
@@ -10848,7 +10811,6 @@ function closeModals() {
 
 </body>
 </html>
-
 
 
 
