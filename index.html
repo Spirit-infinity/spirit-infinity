@@ -1583,7 +1583,14 @@
                     <option value="PVC">PVC</option>
                 </select>
             </div>
-            <input type="number" id="inputPrice" placeholder="Prix de vente (€)">
+            <div style="display:flex; gap:8px; align-items:stretch; flex-wrap:wrap;">
+                <input type="number" id="inputPrice" placeholder="Prix de vente" style="flex:1; min-width:140px;">
+                <select id="salePriceCurrency" style="min-width:88px; max-width:120px;" title="Devise du prix">
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="CNY">CNY</option>
+                </select>
+            </div>
             <div class="switch-row" style="margin:6px 0;"><span>Environnement non-fumeur</span><label class="switch"><input type="checkbox" id="saleSmokeFree"><span class="slider"></span></label></div>
             <div class="switch-row" style="margin:6px 0;"><span>A l'abri de la lumiere</span><label class="switch"><input type="checkbox" id="saleLightProtect"><span class="slider"></span></label></div>
             <div class="switch-row" style="margin:6px 0;"><span>Premiere main</span><label class="switch"><input type="checkbox" id="saleFirstHand"><span class="slider"></span></label></div>
@@ -2688,20 +2695,28 @@ function spiritApplySaleCatOptions(statueMode) {
     }
 }
 
-/** Prix listing : priorité `amount` si la colonne existe côté Supabase, sinon `price` (schéma courant). Ne pas envoyer `amount` en insert/update tant que la colonne est absente. */
+/** Prix listing en équivalent EUR : priorité `amount` si présent, sinon `price`, selon `currency` (EUR / USD / CNY). */
 function spiritProductsLivePriceEUR(row) {
     if (!row) return 0;
     if (row._spiritDisplayPrice != null && row._spiritDisplayPrice !== '') {
         var ox = Number(row._spiritDisplayPrice);
         if (Number.isFinite(ox)) return ox;
     }
+    var raw = NaN;
     var a = row.amount;
     if (a != null && a !== '') {
         var n = Number(a);
-        if (Number.isFinite(n)) return n;
+        if (Number.isFinite(n)) raw = n;
     }
-    var p = Number(row.price);
-    return Number.isFinite(p) ? p : 0;
+    if (!Number.isFinite(raw)) {
+        var p = Number(row.price);
+        raw = Number.isFinite(p) ? p : 0;
+    }
+    var cur = String(row.currency || 'EUR').toUpperCase();
+    if (cur !== 'USD' && cur !== 'CNY' && cur !== 'EUR') cur = 'EUR';
+    var conv = typeof spiritConvertCurrency === 'function' ? spiritConvertCurrency : (typeof window !== 'undefined' ? window.spiritConvertCurrency : null);
+    if (typeof conv === 'function') return conv(raw, cur, 'EUR');
+    return raw;
 }
 
 function normalizeSpiritScale(rawScale) {
@@ -4680,9 +4695,8 @@ function renderMarket(filteredData = null) {
             const _urls = spiritImageUrlList(item);
             const displayImg = _urls.length ? _urls[0] : null;
             const safeTitle = (item.title || item.name || 'Annonce').trim() || 'Annonce';
-            const amountBase = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0);
-            const itemCurrency = String(item.currency || 'EUR').toUpperCase();
-            const safePrice = spiritConvertCurrency(amountBase, itemCurrency, marketCurrencyMode);
+            const amountEur = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0);
+            const safePrice = spiritConvertCurrency(amountEur, 'EUR', marketCurrencyMode);
             var imgContent;
             if (displayImg) {
                 var sEsc = String(displayImg).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -4966,6 +4980,10 @@ async function loadMySales() {
         previewPhotos = [null, null, null, null, null];
         document.getElementById('inputTitle').value = '';
         document.getElementById('inputPrice').value = '';
+        try {
+            var sp0 = document.getElementById('salePriceCurrency');
+            if (sp0) sp0.value = (typeof marketCurrencyMode !== 'undefined' && marketCurrencyMode) ? marketCurrencyMode : 'EUR';
+        } catch (eCur0) {}
         document.getElementById('inputDesc').value = '';
         if (typeof spiritApplySaleCatOptions === 'function') spiritApplySaleCatOptions(false);
         document.getElementById('saleCat').value = '';
@@ -5020,6 +5038,11 @@ async function loadMySales() {
         document.getElementById('stepMethod').style.display = 'none';
         document.getElementById('stepInfo').style.display = 'block';
         document.getElementById('s2').className = 'step active';
+        try {
+            var sp1 = document.getElementById('salePriceCurrency');
+            var ed1 = (typeof editingId !== 'undefined' && editingId != null && String(editingId).trim() !== '');
+            if (sp1 && !ed1) sp1.value = (typeof marketCurrencyMode !== 'undefined' && marketCurrencyMode) ? marketCurrencyMode : 'EUR';
+        } catch (eCur1) {}
         if (typeof spiritApplySaleCatOptions === 'function') spiritApplySaleCatOptions(m === 'statue');
         var smRow = document.getElementById('statueMatiereRow');
         var smSel = document.getElementById('saleMatiere');
@@ -5040,8 +5063,13 @@ async function goToScan() {
     const imgToScan = pBox1.querySelector('img');
 
     // --- SÉCURITÉ PRÉ-SCAN ---
-    if(!title || !price) {
+    if (!title || !price) {
         alert("TITRE ET PRIX REQUIS : Spirit Ledger ne peut pas indexer un objet vide.");
+        return;
+    }
+    var pScan = parseFloat(price);
+    if (!Number.isFinite(pScan) || pScan <= 0) {
+        alert('PRIX INVALIDE : indiquez un montant supérieur à 0.');
         return;
     }
     if(!imgToScan) {
@@ -5198,7 +5226,14 @@ async function saveSpiritAudit(title, detected, score, status, detailNote) {
  */
 async function publierAnnonce() {
     const title = document.getElementById('inputTitle').value;
+    var saleCurEl = document.getElementById('salePriceCurrency');
+    var saleCurrency = saleCurEl && saleCurEl.value ? String(saleCurEl.value).toUpperCase() : 'EUR';
+    if (saleCurrency !== 'EUR' && saleCurrency !== 'USD' && saleCurrency !== 'CNY') saleCurrency = 'EUR';
     const price = parseFloat(document.getElementById('inputPrice').value);
+    if (!Number.isFinite(price) || price <= 0) {
+        alert('PRIX INVALIDE : indiquez un montant supérieur à 0.');
+        return;
+    }
     var desc = document.getElementById('inputDesc').value;
     if (typeof currentMethod !== 'undefined' && currentMethod === 'statue') {
         var smPub = document.getElementById('saleMatiere');
@@ -5272,7 +5307,7 @@ async function publierAnnonce() {
         brand: brand || 'Spirit Infinity',
         ship_size: shipSize,
         status: 'available',
-        currency: 'EUR',
+        currency: saleCurrency,
         is_native: fromHardwarePanneau,
         is_smoke_free: isSmokeFree,
         is_light_protect: isLightProtect,
@@ -5288,7 +5323,7 @@ async function publierAnnonce() {
 
         if (typeof editingId !== 'undefined' && editingId != null && String(editingId).trim() !== '') {
             var eid = editingId;
-            var selExisting = await _spirit.from('products_live').select('id,price,old_price').eq('id', eid).maybeSingle();
+            var selExisting = await _spirit.from('products_live').select('id,price,old_price,currency').eq('id', eid).maybeSingle();
             if (selExisting.error) throw selExisting.error;
             if (!selExisting.data) {
                 alert('ANNONCE INTROUVABLE (édition).');
@@ -5296,6 +5331,7 @@ async function publierAnnonce() {
             }
             var ex = selExisting.data;
             var prevEff = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(ex) : Number(ex.price || 0);
+            var newEff = typeof spiritConvertCurrency === 'function' ? spiritConvertCurrency(price, saleCurrency, 'EUR') : price;
             var updateRow = {
                 title: title,
                 price: price,
@@ -5305,7 +5341,7 @@ async function publierAnnonce() {
                 cat: normalizedCat,
                 brand: brand || 'Spirit Infinity',
                 ship_size: shipSize,
-                currency: 'EUR',
+                currency: saleCurrency,
                 is_native: fromHardwarePanneau,
                 is_smoke_free: isSmokeFree,
                 is_light_protect: isLightProtect,
@@ -5315,7 +5351,7 @@ async function publierAnnonce() {
             if (photoUrls.length > 0) {
                 updateRow.image_url = photoUrls.length === 1 ? photoUrls[0] : JSON.stringify(photoUrls);
             }
-            if (Number.isFinite(price) && Number.isFinite(prevEff) && Math.abs(price - prevEff) > 1e-9) {
+            if (Number.isFinite(newEff) && Number.isFinite(prevEff) && Math.abs(newEff - prevEff) > 1e-9) {
                 updateRow.old_price = prevEff;
             }
             var upRes = await _spirit.from('products_live').update(updateRow).eq('id', eid);
@@ -5542,8 +5578,14 @@ async function editAnnonce(id) {
     
     // AJOUT : Sécurité sur les champs pour éviter les erreurs si l'élément n'existe pas encore dans le DOM
     if(document.getElementById('inputTitle')) document.getElementById('inputTitle').value = item.title || item.name || '';
-    var pEd = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : (item.price != null ? item.price : 0);
-    if(document.getElementById('inputPrice')) document.getElementById('inputPrice').value = pEd != null ? pEd : 0;
+    var curEd = String(item.currency || 'EUR').toUpperCase();
+    if (curEd !== 'EUR' && curEd !== 'USD' && curEd !== 'CNY') curEd = 'EUR';
+    try {
+        var spEd = document.getElementById('salePriceCurrency');
+        if (spEd) spEd.value = curEd;
+    } catch (eSpEd) {}
+    var pEd = item.price != null ? Number(item.price) : 0;
+    if(document.getElementById('inputPrice')) document.getElementById('inputPrice').value = Number.isFinite(pEd) ? pEd : 0;
     var rawDescEd = item.description || item.desc || '';
     var mExEd = (typeof spiritExtractMatiereFromDesc === 'function') ? spiritExtractMatiereFromDesc(rawDescEd) : { matiere: '', rest: rawDescEd };
     if(document.getElementById('inputDesc')) document.getElementById('inputDesc').value = mExEd.rest;
@@ -6400,10 +6442,13 @@ async function confirmPayment(method) {
         const cond = document.getElementById('fCond').value;
         const filtered = marketData.filter(item => {
             let matchPrice = true;
-            if(pRange !== 'all') {
-                const [min, max] = pRange.split('-').map(v => parseInt(v));
-                if(pRange === '400+') matchPrice = item.price >= 400;
-                else matchPrice = (item.price >= min && item.price <= max);
+            const itemPriceEur = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0);
+            if (pRange !== 'all') {
+                if (pRange === '400+') matchPrice = itemPriceEur >= 400;
+                else {
+                    const [min, max] = pRange.split('-').map(v => parseInt(v, 10));
+                    matchPrice = itemPriceEur >= min && itemPriceEur <= max;
+                }
             }
             return matchPrice && (country === 'all' || item.country === country) &&
                    (brand === 'all' || item.brand === brand) && (cat === 'all' || (item.cat || item.category) === cat) &&
@@ -6420,7 +6465,7 @@ async function confirmPayment(method) {
         const cond = document.getElementById('sCond') ? document.getElementById('sCond').value : 'all';
         const filtered = (Array.isArray(marketData) ? marketData : []).filter(item => {
             if (normalizeSpiritCat(item.cat || item.category) !== 'statue') return false;
-            const itemPrice = spiritConvertCurrency((typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0)), String(item.currency || 'EUR').toUpperCase(), marketCurrencyMode);
+            const itemPrice = spiritConvertCurrency((typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0)), 'EUR', marketCurrencyMode);
             let matchPrice = true;
             if (pRange !== 'all') {
                 if (pRange === '2000+') matchPrice = itemPrice >= 2000;
@@ -6501,16 +6546,37 @@ async function confirmPayment(method) {
         /* Portefeuille : devise = pays d’adresse, pas le sélecteur marché — pas besoin de recharger ici. */
         try { if (typeof spiritPublicLoadAnnonces === 'function' && spiritPublicViewUserId) spiritPublicLoadAnnonces(spiritPublicViewUserId, { force: true }); } catch (e4) {}
         try { if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier(); } catch (e5) {}
+        try {
+            var siCur = document.getElementById('stepInfo');
+            var spCur = document.getElementById('salePriceCurrency');
+            if (spCur && siCur && siCur.style.display !== 'none') spCur.value = marketCurrencyMode;
+        } catch (eSaleCur) {}
     }
     window.setMarketCurrency = setMarketCurrency;
 
     function spiritConvertCurrency(amount, fromCurrency, toCurrency) {
-        const rates = { EUR: 1, USD: 1.09, CNY: 7.85 };
-        const from = rates[String(fromCurrency || 'EUR').toUpperCase()] || 1;
-        const to = rates[String(toCurrency || 'EUR').toUpperCase()] || 1;
-        const eur = Number(amount || 0) / from;
-        return eur * to;
+        var SPIRIT_FX_EUR_PER_USD = 1 / 1.15;
+        var SPIRIT_FX_EUR_PER_CNY = 1 / 7.98;
+        var from = String(fromCurrency || 'EUR').toUpperCase();
+        var to = String(toCurrency || 'EUR').toUpperCase();
+        var x = Number(amount);
+        if (!Number.isFinite(x)) x = 0;
+        if (from === to) return x;
+        function toEur(a, cur) {
+            if (cur === 'EUR') return a;
+            if (cur === 'USD') return a * SPIRIT_FX_EUR_PER_USD;
+            if (cur === 'CNY') return a * SPIRIT_FX_EUR_PER_CNY;
+            return a;
+        }
+        function fromEur(e, cur) {
+            if (cur === 'EUR') return e;
+            if (cur === 'USD') return e * 1.15;
+            if (cur === 'CNY') return e * 7.98;
+            return e;
+        }
+        return fromEur(toEur(x, from), to);
     }
+    try { window.spiritConvertCurrency = spiritConvertCurrency; } catch (eFxWin) {}
     function spiritFormatMoney(amount, fromCurrency, toCurrency) {
         var toCur = String(toCurrency || marketCurrencyMode || 'EUR').toUpperCase();
         var fromCur = String(fromCurrency || 'EUR').toUpperCase();
@@ -8701,8 +8767,8 @@ async function spiritPublicLoadAnnonces(uid, opts) {
         box.innerHTML = '';
         rows.forEach(function (p) {
         var t = String(p.title || p.name || 'Sans titre').replace(/</g, '&lt;');
-        var price = (typeof spiritProductsLivePriceEUR === 'function') ? spiritProductsLivePriceEUR(p) : Number(p.price || 0);
-        var priceTxt = spiritFormatMoney(price, String(p.currency || 'EUR'));
+        var priceEur = (typeof spiritProductsLivePriceEUR === 'function') ? spiritProductsLivePriceEUR(p) : Number(p.price || 0);
+        var priceTxt = typeof spiritFormatMoney === 'function' ? spiritFormatMoney(priceEur, 'EUR') : (Number(priceEur || 0).toFixed(2) + ' EUR');
         var st = String(p.status || '').toLowerCase();
         var sold = st === 'sold' || st === 'vendu';
         var div = document.createElement('div');
@@ -10314,9 +10380,13 @@ async function startExpertScan() {
             btn.style.opacity = "0.3";
         } else {
            // (c) 2026 Spirit Infinity - Tous droits réservés
-// 4. CALCUL FINANCIER SPIRIT INFINITY (Modèle 8%)
-const price = parseFloat(document.getElementById('inputPrice').value) || 0;
-const shipping = 6.90; // Frais fixes
+// 4. CALCUL FINANCIER SPIRIT INFINITY (Modèle 8%, montants ramenés en EUR)
+var saleCurFinEl = document.getElementById('salePriceCurrency');
+var saleCurFin = saleCurFinEl && saleCurFinEl.value ? String(saleCurFinEl.value).toUpperCase() : 'EUR';
+if (saleCurFin !== 'EUR' && saleCurFin !== 'USD' && saleCurFin !== 'CNY') saleCurFin = 'EUR';
+var priceInputFin = parseFloat(document.getElementById('inputPrice').value) || 0;
+var price = typeof spiritConvertCurrency === 'function' ? spiritConvertCurrency(priceInputFin, saleCurFin, 'EUR') : priceInputFin;
+const shipping = 6.90; // Frais fixes (EUR)
 
 const maPart = (price * 0.03).toFixed(2); // 3% pour Toi
 const partFirme = (price * 0.03).toFixed(2); // 3% pour la Firme
