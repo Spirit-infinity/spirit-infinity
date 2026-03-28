@@ -4025,7 +4025,28 @@ function changeRIB() {
     spiritRenderRibDisplay();
     alert('RIB enregistré.');
 }
-/** Devise d’affichage portefeuille : pays d’adresse de livraison (paramètres), pas la devise du marché. */
+/** Pays profil public → cache local pour le portefeuille (évite un fetch synchrone). */
+function spiritWalletPublicCountryStorageKey(uid) {
+    uid = spiritOwnerId(uid);
+    return 'spirit_wallet_public_country_v1__' + String(uid || '').trim();
+}
+function spiritSetPublicProfileCountryForWallet(uid, country) {
+    uid = spiritOwnerId(uid);
+    if (!uid) return;
+    var c = String(country != null ? country : '').trim();
+    try {
+        if (c) localStorage.setItem(spiritWalletPublicCountryStorageKey(uid), c);
+        else localStorage.removeItem(spiritWalletPublicCountryStorageKey(uid));
+    } catch (e) {}
+}
+function spiritGetPublicProfileCountryForWallet(uid) {
+    uid = spiritOwnerId(uid);
+    if (!uid) return '';
+    try {
+        return String(localStorage.getItem(spiritWalletPublicCountryStorageKey(uid)) || '').trim();
+    } catch (e) { return ''; }
+}
+/** Devise d’affichage portefeuille : pays du profil public en priorité, puis adresse de livraison ; pas la devise du marché. */
 function spiritCountryToWalletCurrency(countryRaw) {
     var s = String(countryRaw || '').trim().toLowerCase();
     if (!s) return 'EUR';
@@ -4042,6 +4063,8 @@ function spiritCountryToWalletCurrency(countryRaw) {
 }
 function spiritGetWalletDisplayCurrency() {
     var uid = spiritOwnerId(spiritGetCurrentUserId());
+    var pubC = uid ? spiritGetPublicProfileCountryForWallet(uid) : '';
+    if (pubC) return spiritCountryToWalletCurrency(pubC);
     var addr = uid ? spiritGetShippingAddressForUid(uid) : null;
     if (addr && addr.country) return spiritCountryToWalletCurrency(addr.country);
     try {
@@ -4054,13 +4077,27 @@ function spiritGetWalletDisplayCurrency() {
     } catch (e2) {}
     return 'EUR';
 }
+async function spiritSyncWalletCountryFromUserProfile(uid) {
+    uid = spiritOwnerId(uid);
+    if (!uid || typeof _spirit === 'undefined' || !_spirit || !_spirit.from) return;
+    try {
+        var out = await _spirit.from('user_profiles').select('country').eq('id', uid.toString()).maybeSingle();
+        if (!out.error && out.data) {
+            var c = out.data.country != null ? String(out.data.country).trim() : '';
+            spiritSetPublicProfileCountryForWallet(uid, c);
+        }
+    } catch (e) {}
+}
 async function spiritLoadWallet() {
     var totalEl = document.getElementById('spiritWalletTotal');
     var listEl = document.getElementById('spiritWalletSalesList');
     var hintEl = document.getElementById('spiritWalletHint');
     if (!totalEl || !listEl) return;
-    var wCur = (typeof spiritGetWalletDisplayCurrency === 'function') ? spiritGetWalletDisplayCurrency() : 'EUR';
     var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (uid && _spirit) {
+        try { await spiritSyncWalletCountryFromUserProfile(uid); } catch (eSync) {}
+    }
+    var wCur = (typeof spiritGetWalletDisplayCurrency === 'function') ? spiritGetWalletDisplayCurrency() : 'EUR';
     if (!uid || !_spirit) {
         totalEl.textContent = spiritFormatMoney(0, 'EUR', wCur);
         listEl.innerHTML = '<div style="font-size:0.66rem;color:#666;">Connecte-toi pour voir ton portefeuille.</div>';
@@ -4151,7 +4188,7 @@ async function spiritLoadWallet() {
         if (hintEl) {
             var rib = spiritGetRibForUid(uid);
             var ribTxt = rib && rib.iban ? ('RIB utilisé : ' + rib.iban) : 'RIB utilisé : non renseigné (voir paramètres).';
-            hintEl.textContent = ribTxt + ' · Affichage : ' + wCur + ' (selon pays d’adresse de livraison). · Déblocage : validation acheteur, sinon 3j ouvrés (native) / 4j (legacy/autre).';
+            hintEl.textContent = ribTxt + ' · Affichage : ' + wCur + ' (pays du profil public, sinon adresse de livraison). · Déblocage : validation acheteur, sinon 3j ouvrés (native) / 4j (legacy/autre).';
         }
     } catch (e) {
         totalEl.textContent = spiritFormatMoney(0, 'EUR', wCur);
@@ -8406,6 +8443,11 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     if (cEl) cEl.textContent = 'Pays : ' + ((row && row.country) ? String(row.country) : '—');
     var cIn = document.getElementById('spiritPublicCountryInput');
     if (cIn) cIn.value = (row && row.country) ? String(row.country) : 'France';
+    try {
+        if (isOwner && typeof spiritSetPublicProfileCountryForWallet === 'function') {
+            spiritSetPublicProfileCountryForWallet(spiritGetCurrentUserId(), (row && row.country) ? String(row.country) : '');
+        }
+    } catch (ePubWal) {}
     var cEd = document.getElementById('spiritPublicCountryEdit');
     if (cEd) cEd.style.display = isOwner ? 'flex' : 'none';
     var avBtn = document.getElementById('spiritPublicAvatarBtn');
@@ -8452,7 +8494,6 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     try { spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
 }
 async function spiritPublicSaveMeta() {
-    // Règle stricte : ne toucher qu'aux colonnes connues { id, avatar_url }
     if (typeof _spirit === 'undefined' || !_spirit) return;
 
     var targetUserId = (spiritPublicViewUserId != null) ? String(spiritPublicViewUserId).trim() : '';
@@ -8464,7 +8505,6 @@ async function spiritPublicSaveMeta() {
     }
     if (!targetUserId) return;
 
-    // Si la vue utilise le faux ID "12345", utilisez l'ID auth réel (UUID valide) pour ne pas casser PostgREST.
     var resolvedUserId = String(targetUserId);
     if (String(targetUserId) === '12345' && _spirit && _spirit.auth && typeof _spirit.auth.getUser === 'function') {
         try {
@@ -8473,32 +8513,46 @@ async function spiritPublicSaveMeta() {
         } catch (e) {}
     }
 
-    // On ne modifie pas le pays/pseudo/email/etc ici (bouton "ENREGISTRER" reste sans erreur).
+    var cIn = document.getElementById('spiritPublicCountryInput');
+    var countryVal = cIn ? String(cIn.value != null ? cIn.value : '').trim() : '';
     var imgEl = document.getElementById('spiritPublicAvatarImg');
     var avatarUrl = imgEl ? (imgEl.currentSrc || imgEl.src || '') : '';
     avatarUrl = avatarUrl ? String(avatarUrl).trim() : '';
 
-    // Si rien n'est uploadé/chargé, on évite toute requête Supabase.
-    if (!avatarUrl) {
-        alert('Profil public mis à jour.');
+    if (!avatarUrl && !countryVal) {
+        alert('Indique ton pays ou ajoute une photo.');
         return;
     }
 
-    var up = { id: resolvedUserId, avatar_url: avatarUrl };
+    var patch = {};
+    if (countryVal) patch.country = countryVal;
+    if (avatarUrl) patch.avatar_url = avatarUrl;
+    if (Object.keys(patch).length === 0) {
+        alert('Rien à enregistrer.');
+        return;
+    }
+
     try {
-        if (String(targetUserId) === '12345') {
-            // Pour le profil de test "12345", éviter upsert/contraintes pouvant interpréter le type.
-            var upRes = await _spirit.from('user_profiles').update({ avatar_url: avatarUrl }).eq('id', resolvedUserId.toString());
-            if (upRes && upRes.error) throw upRes.error;
-        } else {
-            var ins = await _spirit.from('user_profiles').upsert(up, { onConflict: 'id' });
+        var upRes = await _spirit.from('user_profiles').update(patch).eq('id', resolvedUserId.toString()).select('id');
+        if (upRes && upRes.error) throw upRes.error;
+        var got = !!(upRes && upRes.data && upRes.data.length > 0);
+        if (!got) {
+            var ins = await _spirit.from('user_profiles').upsert(Object.assign({ id: resolvedUserId }, patch), { onConflict: 'id' });
             if (ins && ins.error) throw ins.error;
         }
     } catch (err) {
         alert('Erreur Supabase : ' + (err && err.message ? err.message : err));
         return;
     }
+    try {
+        if (typeof spiritSetPublicProfileCountryForWallet === 'function') {
+            if (countryVal) spiritSetPublicProfileCountryForWallet(resolvedUserId, countryVal);
+        }
+    } catch (eC) {}
+    var cEl = document.getElementById('spiritPublicCountry');
+    if (cEl && countryVal) cEl.textContent = 'Pays : ' + countryVal;
     try { localStorage.removeItem(spiritPublicProfileCacheKey(String(targetUserId || '').trim())); } catch (eClr) {}
+    try { if (typeof spiritLoadWallet === 'function') void spiritLoadWallet(); } catch (eW) {}
     alert('Profil public mis à jour.');
 }
 function spiritPublicWireAvatarOnce() {
