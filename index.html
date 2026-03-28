@@ -322,6 +322,7 @@
         }
         .spirit-card-fav-btn.spirit-fav-flash .spirit-fav-count { color: var(--neon-orange); }
         #btn-liste-envie { position: relative; }
+        #btn-favoris-recus { position: relative; }
         #btn-dashboard { position: relative; }
         #btn-messages { position: relative; }
         #btn-sanctuary { position: relative; }
@@ -1673,6 +1674,7 @@
                 <button id="btn-portefeuille" onclick="showAccountTab('portefeuille')">PORTEFEUILLE</button>
                 <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
                 <button type="button" id="btn-liste-envie" onclick="showAccountTab('liste-envie')"><span data-key="account_wishlist_menu">LISTE D’ENVIE</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button type="button" id="btn-favoris-recus" onclick="showAccountTab('favoris-recus')"><span data-key="account_seller_fav_menu">FAVORIS</span><span id="seller-received-fav-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-sanctuary" onclick="showAccountTab('sanctuary')">SANCTUAIRE</button>
                 <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
@@ -1681,10 +1683,6 @@
                 <div id="tab-dashboard" class="account-page active">
                     <h2>🏠 TABLEAU DE BORD</h2>
                     <p>C'est ici que s'affiche ton résumé.</p>
-                    <div id="spiritSellerFavAlert" style="display:none; margin-top:14px; padding:12px 14px; border:1px solid rgba(255,102,0,0.55); background:rgba(255,102,0,0.06);">
-                        <div style="font-size:0.75rem; color:var(--neon-orange); font-weight:900; letter-spacing:1px; margin-bottom:6px;">ALERTE LISTE D’ENVIE</div>
-                        <div id="spiritSellerFavAlertText" style="font-size:0.72rem; color:#bbb;"></div>
-                    </div>
                     <div id="spiritSellerOfferAlert" style="display:none; margin-top:14px; padding:12px 14px; border:1px solid rgba(0,200,255,0.45); background:rgba(0,120,180,0.08);">
                         <div style="font-size:0.75rem; color:#5cf; font-weight:900; letter-spacing:1px; margin-bottom:6px;">ALERTE OFFRES</div>
                         <div id="spiritSellerOfferAlertText" style="font-size:0.72rem; color:#bbb;"></div>
@@ -1784,8 +1782,14 @@
 <div id="tab-liste-envie" class="account-page">
     <h3 data-key="account_wishlist_title">MA LISTE D’ENVIE</h3>
     <p style="font-size:0.7rem; color:#666; margin-top:0;" data-key="account_wishlist_hint">Tout ce que tu ajoutes avec le cœur sur le marché apparaît ici. Alerte si le prix baisse ou si l’annonce est vendue.</p>
-    <p style="font-size:0.62rem; color:#777; margin-top:6px; line-height:1.35; border-left:2px solid rgba(255,102,0,0.35); padding-left:10px;" data-key="account_wishlist_note">Le vendeur reçoit une notification sur son tableau de bord quand quelqu’un met son annonce en liste d’envie ; l’enregistrement reste le même côté Spirit (table des favoris).</p>
+    <p style="font-size:0.62rem; color:#777; margin-top:6px; line-height:1.35; border-left:2px solid rgba(255,102,0,0.35); padding-left:10px;" data-key="account_wishlist_note">Le vendeur est averti dans Mon compte, onglet Favoris (pastille et clignotement), quand quelqu’un met son annonce en liste d’envie ; côté Spirit l’enregistrement reste dans la table des favoris.</p>
     <div id="user-favorites-list" style="display:flex; flex-direction:column; gap:12px; margin-top:12px;"></div>
+</div>
+
+<div id="tab-favoris-recus" class="account-page">
+    <h3 data-key="account_seller_fav_title">MES FAVORIS (CŒURS REÇUS)</h3>
+    <p style="font-size:0.7rem; color:#666; margin-top:0;" data-key="account_seller_fav_hint">Les cœurs que d’autres membres ont mis sur tes annonces apparaissent ici. Ouvre cet onglet pour marquer comme vu et faire disparaître la pastille.</p>
+    <div id="spirit-seller-received-favorites-list" style="display:flex; flex-direction:column; gap:10px; margin-top:12px;"></div>
 </div>
 
 <div id="tab-sanctuary" class="account-page">
@@ -2225,11 +2229,15 @@
             'btn_load_more': 'Charger plus',
             'account_wishlist_menu': 'LISTE D’ENVIE', 'account_wishlist_title': 'MA LISTE D’ENVIE',
             'account_wishlist_hint': 'Tout ce que tu ajoutes avec le cœur sur le marché apparaît ici. Alerte si le prix baisse ou si l’annonce est vendue.',
-            'account_wishlist_note': 'Le vendeur reçoit une notification sur son tableau de bord quand quelqu’un met son annonce en liste d’envie ; l’enregistrement reste le même côté Spirit (favoris).',
-            'account_wishlist_empty': 'Ta liste d’envie est vide.', 'toast_wishlist_added': 'Ajouté à ta liste d’envie. Le vendeur peut voir une alerte sur son tableau de bord.',
+            'account_wishlist_note': 'Le vendeur est averti dans Mon compte, onglet Favoris (pastille et clignotement), quand quelqu’un met son annonce en liste d’envie ; côté Spirit l’enregistrement reste dans les favoris.',
+            'account_seller_fav_menu': 'FAVORIS', 'account_seller_fav_title': 'MES FAVORIS (CŒURS REÇUS)',
+            'account_seller_fav_hint': 'Les cœurs que d’autres membres ont mis sur tes annonces apparaissent ici. Ouvre cet onglet pour marquer comme vu et faire disparaître la pastille.',
+            'account_seller_fav_empty': 'Aucun cœur récent sur tes annonces (ou tout est déjà vu).',
+            'account_seller_fav_member': 'Membre : ',
+            'account_wishlist_empty': 'Ta liste d’envie est vide.', 'toast_wishlist_added': 'Ajouté à ta liste d’envie. Le vendeur est averti dans Mon compte → Favoris.',
             'account_favorites': 'LISTE D’ENVIE', 'account_favorites_title': 'MA LISTE D’ENVIE',
             'account_favorites_hint': 'Tout ce que tu ajoutes avec le cœur sur le marché apparaît ici.',
-            'account_favorites_seller_note': 'Le vendeur est notifié sur le Dashboard.',
+            'account_favorites_seller_note': 'Le vendeur est notifié dans Mon compte → Favoris.',
             'account_favorites_empty': 'Ta liste d’envie est vide.', 'fav_price_drop': 'PRIX EN BAISSE', 'fav_price_drop_badge': 'BAISSE DE PRIX', 'fav_sold': 'VENDU', 'fav_open': 'Voir',
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Félicitations ! Votre achat est confirmé. L\'annonce a été retirée du marché. Montant en séquestre Spirit : {amount} €.'
         },
@@ -2260,11 +2268,15 @@
             'btn_load_more': 'Load more',
             'account_wishlist_menu': 'WISHLIST', 'account_wishlist_title': 'MY WISHLIST',
             'account_wishlist_hint': 'Anything you heart on the market appears here. Alerts if the price drops or the listing is sold.',
-            'account_wishlist_note': 'The seller gets a notification on their dashboard when someone adds their listing to a wishlist; Spirit still stores it as a favorite.',
-            'account_wishlist_empty': 'Your wishlist is empty.', 'toast_wishlist_added': 'Saved to your wishlist. The seller may see an alert on their dashboard.',
+            'account_wishlist_note': 'The seller is notified under My Account, Favorites tab (dot + pulse), when someone adds their listing to a wishlist; Spirit still stores it as a favorite.',
+            'account_seller_fav_menu': 'FAVORITES', 'account_seller_fav_title': 'MY FAVORITES (HEARTS RECEIVED)',
+            'account_seller_fav_hint': 'Hearts other members placed on your listings appear here. Open this tab to mark as seen and clear the dot.',
+            'account_seller_fav_empty': 'No recent hearts on your listings (or everything is already seen).',
+            'account_seller_fav_member': 'Member: ',
+            'account_wishlist_empty': 'Your wishlist is empty.', 'toast_wishlist_added': 'Saved to your wishlist. The seller is notified under My Account → Favorites.',
             'account_favorites': 'WISHLIST', 'account_favorites_title': 'MY WISHLIST',
             'account_favorites_hint': 'Anything you heart on the market appears here.',
-            'account_favorites_seller_note': 'The seller is notified on the Dashboard.',
+            'account_favorites_seller_note': 'The seller is notified under My Account → Favorites.',
             'account_favorites_empty': 'Your wishlist is empty.', 'fav_price_drop': 'PRICE DROP', 'fav_price_drop_badge': 'PRICE DROP', 'fav_sold': 'SOLD', 'fav_open': 'View',
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Congratulations! Your purchase is confirmed. The listing has been removed from the market. Escrow amount: {amount} €.'
         },
@@ -2295,11 +2307,15 @@
             'btn_load_more': 'Cargar más',
             'account_wishlist_menu': 'LISTA DE DESEOS', 'account_wishlist_title': 'MI LISTA DE DESEOS',
             'account_wishlist_hint': 'Lo que marques con el corazón en el mercado aparece aquí. Aviso si baja el precio o se vende.',
-            'account_wishlist_note': 'El vendedor recibe un aviso en su panel cuando alguien añade su anuncio a la lista de deseos; Spirit sigue guardándolo como favorito.',
-            'account_wishlist_empty': 'Tu lista de deseos está vacía.', 'toast_wishlist_added': 'Guardado en tu lista de deseos. El vendedor puede ver una alerta en su panel.',
+            'account_wishlist_note': 'El vendedor recibe aviso en Mi cuenta, pestaña Favoritos (pastilla y parpadeo), cuando alguien añade su anuncio a la lista de deseos; Spirit sigue guardándolo como favorito.',
+            'account_seller_fav_menu': 'FAVORITOS', 'account_seller_fav_title': 'MIS FAVORITOS (CORAZONES RECIBIDOS)',
+            'account_seller_fav_hint': 'Los corazones que otros miembros ponen en tus anuncios aparecen aquí. Abre esta pestaña para marcar como visto y quitar la pastilla.',
+            'account_seller_fav_empty': 'Sin corazones recientes en tus anuncios (o ya vistos).',
+            'account_seller_fav_member': 'Miembro: ',
+            'account_wishlist_empty': 'Tu lista de deseos está vacía.', 'toast_wishlist_added': 'Guardado en tu lista de deseos. El vendedor recibe aviso en Mi cuenta → Favoritos.',
             'account_favorites': 'LISTA DE DESEOS', 'account_favorites_title': 'MI LISTA DE DESEOS',
             'account_favorites_hint': 'Lo que marques con el corazón aparece aquí.',
-            'account_favorites_seller_note': 'El vendedor recibe aviso en el Dashboard.',
+            'account_favorites_seller_note': 'El vendedor recibe aviso en Mi cuenta → Favoritos.',
             'account_favorites_empty': 'Tu lista de deseos está vacía.', 'fav_price_drop': 'PRECIO A LA BAJA', 'fav_price_drop_badge': 'BAJA DE PRECIO', 'fav_sold': 'VENDIDO', 'fav_open': 'Ver',
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '¡Enhorabuena! Tu compra está confirmada. El anuncio se ha retirado del mercado. Importe en depósito: {amount} €.'
         },
@@ -2330,11 +2346,15 @@
             'btn_load_more': '加载更多',
             'account_wishlist_menu': '心愿单', 'account_wishlist_title': '我的心愿单',
             'account_wishlist_hint': '在市场上点红心的商品会显示在这里；降价或售出时会提醒。',
-            'account_wishlist_note': '有人把你的商品加入心愿单时，卖家会在仪表盘收到通知；Spirit 仍按「收藏」存储。',
-            'account_wishlist_empty': '心愿单还是空的。', 'toast_wishlist_added': '已加入心愿单。卖家可能在仪表盘看到提醒。',
+            'account_wishlist_note': '有人把你的商品加入心愿单时，卖家会在「我的账户 → 收藏」收到提醒（圆点与闪烁）；Spirit 仍按「收藏」存储。',
+            'account_seller_fav_menu': '收藏', 'account_seller_fav_title': '我收到的收藏（红心）',
+            'account_seller_fav_hint': '其他用户在你商品上点的红心会显示在这里。打开此标签可标记已读并清除圆点。',
+            'account_seller_fav_empty': '暂无新的红心，或已全部查看。',
+            'account_seller_fav_member': '用户：',
+            'account_wishlist_empty': '心愿单还是空的。', 'toast_wishlist_added': '已加入心愿单。卖家会在「我的账户 → 收藏」收到提醒。',
             'account_favorites': '心愿单', 'account_favorites_title': '我的心愿单',
             'account_favorites_hint': '你点红心的商品会显示在这里。',
-            'account_favorites_seller_note': '卖家在仪表盘会收到通知。',
+            'account_favorites_seller_note': '卖家在「我的账户 → 收藏」会收到通知。',
             'account_favorites_empty': '心愿单还是空的。', 'fav_price_drop': '降价', 'fav_price_drop_badge': '降价促销', 'fav_sold': '已售', 'fav_open': '查看',
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '恭喜！购买已确认。该商品已从市场下架。托管金额：{amount} 欧元。'
         }
@@ -2990,7 +3010,8 @@ function spiritSyncAccountNotificationPulse() {
     var pairs = [
         ['dashboard-tab-dot', 'btn-dashboard'],
         ['messages-tab-dot', 'btn-messages'],
-        ['favorites-tab-dot', 'btn-liste-envie']
+        ['favorites-tab-dot', 'btn-liste-envie'],
+        ['seller-received-fav-tab-dot', 'btn-favoris-recus']
     ];
     var any = false;
     pairs.forEach(function (pr) {
@@ -3030,6 +3051,7 @@ function spiritRefreshAllAccountNotifs() {
         if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot();
         if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
         if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot();
+        if (typeof spiritCheckSellerReceivedFavDot === 'function') void spiritCheckSellerReceivedFavDot();
         if (typeof spiritUpdateNavSanctuaryDot === 'function') void spiritUpdateNavSanctuaryDot();
     } catch (e) {}
     /* Recalcul une fois les requêtes terminées (plusieurs finally peuvent se chevaucher). */
@@ -3218,7 +3240,7 @@ async function spiritToggleFavorite(productId, ev, favBtn) {
                 try {
                     if (typeof spiritSanctuaryShowToast === 'function') {
                         var _wl = (typeof window.spiritT === 'function') ? window.spiritT('toast_wishlist_added') : '';
-                        if (!_wl || _wl === 'toast_wishlist_added') _wl = 'Ajouté à ta liste d’envie. Le vendeur peut voir une alerte sur son tableau de bord.';
+                        if (!_wl || _wl === 'toast_wishlist_added') _wl = 'Ajouté à ta liste d’envie. Le vendeur est averti dans Mon compte → Favoris.';
                         spiritSanctuaryShowToast('Liste d’envie', _wl);
                     }
                 } catch (eToastWl) {}
@@ -3411,82 +3433,6 @@ async function renderUserFavorites() {
     spiritAcknowledgeFavoriteTab();
 }
 
-// --- FAVORIS : alerte vendeur (dashboard) ---
-function spiritGetSellerFavAlertKey(uid) {
-    uid = spiritOwnerId(uid);
-    return 'spirit_last_seller_fav_alert_at__' + String(uid);
-}
-
-async function spiritCheckSellerFavAlerts() {
-    try {
-        var banner = document.getElementById('spiritSellerFavAlert');
-        var textEl = document.getElementById('spiritSellerFavAlertText');
-        if (!banner || !textEl) return;
-        banner.style.display = 'none';
-        textEl.textContent = '';
-
-        if (!_spirit || !_spirit.from) return;
-
-        var sellerId = spiritGetCurrentUserId();
-        sellerId = spiritOwnerId(sellerId);
-        if (!sellerId) return;
-
-        // Throttle local (évite de re-frapper le serveur plusieurs fois).
-        var lastCheckKey = 'spirit_last_seller_fav_check_at__' + String(sellerId);
-        var lastCheckRaw = '';
-        try { lastCheckRaw = localStorage.getItem(lastCheckKey) || ''; } catch (e0) {}
-        var lastCheck = lastCheckRaw ? new Date(lastCheckRaw).getTime() : 0;
-        if (Number.isFinite(lastCheck) && lastCheck && (Date.now() - lastCheck) < 45000) return;
-        try { localStorage.setItem(lastCheckKey, new Date().toISOString()); } catch (e1) {}
-
-        // Timestamp local (évite de spammer le serveur + limite la fenêtre).
-        var lastTsRaw = '';
-        try { lastTsRaw = localStorage.getItem(spiritGetSellerFavAlertKey(sellerId)) || ''; } catch (e) {}
-        var lastTs = lastTsRaw ? new Date(lastTsRaw).getTime() : 0;
-        if (!Number.isFinite(lastTs)) lastTs = 0;
-        if (!Number.isFinite(lastTs) || !lastTs) {
-            // Si jamais rien n'a été alerté, on prend une fenêtre raisonnable pour éviter des scans massifs.
-            lastTs = Date.now() - (1000 * 60 * 60 * 24); // 24h
-        }
-
-        // Récupère les produits du vendeur
-        var prodOut = await _spirit
-            .from('products_live')
-            .select('id')
-            .eq('owner_id', sellerId)
-            .order('id', { ascending: false })
-            .range(0, 49);
-        if (prodOut.error) return;
-        var prodIds = (prodOut.data || []).map(function (r) { return Number(r.id); }).filter(function (n) { return Number.isFinite(n); });
-        if (prodIds.length === 0) return;
-        prodIds = prodIds.slice(0, 50); // cap
-
-        // Favoris ajoutés récemment sur ses annonces (par d'autres users)
-        var favOut = await _spirit
-            .from('favorites')
-            .select('product_id,created_at,user_id')
-            .in('product_id', prodIds)
-            .gte('created_at', new Date(lastTs + 1000).toISOString())
-            .order('created_at', { ascending: false })
-            .range(0, 199);
-        if (favOut.error) return;
-        var rows = Array.isArray(favOut.data) ? favOut.data : [];
-
-        var newCount = 0;
-        rows.forEach(function (r) {
-            var ct = r && r.created_at ? new Date(r.created_at).getTime() : 0;
-            var fromUser = r && r.user_id ? String(r.user_id) : '';
-            if (ct > lastTs && fromUser && fromUser !== sellerId) newCount++;
-        });
-
-        if (newCount > 0) {
-            textEl.textContent = 'Tu as ' + newCount + ' nouvelle(s) mise(s) en liste d’envie sur tes annonces.';
-            banner.style.display = 'block';
-            try { localStorage.setItem(spiritGetSellerFavAlertKey(sellerId), new Date().toISOString()); } catch (e2) {}
-        }
-    } catch (e) {}
-}
-
 /* Supabase — table des offres (à créer une fois, SQL ci-dessous). Colonnes : id uuid, product_id bigint, buyer_id text, seller_id text, offer_amount numeric, original_price numeric, currency text, status text (pending|accepted|rejected), created_at timestamptz.
    CREATE TABLE IF NOT EXISTS public.product_offers (
      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3513,17 +3459,26 @@ function spiritGetDashboardOfferSeenKey(uid) {
     return 'spirit_dashboard_offer_seen__' + String(uid);
 }
 
-/** Dernière consultation des « cœurs » sur tes annonces (vendeur) — pastille Dashboard. */
+/** Dernière consultation des « cœurs » sur tes annonces (vendeur) — pastille onglet Favoris. */
 function spiritGetDashboardSellerFavSeenKey(uid) {
     uid = spiritOwnerId(uid);
     return 'spirit_dashboard_seller_fav_seen__' + String(uid);
 }
 
+function spiritAckSellerFavTab() {
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) return;
+    try { localStorage.setItem(spiritGetDashboardSellerFavSeenKey(uid), new Date().toISOString()); } catch (e) {}
+    var dot = document.getElementById('seller-received-fav-tab-dot');
+    spiritSetNotifDotVisible(dot, false);
+    try { spiritSyncAccountNotificationPulse(); } catch (eP4) {}
+}
+try { window.spiritAckSellerFavTab = spiritAckSellerFavTab; } catch (eAckSf) {}
+
 function spiritAckDashboardOfferDot() {
     var uid = spiritOwnerId(spiritGetCurrentUserId());
     if (!uid) return;
     try { localStorage.setItem(spiritGetDashboardOfferSeenKey(uid), new Date().toISOString()); } catch (e) {}
-    try { localStorage.setItem(spiritGetDashboardSellerFavSeenKey(uid), new Date().toISOString()); } catch (e2) {}
     var dot = document.getElementById('dashboard-tab-dot');
     spiritSetNotifDotVisible(dot, false);
     try { spiritSyncAccountNotificationPulse(); } catch (eP4) {}
@@ -3557,13 +3512,25 @@ async function spiritCheckDashboardOfferDot() {
             }
         } catch (eO) {}
 
+        spiritSetNotifDotVisible(dot, anyOffer);
+    } finally {
+        try { spiritSyncAccountNotificationPulse(); } catch (eP5) {}
+    }
+}
+
+async function spiritCheckSellerReceivedFavDot() {
+    var dot = document.getElementById('seller-received-fav-tab-dot');
+    try {
+        if (!dot || !_spirit) return;
+        var uid = spiritOwnerId(spiritGetCurrentUserId());
+        if (!uid) { spiritSetNotifDotVisible(dot, false); return; }
+        var seenFavRaw = '';
+        try { seenFavRaw = localStorage.getItem(spiritGetDashboardSellerFavSeenKey(uid)) || ''; } catch (e0) {}
+        var seenFavTs = seenFavRaw ? new Date(seenFavRaw).getTime() : 0;
+        if (!Number.isFinite(seenFavTs)) seenFavTs = 0;
+        var effFavFloor = seenFavTs || (Date.now() - 1000 * 60 * 60 * 24);
         var anySellerFav = false;
         try {
-            var seenFavRaw = '';
-            try { seenFavRaw = localStorage.getItem(spiritGetDashboardSellerFavSeenKey(uid)) || ''; } catch (e0) {}
-            var seenFavTs = seenFavRaw ? new Date(seenFavRaw).getTime() : 0;
-            if (!Number.isFinite(seenFavTs)) seenFavTs = 0;
-            var effFavFloor = seenFavTs || (Date.now() - 1000 * 60 * 60 * 24);
             var ownCandidates = [String(uid)];
             var uN = spiritNormUid(uid);
             if (uN && ownCandidates.indexOf(uN) < 0) ownCandidates.push(uN);
@@ -3594,12 +3561,122 @@ async function spiritCheckDashboardOfferDot() {
                 }
             }
         } catch (eF) {}
-
-        spiritSetNotifDotVisible(dot, anyOffer || anySellerFav);
+        spiritSetNotifDotVisible(dot, anySellerFav);
     } finally {
-        try { spiritSyncAccountNotificationPulse(); } catch (eP5) {}
+        try { spiritSyncAccountNotificationPulse(); } catch (eP6) {}
     }
 }
+try { window.spiritCheckSellerReceivedFavDot = spiritCheckSellerReceivedFavDot; } catch (eChkSf) {}
+
+async function spiritRenderSellerReceivedFavorites() {
+    var root = document.getElementById('spirit-seller-received-favorites-list');
+    if (!root) return;
+    var tEmpty = (typeof window.spiritT === 'function') ? window.spiritT('account_seller_fav_empty') : '';
+    if (!tEmpty || tEmpty === 'account_seller_fav_empty') tEmpty = 'Aucun cœur récent sur tes annonces (ou tout est déjà vu).';
+    var tMem = (typeof window.spiritT === 'function') ? window.spiritT('account_seller_fav_member') : '';
+    if (!tMem || tMem === 'account_seller_fav_member') tMem = 'Membre : ';
+    if (!_spirit || !_spirit.from) {
+        root.innerHTML = '<p style="font-size:0.72rem;color:#888;">' + String(tEmpty).replace(/</g, '&lt;') + '</p>';
+        return;
+    }
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid) return;
+    root.innerHTML = '<p style="font-size:0.7rem;color:#666;">…</p>';
+    try {
+        var ownCandidates = [String(uid)];
+        var uN = spiritNormUid(uid);
+        if (uN && ownCandidates.indexOf(uN) < 0) ownCandidates.push(uN);
+        var pl = await _spirit
+            .from('products_live')
+            .select('id,title')
+            .in('owner_id', ownCandidates)
+            .order('id', { ascending: false })
+            .range(0, 199);
+        if (pl.error || !pl.data || !pl.data.length) {
+            root.innerHTML = '<p style="font-size:0.72rem;color:#888;">' + String(tEmpty).replace(/</g, '&lt;') + '</p>';
+            return;
+        }
+        var pidToTitle = {};
+        var pids = [];
+        (pl.data || []).forEach(function (r) {
+            var id = Number(r && r.id);
+            if (Number.isFinite(id)) {
+                pids.push(id);
+                pidToTitle[id] = (r && r.title) ? String(r.title) : ('#' + id);
+            }
+        });
+        if (!pids.length) {
+            root.innerHTML = '<p style="font-size:0.72rem;color:#888;">' + String(tEmpty).replace(/</g, '&lt;') + '</p>';
+            return;
+        }
+        var fv = await _spirit
+            .from('favorites')
+            .select('created_at,user_id,product_id')
+            .in('product_id', pids)
+            .order('created_at', { ascending: false })
+            .limit(120);
+        if (fv.error) {
+            root.innerHTML = '<p style="font-size:0.72rem;color:#888;">' + String(tEmpty).replace(/</g, '&lt;') + '</p>';
+            return;
+        }
+        var meN = spiritNormUid(uid);
+        var rows = (fv.data || []).filter(function (r) {
+            var fromN = spiritNormUid(r && r.user_id);
+            return fromN && fromN !== meN;
+        });
+        if (!rows.length) {
+            root.innerHTML = '<p style="font-size:0.72rem;color:#888;">' + String(tEmpty).replace(/</g, '&lt;') + '</p>';
+            return;
+        }
+        root.innerHTML = '';
+        rows.slice(0, 48).forEach(function (r) {
+            var pid = Number(r && r.product_id);
+            var title = Number.isFinite(pid) ? (pidToTitle[pid] || ('#' + pid)) : '—';
+            var when = '';
+            try {
+                if (r && r.created_at) when = new Date(r.created_at).toLocaleString();
+            } catch (eD) {}
+            var buyer = String(r && r.user_id ? r.user_id : '').trim();
+            var div = document.createElement('div');
+            div.style.cssText = 'padding:12px 14px;border:1px solid rgba(255,102,0,0.35);background:#0c0c0c;border-radius:4px;font-size:0.72rem;color:#ccc;';
+            var h = document.createElement('div');
+            h.style.cssText = 'color:var(--neon-orange);font-weight:800;margin-bottom:6px;';
+            h.textContent = title;
+            div.appendChild(h);
+            var dWhen = document.createElement('div');
+            dWhen.style.cssText = 'color:#888;font-size:0.65rem;';
+            dWhen.textContent = when;
+            div.appendChild(dWhen);
+            var rowBt = document.createElement('div');
+            rowBt.style.marginTop = '6px';
+            var lbl = document.createElement('span');
+            lbl.style.color = '#666';
+            lbl.textContent = tMem;
+            rowBt.appendChild(lbl);
+            var bt = document.createElement('button');
+            bt.type = 'button';
+            bt.className = 'btn-action';
+            bt.style.cssText = 'font-size:0.62rem;padding:4px 10px;vertical-align:middle;';
+            bt.textContent = '…';
+            if (buyer) {
+                bt.onclick = function (ev) { spiritOpenPublicProfileUIWithStop(ev, buyer); };
+                void spiritFetchOwnerPseudo(buyer).then(function (name) {
+                    var nm = String(name || '').trim();
+                    if (nm) bt.textContent = nm;
+                    else bt.textContent = buyer.slice(0, 12) + (buyer.length > 12 ? '…' : '');
+                });
+            } else {
+                bt.style.display = 'none';
+            }
+            rowBt.appendChild(bt);
+            div.appendChild(rowBt);
+            root.appendChild(div);
+        });
+    } catch (e) {
+        root.innerHTML = '<p style="font-size:0.72rem;color:#888;">' + String(tEmpty).replace(/</g, '&lt;') + '</p>';
+    }
+}
+try { window.spiritRenderSellerReceivedFavorites = spiritRenderSellerReceivedFavorites; } catch (eRendSf) {}
 
 async function spiritCheckSellerOfferBanner() {
     try {
@@ -6591,7 +6668,7 @@ window.showAccountTab = function showAccountTab(tab) {
     try {
         var p = (typeof spiritParsePublicHash === 'function') ? spiritParsePublicHash() : null;
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params' || tab === 'portefeuille' || tab === 'messages' || tab === 'liste-envie')) {
+        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params' || tab === 'portefeuille' || tab === 'messages' || tab === 'liste-envie' || tab === 'favoris-recus')) {
             tab = 'dashboard';
         }
     } catch (e) {}
@@ -6669,6 +6746,13 @@ window.showAccountTab = function showAccountTab(tab) {
                 spiritPerfRunOnceInFlight('tab:liste-envie:render', function () { return renderUserFavorites(); });
             } catch (e5) { renderUserFavorites(); }
         }
+    } else if (tab === 'favoris-recus') {
+        try { if (typeof spiritAckSellerFavTab === 'function') spiritAckSellerFavTab(); } catch (eSfAck) {}
+        if (typeof spiritRenderSellerReceivedFavorites === 'function') {
+            try {
+                spiritPerfRunOnceInFlight('tab:favoris-recus:render', function () { return spiritRenderSellerReceivedFavorites(); });
+            } catch (eSfR) { void spiritRenderSellerReceivedFavorites(); }
+        }
     } else if (tab === 'sanctuary') {
         try { if (typeof spiritAccountSanctuaryTabEnter === 'function') void spiritAccountSanctuaryTabEnter(); } catch (e) {}
         try { if (typeof spiritSanctuaryWireOnce === 'function') spiritSanctuaryWireOnce(); } catch (e) {}
@@ -6685,7 +6769,6 @@ window.showAccountTab = function showAccountTab(tab) {
                 spiritPerfRunOnceInFlight('tab:dashboard:updateUserAnnonces', function () { return updateUserAnnonces(); });
         } catch (e) {}
         try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
-        try { if (typeof spiritCheckSellerFavAlerts === 'function') spiritCheckSellerFavAlerts(); } catch (e) {}
         try { if (typeof spiritCheckSellerOfferBanner === 'function') spiritCheckSellerOfferBanner(); } catch (e) {}
         try { if (typeof spiritLoadSellerOffersList === 'function') spiritLoadSellerOffersList(); } catch (e) {}
         try { if (typeof spiritLoadBuyerOffersSent === 'function') spiritLoadBuyerOffersSent(); } catch (e) {}
@@ -6715,6 +6798,7 @@ function spiritRefreshUserScopedUi() {
         if(document.getElementById('my-purchases-list')) document.getElementById('my-purchases-list').innerHTML = '';
         if(document.getElementById('user-annonces-list')) document.getElementById('user-annonces-list').innerHTML = '';
         if(document.getElementById('user-favorites-list')) document.getElementById('user-favorites-list').innerHTML = '';
+        if(document.getElementById('spirit-seller-received-favorites-list')) document.getElementById('spirit-seller-received-favorites-list').innerHTML = '';
         spiritScopedUiLastUserId = currentScopedUid;
     }
 
@@ -7717,7 +7801,7 @@ function spiritSyncAccountTabsForPublicVisitor() {
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
         hide = !!(p && p.userId && me && String(p.userId) !== me);
     } catch (e) {}
-    ['btn-messages', 'btn-achats', 'btn-ventes', 'btn-portefeuille', 'btn-params'].forEach(function (id) {
+    ['btn-messages', 'btn-achats', 'btn-ventes', 'btn-portefeuille', 'btn-params', 'btn-favoris-recus'].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el) return;
         if (hide) el.style.setProperty('display', 'none', 'important');
