@@ -3039,7 +3039,12 @@ function spiritRefreshAllAccountNotifs() {
 }
 try { window.spiritRefreshAllAccountNotifs = spiritRefreshAllAccountNotifs; } catch (eRAN) {}
 
-/** Alertes favoris : uniquement Supabase (favorites × products_live), zéro localStorage. */
+/** Pastille liste d’envie après ajout cœur (acheteur) — jusqu’à consultation de l’onglet. */
+function spiritGetWishlistTabPulseUntilKey(uidN) {
+    return 'spirit_wishlist_tab_pulse_until__' + String(uidN || '').trim().toLowerCase();
+}
+
+/** Alertes favoris : Supabase (favorites × products_live) + pulse court après ajout à la liste d’envie. */
 async function checkGlobalNotifications() {
     try { localStorage.removeItem('spirit_fav_snap_v2'); } catch (e) {}
     var dot = document.getElementById('favorites-tab-dot');
@@ -3057,6 +3062,11 @@ async function checkGlobalNotifications() {
             if (soldLbl) soldLbl.style.display = 'none';
             return;
         }
+        var wishPulseActive = false;
+        try {
+            var _tu = parseInt(localStorage.getItem(spiritGetWishlistTabPulseUntilKey(uidN)) || '0', 10);
+            wishPulseActive = Number.isFinite(_tu) && _tu > Date.now();
+        } catch (eWp) {}
         try {
             var uidCandidates = [uidN];
             var uRaw = String(uid || '').trim();
@@ -3069,18 +3079,21 @@ async function checkGlobalNotifications() {
                 favOut = await _spirit.from('favorites').select('product_id').eq('user_id', uRaw);
             }
             if (favOut.error || !favOut.data || favOut.data.length === 0) {
-                spiritSetNotifDotVisible(dot, false);
+                spiritSetNotifDotVisible(dot, wishPulseActive);
                 if (soldLbl) soldLbl.style.display = 'none';
                 return;
             }
             var ids = favOut.data.map(function (r) { return Number(r.product_id); }).filter(function (n) { return Number.isFinite(n); });
             if (ids.length === 0) {
-                spiritSetNotifDotVisible(dot, false);
+                spiritSetNotifDotVisible(dot, wishPulseActive);
                 if (soldLbl) soldLbl.style.display = 'none';
                 return;
             }
             var pl = await _spirit.from('products_live').select('id,status,price,old_price').in('id', ids);
-            if (pl.error) return;
+            if (pl.error) {
+                spiritSetNotifDotVisible(dot, wishPulseActive);
+                return;
+            }
             var anySold = false;
             var anyPriceDrop = false;
             (pl.data || []).forEach(function (row) {
@@ -3094,9 +3107,9 @@ async function checkGlobalNotifications() {
                 if (typeof window.spiritT === 'function') soldLbl.textContent = window.spiritT('fav_sold');
                 soldLbl.style.display = anySold ? 'inline' : 'none';
             }
-            spiritSetNotifDotVisible(dot, !!(anySold || anyPriceDrop));
+            spiritSetNotifDotVisible(dot, !!(anySold || anyPriceDrop) || wishPulseActive);
         } catch (e) {
-            spiritSetNotifDotVisible(dot, false);
+            spiritSetNotifDotVisible(dot, wishPulseActive);
             if (soldLbl) soldLbl.style.display = 'none';
         }
     } finally {
@@ -3110,6 +3123,10 @@ function spiritAcknowledgeFavoriteTab() {
     spiritSetNotifDotVisible(dot, false);
     var soldLbl = document.getElementById('favorites-tab-sold');
     if (soldLbl) soldLbl.style.display = 'none';
+    try {
+        var _u = spiritNormUid(spiritGetCurrentUserId());
+        if (_u) localStorage.removeItem(spiritGetWishlistTabPulseUntilKey(_u));
+    } catch (eRm) {}
     try { spiritSyncAccountNotificationPulse(); } catch (eP3) {}
 }
 /* Supabase: favorites.user_id = text ; product_id = bigint (FK products_live.id).
@@ -3195,6 +3212,9 @@ async function spiritToggleFavorite(productId, ev, favBtn) {
                 spiritUserFavoriteSet.add(pid);
                 spiritFavoriteCountMap[ks] = (spiritFavoriteCountMap[ks] || 0) + 1;
                 flashNeon = true;
+                try {
+                    localStorage.setItem(spiritGetWishlistTabPulseUntilKey(uidN), String(Date.now() + 1000 * 60 * 60 * 72));
+                } catch (ePulseKey) {}
                 try {
                     if (typeof spiritSanctuaryShowToast === 'function') {
                         var _wl = (typeof window.spiritT === 'function') ? window.spiritT('toast_wishlist_added') : '';
@@ -3416,7 +3436,7 @@ async function spiritCheckSellerFavAlerts() {
         var lastCheckRaw = '';
         try { lastCheckRaw = localStorage.getItem(lastCheckKey) || ''; } catch (e0) {}
         var lastCheck = lastCheckRaw ? new Date(lastCheckRaw).getTime() : 0;
-        if (Number.isFinite(lastCheck) && lastCheck && (Date.now() - lastCheck) < 180000) return;
+        if (Number.isFinite(lastCheck) && lastCheck && (Date.now() - lastCheck) < 45000) return;
         try { localStorage.setItem(lastCheckKey, new Date().toISOString()); } catch (e1) {}
 
         // Timestamp local (évite de spammer le serveur + limite la fenêtre).
@@ -3493,10 +3513,17 @@ function spiritGetDashboardOfferSeenKey(uid) {
     return 'spirit_dashboard_offer_seen__' + String(uid);
 }
 
+/** Dernière consultation des « cœurs » sur tes annonces (vendeur) — pastille Dashboard. */
+function spiritGetDashboardSellerFavSeenKey(uid) {
+    uid = spiritOwnerId(uid);
+    return 'spirit_dashboard_seller_fav_seen__' + String(uid);
+}
+
 function spiritAckDashboardOfferDot() {
     var uid = spiritOwnerId(spiritGetCurrentUserId());
     if (!uid) return;
     try { localStorage.setItem(spiritGetDashboardOfferSeenKey(uid), new Date().toISOString()); } catch (e) {}
+    try { localStorage.setItem(spiritGetDashboardSellerFavSeenKey(uid), new Date().toISOString()); } catch (e2) {}
     var dot = document.getElementById('dashboard-tab-dot');
     spiritSetNotifDotVisible(dot, false);
     try { spiritSyncAccountNotificationPulse(); } catch (eP4) {}
@@ -3512,6 +3539,8 @@ async function spiritCheckDashboardOfferDot() {
         try { seenRaw = localStorage.getItem(spiritGetDashboardOfferSeenKey(uid)) || ''; } catch (e) {}
         var seenTs = seenRaw ? new Date(seenRaw).getTime() : 0;
         if (!Number.isFinite(seenTs)) seenTs = 0;
+
+        var anyOffer = false;
         try {
             var out = await _spirit
                 .from('product_offers')
@@ -3520,16 +3549,53 @@ async function spiritCheckDashboardOfferDot() {
                 .eq('status', 'pending')
                 .order('created_at', { ascending: false })
                 .range(0, 12);
-            if (out.error || !out.data) { spiritSetNotifDotVisible(dot, false); return; }
-            var anyNew = false;
-            (out.data || []).forEach(function (r) {
-                var ct = r && r.created_at ? new Date(r.created_at).getTime() : 0;
-                if (Number.isFinite(ct) && ct > seenTs) anyNew = true;
-            });
-            spiritSetNotifDotVisible(dot, anyNew);
-        } catch (e) {
-            spiritSetNotifDotVisible(dot, false);
-        }
+            if (!out.error && out.data) {
+                (out.data || []).forEach(function (r) {
+                    var ct = r && r.created_at ? new Date(r.created_at).getTime() : 0;
+                    if (Number.isFinite(ct) && ct > seenTs) anyOffer = true;
+                });
+            }
+        } catch (eO) {}
+
+        var anySellerFav = false;
+        try {
+            var seenFavRaw = '';
+            try { seenFavRaw = localStorage.getItem(spiritGetDashboardSellerFavSeenKey(uid)) || ''; } catch (e0) {}
+            var seenFavTs = seenFavRaw ? new Date(seenFavRaw).getTime() : 0;
+            if (!Number.isFinite(seenFavTs)) seenFavTs = 0;
+            var effFavFloor = seenFavTs || (Date.now() - 1000 * 60 * 60 * 24);
+            var ownCandidates = [String(uid)];
+            var uN = spiritNormUid(uid);
+            if (uN && ownCandidates.indexOf(uN) < 0) ownCandidates.push(uN);
+            var pl = await _spirit
+                .from('products_live')
+                .select('id')
+                .in('owner_id', ownCandidates)
+                .order('id', { ascending: false })
+                .range(0, 79);
+            if (!pl.error && pl.data && pl.data.length) {
+                var pids = pl.data.map(function (r) { return Number(r.id); }).filter(function (n) { return Number.isFinite(n); });
+                if (pids.length) {
+                    var fv = await _spirit
+                        .from('favorites')
+                        .select('created_at,user_id')
+                        .in('product_id', pids)
+                        .gte('created_at', new Date(effFavFloor + 500).toISOString())
+                        .order('created_at', { ascending: false })
+                        .limit(150);
+                    if (!fv.error && fv.data) {
+                        var meN = spiritNormUid(uid);
+                        (fv.data || []).forEach(function (r) {
+                            var ct = r && r.created_at ? new Date(r.created_at).getTime() : 0;
+                            var fromN = spiritNormUid(r && r.user_id);
+                            if (fromN && fromN !== meN && Number.isFinite(ct) && ct > effFavFloor) anySellerFav = true;
+                        });
+                    }
+                }
+            }
+        } catch (eF) {}
+
+        spiritSetNotifDotVisible(dot, anyOffer || anySellerFav);
     } finally {
         try { spiritSyncAccountNotificationPulse(); } catch (eP5) {}
     }
