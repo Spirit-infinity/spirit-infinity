@@ -4050,21 +4050,47 @@ function spiritGetPublicProfileCountryForWallet(uid) {
 function spiritCountryToWalletCurrency(countryRaw) {
     var s = String(countryRaw || '').trim().toLowerCase();
     if (!s) return 'EUR';
-    if (s === 'fr' || s === 'fra' || s.indexOf('france') !== -1) return 'EUR';
-    if (s === 'de' || s.indexOf('germany') !== -1 || s.indexOf('allemagne') !== -1) return 'EUR';
-    if (s.indexOf('united states') !== -1 || s === 'us' || s === 'usa' || s.indexOf('états') !== -1 || s.indexOf('etats-unis') !== -1 || s.indexOf('etats unis') !== -1) return 'USD';
-    if (s === 'cn' || s.indexOf('china') !== -1 || s.indexOf('chine') !== -1 || s === '中国') return 'CNY';
-    if (s === 'gb' || s.indexOf('united kingdom') !== -1 || s.indexOf('royaume-uni') !== -1 || s.indexOf('royaume uni') !== -1) return 'EUR';
+    var t = s;
+    try { t = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (eT) { t = s; }
+    if (t === 'fr' || t === 'fra' || t.indexOf('france') !== -1) return 'EUR';
+    if (t === 'de' || t.indexOf('germany') !== -1 || t.indexOf('allemagne') !== -1) return 'EUR';
+    if (
+        t.indexOf('united states') !== -1 ||
+        t === 'us' || t === 'usa' ||
+        t.indexOf('etats-unis') !== -1 || t.indexOf('etats unis') !== -1 ||
+        t.indexOf('etat-unis') !== -1 || t.indexOf('etat unis') !== -1 ||
+        t.indexOf('amerique') !== -1 || t.indexOf('america') !== -1 ||
+        t.indexOf('u.s.a') !== -1 || t === 'u.s.a.'
+    ) return 'USD';
+    if (s.indexOf('états') !== -1 || s.indexOf('États') !== -1) return 'USD';
+    if (t === 'cn' || t.indexOf('china') !== -1 || t.indexOf('chine') !== -1 || s === '中国') return 'CNY';
+    if (t === 'gb' || t.indexOf('united kingdom') !== -1 || t.indexOf('royaume-uni') !== -1 || t.indexOf('royaume uni') !== -1) return 'EUR';
     var euroHints = ['espagne', 'spain', 'italie', 'italy', 'belgique', 'belgium', 'pays-bas', 'netherlands', 'portugal', 'autriche', 'austria', 'irlande', 'ireland', 'luxembourg', 'grèce', 'grece', 'greece', 'finlande', 'finland', 'slovénie', 'slovenia', 'chypre', 'cyprus', 'malte', 'malta', 'estonie', 'estonia', 'lettonie', 'latvia', 'lituanie', 'lithuania'];
     for (var i = 0; i < euroHints.length; i++) {
-        if (s.indexOf(euroHints[i]) !== -1) return 'EUR';
+        if (t.indexOf(euroHints[i]) !== -1) return 'EUR';
     }
     return 'EUR';
 }
+/** Pays profil public en cache : essaie l’ID session + dernier UUID auth (évite décalage 12345 vs uuid). */
+function spiritGetWalletPublicCountryCached() {
+    var u1 = spiritOwnerId(spiritGetCurrentUserId());
+    if (u1) {
+        var c1 = spiritGetPublicProfileCountryForWallet(u1);
+        if (c1) return c1;
+    }
+    try {
+        var u2 = (typeof window !== 'undefined' && window.__spiritLastAuthUid) ? String(window.__spiritLastAuthUid).trim() : '';
+        if (u2 && u2 !== u1) {
+            var c2 = spiritGetPublicProfileCountryForWallet(u2);
+            if (c2) return c2;
+        }
+    } catch (e2) {}
+    return '';
+}
 function spiritGetWalletDisplayCurrency() {
-    var uid = spiritOwnerId(spiritGetCurrentUserId());
-    var pubC = uid ? spiritGetPublicProfileCountryForWallet(uid) : '';
+    var pubC = spiritGetWalletPublicCountryCached();
     if (pubC) return spiritCountryToWalletCurrency(pubC);
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
     var addr = uid ? spiritGetShippingAddressForUid(uid) : null;
     if (addr && addr.country) return spiritCountryToWalletCurrency(addr.country);
     try {
@@ -4078,13 +4104,24 @@ function spiritGetWalletDisplayCurrency() {
     return 'EUR';
 }
 async function spiritSyncWalletCountryFromUserProfile(uid) {
-    uid = spiritOwnerId(uid);
-    if (!uid || typeof _spirit === 'undefined' || !_spirit || !_spirit.from) return;
+    var rawSession = spiritOwnerId(uid != null ? uid : spiritGetCurrentUserId());
+    var qid = rawSession;
+    if (!qid || typeof _spirit === 'undefined' || !_spirit || !_spirit.from) return;
+    if (qid === '12345' || qid === '67890') {
+        try {
+            if (_spirit.auth && typeof _spirit.auth.getUser === 'function') {
+                var au = await _spirit.auth.getUser();
+                var rid = au && au.data && au.data.user && au.data.user.id ? String(au.data.user.id).trim() : '';
+                if (rid) qid = rid;
+            }
+        } catch (eA) {}
+    }
     try {
-        var out = await _spirit.from('user_profiles').select('country').eq('id', uid.toString()).maybeSingle();
+        var out = await _spirit.from('user_profiles').select('country').eq('id', qid.toString()).maybeSingle();
         if (!out.error && out.data) {
             var c = out.data.country != null ? String(out.data.country).trim() : '';
-            spiritSetPublicProfileCountryForWallet(uid, c);
+            spiritSetPublicProfileCountryForWallet(qid, c);
+            if (rawSession && rawSession !== qid) spiritSetPublicProfileCountryForWallet(rawSession, c);
         }
     } catch (e) {}
 }
@@ -6072,6 +6109,7 @@ async function confirmPayment(method) {
         if (uid) {
             MY_TEST_ID = uid;
             try { window.MY_TEST_ID = uid; } catch (e) {}
+            try { window.__spiritLastAuthUid = uid; } catch (eUid) {}
         }
         var mail = user && user.email ? String(user.email).trim() : '';
         var profileName = '';
@@ -6195,6 +6233,7 @@ async function confirmPayment(method) {
                 if (curEmail0 && curEmail0 !== email && typeof _spirit.auth.signOut === 'function') {
                     await _spirit.auth.signOut();
                     MY_TEST_ID = '';
+                    try { window.__spiritLastAuthUid = ''; } catch (eLa0) {}
                     currentUser = 'VISITEUR';
                     spiritRefreshUserScopedUi();
                 }
@@ -6271,6 +6310,7 @@ async function confirmPayment(method) {
 
         MY_TEST_ID = '';
         try { window.MY_TEST_ID = ''; } catch (e) {}
+        try { window.__spiritLastAuthUid = ''; } catch (eUid2) {}
         currentUser = 'VISITEUR';
         var btnReg = document.getElementById('btn-reg');
         if (btnReg) btnReg.innerText = spiritT('btn_reg');
@@ -8444,8 +8484,8 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     var cIn = document.getElementById('spiritPublicCountryInput');
     if (cIn) cIn.value = (row && row.country) ? String(row.country) : 'France';
     try {
-        if (isOwner && typeof spiritSetPublicProfileCountryForWallet === 'function') {
-            spiritSetPublicProfileCountryForWallet(spiritGetCurrentUserId(), (row && row.country) ? String(row.country) : '');
+        if (isOwner && typeof spiritSyncWalletCountryFromUserProfile === 'function') {
+            void spiritSyncWalletCountryFromUserProfile(spiritGetCurrentUserId());
         }
     } catch (ePubWal) {}
     var cEd = document.getElementById('spiritPublicCountryEdit');
@@ -8545,8 +8585,11 @@ async function spiritPublicSaveMeta() {
         return;
     }
     try {
-        if (typeof spiritSetPublicProfileCountryForWallet === 'function') {
-            if (countryVal) spiritSetPublicProfileCountryForWallet(resolvedUserId, countryVal);
+        if (countryVal && typeof spiritSetPublicProfileCountryForWallet === 'function') {
+            spiritSetPublicProfileCountryForWallet(resolvedUserId, countryVal);
+            var sessU = spiritGetCurrentUserId();
+            if (sessU && sessU !== resolvedUserId) spiritSetPublicProfileCountryForWallet(sessU, countryVal);
+            try { window.__spiritLastAuthUid = resolvedUserId; } catch (eLa) {}
         }
     } catch (eC) {}
     var cEl = document.getElementById('spiritPublicCountry');
