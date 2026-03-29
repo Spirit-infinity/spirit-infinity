@@ -9583,8 +9583,19 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      created_at timestamptz default now()
    );
    create index if not exists idx_spirit_listing_msg_product on public.spirit_listing_messages(product_id, created_at);
-   -- RLS : utiliser lower() + OR sender_id (évite casse UUID + récursion RLS sur EXISTS seul).
+   -- RLS : NE PAS mettre EXISTS directement sur la même table (récursion → erreur 500 PostgREST).
+   -- Utiliser une fonction SECURITY DEFINER qui lit spirit_listing_messages sans RLS.
    -- alter table public.spirit_listing_messages enable row level security;
+   -- create or replace function public.spirit_listing_thread_has_participant(p_product_id bigint, p_viewer text)
+   -- returns boolean language sql stable security definer set search_path = public as $$
+   --   select exists (
+   --     select 1 from public.spirit_listing_messages m
+   --     where m.product_id = p_product_id
+   --       and lower(trim(m.sender_id)) = lower(trim(p_viewer))
+   --   );
+   -- $$;
+   -- revoke all on function public.spirit_listing_thread_has_participant(bigint, text) from public;
+   -- grant execute on function public.spirit_listing_thread_has_participant(bigint, text) to authenticated;
    -- drop policy if exists "spirit_listing_msg_insert_self" on public.spirit_listing_messages;
    -- create policy "spirit_listing_msg_insert_self" on public.spirit_listing_messages
    --   for insert to authenticated with check (lower(trim(sender_id)) = lower(auth.uid()::text));
@@ -9593,11 +9604,7 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
    --   for select to authenticated using (
    --     lower(trim(seller_id)) = lower(auth.uid()::text)
    --     or lower(trim(sender_id)) = lower(auth.uid()::text)
-   --     or exists (
-   --       select 1 from public.spirit_listing_messages x
-   --       where x.product_id = spirit_listing_messages.product_id
-   --         and lower(trim(x.sender_id)) = lower(auth.uid()::text)
-   --     )
+   --     or public.spirit_listing_thread_has_participant(product_id, auth.uid()::text)
    --   );
    Buckets Storage publics : "avatars", "sanctuary" (ou ajuster les noms dans le code).
    --------------------------------------------------------------------------- */
