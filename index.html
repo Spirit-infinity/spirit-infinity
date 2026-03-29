@@ -1917,24 +1917,36 @@
                 transform: none;
                 width: 100%;
                 flex: 1;
-                min-height: 34px;
+                min-height: 36px;
                 align-self: stretch;
                 box-sizing: border-box;
-                border-radius: 8px;
+                border-radius: 999px !important;
                 contain: layout;
-                border: none !important;
-                box-shadow: none !important;
-                background: #0a0a0a !important;
+                border: 1px solid rgba(255, 102, 0, 0.55) !important;
+                box-shadow: 0 0 16px rgba(255, 102, 0, 0.28), inset 0 1px 0 rgba(255, 180, 120, 0.12) !important;
+                background: linear-gradient(165deg, rgba(55, 28, 8, 0.95) 0%, rgba(18, 10, 4, 0.98) 45%, #0a0604 100%) !important;
+                padding: 3px;
+                gap: 4px;
             }
             .spirit-mob-kind-slot .market-kind-toggle button {
                 flex: 1 1 0;
-                padding: 0 4px;
+                padding: 0 8px;
                 font-size: 0.52rem;
                 font-weight: 800;
-                letter-spacing: 0.03em;
-                min-height: 34px;
+                letter-spacing: 0.04em;
+                min-height: 30px;
+                border-radius: 999px !important;
                 box-sizing: border-box;
-                line-height: 1.1;
+                line-height: 1.15;
+                border: none !important;
+                background: transparent !important;
+                color: #b8b8b8 !important;
+                transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+            }
+            .spirit-mob-kind-slot .market-kind-toggle button.active {
+                background: linear-gradient(180deg, #ff8c33 0%, #ff6600 55%, #e65c00 100%) !important;
+                color: #0a0a0a !important;
+                box-shadow: 0 0 12px rgba(255, 102, 0, 0.55), inset 0 1px 0 rgba(255, 220, 180, 0.35) !important;
             }
             .spirit-mob-search-slot .spirit-market-search-bar {
                 width: 100%;
@@ -3710,6 +3722,18 @@ function normalizeSpiritCat(rawCat) {
     }
     return 'figurine';
 }
+
+/** Rubrique marketplace : toujours respecter `products_live.cat` (figurine | statue) si présent — évite de mélanger les annonces quand `category` contient « 1/4 », « pvc », etc. */
+function spiritMarketListingKind(item) {
+    if (!item) return 'figurine';
+    var raw = item.cat;
+    if (raw != null && String(raw).trim() !== '') {
+        var t = String(raw).toLowerCase().trim();
+        if (t === 'statue' || t === 'figurine') return t;
+    }
+    return normalizeSpiritCat(item.category || item.cat || '');
+}
+try { window.spiritMarketListingKind = spiritMarketListingKind; } catch (eMLK) {}
 
 /** Décode la ligne MATIÈRE en tête de description (annonces rubrique Statue). */
 function spiritExtractMatiereFromDesc(raw) {
@@ -5683,7 +5707,7 @@ async function spiritFetchOwnerPseudo(uid) {
 function renderMarket(filteredData = null) {
         const sourceData = filteredData || marketData;
         const dataToRender = Array.isArray(sourceData) ? sourceData.filter(item => {
-            const cat = normalizeSpiritCat(item.cat || item.category);
+            const cat = spiritMarketListingKind(item);
             return marketKindMode === 'statues' ? cat === 'statue' : cat === 'figurine';
         }) : [];
 
@@ -7651,7 +7675,7 @@ async function confirmPayment(method) {
         const scale = document.getElementById('sScale') ? document.getElementById('sScale').value : 'all';
         const cond = document.getElementById('sCond') ? document.getElementById('sCond').value : 'all';
         const filtered = (Array.isArray(marketData) ? marketData : []).filter(item => {
-            if (normalizeSpiritCat(item.cat || item.category) !== 'statue') return false;
+            if (spiritMarketListingKind(item) !== 'statue') return false;
             const itemPrice = spiritConvertCurrency((typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0)), 'EUR', marketCurrencyMode);
             let matchPrice = true;
             if (pRange !== 'all') {
