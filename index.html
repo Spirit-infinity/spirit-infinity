@@ -1891,18 +1891,19 @@
                 flex-direction: row;
                 flex-wrap: nowrap;
                 align-items: stretch;
-                gap: 8px;
+                gap: 6px;
                 width: 100%;
                 min-width: 0;
             }
             .spirit-mob-kind-slot {
-                flex: 1 1 0;
+                flex: 1 1 56%;
+                max-width: 58%;
                 min-width: 0;
                 display: flex;
                 align-items: stretch;
             }
             .spirit-mob-vue-slot {
-                flex: 1 1 0;
+                flex: 1 1 44%;
                 min-width: 0;
                 display: flex;
                 align-items: stretch;
@@ -1916,19 +1917,22 @@
                 transform: none;
                 width: 100%;
                 flex: 1;
-                min-height: 40px;
+                min-height: 34px;
                 align-self: stretch;
                 box-sizing: border-box;
                 border-radius: 8px;
                 contain: layout;
+                border: none !important;
+                box-shadow: none !important;
+                background: #0a0a0a !important;
             }
             .spirit-mob-kind-slot .market-kind-toggle button {
                 flex: 1 1 0;
-                padding: 0 5px;
-                font-size: 0.56rem;
+                padding: 0 4px;
+                font-size: 0.52rem;
                 font-weight: 800;
                 letter-spacing: 0.03em;
-                min-height: 40px;
+                min-height: 34px;
                 box-sizing: border-box;
                 line-height: 1.1;
             }
@@ -1955,7 +1959,7 @@
                 justify-content: stretch;
                 align-items: stretch;
                 width: 100%;
-                min-height: 40px;
+                min-height: 30px;
                 min-width: 0;
                 position: relative;
                 z-index: 1;
@@ -1964,22 +1968,22 @@
             .spirit-mob-vue-slot .market-view-box {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                grid-template-rows: auto minmax(40px, 1fr);
-                column-gap: 6px;
-                row-gap: 3px;
+                grid-template-rows: auto minmax(26px, 1fr);
+                column-gap: 4px;
+                row-gap: 2px;
                 margin-left: 0;
                 width: 100%;
-                min-height: 40px;
+                min-height: 30px;
                 align-items: center;
                 overflow: visible;
                 box-sizing: border-box;
             }
             .spirit-mob-vue-slot .market-view-box > span {
-                font-size: 0.52rem;
-                color: #888;
-                letter-spacing: 0.06em;
+                font-size: 0.46rem;
+                color: #777;
+                letter-spacing: 0.05em;
                 text-transform: uppercase;
-                line-height: 1.1;
+                line-height: 1.05;
             }
             .spirit-mob-vue-slot .market-view-box > span:nth-child(1) {
                 grid-column: 1;
@@ -2000,21 +2004,36 @@
             .spirit-mob-vue-slot .market-view-box select {
                 width: 100%;
                 min-width: 0;
-                min-height: 40px;
-                height: 40px;
-                font-size: 0.58rem;
-                padding: 4px 6px;
+                min-height: 26px;
+                height: 26px;
+                font-size: 0.46rem;
+                padding: 1px 3px;
                 box-sizing: border-box;
                 touch-action: manipulation;
+                border: 1px solid #3a3a3a !important;
+                background: #0b0b0b !important;
+                color: #eee !important;
+                box-shadow: none !important;
             }
             #marketplaceSection .card .img-placeholder .spirit-card-img-wrap img,
             #marketStatuesView .card .img-placeholder .spirit-card-img-wrap img {
                 object-fit: cover !important;
-                object-position: center center !important;
+                object-position: center 45% !important;
             }
             #marketplaceSection .card .spirit-card-img-wrap,
             #marketStatuesView .card .spirit-card-img-wrap {
                 overflow: hidden;
+                display: block;
+            }
+            #marketplaceSection .card .img-placeholder,
+            #marketStatuesView .card .img-placeholder {
+                display: flex !important;
+                align-items: stretch !important;
+            }
+            #marketplaceSection .card .img-placeholder .spirit-card-img-wrap,
+            #marketStatuesView .card .img-placeholder .spirit-card-img-wrap {
+                width: 100%;
+                align-self: stretch;
             }
             #marketplaceSection .sidebar {
                 display: none !important;
@@ -2037,12 +2056,18 @@
                 overflow-x: visible !important;
             }
             #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) {
+                display: grid !important;
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                 gap: 10px !important;
             }
             #marketStatuesView .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) {
+                display: grid !important;
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                 gap: 10px !important;
+            }
+            #marketplaceSection #marketGridNative.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2),
+            #marketplaceSection #marketGridStatues.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) {
+                display: grid !important;
             }
         }
         @media (max-width: 900px) and (orientation: portrait) {
@@ -2247,7 +2272,7 @@
         <div class="market-toolbar">
             <div class="market-view-box">
                 <span data-i18n="market_view">Vue</span>
-                <select id="marketViewSelect" onchange="setMarketView(this.value)" aria-label="Vue des annonces">
+                <select id="marketViewSelect" onchange="setMarketView(this.value || 'gallery')" aria-label="Vue des annonces">
                     <option value="gallery" data-i18n="market_gallery">Galerie</option>
                     <option value="list" data-i18n="market_list">Liste</option>
                 </select>
@@ -7723,6 +7748,13 @@ async function confirmPayment(method) {
         } catch (eLs) {}
         spiritSyncMarketViewSelectOptions();
         spiritApplyMarketViewClasses();
+        try {
+            var _wMv = window.innerWidth || 9999;
+            if (_wMv <= 900) {
+                if (typeof applyFilters === 'function') applyFilters();
+                else if (typeof renderMarket === 'function') renderMarket();
+            }
+        } catch (eMv) {}
     }
     window.setMarketView = setMarketView;
 
