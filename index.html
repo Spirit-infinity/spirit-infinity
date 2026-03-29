@@ -218,7 +218,9 @@
             }
             .grid {
                 flex: 0 0 auto;
-                min-width: min(960px, max(100%, calc(100vw - 48px)));
+                /* Largeur mini type bureau : en portrait (étroit) ça force le défilement horizontal comme en paysage */
+                min-width: 960px;
+                width: auto;
                 min-height: 0;
             }
             .statues-layout {
@@ -239,7 +241,8 @@
             }
             .statues-grid-wrap {
                 flex: 0 0 auto;
-                min-width: min(960px, max(100%, calc(100vw - 48px)));
+                min-width: 960px;
+                width: auto;
                 min-height: 0;
             }
             .dash-container,
@@ -1538,6 +1541,30 @@
                 width: 95% !important;
                 max-width: 95vw !important;
                 box-sizing: border-box;
+            }
+        }
+
+        /* Portrait (écran vertical) : même logique que paysage — scroll horizontal fluide, pas de grille écrasée */
+        @media (orientation: portrait) and (max-width: 900px) {
+            #marketplaceSection.container,
+            .statues-layout {
+                overflow-x: auto;
+                overflow-y: visible;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
+                scroll-padding-inline: max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-right));
+            }
+            #marketplaceSection.container {
+                touch-action: pan-x pan-y;
+            }
+            .hottoys-grid {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
+            }
+            header .menu-center {
+                overscroll-behavior-x: contain;
+                touch-action: pan-x pan-y;
             }
         }
     </style>
