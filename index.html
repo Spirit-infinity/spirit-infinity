@@ -2858,6 +2858,10 @@
                 <div id="pGallery" style="background:#111; min-height:350px; border:1px solid #333; margin-bottom:15px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; overflow:hidden;"></div>
                 <div class="chat-container">
                     <div id="msg-alert" class="msg-safety-alert" data-key="safety_msg_escrow">SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+                        <span style="font-size:0.62rem;color:#888;">Discussion · affichage selon ton pays (profil)</span>
+                        <button type="button" id="btnClearListingChat" class="btn-action" style="font-size:0.55rem;display:none;padding:4px 10px;background:#2a1010;color:#e88;border:1px solid rgba(200,80,80,0.45);" onclick="spiritDeleteListingChatThread()">Effacer tout le fil</button>
+                    </div>
                     <div class="chat-messages" id="chatMsgs"></div>
                     <div class="chat-input-area">
                         <input type="text" id="chatInput" placeholder="Votre message..." style="margin:0; border-radius:2px 0 0 2px;">
@@ -7594,6 +7598,141 @@ async function spiritNotifyListingMessageRecipients(productId, sellerId, senderI
     } catch (e) {}
 }
 
+function spiritChatEscapeHtml(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+function spiritChatEscapeAttr(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+/** Pays profil (FR / USA / CN / ES) → langue d’affichage des messages annonce. */
+function spiritCountryToListingChatLang(countryRaw) {
+    var c = String(countryRaw || '').trim().toUpperCase();
+    if (c === 'USA' || c === 'US') return 'EN';
+    if (c === 'CN') return 'ZH';
+    if (c === 'ES') return 'ES';
+    if (c === 'FR') return 'FR';
+    return '';
+}
+function spiritListingChatLangNormalize(code) {
+    var c = String(code || 'FR').trim().toUpperCase();
+    if (c === 'CN' || c === 'ZH') return 'ZH';
+    if (['FR', 'EN', 'ES', 'ZH'].indexOf(c) >= 0) return c;
+    return 'FR';
+}
+function spiritListingChatLangToMyMemory(code) {
+    var c = spiritListingChatLangNormalize(code);
+    if (c === 'ZH') return 'zh-CN';
+    if (c === 'EN') return 'en';
+    if (c === 'ES') return 'es';
+    return 'fr';
+}
+async function spiritListingChatViewerLang() {
+    var fallback = typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR';
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid || !_spirit) return spiritListingChatLangNormalize(fallback);
+    try {
+        var out = await _spirit.from('user_profiles').select('country').eq('id', uid).maybeSingle();
+        if (!out.error && out.data) {
+            var fromCo = spiritCountryToListingChatLang(out.data.country);
+            if (fromCo) return spiritListingChatLangNormalize(fromCo);
+        }
+    } catch (e) {}
+    return spiritListingChatLangNormalize(fallback);
+}
+/** Traduction gratuite (quota limité). Si échec CORS/quota, le texte original s’affiche. */
+async function spiritTranslateListingMessage(text, fromLang, toLang) {
+    var raw = String(text || '').trim();
+    if (!raw) return '';
+    var f = spiritListingChatLangNormalize(fromLang);
+    var t = spiritListingChatLangNormalize(toLang);
+    if (f === t) return raw;
+    var fromM = spiritListingChatLangToMyMemory(f);
+    var toM = spiritListingChatLangToMyMemory(t);
+    if (fromM === toM) return raw;
+    var url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(raw.slice(0, 480)) + '&langpair=' + encodeURIComponent(fromM + '|' + toM);
+    try {
+        var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        var to = ac ? setTimeout(function () { try { ac.abort(); } catch (eA) {} }, 14000) : null;
+        var res = await fetch(url, ac ? { signal: ac.signal } : {});
+        if (to) clearTimeout(to);
+        if (!res.ok) return '';
+        var j = await res.json();
+        if (j && (j.responseStatus === 403 || j.responseStatus === 429)) return '';
+        var out = j && j.responseData && j.responseData.translatedText ? String(j.responseData.translatedText).trim() : '';
+        return out || '';
+    } catch (e) {
+        return '';
+    }
+}
+async function spiritApplyListingChatTranslations() {
+    if (!selectedProduct || !selectedProduct.chat || !selectedProduct.chat.length) return;
+    var viewLang = await spiritListingChatViewerLang();
+    var vNorm = spiritListingChatLangNormalize(viewLang);
+    var meN = spiritNormUid(spiritGetCurrentUserId());
+    var list = selectedProduct.chat;
+    for (var idx = 0; idx < list.length; idx++) {
+        var m = list[idx];
+        m.body_orig = m.text;
+        if (meN && spiritNormUid(m.sender_id) === meN) {
+            m.display_text = m.text;
+            m._translated = false;
+            continue;
+        }
+        var aLang = spiritListingChatLangNormalize(m.author_lang || 'FR');
+        if (aLang === vNorm || !String(m.text || '').trim()) {
+            m.display_text = m.text;
+            m._translated = false;
+            continue;
+        }
+        var tr = await spiritTranslateListingMessage(m.text, aLang, vNorm);
+        if (tr && tr !== m.text) {
+            m.display_text = tr;
+            m._translated = true;
+        } else {
+            m.display_text = m.text;
+            m._translated = false;
+        }
+    }
+}
+function spiritRefreshListingChatSellerUi() {
+    try {
+        var btn = document.getElementById('btnClearListingChat');
+        if (!btn || !selectedProduct) {
+            if (btn) btn.style.display = 'none';
+            return;
+        }
+        var me = spiritNormUid(spiritGetCurrentUserId());
+        var seller = spiritNormUid(selectedProduct.owner_id || selectedProduct.owner);
+        btn.style.display = (me && seller && me === seller) ? 'inline-block' : 'none';
+    } catch (e) {}
+}
+async function spiritDeleteListingChatThread() {
+    if (!selectedProduct || !_spirit || spiritListingMsgTableMissing) return;
+    var me = spiritNormUid(spiritGetCurrentUserId());
+    var seller = spiritNormUid(selectedProduct.owner_id || selectedProduct.owner);
+    if (!me || me !== seller) return;
+    if (!confirm('Supprimer tout le fil de discussion de cette annonce ? Les messages seront effacés pour tout le monde.')) return;
+    var pid = spiritFavoriteProductId(selectedProduct);
+    if (pid == null) return;
+    try {
+        var del = await _spirit.from(SPIRIT_LISTING_MSG_TABLE).delete().eq('product_id', pid).eq('seller_id', seller);
+        if (del && del.error) {
+            alert('Suppression impossible : ' + (del.error.message || 'vérifie la policy DELETE (vendeur) sur spirit_listing_messages.'));
+            return;
+        }
+    } catch (e) {
+        alert('Suppression impossible.');
+        return;
+    }
+    selectedProduct.chat = [];
+    try { if (typeof renderChatMessages === 'function') renderChatMessages(); } catch (eR) {}
+}
+try { window.spiritDeleteListingChatThread = spiritDeleteListingChatThread; } catch (eDelWin) {}
+
 async function spiritLoadListingMessagesForProduct(productId) {
     if (!selectedProduct) return;
     selectedProduct.chat = [];
@@ -7607,7 +7746,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         return;
     }
     try {
-        var q = await _spirit.from(SPIRIT_LISTING_MSG_TABLE).select('sender_id,body,created_at').eq('product_id', pid).order('created_at', { ascending: true }).range(0, 400);
+        var q = await _spirit.from(SPIRIT_LISTING_MSG_TABLE).select('sender_id,body,created_at,author_lang').eq('product_id', pid).order('created_at', { ascending: true }).range(0, 400);
         if (q && q.error) {
             spiritListingMsgMarkMissingIf404(q.error);
             try {
@@ -7626,8 +7765,10 @@ async function spiritLoadListingMessagesForProduct(productId) {
         rows.forEach(function (r) {
             var sid = String(r.sender_id || '').trim();
             var uname = map[sid] || spiritSanctuaryFallbackLabel(sid);
-            selectedProduct.chat.push({ user: uname, text: String(r.body || ''), sender_id: sid });
+            var al = String(r.author_lang || 'FR').trim().toUpperCase() || 'FR';
+            selectedProduct.chat.push({ user: uname, text: String(r.body || ''), sender_id: sid, author_lang: al });
         });
+        try { await spiritApplyListingChatTranslations(); } catch (eTr) {}
     } catch (e) {
         spiritListingMsgMarkMissingIf404(e);
     }
@@ -7646,9 +7787,20 @@ async function spiritLoadListingMessagesForProduct(productId) {
         if (pid == null) { alert('Annonce sans identifiant : impossible d\'envoyer le message.'); return; }
         var sellerId = spiritOwnerId(selectedProduct.owner_id || selectedProduct.owner);
         if (!sellerId) { alert('Vendeur introuvable.'); return; }
+        var authorLangIns = typeof spiritListingChatLangNormalize === 'function'
+            ? spiritListingChatLangNormalize(typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR')
+            : 'FR';
         if (!_spirit || spiritListingMsgTableMissing) {
             if (!selectedProduct.chat) selectedProduct.chat = [];
-            selectedProduct.chat.push({ user: currentUser, text: text, sender_id: me });
+            selectedProduct.chat.push({
+                user: currentUser,
+                text: text,
+                sender_id: me,
+                author_lang: authorLangIns,
+                body_orig: text,
+                display_text: text,
+                _translated: false
+            });
             input.value = '';
             renderChatMessages();
             return;
@@ -7660,7 +7812,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 product_id: pid,
                 seller_id: sellerIdNorm,
                 sender_id: meNorm,
-                body: String(text)
+                body: String(text),
+                author_lang: authorLangIns
             });
             if (ins && ins.error) {
                 spiritListingMsgMarkMissingIf404(ins.error);
@@ -7676,7 +7829,15 @@ async function spiritLoadListingMessagesForProduct(productId) {
         try { await spiritLoadListingMessagesForProduct(pid); } catch (eRel) {}
         if (!selectedProduct.chat || selectedProduct.chat.length === 0) {
             if (!selectedProduct.chat) selectedProduct.chat = [];
-            selectedProduct.chat.push({ user: currentUser, text: text, sender_id: meNorm });
+            selectedProduct.chat.push({
+                user: currentUser,
+                text: text,
+                sender_id: meNorm,
+                author_lang: authorLangIns,
+                body_orig: text,
+                display_text: text,
+                _translated: false
+            });
             if (typeof renderChatMessages === 'function') renderChatMessages();
         }
         try { await spiritNotifyListingMessageRecipients(pid, sellerIdNorm, meNorm, text); } catch (eN) {}
@@ -7686,13 +7847,22 @@ async function spiritLoadListingMessagesForProduct(productId) {
 
     function renderChatMessages() {
         const box = document.getElementById('chatMsgs');
+        if (!box) return;
         box.innerHTML = '';
-        if(selectedProduct && selectedProduct.chat) {
-            selectedProduct.chat.forEach(m => {
-                box.innerHTML += `<div class="msg-line"><span class="msg-user">${m.user}:</span><span class="msg-text">${m.text}</span></div>`;
+        if (selectedProduct && selectedProduct.chat) {
+            selectedProduct.chat.forEach(function (m) {
+                var show = m.display_text != null ? m.display_text : m.text;
+                var orig = m.body_orig != null ? m.body_orig : m.text;
+                var u = spiritChatEscapeHtml(m.user);
+                var t = spiritChatEscapeHtml(show);
+                var hint = m._translated
+                    ? '<span class="spirit-listing-chat-tr" style="font-size:0.58rem;color:#777;display:block;margin-top:3px;" title="' + spiritChatEscapeAttr(orig) + '">Traduction auto · survol pour l’original</span>'
+                    : '';
+                box.innerHTML += '<div class="msg-line"><span class="msg-user">' + u + ':</span><span class="msg-text">' + t + '</span>' + hint + '</div>';
             });
         }
         box.scrollTop = box.scrollHeight;
+        try { spiritRefreshListingChatSellerUi(); } catch (eB) {}
     }
 
     function sendForumMsg() {
@@ -7867,6 +8037,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         } catch (ePn) {}
         // Fonctions de support
         if (typeof renderChatMessages === 'function') renderChatMessages();
+        try { spiritRefreshListingChatSellerUi(); } catch (eLc) {}
         if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier();
     }
     try { window.openProduct = openProduct; } catch (e) {}
@@ -9580,8 +9751,10 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      seller_id text not null,
      sender_id text not null,
      body text not null,
+     author_lang text default 'FR',
      created_at timestamptz default now()
    );
+   -- alter table public.spirit_listing_messages add column if not exists author_lang text default 'FR';
    create index if not exists idx_spirit_listing_msg_product on public.spirit_listing_messages(product_id, created_at);
    -- RLS : NE PAS mettre EXISTS directement sur la même table (récursion → erreur 500 PostgREST).
    -- Utiliser une fonction SECURITY DEFINER qui lit spirit_listing_messages sans RLS.
@@ -9606,6 +9779,10 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
    --     or lower(trim(sender_id)) = lower(auth.uid()::text)
    --     or public.spirit_listing_thread_has_participant(product_id, auth.uid()::text)
    --   );
+   -- Suppression du fil par le vendeur uniquement :
+   -- drop policy if exists "spirit_listing_msg_delete_seller" on public.spirit_listing_messages;
+   -- create policy "spirit_listing_msg_delete_seller" on public.spirit_listing_messages
+   --   for delete to authenticated using (lower(trim(seller_id)) = lower(auth.uid()::text));
    Buckets Storage publics : "avatars", "sanctuary" (ou ajuster les noms dans le code).
    --------------------------------------------------------------------------- */
 var spiritPublicViewUserId = null;
