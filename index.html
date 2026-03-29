@@ -2067,6 +2067,30 @@
                 flex-direction: column !important;
                 overflow-x: visible !important;
             }
+            /* Sinon min-width:1080px (1er bloc ≤900px) pousse le titre MARKET STATUES hors écran en vue Galerie */
+            #marketplaceSection #marketStatuesView .statues-grid-wrap {
+                min-width: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                flex: 1 1 auto !important;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            #marketplaceSection #marketStatuesView .statues-grid-wrap > .cat-title {
+                display: block !important;
+                visibility: visible !important;
+                width: 100%;
+                flex-shrink: 0;
+                order: 0;
+            }
+            #marketplaceSection #marketStatuesView .statues-grid-wrap > #marketGridStatues {
+                order: 1;
+            }
+            #marketplaceSection #marketStatuesView .statues-grid-wrap > .spirit-market-pager {
+                order: 2;
+            }
             /* Pas de display:grid !important ici : ça écrasait le display:none inline sur #marketGridNative en mode Statues (vue Galerie) et réaffichait les figurines. */
             #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -2080,30 +2104,33 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                 gap: 10px !important;
             }
-        }
-        @media (max-width: 900px) and (orientation: portrait) {
-            #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .img-placeholder {
+            /* Même cartes que Market Spirit : figurines + statues (toutes orientations ≤900px) */
+            #marketGridNative.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .img-placeholder,
+            #marketGridStatues.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .img-placeholder {
                 height: 140px !important;
                 min-height: 0;
                 padding: 0 !important;
                 box-sizing: border-box;
                 align-items: stretch !important;
-                justify-content: stretch !important;
             }
-            #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .spirit-card-img-wrap {
+            #marketGridNative.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .spirit-card-img-wrap,
+            #marketGridStatues.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .spirit-card-img-wrap {
                 height: 100% !important;
                 min-height: 0 !important;
                 flex: 1 1 auto;
             }
-            #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .card-info {
+            #marketGridNative.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .card-info,
+            #marketGridStatues.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .card-info {
                 padding: 8px 10px;
                 min-height: 0;
                 gap: 4px;
             }
-            #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .price {
+            #marketGridNative.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .price,
+            #marketGridStatues.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .price {
                 font-size: 0.95rem;
             }
-            #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .title {
+            #marketGridNative.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .title,
+            #marketGridStatues.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .title {
                 font-size: 0.65rem;
                 height: auto;
                 max-height: 2.6em;
@@ -2113,7 +2140,8 @@
                 -webkit-box-orient: vertical;
                 overflow: hidden;
             }
-            #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .btn-action {
+            #marketGridNative.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .btn-action,
+            #marketGridStatues.grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .btn-action {
                 font-size: 0.5rem !important;
                 padding: 6px 8px !important;
             }
