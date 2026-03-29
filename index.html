@@ -401,6 +401,194 @@
                 margin-left: auto;
                 margin-right: auto;
             }
+
+            /* Mon compte (mobile) : achats centrés, liste d’envie / favoris, sanctuaire */
+            #accountModal #tab-achats,
+            #accountModal #tab-liste-envie,
+            #accountModal #tab-favoris-recus,
+            #accountModal #tab-sanctuary {
+                overflow-x: hidden;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            #accountModal #my-purchases-list {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            #accountModal #my-purchases-list .spirit-purchase-card {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            #accountModal #my-purchases-list .spirit-purchase-card__row {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            #accountModal #my-purchases-list .spirit-purchase-card__price {
+                text-align: left;
+                align-self: flex-start;
+            }
+            #accountModal #my-purchases-list .spirit-purchase-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                width: 100%;
+            }
+            #accountModal #tab-liste-envie .spirit-fav-account-row,
+            #accountModal #tab-favoris-recus .spirit-fav-account-row {
+                border-radius: 12px;
+                background: linear-gradient(165deg, rgba(22, 22, 22, 0.98) 0%, rgba(8, 8, 8, 0.99) 100%);
+                border: 1px solid rgba(255, 102, 0, 0.28);
+                box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+                padding: 14px 12px !important;
+            }
+            #accountModal .spirit-fav-card-inner {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+            }
+            #accountModal .spirit-fav-actions {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+                width: 100%;
+            }
+            #accountModal .spirit-fav-actions .btn-action {
+                flex: 1 1 calc(50% - 6px);
+                min-width: 0;
+                text-align: center;
+                justify-content: center;
+            }
+            #accountModal #tab-sanctuary #spiritAccountSanctuaryRoot {
+                padding: 10px !important;
+            }
+            #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-card {
+                align-items: center;
+                text-align: center;
+            }
+            #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-thumb-wrap {
+                width: min(240px, 88vw) !important;
+                min-width: 0 !important;
+                max-width: 100%;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+            #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-meta {
+                width: 100%;
+                max-width: 100%;
+                text-align: center;
+            }
+            #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg {
+                grid-template-columns: repeat(auto-fill, minmax(min(140px, 46vw), 1fr)) !important;
+                justify-items: center;
+            }
+            #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap {
+                width: min(200px, 46vw) !important;
+                min-width: 0 !important;
+            }
+            #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-style,
+            #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-style2 {
+                grid-template-columns: minmax(0, 1fr) !important;
+                justify-items: center;
+            }
+            #accountModal #spiritAccountSanctuaryGrid .spirit-san-add-tile {
+                width: min(220px, 82vw) !important;
+                min-width: 0 !important;
+                align-self: center !important;
+            }
+            #accountModal #spiritAccountSanctuaryRoot .spirit-sanctuary-toolbar {
+                justify-content: center;
+                gap: 8px;
+            }
+            #accountModal #spiritAccountSanctuaryRoot .spirit-sanctuary-toolbar .spirit-san-view-acc {
+                flex: 1 1 42%;
+                min-width: 0;
+                text-align: center;
+            }
+
+            /* Vendre & certifier : tout tient sur l’écran téléphone (≤900px) */
+            #certifModal.overlay {
+                align-items: flex-start;
+                padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+            }
+            #certifModal .modal-content {
+                width: calc(100vw - 14px) !important;
+                max-width: calc(100vw - 14px) !important;
+                max-height: min(93dvh, 93vh);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                box-sizing: border-box;
+                padding: 8px 9px !important;
+            }
+            #certifModal .steps {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 4px 6px;
+                margin-bottom: 8px;
+            }
+            #certifModal .step {
+                font-size: 0.5rem;
+                letter-spacing: 0.02em;
+                padding: 5px 4px;
+                flex: 1 1 22%;
+                min-width: 0;
+                text-align: center;
+            }
+            #certifModal #stepMethod #sell-title {
+                font-size: 0.82rem !important;
+                margin: 6px 0 10px;
+            }
+            #certifModal #stepMethod .btn-action {
+                padding: 9px 10px !important;
+                font-size: 0.54rem !important;
+                line-height: 1.25;
+            }
+            #certifModal .spirit-certif-photo-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 6px !important;
+                margin-bottom: 8px !important;
+            }
+            #certifModal .spirit-certif-photo-grid > div {
+                height: 54px !important;
+                min-height: 54px !important;
+                font-size: 0.48rem !important;
+            }
+            #certifModal #stepInfo h2 {
+                font-size: 0.82rem !important;
+                margin: 0 0 6px;
+            }
+            #certifModal #stepInfo input,
+            #certifModal #stepInfo select,
+            #certifModal #stepInfo textarea {
+                margin: 3px 0 !important;
+                padding: 6px 8px !important;
+                font-size: 0.71rem !important;
+            }
+            #certifModal #stepInfo textarea {
+                min-height: 52px !important;
+            }
+            #certifModal #stepInfo .switch-row {
+                font-size: 0.66rem !important;
+                margin: 4px 0 !important;
+            }
+            #certifModal .spirit-certif-scan-area {
+                height: 72px !important;
+                margin: 10px 0 !important;
+            }
+            #certifModal #stepFinish > div:first-child {
+                padding: 14px !important;
+            }
+            #certifModal #stepFinish h1 {
+                font-size: 1rem !important;
+            }
         }
 
         .btn-action { background: var(--neon-orange); color: black; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 2px; text-transform: uppercase; font-size: 0.75rem; }
@@ -657,6 +845,16 @@
         .spirit-industrial-popup { text-align: center; border: 2px solid var(--neon-orange) !important; background: linear-gradient(180deg, #0a0a0a 0%, #000 100%) !important; box-shadow: 0 0 36px rgba(255, 102, 0, 0.35) !important; }
         .spirit-industrial-popup-text { color: #ccc; font-size: 0.85rem; line-height: 1.45; margin: 16px 0 20px; text-align: left; }
         .spirit-fav-row-alert { border-left: 3px solid #e22 !important; box-shadow: 0 0 12px rgba(238, 34, 34, 0.25); }
+        @media (min-width: 901px) {
+            #accountModal .spirit-fav-card-inner { align-items: flex-start; }
+            #accountModal .spirit-fav-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-end;
+                flex-shrink: 0;
+            }
+        }
         .native { background: var(--spirit-green); color: black; }
         .legacy { background: #0066ff; color: white; }
         /* PRÉCOMMANDES HOT TOYS (grille interne) */
@@ -2680,7 +2878,7 @@
         </div>
         <div id="stepInfo" style="display:none; margin-top:-8px;">
             <h2 style="text-align:center;">PHOTOS & DÉTAILS</h2>
-            <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px; margin-bottom:10px;">
+            <div class="spirit-certif-photo-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px; margin-bottom:10px;">
                 <div id="pBox1" onclick="triggerFile('file1')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 1</div>
                 <div id="pBox2" onclick="triggerFile('file2')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 2</div>
                 <div id="pBox3" onclick="triggerFile('file3')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 3</div>
@@ -2760,7 +2958,7 @@
         </div>
         <div id="stepScan" style="display:none;">
             <h2 id="scanTitle" style="text-align:center;">ANALYSE IA : DÉTECTION CONTREFAÇON</h2>
-            <div style="height:100px; border:1px dashed #333; position:relative; margin:20px 0;"><div class="laser"></div></div>
+            <div class="spirit-certif-scan-area" style="height:100px; border:1px dashed #333; position:relative; margin:20px 0;"><div class="laser"></div></div>
             <p id="scanStatus" style="text-align:center; font-family:monospace;">Analyse des pixels et signatures thermiques...</p>
         </div>
         <div id="stepFinish" style="display:none; text-align:center;">
@@ -4653,17 +4851,17 @@ async function renderUserFavorites() {
         var myUid = spiritOwnerId(spiritGetCurrentUserId());
         if (sellerUid && myUid && sellerUid === myUid && typeof currentUser !== 'undefined' && currentUser) sellerLbl = String(currentUser);
         div.innerHTML =
-            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">' +
-            '<div style="flex:1;min-width:180px;">' +
-            '<div style="font-weight:bold;color:#fff;font-size:0.85rem;">' + titleEsc + '</div>' +
-            '<div style="color:var(--neon-orange);font-size:0.8rem;margin-top:4px;">' + curAmt.toFixed(2) + ' ' + String(p.currency || 'EUR') + tags + '</div>' +
-            '<div style="margin-top:8px;font-size:0.68rem;color:#888;">Vendeur : ' +
+            '<div class="spirit-fav-card-inner" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">' +
+            '<div style="flex:1;min-width:0;">' +
+            '<div style="font-weight:bold;color:#fff;font-size:0.85rem;letter-spacing:0.02em;">' + titleEsc + '</div>' +
+            '<div style="color:var(--neon-orange);font-size:0.8rem;margin-top:6px;">' + curAmt.toFixed(2) + ' ' + String(p.currency || 'EUR') + tags + '</div>' +
+            '<div style="margin-top:10px;font-size:0.68rem;color:#aaa;">Vendeur : ' +
             '<button type="button" class="btn-action spirit-fav-seller-pseudo" data-seller-uid="' + String(sellerUid).replace(/"/g, '') + '" style="font-size:0.58rem;padding:4px 10px;vertical-align:middle;">' + String(sellerLbl).replace(/</g, '&lt;') + '</button>' +
             '</div></div>' +
-            '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">' +
-            '<button type="button" class="btn-action spirit-fav-btn-open" style="font-size:0.6rem;padding:8px;" data-key="fav_open">' + openTxt + '</button>' +
-            '<button type="button" class="btn-action spirit-fav-btn-offer" style="font-size:0.58rem;padding:8px;background:#222;color:var(--neon-orange);border:1px solid rgba(255,102,0,0.4);">FAIRE OFFRE</button>' +
-            '<button type="button" class="btn-action spirit-fav-btn-remove" style="font-size:0.58rem;padding:8px;background:#2a1515;color:#e66;border:1px solid rgba(200,60,60,0.45);">SUPPRIMER</button>' +
+            '<div class="spirit-fav-actions">' +
+            '<button type="button" class="btn-action spirit-fav-btn-open" style="font-size:0.58rem;padding:8px 10px;" data-key="fav_open">' + openTxt + '</button>' +
+            '<button type="button" class="btn-action spirit-fav-btn-offer" style="font-size:0.58rem;padding:8px;background:#1a1208;color:var(--neon-orange);border:1px solid rgba(255,102,0,0.45);">FAIRE OFFRE</button>' +
+            '<button type="button" class="btn-action spirit-fav-btn-remove" style="font-size:0.58rem;padding:8px;background:#1f0f0f;color:#e88;border:1px solid rgba(200,60,60,0.4);">SUPPRIMER</button>' +
             '</div></div>';
         var btOpen = div.querySelector('.spirit-fav-btn-open');
         var btOff = div.querySelector('.spirit-fav-btn-offer');
@@ -5002,18 +5200,18 @@ async function spiritRenderSellerReceivedFavorites() {
             div.className = ((isSold || priceDrop) ? 'spirit-fav-row-alert ' : '') + 'spirit-fav-account-row';
             div.style.cssText = 'background:#111;border:1px solid #333;padding:12px;display:flex;flex-direction:column;gap:10px;cursor:default;';
             div.innerHTML =
-                '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">' +
-                '<div style="flex:1;min-width:180px;">' +
-                '<div style="font-weight:bold;color:#fff;font-size:0.85rem;">' + titleEsc + '</div>' +
-                '<div style="color:var(--neon-orange);font-size:0.8rem;margin-top:4px;">' + curAmt.toFixed(2) + ' ' + String(p.currency || 'EUR') + tags + '</div>' +
+                '<div class="spirit-fav-card-inner" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">' +
+                '<div style="flex:1;min-width:0;">' +
+                '<div style="font-weight:bold;color:#fff;font-size:0.85rem;letter-spacing:0.02em;">' + titleEsc + '</div>' +
+                '<div style="color:var(--neon-orange);font-size:0.8rem;margin-top:6px;">' + curAmt.toFixed(2) + ' ' + String(p.currency || 'EUR') + tags + '</div>' +
                 (when ? '<div style="margin-top:6px;font-size:0.62rem;color:#777;">' + String(when).replace(/</g, '&lt;') + '</div>' : '') +
-                '<div style="margin-top:8px;font-size:0.68rem;color:#888;">' + String(tMem).replace(/</g, '&lt;') +
+                '<div style="margin-top:10px;font-size:0.68rem;color:#aaa;">' + String(tMem).replace(/</g, '&lt;') +
                 '<button type="button" class="btn-action spirit-fav-seller-pseudo" data-spirit-buyer="' + buyer.replace(/"/g, '') + '" style="font-size:0.58rem;padding:4px 10px;vertical-align:middle;margin-left:6px;">…</button>' +
                 '</div></div>' +
-                '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">' +
-                '<button type="button" class="btn-action spirit-fav-btn-open" style="font-size:0.6rem;padding:8px;" data-key="fav_open">' + String(openTxt).replace(/</g, '&lt;') + '</button>' +
-                '<button type="button" class="btn-action spirit-fav-btn-offer" style="font-size:0.58rem;padding:8px;background:#222;color:var(--neon-orange);border:1px solid rgba(255,102,0,0.4);">FAIRE OFFRE</button>' +
-                '<button type="button" class="btn-action spirit-fav-btn-remove" style="font-size:0.58rem;padding:8px;background:#2a1515;color:#e66;border:1px solid rgba(200,60,60,0.45);">SUPPRIMER</button>' +
+                '<div class="spirit-fav-actions">' +
+                '<button type="button" class="btn-action spirit-fav-btn-open" style="font-size:0.58rem;padding:8px 10px;" data-key="fav_open">' + String(openTxt).replace(/</g, '&lt;') + '</button>' +
+                '<button type="button" class="btn-action spirit-fav-btn-offer" style="font-size:0.58rem;padding:8px;background:#1a1208;color:var(--neon-orange);border:1px solid rgba(255,102,0,0.45);">FAIRE OFFRE</button>' +
+                '<button type="button" class="btn-action spirit-fav-btn-remove" style="font-size:0.58rem;padding:8px;background:#1f0f0f;color:#e88;border:1px solid rgba(200,60,60,0.4);">SUPPRIMER</button>' +
                 '</div></div>';
             var btOpen = div.querySelector('.spirit-fav-btn-open');
             var btOff = div.querySelector('.spirit-fav-btn-offer');
@@ -12061,53 +12259,6 @@ async function loadMyPurchases() {
  */
 
 
-    /**
- * RENDU VISUEL DES TRANSACTIONS (ACHATS / VENTES)
- */
-function renderTransactionList(container, data, error, type) {
-    if (error) { container.innerHTML = "Erreur sync."; return; }
-    
-    // Correction : Gestion explicite du cas vide pour éviter l'écran noir
-    if (!data || data.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
-        return;
-    }
-
-    container.innerHTML = data.map(tr => {
-        let actionBtn = "";
-
-        if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:var(--spirit-green); color:black; font-weight:bold; border:none; padding:8px; border-radius:4px; cursor:pointer;">✅ REÇU</button>
-                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:#ff4444; border:1px solid #ff4444; padding:8px; border-radius:4px; cursor:pointer;">⚠️ LITIGE</button>
-                </div>`;
-        } 
-        else if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer; border-radius:4px;">📦 BORDEREAU D'ENVOI</button>`;
-        }
-        else {
-            actionBtn = `<div style="margin-top:10px; font-size:0.7rem; color:#444; text-align:center; border-top:1px solid #111; padding-top:5px;">${tr.status}</div>`;
-        }
-
-        return `
-            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
-                <div style="display:flex; justify-content:space-between; align-items:start;">
-                    <div>
-                        <div style="color:white; font-weight:bold; font-size:0.9rem;">${tr.figurine_name || 'Produit Spirit'}</div>
-                        <div style="font-size:0.6rem; color:#555; margin-top:3px;">ID: ${tr.id}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</div>
-                        <div style="font-size:0.6rem; color:#888;">${new Date(tr.created_at).toLocaleDateString()}</div>
-                    </div>
-                </div>
-                ${actionBtn}
-            </div>
-        `;
-    }).join('');
-}
-
 /**
  * ACTION : CONFIRMER RÉCEPTION (DÉBLOQUE LES FONDS)
  */
@@ -12179,29 +12330,32 @@ function renderTransactionList(container, data, error, type) {
         return;
     }
 
-    container.innerHTML = data.map(tr => {
-        // Logique des boutons : Bordereau pour VENTES, Valider pour ACHATS
-        let actionBtn = "";
+    container.innerHTML = data.map(function (tr) {
+        var fnEsc = function (s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); };
+        var idStr = String(tr.id || '').replace(/'/g, '&#39;');
+        var actionBtn = '';
         if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `<button onclick="generateSpiritLabel('${tr.id}')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer;">📦 VOIR LE BORDEREAU</button>`;
+            actionBtn = '<div class="spirit-purchase-actions"><button type="button" onclick="generateSpiritLabel(\'' + idStr + '\')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer; border-radius:4px;">📦 VOIR LE BORDEREAU</button></div>';
         } else if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = `
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button onclick="confirmReception('${tr.id}')" style="flex:1; background:#1a1a1a; color:var(--spirit-green); border:1px solid #333; padding:8px;">Valider</button>
-                    <button onclick="openDispute('${tr.id}')" style="flex:1; background:#1a1a1a; color:red; border:1px solid #333; padding:8px;">Litige</button>
-                </div>`;
+            actionBtn = '<div class="spirit-purchase-actions" style="display:flex; gap:10px; margin-top:10px;">' +
+                '<button type="button" onclick="confirmReception(\'' + idStr + '\')" style="flex:1; background:var(--spirit-green); color:black; font-weight:bold; border:none; padding:8px; border-radius:4px; cursor:pointer;">✅ REÇU</button>' +
+                '<button type="button" onclick="openDispute(\'' + idStr + '\')" style="flex:1; background:#1a1a1a; color:#ff4444; border:1px solid #ff4444; padding:8px; border-radius:4px; cursor:pointer;">⚠️ LITIGE</button>' +
+                '</div>';
+        } else {
+            actionBtn = '<div class="spirit-purchase-actions spirit-purchase-actions--status" style="margin-top:10px; font-size:0.68rem; color:#888; text-align:center; border-top:1px solid #222; padding-top:8px;">' + fnEsc(tr.status) + '</div>';
         }
-
-        return `
-            <div style="background:#0d0d0d; border:1px solid #222; padding:15px; margin-bottom:12px; border-radius:4px;">
-                <div style="display:flex; justify-content:space-between;">
-                    <span style="color:white; font-weight:bold;">${tr.figurine_name}</span>
-                    <span style="color:var(--neon-orange); font-weight:bold;">${tr.amount}€</span>
-                </div>
-                <div style="font-size:0.7rem; color:#555; margin-top:5px;">Statut: ${tr.status}</div>
-                ${actionBtn}
-            </div>
-        `;
+        var dateStr = '';
+        try { dateStr = tr.created_at ? new Date(tr.created_at).toLocaleDateString() : ''; } catch (eD) {}
+        return '<div class="spirit-purchase-card" style="background:#0d0d0d; border:1px solid #222; padding:14px; margin-bottom:12px; border-radius:8px;">' +
+            '<div class="spirit-purchase-card__row" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">' +
+            '<div class="spirit-purchase-card__main" style="min-width:0; flex:1;">' +
+            '<div style="color:white; font-weight:bold; font-size:0.88rem;">' + fnEsc(tr.figurine_name || 'Produit Spirit') + '</div>' +
+            '<div style="font-size:0.6rem; color:#555; margin-top:4px;">ID: ' + fnEsc(tr.id) + '</div>' +
+            '</div>' +
+            '<div class="spirit-purchase-card__price" style="text-align:right; flex-shrink:0;">' +
+            '<div style="color:var(--neon-orange); font-weight:bold;">' + fnEsc(tr.amount) + '€</div>' +
+            '<div style="font-size:0.6rem; color:#888;">' + fnEsc(dateStr) + '</div>' +
+            '</div></div>' + actionBtn + '</div>';
     }).join('');
 }
 
