@@ -1094,6 +1094,58 @@
         /* SECTION ACCOUNT PAGES */
         .account-page { display: none; }
         .account-page.active { display: block; }
+        /* Même largeur de colonne que « Portefeuille » (blocs compacts, centrés dans .dash-content) */
+        #accountModal .dash-content #tab-portefeuille,
+        #accountModal .dash-content #tab-achats,
+        #accountModal .dash-content #tab-ventes,
+        #accountModal .dash-content #tab-sanctuary {
+            width: 100%;
+            max-width: min(580px, 100%);
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }
+        #accountModal .dash-content #tab-achats > h2,
+        #accountModal .dash-content #tab-ventes > h2,
+        #accountModal .dash-content #tab-portefeuille > h2 {
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            margin: 0 0 10px 0;
+        }
+        #accountModal .dash-content #tab-sanctuary > h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            margin: 0 0 8px 0;
+        }
+        /* Sanctuaire (compte) : grilles calées sur la même colonne que le portefeuille */
+        #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg {
+            grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+        }
+        #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-style {
+            grid-template-columns: minmax(0, 1fr);
+            max-width: 100%;
+        }
+        #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-style2 {
+            grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+        }
+        #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-thumb-wrap {
+            width: min(280px, 100%);
+            min-width: 0;
+            max-width: 100%;
+        }
+        #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap {
+            width: min(260px, 100%);
+            min-width: 0;
+            max-width: 100%;
+        }
+        #accountModal #spiritAccountSanctuaryGrid .spirit-san-add-tile {
+            width: min(260px, 100%);
+            min-width: 0;
+            max-width: 100%;
+            align-self: center;
+        }
         .table-spirit { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem; }
         .table-spirit th { background: #1a1a1a; padding: 12px; text-align: left; color: var(--neon-orange); border-bottom: 1px solid #333; }
         .table-spirit td { padding: 12px; border-bottom: 1px solid #222; }
