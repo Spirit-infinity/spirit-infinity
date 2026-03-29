@@ -1428,6 +1428,55 @@
             font-weight: 900; letter-spacing: 0.1em; color: #fff; text-shadow: 0 0 20px rgba(255,102,0,0.3);
         }
         .spirit-account-san-add-row { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 16px; }
+
+        /* Mobile ≤768px : marketplace 2 col, cartes, nav, modales scan/paiement, titres — (c) Spirit Infinity */
+        @media screen and (max-width: 768px) {
+            #marketGridNative.grid-layout,
+            #marketGridLegacy.grid-layout,
+            #marketGridStatues.grid-layout {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px;
+            }
+            .spirit-card-img-wrap {
+                height: 160px !important;
+                min-height: 160px !important;
+                max-height: 160px !important;
+            }
+            .spirit-card-img-wrap img,
+            img.spirit-card-img,
+            #marketplaceSection .card .img-placeholder img {
+                height: 100% !important;
+                width: 100% !important;
+                object-fit: cover !important;
+                object-position: center;
+            }
+            #marketplaceSection .card .img-placeholder {
+                height: 160px !important;
+                min-height: 160px !important;
+            }
+            header .menu-center {
+                flex-wrap: wrap;
+                justify-content: center;
+                row-gap: 6px;
+            }
+            header .menu-center button {
+                font-size: clamp(7px, 2.1vw, 10px) !important;
+                letter-spacing: 0.3px !important;
+                padding: 4px 5px !important;
+            }
+            #certifModal .modal-content,
+            #paymentModal .modal-content {
+                width: 95% !important;
+                max-width: 95vw !important;
+                box-sizing: border-box;
+            }
+            h1 {
+                font-size: calc(2rem * 0.8);
+            }
+            h2 {
+                font-size: calc(1.5rem * 0.8);
+            }
+        }
     </style>
 </head>
 
