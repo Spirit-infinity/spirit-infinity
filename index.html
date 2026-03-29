@@ -209,19 +209,25 @@
                 width: 100%;
                 box-sizing: border-box;
             }
-            .sidebar {
-                flex: 0 0 280px;
-                width: 280px;
-                min-width: 280px;
-                max-width: 280px;
+            /* Filtres plus étroits que le bureau (220px) pour laisser plus de place aux annonces — bureau inchangé (>900px) */
+            #marketplaceSection .sidebar {
+                flex: 0 0 220px;
+                width: 220px;
+                min-width: 220px;
+                max-width: 220px;
+                padding: 14px 12px;
                 box-sizing: border-box;
             }
-            .grid {
+            #marketplaceSection .grid {
                 flex: 0 0 auto;
-                /* Largeur mini type bureau : en portrait (étroit) ça force le défilement horizontal comme en paysage */
-                min-width: 960px;
+                min-width: 1080px;
                 width: auto;
                 min-height: 0;
+            }
+            /* Cartes un peu plus larges sur mobile/tablette pour éviter l’effet « écrasé » */
+            #marketplaceSection .grid-layout {
+                grid-template-columns: repeat(auto-fit, minmax(188px, 1fr));
+                gap: 14px;
             }
             .statues-layout {
                 flex-direction: row;
@@ -233,17 +239,22 @@
                 gap: 16px;
             }
             .statues-sidebar {
-                flex: 0 0 280px;
-                width: 280px;
-                min-width: 280px;
-                max-width: 280px;
+                flex: 0 0 220px;
+                width: 220px;
+                min-width: 220px;
+                max-width: 220px;
+                padding: 14px 12px;
                 box-sizing: border-box;
             }
             .statues-grid-wrap {
                 flex: 0 0 auto;
-                min-width: 960px;
+                min-width: 1080px;
                 width: auto;
                 min-height: 0;
+            }
+            #marketStatuesView .grid-layout {
+                grid-template-columns: repeat(auto-fit, minmax(188px, 1fr));
+                gap: 14px;
             }
             .dash-container,
             #accountModal .dash-container {
@@ -273,8 +284,37 @@
             }
             .control-grid { grid-template-columns: 1fr; }
             .support-grid { grid-template-columns: 1fr; }
-            .market-toolbar { flex-wrap: wrap; justify-content: center; gap: 8px; }
-            .market-view-box { flex-wrap: wrap; justify-content: center; row-gap: 6px; }
+            /* Vue + Devise : une ligne stable (pas de wrap qui « saute » au scroll) */
+            #marketplaceSection .market-toolbar {
+                display: flex;
+                flex-wrap: nowrap;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 10px;
+                margin: 6px 0 12px 0;
+                width: 100%;
+                min-width: 0;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                box-sizing: border-box;
+            }
+            #marketplaceSection .market-toolbar::-webkit-scrollbar { height: 0; display: none; }
+            #marketplaceSection .market-view-box {
+                display: inline-flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 6px;
+                margin-left: auto;
+                flex-wrap: nowrap;
+                white-space: nowrap;
+                flex-shrink: 0;
+                min-width: min-content;
+            }
+            #marketplaceSection .market-view-box select {
+                flex-shrink: 0;
+            }
             .cat-title { font-size: 1.05rem; margin: 18px 0 10px; }
             .spirit-market-brand-title { font-size: 1rem; letter-spacing: 0.14em; }
             #productModal .modal-content { flex-direction: column; max-width: min(560px, 100%); }
