@@ -7610,6 +7610,9 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var q = await _spirit.from(SPIRIT_LISTING_MSG_TABLE).select('sender_id,body,created_at').eq('product_id', pid).order('created_at', { ascending: true }).range(0, 400);
         if (q && q.error) {
             spiritListingMsgMarkMissingIf404(q.error);
+            try {
+                console.warn('[SPIRIT] spirit_listing_messages select :', q.error.message || q.error, '— vérifie la policy RLS SELECT (voir SQL dans base17).');
+            } catch (eL) {}
             if (typeof renderChatMessages === 'function') renderChatMessages();
             return;
         }
@@ -7650,11 +7653,13 @@ async function spiritLoadListingMessagesForProduct(productId) {
             renderChatMessages();
             return;
         }
+        var sellerIdNorm = typeof spiritNormUid === 'function' ? spiritNormUid(sellerId) : String(sellerId).trim().toLowerCase();
+        var meNorm = typeof spiritNormUid === 'function' ? spiritNormUid(me) : String(me).trim().toLowerCase();
         try {
             var ins = await _spirit.from(SPIRIT_LISTING_MSG_TABLE).insert({
                 product_id: pid,
-                seller_id: String(sellerId),
-                sender_id: String(me),
+                seller_id: sellerIdNorm,
+                sender_id: meNorm,
                 body: String(text)
             });
             if (ins && ins.error) {
@@ -7667,11 +7672,14 @@ async function spiritLoadListingMessagesForProduct(productId) {
             alert('Envoi impossible.');
             return;
         }
-        if (!selectedProduct.chat) selectedProduct.chat = [];
-        selectedProduct.chat.push({ user: currentUser, text: text, sender_id: me });
         input.value = '';
-        renderChatMessages();
-        try { await spiritNotifyListingMessageRecipients(pid, sellerId, me, text); } catch (eN) {}
+        try { await spiritLoadListingMessagesForProduct(pid); } catch (eRel) {}
+        if (!selectedProduct.chat || selectedProduct.chat.length === 0) {
+            if (!selectedProduct.chat) selectedProduct.chat = [];
+            selectedProduct.chat.push({ user: currentUser, text: text, sender_id: meNorm });
+            if (typeof renderChatMessages === 'function') renderChatMessages();
+        }
+        try { await spiritNotifyListingMessageRecipients(pid, sellerIdNorm, meNorm, text); } catch (eN) {}
         try { spiritSanctuaryRefreshMessagesDot(); } catch (eD) {}
         try { void spiritCheckDashboardOfferDot(); } catch (eDot) {}
     }
@@ -9575,19 +9583,20 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      created_at timestamptz default now()
    );
    create index if not exists idx_spirit_listing_msg_product on public.spirit_listing_messages(product_id, created_at);
-   -- RLS (à exécuter après création de la table) — sans ça, insert/select renvoient 401/403 et le vendeur ne voit rien.
+   -- RLS : utiliser lower() + OR sender_id (évite casse UUID + récursion RLS sur EXISTS seul).
    -- alter table public.spirit_listing_messages enable row level security;
    -- drop policy if exists "spirit_listing_msg_insert_self" on public.spirit_listing_messages;
    -- create policy "spirit_listing_msg_insert_self" on public.spirit_listing_messages
-   --   for insert to authenticated with check (sender_id = auth.uid()::text);
+   --   for insert to authenticated with check (lower(trim(sender_id)) = lower(auth.uid()::text));
    -- drop policy if exists "spirit_listing_msg_select_thread" on public.spirit_listing_messages;
    -- create policy "spirit_listing_msg_select_thread" on public.spirit_listing_messages
    --   for select to authenticated using (
-   --     seller_id = auth.uid()::text
+   --     lower(trim(seller_id)) = lower(auth.uid()::text)
+   --     or lower(trim(sender_id)) = lower(auth.uid()::text)
    --     or exists (
    --       select 1 from public.spirit_listing_messages x
    --       where x.product_id = spirit_listing_messages.product_id
-   --         and x.sender_id = auth.uid()::text
+   --         and lower(trim(x.sender_id)) = lower(auth.uid()::text)
    --     )
    --   );
    Buckets Storage publics : "avatars", "sanctuary" (ou ajuster les noms dans le code).
