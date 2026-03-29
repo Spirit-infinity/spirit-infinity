@@ -746,17 +746,41 @@
         }
         #accountModal .dash-container {
             display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 30px;
+            grid-template-columns: 1fr;
+            gap: 0;
             min-height: 0;
             max-height: calc(100vh - 88px);
             overflow-y: auto;
             overflow-x: hidden;
         }
+        #accountModal .spirit-account-acc-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        #accountModal .spirit-account-acc-panel {
+            padding: 12px 14px 16px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 102, 0, 0.22);
+            border-radius: 8px;
+            margin: 0 4px 12px;
+            background: rgba(0, 0, 0, 0.4);
+        }
         #accountModal .dash-content {
             min-height: 0;
             max-height: calc(100vh - 88px);
             overflow-y: auto;
+        }
+        @keyframes spirit-account-acc-open {
+            from {
+                opacity: 0;
+                transform: translateY(-12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        #accountModal .account-page.spirit-acc-opening {
+            animation: spirit-account-acc-open 0.4s ease-out forwards;
         }
         /* Après la règle 2 colonnes ci-dessus : sur ≤900px empiler menu + contenu (sinon 250px+1fr repasse en cascade et le panneau contenu disparaît / est rogné). Bureau ≥901px inchangé. */
         @media (max-width: 900px) {
@@ -795,34 +819,20 @@
                 transform: translateY(-20%) rotate(-135deg);
                 border-color: var(--neon-orange);
             }
-            #accountModal .dash-content {
-                min-width: 0;
-                width: 100%;
-                max-height: min(75vh, 100dvh - 120px);
-                box-sizing: border-box;
-                border: 1px solid rgba(255, 102, 0, 0.28);
-                border-radius: 10px;
-                padding: 12px 12px 14px;
+            #accountModal .dash-container {
+                max-height: min(calc(100dvh - 100px), calc(100vh - 100px));
+            }
+            #accountModal .spirit-account-acc-panel {
+                margin: 0 6px 12px;
                 background: rgba(8, 8, 8, 0.65);
             }
-            @keyframes spirit-account-acc-open {
-                from {
-                    opacity: 0;
-                    transform: translateY(-12px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            #accountModal .dash-content .account-page.spirit-acc-opening {
-                animation: spirit-account-acc-open 0.4s ease-out forwards;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #accountModal .account-page.spirit-acc-opening {
+                animation: none;
             }
         }
         @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
-            #accountModal .dash-content .account-page.spirit-acc-opening {
-                animation: none;
-            }
             #accountModal .dash-nav button::after {
                 transition: none;
             }
@@ -2809,8 +2819,8 @@
     <div class="modal-content" style="max-width:1100px;">
         <button onclick="closeSpiritMenu()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div class="dash-container">
-            <div class="dash-nav" role="tablist" aria-label="Sections du compte">
-                <button type="button" id="btn-dashboard" class="active" role="tab" aria-expanded="true" aria-controls="tab-dashboard" onclick="showAccountTab('dashboard')">DASHBOARD<span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+            <div class="dash-nav spirit-account-acc-root" role="tablist" aria-label="Sections du compte">
+                <button type="button" id="btn-dashboard" role="tab" aria-expanded="false" aria-controls="tab-dashboard" onclick="showAccountTab('dashboard')">DASHBOARD<span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-messages" role="tab" aria-expanded="false" aria-controls="tab-messages" onclick="showAccountTab('messages')">MESSAGES<span id="messages-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-achats" role="tab" aria-expanded="false" aria-controls="tab-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
                 <button type="button" id="btn-ventes" role="tab" aria-expanded="false" aria-controls="tab-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
@@ -2823,7 +2833,7 @@
             </div>
             
             <div class="dash-content">
-                <div id="tab-dashboard" class="account-page active">
+                <div id="tab-dashboard" class="account-page">
                     <h2>🏠 TABLEAU DE BORD</h2>
                     <p>C'est ici que s'affiche ton résumé.</p>
                     <div id="spiritSellerOfferAlert" style="display:none; margin-top:14px; padding:12px 14px; border:1px solid rgba(0,200,255,0.45); background:rgba(0,120,180,0.08);">
@@ -8433,7 +8443,8 @@ async function confirmPayment(method) {
                 } catch (e) {}
                 const account = document.getElementById('accountModal');
                 if (account) account.style.setProperty('display', 'flex', 'important');
-                try { if (typeof showAccountTab === 'function') showAccountTab('dashboard'); } catch (e) {}
+                try { if (typeof spiritAccountAccordionMount === 'function') spiritAccountAccordionMount(); } catch (eM) {}
+                try { if (typeof spiritAccountTabsCollapseAll === 'function') spiritAccountTabsCollapseAll(); } catch (e) {}
                 try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
                 try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (eNot) {}
                 break;
@@ -8587,6 +8598,50 @@ async function confirmPayment(method) {
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
+/** Déplace chaque #tab-* juste sous son bouton (accordéon Mon compte). Idempotent. */
+function spiritAccountAccordionMount() {
+    try {
+        var nav = document.querySelector('#accountModal .dash-nav');
+        var dc = document.querySelector('#accountModal .dash-content');
+        if (!nav || !dc || nav.getAttribute('data-spirit-acc-mounted') === '1') return;
+        nav.setAttribute('data-spirit-acc-mounted', '1');
+        var buttons = Array.prototype.slice.call(nav.querySelectorAll('button[id^="btn-"]'), 0);
+        var frag = document.createDocumentFragment();
+        buttons.forEach(function (btn) {
+            var id = String(btn.id || '').replace(/^btn-/, '');
+            if (!id) return;
+            var panel = document.getElementById('tab-' + id);
+            if (!panel) return;
+            try { panel.classList.add('spirit-account-acc-panel'); } catch (eC) {}
+            var wrap = document.createElement('div');
+            wrap.className = 'spirit-account-acc-item';
+            wrap.appendChild(btn);
+            wrap.appendChild(panel);
+            frag.appendChild(wrap);
+        });
+        while (nav.firstChild) nav.removeChild(nav.firstChild);
+        nav.appendChild(frag);
+        try { if (dc.parentNode) dc.parentNode.removeChild(dc); } catch (eRm) {}
+    } catch (e) {}
+}
+try { window.spiritAccountAccordionMount = spiritAccountAccordionMount; } catch (eM) {}
+
+function spiritAccountTabsCollapseAll() {
+    try {
+        document.querySelectorAll('#accountModal .account-page').forEach(function (p) {
+            p.style.display = 'none';
+            p.classList.remove('active');
+            try { p.classList.remove('spirit-acc-opening'); } catch (e0) {}
+        });
+        document.querySelectorAll('#accountModal .dash-nav button').forEach(function (b) {
+            b.classList.remove('active');
+            b.setAttribute('aria-expanded', 'false');
+        });
+        try { spiritAccountLastTab = ''; } catch (e1) {}
+    } catch (e) {}
+}
+try { window.spiritAccountTabsCollapseAll = spiritAccountTabsCollapseAll; } catch (eC) {}
+
 function spiritAccountAccordionReveal(tab) {
     try {
         var nav = document.querySelector('#accountModal .dash-nav');
@@ -8598,8 +8653,6 @@ function spiritAccountAccordionReveal(tab) {
                 b.setAttribute('aria-expanded', tabFromBtn === tStr ? 'true' : 'false');
             });
         }
-        var w = window.innerWidth || 9999;
-        if (w > 900) return;
         var pageActive = document.getElementById('tab-' + tab);
         document.querySelectorAll('#accountModal .account-page').forEach(function (p) {
             p.classList.remove('spirit-acc-opening');
@@ -8607,8 +8660,14 @@ function spiritAccountAccordionReveal(tab) {
         if (!pageActive) return;
         void pageActive.offsetWidth;
         pageActive.classList.add('spirit-acc-opening');
-        var dc = document.querySelector('#accountModal .dash-content');
+        var dc = document.querySelector('#accountModal .dash-container');
         if (dc) dc.scrollTop = 0;
+        try {
+            if (pageActive && pageActive.closest) {
+                var row = pageActive.closest('.spirit-account-acc-item');
+                if (row) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        } catch (eSc) {}
         var tmr = setTimeout(function () {
             try { pageActive.classList.remove('spirit-acc-opening'); } catch (eT) {}
         }, 500);
@@ -8634,6 +8693,8 @@ window.showAccountTab = function showAccountTab(tab) {
         window.MY_TEST_ID = String(MY_TEST_ID).trim();
     }
 
+    try { if (typeof spiritAccountAccordionMount === 'function') spiritAccountAccordionMount(); } catch (eM0) {}
+
     tab = String(tab || '').trim();
     if (tab === 'favoris') tab = 'liste-envie';
 
@@ -8649,21 +8710,29 @@ window.showAccountTab = function showAccountTab(tab) {
         if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
     } catch (e) {}
 
-    /* Anti double-clic / double-trigger: ignore navigation répétée vers le même onglet. */
+    /* Même entrée déjà ouverte → refermer (liste des menus seule). */
     try {
-        var nowTab = Date.now();
-        var sameTab = (String(tab || '') === String(spiritAccountLastTab || ''));
-        if (sameTab && (nowTab - Number(spiritAccountLastTabTs || 0)) < 900) return;
-        spiritAccountLastTab = String(tab || '');
-        spiritAccountLastTabTs = nowTab;
-    } catch (eDedup) {}
-    
+        var pageToggle = document.getElementById('tab-' + tab);
+        if (pageToggle && pageToggle.classList.contains('active')) {
+            pageToggle.style.display = 'none';
+            pageToggle.classList.remove('active');
+            try { pageToggle.classList.remove('spirit-acc-opening'); } catch (eT0) {}
+            var btnT = document.getElementById('btn-' + tab);
+            if (btnT) {
+                btnT.classList.remove('active');
+                btnT.setAttribute('aria-expanded', 'false');
+            }
+            spiritAccountLastTab = '';
+            return;
+        }
+    } catch (eTog) {}
+
     // 1. On nettoie l'interface (Boutons et Pages)
-    document.querySelectorAll('.dash-nav button').forEach(b => {
+    document.querySelectorAll('#accountModal .dash-nav button').forEach(b => {
         b.classList.remove('active');
     });
     
-    document.querySelectorAll('.account-page').forEach(p => {
+    document.querySelectorAll('#accountModal .account-page').forEach(p => {
         p.style.display = 'none';
         p.classList.remove('active');
     });
@@ -8763,6 +8832,10 @@ window.showAccountTab = function showAccountTab(tab) {
         boutonActif.classList.add('active');
     }
     try { if (typeof spiritAccountAccordionReveal === 'function') spiritAccountAccordionReveal(tab); } catch (eAcc) {}
+    try {
+        spiritAccountLastTab = String(tab || '');
+        spiritAccountLastTabTs = Date.now();
+    } catch (eL) {}
 }
 
 function spiritRefreshUserScopedUi() {
@@ -9856,8 +9929,14 @@ function spiritSyncAccountTabsForPublicVisitor() {
     ['btn-messages', 'btn-achats', 'btn-ventes', 'btn-portefeuille', 'btn-params', 'btn-favoris-recus'].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el) return;
-        if (hide) el.style.setProperty('display', 'none', 'important');
-        else el.style.removeProperty('display');
+        var wrap = (typeof el.closest === 'function') ? el.closest('.spirit-account-acc-item') : null;
+        if (hide) {
+            el.style.setProperty('display', 'none', 'important');
+            if (wrap) wrap.style.setProperty('display', 'none', 'important');
+        } else {
+            el.style.removeProperty('display');
+            if (wrap) wrap.style.removeProperty('display');
+        }
     });
     var view = document.getElementById('spiritPublicView');
     if (view) view.classList.toggle('spirit-public-visitor', hide);
@@ -12493,6 +12572,7 @@ async function fetchAnnonces() {
 // BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
 document.addEventListener('DOMContentLoaded', () => {
     void (async function spiritDomReady() {
+        try { if (typeof spiritAccountAccordionMount === 'function') spiritAccountAccordionMount(); } catch (eAccM) {}
         try { if (typeof spiritInitMarketViewMobile === 'function') spiritInitMarketViewMobile(); } catch (eMv) {}
         try { if (typeof spiritMobAccordionInit === 'function') spiritMobAccordionInit(); } catch (eAcc) {}
         try { if (typeof spiritMobileLayoutReflow === 'function') spiritMobileLayoutReflow(); } catch (eMob) {}
