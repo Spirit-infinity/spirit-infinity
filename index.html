@@ -1501,75 +1501,8 @@
         }
         .spirit-account-san-add-row { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 16px; }
 
-        /* ≤768px : même barre que le bureau (menu horizontal défilant), pas de mise en colonne type « app mobile » */
+        /* ≤768px : cartes / modales (barre nav = bannière accordéon ≤900px) */
         @media screen and (max-width: 768px) {
-            header {
-                flex-direction: row;
-                flex-wrap: nowrap;
-                align-items: center;
-                gap: 8px;
-                padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 8px max(10px, env(safe-area-inset-left));
-                min-height: 66px;
-            }
-            .logo-box {
-                flex: 0 0 auto;
-                align-self: center;
-                max-width: 28%;
-                min-width: 0;
-            }
-            .logo-top { font-size: 1.05rem; }
-            .logo-sub { font-size: 0.58rem; letter-spacing: 1.4px; }
-            .actions-right {
-                flex: 0 0 auto;
-                width: auto;
-                justify-content: flex-end;
-                flex-wrap: wrap;
-                gap: 6px;
-                max-width: 30%;
-                min-width: 0;
-            }
-            .actions-right .btn-action {
-                padding: 6px 8px;
-                font-size: 0.52rem;
-                min-height: 0;
-                box-sizing: border-box;
-            }
-            .menu-center {
-                flex: 1 1 auto;
-                flex-direction: row;
-                align-items: center;
-                justify-content: flex-start;
-                order: 0;
-                width: auto;
-                min-width: 0;
-                margin: 0 4px;
-                padding: 4px 0;
-                overflow-x: auto;
-                overflow-y: hidden;
-                -webkit-overflow-scrolling: touch;
-                flex-wrap: nowrap;
-                gap: 8px;
-                white-space: nowrap;
-                scrollbar-width: none;
-            }
-            .menu-center::-webkit-scrollbar { height: 0; display: none; }
-            .menu-center button {
-                flex-shrink: 0;
-                width: auto;
-                min-height: 0;
-                font-size: 9px !important;
-                letter-spacing: 0.35px !important;
-                padding: 8px 8px !important;
-                box-sizing: border-box;
-            }
-            .menu-center button + button::before { display: block; }
-            .menu-center .lang-selector {
-                flex-shrink: 0;
-                width: auto;
-                min-height: 0;
-                font-size: 0.62rem !important;
-                padding: 6px 4px !important;
-            }
             #marketplaceSection .card .img-placeholder img {
                 width: 100%;
                 height: 100%;
@@ -1699,6 +1632,231 @@
                 align-content: start;
             }
         }
+
+        /* Bureau : barre classique (flex header) — téléphone : bannière accordéons + ligne marketplace */
+        .spirit-header-desktop { display: contents; }
+        .spirit-header-mobile { display: none !important; }
+        .spirit-mob-toolbar-row { display: none !important; }
+        @media (max-width: 900px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                flex-wrap: nowrap;
+                min-height: 0;
+                padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 10px max(10px, env(safe-area-inset-left));
+                gap: 0;
+            }
+            .spirit-header-desktop { display: none !important; }
+            #spiritHeaderMobile.spirit-header-mobile {
+                display: flex !important;
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                gap: 0;
+            }
+            .spirit-mob-acc {
+                border-bottom: 1px solid rgba(255, 102, 0, 0.22);
+            }
+            .spirit-mob-acc-trigger {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0;
+                padding: 12px 14px;
+                margin: 0;
+                background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+                border: none;
+                border-left: 3px solid #1a1a1a;
+                color: #fff;
+                cursor: pointer;
+                text-align: left;
+                box-sizing: border-box;
+                transition: border-left-color 0.35s ease, box-shadow 0.35s ease, background 0.2s ease;
+            }
+            .spirit-mob-acc-trigger-filter {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .spirit-mob-acc-brand-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                gap: 0.5rem;
+            }
+            .spirit-mob-acc-brand {
+                font-weight: 900;
+                font-size: 1.15rem;
+                letter-spacing: 0.06em;
+                color: #fff;
+            }
+            .spirit-mob-acc-sub {
+                font-size: 0.62rem;
+                color: var(--neon-orange);
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+            }
+            .spirit-mob-acc-chevron {
+                width: 0.5rem;
+                height: 0.5rem;
+                border-right: 2px solid rgba(255, 102, 0, 0.45);
+                border-bottom: 2px solid rgba(255, 102, 0, 0.45);
+                transform: rotate(45deg);
+                transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+                flex-shrink: 0;
+                margin-top: 2px;
+            }
+            .spirit-mob-acc-trigger[aria-expanded="true"] .spirit-mob-acc-chevron {
+                transform: rotate(225deg);
+                border-color: var(--neon-orange);
+                box-shadow: 0 0 10px rgba(255, 102, 0, 0.65);
+            }
+            .spirit-mob-acc-trigger[aria-expanded="true"] {
+                border-left-color: var(--neon-orange);
+                box-shadow: inset 0 0 24px rgba(255, 102, 0, 0.12);
+            }
+            .spirit-mob-acc-panel {
+                max-height: 0;
+                opacity: 0;
+                overflow: hidden;
+                pointer-events: none;
+                transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+                border: 1px solid transparent;
+                border-top: none;
+                border-radius: 0 0 10px 10px;
+                background: #060606;
+                box-sizing: border-box;
+            }
+            .spirit-mob-acc-panel.spirit-mob-acc-open {
+                max-height: min(78vh, 920px);
+                opacity: 1;
+                pointer-events: auto;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                border-color: rgba(255, 102, 0, 0.55);
+                box-shadow: 0 0 22px rgba(255, 102, 0, 0.28), inset 0 0 0 1px rgba(255, 102, 0, 0.18);
+            }
+            .spirit-mob-acc-navlist {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                padding: 8px 12px 14px;
+            }
+            .spirit-mob-nav-btn {
+                background: #111;
+                border: 1px solid #2a2a2a;
+                color: #eee;
+                padding: 0.65rem 0.75rem;
+                font-size: 0.62rem;
+                font-weight: 700;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                cursor: pointer;
+                border-radius: 4px;
+                text-align: left;
+            }
+            .spirit-mob-nav-btn:active {
+                border-color: var(--neon-orange);
+                color: var(--neon-orange);
+            }
+            .spirit-mob-lang-label {
+                font-size: 0.58rem;
+                color: #888;
+                margin-top: 8px;
+                display: block;
+            }
+            .spirit-mob-filter-mount {
+                padding: 10px 12px 14px;
+            }
+            .spirit-mob-filter-mount label,
+            .spirit-mob-filter-mount select {
+                font-size: 0.72rem;
+            }
+            .spirit-mob-banner-actions {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+                padding: 12px 14px 14px;
+                background: #050505;
+            }
+            .spirit-mob-banner-actions .btn-action {
+                flex: 1 1 auto;
+                min-width: min(160px, 44vw);
+                font-size: 0.58rem;
+                padding: 10px 12px;
+            }
+            .spirit-mob-toolbar-row {
+                display: grid !important;
+                grid-template-columns: auto minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 8px;
+                width: 100%;
+                margin: 0 0 16px 0;
+                padding: 0 12px;
+                box-sizing: border-box;
+            }
+            .spirit-mob-kind-slot .market-kind-toggle {
+                margin-bottom: 0 !important;
+                transform: scale(0.92);
+                transform-origin: left center;
+            }
+            .spirit-mob-search-slot .spirit-market-search-bar {
+                width: 100%;
+                margin: 0;
+            }
+            .spirit-mob-search-slot .spirit-market-search-bar input {
+                width: 100%;
+                max-width: none;
+                font-size: 0.7rem;
+                padding: 8px 10px;
+            }
+            .spirit-mob-vue-slot .market-toolbar {
+                margin: 0;
+                justify-content: flex-end;
+                width: 100%;
+                min-width: 0;
+            }
+            .spirit-mob-vue-slot .market-view-box {
+                display: inline-flex;
+                flex-wrap: nowrap;
+                gap: 4px;
+                margin-left: 0;
+                max-width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            #marketplaceSection .sidebar {
+                display: none !important;
+            }
+            #marketStatuesView .statues-sidebar {
+                display: none !important;
+            }
+            #marketplaceSection.container {
+                flex-direction: column !important;
+                overflow-x: visible !important;
+                align-items: stretch !important;
+            }
+            #marketplaceSection .grid {
+                min-width: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .statues-layout {
+                flex-direction: column !important;
+                overflow-x: visible !important;
+            }
+            #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+            }
+        }
+        @media (min-width: 901px) {
+            .spirit-header-mobile { display: none !important; }
+        }
     </style>
 </head>
 
@@ -1706,6 +1864,47 @@
 <div id="spiritSanctuaryNotifDot" aria-hidden="true" title="Message Sanctuaire"></div>
 
 <header>
+    <div class="spirit-header-mobile spirit-mob-only" id="spiritHeaderMobile">
+        <div class="spirit-mob-acc" data-spirit-acc="nav">
+            <button type="button" class="spirit-mob-acc-trigger" id="spiritMobTriggerNav" aria-expanded="false" aria-controls="spiritMobPanelNav">
+                <span class="spirit-mob-acc-brand-row">
+                    <span class="spirit-mob-acc-brand">HOT TOYS</span>
+                    <span class="spirit-mob-acc-chevron" aria-hidden="true"></span>
+                </span>
+                <span class="spirit-mob-acc-sub">SPIRIT INFINITY</span>
+            </button>
+            <div class="spirit-mob-acc-panel" id="spiritMobPanelNav">
+                <nav class="spirit-mob-acc-navlist" aria-label="Navigation">
+                    <button type="button" class="spirit-mob-nav-btn" onclick="showMarketplace()">MARKETPLACE</button>
+                    <button type="button" class="spirit-mob-nav-btn" onclick="showLedgerModal()">PANNEAU DE CONTROLE</button>
+                    <button type="button" class="spirit-mob-nav-btn" onclick="showForum()">FORUM</button>
+                    <button type="button" class="spirit-mob-nav-btn" onclick="showMonCompte()">MON COMPTE</button>
+                    <button type="button" class="spirit-mob-nav-btn" onclick="showSecurite()">SÉCURITÉ</button>
+                    <button type="button" class="spirit-mob-nav-btn" onclick="showPrecommandesHotToys()">PRÉCOMMANDES HOT TOYS</button>
+                    <button type="button" class="spirit-mob-nav-btn" onclick="showSupport()">SUPPORT SPIRIT</button>
+                    <label class="spirit-mob-lang-label">Langue
+                        <select class="lang-selector spirit-mob-lang-select" onchange="switchLanguage(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px; margin-top:4px; width:100%; box-sizing:border-box;">
+                            <option value="FR">FR 🇫🇷</option>
+                            <option value="EN">EN 🇺🇸</option>
+                            <option value="ZH">ZH 🇨🇳</option>
+                            <option value="ES">ES 🇪🇸</option>
+                        </select>
+                    </label>
+                </nav>
+            </div>
+        </div>
+        <div class="spirit-mob-acc" data-spirit-acc="filter">
+            <button type="button" class="spirit-mob-acc-trigger spirit-mob-acc-trigger-filter" id="spiritMobTriggerFilter" aria-expanded="false" aria-controls="spiritMobPanelFilter">
+                <span>FILTRE DE RECHERCHE</span>
+                <span class="spirit-mob-acc-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="spirit-mob-acc-panel spirit-mob-acc-panel-filter" id="spiritMobPanelFilter">
+                <div id="spiritMobFilterPanelMount" class="spirit-mob-filter-mount"></div>
+            </div>
+        </div>
+        <div class="spirit-mob-banner-actions" id="spiritMobBannerActions"></div>
+    </div>
+    <div class="spirit-header-desktop">
     <div class="logo-box" onclick="location.reload()">
         <span class="logo-top">HOT TOYS</span>
         <span class="logo-sub">SPIRIT INFINITY</span>
@@ -1725,9 +1924,10 @@
             <option value="ES">ES 🇪🇸</option>
         </select>
     </div>
-    <div class="actions-right">
+    <div class="actions-right" id="spiritDesktopActions">
         <button id="btn-reg" class="btn-action" style="background:#222; color:white;" onclick="openRegister()" data-key="btn_reg">INSCRIPTION</button>
         <button id="btn-sell" class="btn-action" onclick="startCertification()" data-key="btn_sell">VENDRE & CERTIFIER</button>
+    </div>
     </div>
 </header>
 
@@ -1744,10 +1944,11 @@
 
 <div id="marketplaceSection" class="container">
     <div class="sidebar">
-        <div class="market-kind-toggle" role="tablist" aria-label="Type de produit" style="margin-bottom:16px;">
+        <div id="marketKindFigWrap" class="market-kind-toggle" role="tablist" aria-label="Type de produit" style="margin-bottom:16px;">
             <button type="button" id="btn-kind-figurines" class="active" data-kind-toggle="figurines" onclick="setMarketKind('figurines')" data-i18n="market_kind_figurines">FIGURINES</button>
             <button type="button" id="btn-kind-statues" data-kind-toggle="statues" onclick="setMarketKind('statues')" data-i18n="market_kind_statues">STATUES</button>
         </div>
+        <div id="spiritFigFiltersMount" class="spirit-sidebar-filters-fig">
         <hr style="border:0.5px solid #222; margin:0 0 14px 0;">
         <h4 id="filter-title" style="color:var(--neon-orange); margin:0 0 10px 0;" data-key="filter_title">FILTRES DE RECHERCHE</h4>      
         <label data-key="lbl_price_range">Tranche de Prix (€)</label>
@@ -1800,9 +2001,15 @@
         </select>
         <hr style="border:0.5px solid #222; margin:20px 0;">
         <p style="font-size: 0.65rem; color: var(--text-gray);" data-key="lbl_prot_text">Protection Spirit 100% active sur toutes les transactions.</p>
+        </div>
     </div>
 
     <div class="grid">
+        <div id="spiritMobToolbarRow" class="spirit-mob-toolbar-row">
+            <div id="spiritMobKindSlot" class="spirit-mob-kind-slot"></div>
+            <div id="spiritMobSearchSlot" class="spirit-mob-search-slot"></div>
+            <div id="spiritMobVueSlot" class="spirit-mob-vue-slot"></div>
+        </div>
         <div class="spirit-market-search-bar">
             <input type="text" inputmode="search" enterkeyhint="search" id="marketAnnonceSearchInput" name="market_annonce_q" value="" data-key="market_search_ph" placeholder="Rechercher une annonce (ex. Spider-Man)…" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="if(typeof applyFilters==='function')applyFilters();" aria-label="Recherche annonces" role="searchbox">
         </div>
@@ -1832,10 +2039,11 @@
         <div id="marketStatuesView" class="statues-market-view">
             <div class="statues-layout">
                 <div class="statues-sidebar">
-                    <div class="market-kind-toggle" role="tablist" aria-label="Type de produit" style="margin-bottom:16px;">
+                    <div id="marketKindStaWrap" class="market-kind-toggle" role="tablist" aria-label="Type de produit" style="margin-bottom:16px;">
                         <button type="button" data-kind-toggle="figurines" onclick="setMarketKind('figurines')" data-i18n="market_kind_figurines">FIGURINES</button>
                         <button type="button" data-kind-toggle="statues" class="active" onclick="setMarketKind('statues')" data-i18n="market_kind_statues">STATUES</button>
                     </div>
+                    <div id="spiritStaFiltersMount" class="spirit-statues-filters-block">
                     <hr style="border:0.5px solid #222; margin:0 0 14px 0;">
                     <h4 style="color:var(--neon-orange); margin:0 0 10px 0;" data-i18n="statues_filters_title">FILTRES STATUES</h4>
                     <label data-i18n="statues_brand">MARQUE</label>
@@ -1887,6 +2095,7 @@
                         <option value="Occasion" data-i18n="cond_used">Occasion</option>
                         <option value="Scellé" data-i18n="cond_sealed">Scellé</option>
                     </select>
+                    </div>
                 </div>
                 <div class="statues-grid-wrap">
                     <div class="cat-title market-title spirit-market-brand-title" data-i18n="market_statues_title">MARKET STATUES</div>
@@ -3149,8 +3358,9 @@ async function loadUserPurchases() {
         const use = ['FR', 'EN', 'ES', 'ZH'].indexOf(raw) >= 0 ? raw : 'FR';
         const set = translations[use] || translations['FR'];
         try {
-            var lsEl = document.querySelector('.lang-selector');
-            if (lsEl) lsEl.value = use;
+            document.querySelectorAll('.lang-selector').forEach(function (lsEl) {
+                if (lsEl) lsEl.value = use;
+            });
         } catch (eLs) {}
         try { localStorage.setItem('spirit_ui_lang', use); } catch (eL1) {}
         document.documentElement.lang = use.toLowerCase();
@@ -7317,10 +7527,106 @@ async function confirmPayment(method) {
             rz = setTimeout(function () {
                 spiritSyncMarketViewSelectOptions();
                 spiritApplyMarketViewClasses();
+                try { if (typeof spiritMobileLayoutReflow === 'function') spiritMobileLayoutReflow(); } catch (eR) {}
             }, 150);
         });
     }
     try { window.spiritInitMarketViewMobile = spiritInitMarketViewMobile; } catch (e) {}
+
+    function spiritMobAccordionCloseAll(keepOpenPanel) {
+        try {
+            document.querySelectorAll('.spirit-mob-acc-panel').forEach(function (p) {
+                if (keepOpenPanel && p === keepOpenPanel) return;
+                p.classList.remove('spirit-mob-acc-open');
+                var cid = p.id;
+                if (cid) {
+                    var tr = document.querySelector('.spirit-mob-acc-trigger[aria-controls="' + cid + '"]');
+                    if (tr) tr.setAttribute('aria-expanded', 'false');
+                }
+            });
+        } catch (e) {}
+    }
+
+    function spiritMobAccordionInit() {
+        try {
+            document.querySelectorAll('.spirit-mob-acc-trigger').forEach(function (tr) {
+                tr.addEventListener('click', function () {
+                    var pid = tr.getAttribute('aria-controls');
+                    var panel = pid ? document.getElementById(pid) : null;
+                    if (!panel) return;
+                    var willOpen = tr.getAttribute('aria-expanded') !== 'true';
+                    if (willOpen) {
+                        spiritMobAccordionCloseAll(panel);
+                        panel.classList.add('spirit-mob-acc-open');
+                        tr.setAttribute('aria-expanded', 'true');
+                    } else {
+                        panel.classList.remove('spirit-mob-acc-open');
+                        tr.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+        } catch (e2) {}
+    }
+
+    function spiritMobileLayoutReflow() {
+        var w = window.innerWidth || 9999;
+        var mob = w <= 900;
+        var ms = document.getElementById('marketplaceSection');
+        var grid = ms && ms.querySelector('.grid');
+        var row = document.getElementById('spiritMobToolbarRow');
+        var loader = document.getElementById('spiritMarketLoader');
+        var searchBar = ms && ms.querySelector('.spirit-market-search-bar');
+        var mtb = ms && ms.querySelector('.market-toolbar');
+        var ss = document.getElementById('spiritMobSearchSlot');
+        var vs = document.getElementById('spiritMobVueSlot');
+        var kindSlot = document.getElementById('spiritMobKindSlot');
+        var mount = document.getElementById('spiritMobFilterPanelMount');
+        var mobBar = document.getElementById('spiritMobBannerActions');
+        var desk = document.getElementById('spiritDesktopActions');
+        var br = document.getElementById('btn-reg');
+        var bs = document.getElementById('btn-sell');
+        var sb = document.querySelector('#marketplaceSection .sidebar');
+        var kf = document.getElementById('marketKindFigWrap');
+        var ff = document.getElementById('spiritFigFiltersMount');
+        var staSide = document.querySelector('#marketStatuesView .statues-sidebar');
+        var ks = document.getElementById('marketKindStaWrap');
+        var sf = document.getElementById('spiritStaFiltersMount');
+        var mk = (typeof marketKindMode !== 'undefined' && marketKindMode === 'statues') ? 'statues' : 'figurines';
+
+        if (!mob) {
+            if (kf && sb && kf.parentElement !== sb) sb.insertBefore(kf, sb.firstChild);
+            if (ff && sb && kf && ff.parentElement !== sb) sb.insertBefore(ff, kf.nextSibling);
+            if (ks && staSide && ks.parentElement !== staSide) staSide.insertBefore(ks, staSide.firstChild);
+            if (sf && staSide && ks && sf.parentElement !== staSide) staSide.insertBefore(sf, ks.nextSibling);
+            if (searchBar && grid && searchBar.parentElement !== grid) {
+                if (row && row.nextSibling) grid.insertBefore(searchBar, row.nextSibling);
+                else if (loader) grid.insertBefore(searchBar, loader);
+                else grid.appendChild(searchBar);
+            }
+            if (mtb && grid && mtb.parentElement !== grid) {
+                if (searchBar && searchBar.nextSibling) grid.insertBefore(mtb, searchBar.nextSibling);
+                else if (loader) grid.insertBefore(mtb, loader);
+                else grid.appendChild(mtb);
+            }
+            if (br && desk && br.parentElement !== desk) desk.appendChild(br);
+            if (bs && desk && bs.parentElement !== desk) desk.appendChild(bs);
+            return;
+        }
+
+        if (kindSlot) {
+            var kindEl = mk === 'statues' ? ks : kf;
+            if (kindEl && kindEl.parentElement !== kindSlot) kindSlot.appendChild(kindEl);
+        }
+        if (mount) {
+            if (mk === 'statues' && sf && sf.parentElement !== mount) mount.appendChild(sf);
+            else if (mk === 'figurines' && ff && ff.parentElement !== mount) mount.appendChild(ff);
+        }
+        if (searchBar && ss && searchBar.parentElement !== ss) ss.appendChild(searchBar);
+        if (mtb && vs && mtb.parentElement !== vs) vs.appendChild(mtb);
+        if (mobBar && br && br.parentElement !== mobBar) mobBar.appendChild(br);
+        if (mobBar && bs && bs.parentElement !== mobBar) mobBar.appendChild(bs);
+    }
+    try { window.spiritMobileLayoutReflow = spiritMobileLayoutReflow; } catch (eM) {}
 
     function setMarketKind(kind) {
         marketKindMode = (kind === 'statues') ? 'statues' : 'figurines';
@@ -7339,7 +7645,12 @@ async function confirmPayment(method) {
                 btn.classList.toggle('active', k === marketKindMode);
             });
         } catch (eSync) {}
-        if (leftSidebar) leftSidebar.style.display = marketKindMode === 'statues' ? 'none' : '';
+        var _mobW = window.innerWidth || 9999;
+        if (_mobW > 900) {
+            if (leftSidebar) leftSidebar.style.display = marketKindMode === 'statues' ? 'none' : '';
+        } else {
+            if (leftSidebar) leftSidebar.style.display = 'none';
+        }
         if (marketToolbar) marketToolbar.style.display = marketKindMode === 'statues' ? 'none' : '';
         if (marketTitle) marketTitle.style.display = marketKindMode === 'statues' ? 'none' : '';
         if (gridNative) gridNative.style.display = marketKindMode === 'statues' ? 'none' : '';
@@ -7352,6 +7663,7 @@ async function confirmPayment(method) {
         if (spiritMarketBucket[mk].rows.length === 0 && !spiritMarketBucket[mk].loading) {
             try { fetchMarketplaceFromSupabase({ reset: true, catKey: mk }); } catch (e) {}
         }
+        try { if (typeof spiritMobileLayoutReflow === 'function') spiritMobileLayoutReflow(); } catch (eMob) {}
     }
     window.setMarketKind = setMarketKind;
 
@@ -7534,6 +7846,7 @@ async function confirmPayment(method) {
                 if (heroNav) heroNav.style.setProperty('display', 'none', 'important');
                 const market = document.getElementById('marketplaceSection');
                 if (market) market.style.setProperty('display', 'flex', 'important');
+                try { if (typeof spiritMobileLayoutReflow === 'function') spiritMobileLayoutReflow(); } catch (eMobNav) {}
                 try { if (typeof spiritMarketInitScrollObserver === 'function') spiritMarketInitScrollObserver(); } catch (e) {}
                 try {
                     if (typeof spiritBucketKeyFromMode === 'function' && typeof spiritMarketBucket !== 'undefined') {
@@ -11595,6 +11908,8 @@ async function fetchAnnonces() {
 document.addEventListener('DOMContentLoaded', () => {
     void (async function spiritDomReady() {
         try { if (typeof spiritInitMarketViewMobile === 'function') spiritInitMarketViewMobile(); } catch (eMv) {}
+        try { if (typeof spiritMobAccordionInit === 'function') spiritMobAccordionInit(); } catch (eAcc) {}
+        try { if (typeof spiritMobileLayoutReflow === 'function') spiritMobileLayoutReflow(); } catch (eMob) {}
         try { ensureMarketCurrencySelect(); } catch (e) {}
         var appliedFromSession = false;
         try {
