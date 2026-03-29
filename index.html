@@ -193,13 +193,55 @@
             .actions-right .btn-action { padding: 6px 8px; font-size: 0.52rem; }
         }
 
-        /* ========== Tablettes & smartphones (Android / iPhone) ========== */
+        /* ========== Tablettes & smartphones : même disposition bureau (défilement horizontal si besoin) ========== */
         @media (max-width: 900px) {
             .grid-layout { gap: 12px; }
-            .container { flex-direction: column; padding: 14px max(12px, env(safe-area-inset-left)) 18px max(12px, env(safe-area-inset-right)); gap: 14px; }
-            .sidebar { width: 100%; max-width: none; box-sizing: border-box; }
-            .statues-layout { flex-direction: column; align-items: stretch; }
-            .statues-sidebar { width: 100%; max-width: none; box-sizing: border-box; }
+            .container {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                align-items: flex-start;
+                overflow-x: auto;
+                overflow-y: visible;
+                -webkit-overflow-scrolling: touch;
+                padding: 14px max(12px, env(safe-area-inset-left)) 18px max(12px, env(safe-area-inset-right));
+                gap: 20px;
+                max-width: none;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .sidebar {
+                flex: 0 0 280px;
+                width: 280px;
+                min-width: 280px;
+                max-width: 280px;
+                box-sizing: border-box;
+            }
+            .grid {
+                flex: 0 0 auto;
+                min-width: min(960px, max(100%, calc(100vw - 48px)));
+                min-height: 0;
+            }
+            .statues-layout {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                align-items: flex-start;
+                overflow-x: auto;
+                overflow-y: visible;
+                -webkit-overflow-scrolling: touch;
+                gap: 16px;
+            }
+            .statues-sidebar {
+                flex: 0 0 280px;
+                width: 280px;
+                min-width: 280px;
+                max-width: 280px;
+                box-sizing: border-box;
+            }
+            .statues-grid-wrap {
+                flex: 0 0 auto;
+                min-width: min(960px, max(100%, calc(100vw - 48px)));
+                min-height: 0;
+            }
             .dash-container,
             #accountModal .dash-container {
                 grid-template-columns: 1fr;
@@ -216,8 +258,15 @@
             #accountModal .dash-content { max-height: min(75vh, 100dvh - 120px); }
             .showroom-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .hottoys-grid {
-                grid-template-columns: minmax(0, 1fr) !important;
-                justify-content: stretch;
+                grid-template-columns: repeat(2, minmax(280px, 420px)) !important;
+                justify-content: start;
+                justify-items: stretch;
+                width: 100%;
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: visible;
+                -webkit-overflow-scrolling: touch;
+                box-sizing: border-box;
             }
             .control-grid { grid-template-columns: 1fr; }
             .support-grid { grid-template-columns: 1fr; }
@@ -1409,61 +1458,74 @@
         }
         .spirit-account-san-add-row { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 16px; }
 
-        /* Mobile ≤768px : nav colonne, zones tactiles 44px, modales scan/paiement, titres — grille marketplace = auto-fit global */
+        /* ≤768px : même barre que le bureau (menu horizontal défilant), pas de mise en colonne type « app mobile » */
         @media screen and (max-width: 768px) {
             header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-                padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
+                flex-direction: row;
+                flex-wrap: nowrap;
+                align-items: center;
+                gap: 8px;
+                padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 8px max(10px, env(safe-area-inset-left));
+                min-height: 66px;
             }
             .logo-box {
+                flex: 0 0 auto;
                 align-self: center;
-                max-width: 100%;
+                max-width: 28%;
+                min-width: 0;
             }
             .logo-top { font-size: 1.05rem; }
             .logo-sub { font-size: 0.58rem; letter-spacing: 1.4px; }
             .actions-right {
-                width: 100%;
-                justify-content: center;
+                flex: 0 0 auto;
+                width: auto;
+                justify-content: flex-end;
                 flex-wrap: wrap;
-                gap: 8px;
+                gap: 6px;
+                max-width: 30%;
+                min-width: 0;
             }
             .actions-right .btn-action {
-                min-height: 44px;
+                padding: 6px 8px;
+                font-size: 0.52rem;
+                min-height: 0;
                 box-sizing: border-box;
-                padding: 10px 14px;
-                font-size: 0.58rem;
             }
             .menu-center {
-                flex-direction: column;
+                flex: 1 1 auto;
+                flex-direction: row;
                 align-items: center;
-                width: 100%;
-                margin: 0;
-                padding: 6px 0 8px;
-                overflow: visible;
+                justify-content: flex-start;
+                order: 0;
+                width: auto;
+                min-width: 0;
+                margin: 0 4px;
+                padding: 4px 0;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
                 flex-wrap: nowrap;
                 gap: 8px;
-                white-space: normal;
+                white-space: nowrap;
+                scrollbar-width: none;
             }
+            .menu-center::-webkit-scrollbar { height: 0; display: none; }
             .menu-center button {
-                min-height: 44px;
-                width: min(100%, 360px);
+                flex-shrink: 0;
+                width: auto;
+                min-height: 0;
+                font-size: 9px !important;
+                letter-spacing: 0.35px !important;
+                padding: 8px 8px !important;
                 box-sizing: border-box;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                font-size: clamp(9px, 2.4vw, 11px) !important;
-                letter-spacing: 0.4px !important;
-                padding: 10px 12px !important;
             }
-            .menu-center button + button::before { display: none; }
+            .menu-center button + button::before { display: block; }
             .menu-center .lang-selector {
-                min-height: 44px;
-                width: min(100%, 360px);
-                box-sizing: border-box;
-                font-size: 0.72rem !important;
-                padding: 10px 12px !important;
+                flex-shrink: 0;
+                width: auto;
+                min-height: 0;
+                font-size: 0.62rem !important;
+                padding: 6px 4px !important;
             }
             #marketplaceSection .card .img-placeholder img {
                 width: 100%;
@@ -1476,12 +1538,6 @@
                 width: 95% !important;
                 max-width: 95vw !important;
                 box-sizing: border-box;
-            }
-            h1 {
-                font-size: calc(2rem * 0.8);
-            }
-            h2 {
-                font-size: calc(1.5rem * 0.8);
             }
         }
     </style>
