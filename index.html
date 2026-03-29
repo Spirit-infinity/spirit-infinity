@@ -8072,8 +8072,23 @@ async function confirmPayment(method) {
             }
         }
         if (mount) {
-            if (mk === 'statues' && sf && sf.parentElement !== mount) mount.appendChild(sf);
-            else if (mk === 'figurines' && ff && ff.parentElement !== mount) mount.appendChild(ff);
+            if (mk === 'statues') {
+                if (ff && ff.parentElement === mount) {
+                    if (sb) {
+                        if (kf && kf.parentElement === sb) sb.insertBefore(ff, kf.nextSibling);
+                        else sb.insertBefore(ff, sb.firstChild);
+                    }
+                }
+                if (sf && sf.parentElement !== mount) mount.appendChild(sf);
+            } else {
+                if (sf && sf.parentElement === mount) {
+                    if (staSide) {
+                        if (ks && ks.parentElement === staSide) staSide.insertBefore(sf, ks.nextSibling);
+                        else staSide.insertBefore(sf, staSide.firstChild);
+                    }
+                }
+                if (ff && ff.parentElement !== mount) mount.appendChild(ff);
+            }
         }
         if (searchBar && ss && searchBar.parentElement !== ss) ss.appendChild(searchBar);
         if (mtb && vs && mtb.parentElement !== vs) vs.appendChild(mtb);
