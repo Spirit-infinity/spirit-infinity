@@ -758,6 +758,26 @@
             max-height: calc(100vh - 88px);
             overflow-y: auto;
         }
+        /* Après la règle 2 colonnes ci-dessus : sur ≤900px empiler menu + contenu (sinon 250px+1fr repasse en cascade et le panneau contenu disparaît / est rogné). Bureau ≥901px inchangé. */
+        @media (max-width: 900px) {
+            #accountModal .dash-container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                min-width: 0;
+            }
+            #accountModal .dash-nav {
+                border-right: none;
+                border-bottom: 1px solid #222;
+                padding-right: 0;
+                padding-bottom: 10px;
+            }
+            #accountModal .dash-content {
+                min-width: 0;
+                width: 100%;
+                max-height: min(75vh, 100dvh - 120px);
+                box-sizing: border-box;
+            }
+        }
         #tab-ventes #my-sales-list {
             max-height: min(50vh, 420px);
             overflow-y: auto;
