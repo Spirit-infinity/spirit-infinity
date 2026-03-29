@@ -256,8 +256,7 @@
                 grid-template-columns: repeat(auto-fit, minmax(188px, 1fr));
                 gap: 14px;
             }
-            .dash-container,
-            #accountModal .dash-container {
+            .dash-container {
                 grid-template-columns: 1fr;
                 gap: 16px;
                 max-height: none;
@@ -269,7 +268,6 @@
                 padding-bottom: 10px;
             }
             .dash-nav button { min-height: 44px; box-sizing: border-box; }
-            #accountModal .dash-content { max-height: min(75vh, 100dvh - 120px); }
             .showroom-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .hottoys-grid {
                 grid-template-columns: repeat(2, minmax(280px, 420px)) !important;
@@ -744,50 +742,57 @@
             display: flex;
             flex-direction: column;
         }
-        #accountModal .dash-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0;
-            min-height: 0;
-            max-height: calc(100vh - 88px);
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        #accountModal .spirit-account-acc-item {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        #accountModal .spirit-account-acc-panel {
-            padding: 12px 14px 16px;
-            box-sizing: border-box;
-            border: 1px solid rgba(255, 102, 0, 0.22);
-            border-radius: 8px;
-            margin: 0 4px 12px;
-            background: rgba(0, 0, 0, 0.4);
-        }
-        #accountModal .dash-content {
-            min-height: 0;
-            max-height: calc(100vh - 88px);
-            overflow-y: auto;
-        }
-        @keyframes spirit-account-acc-open {
-            from {
-                opacity: 0;
-                transform: translateY(-12px);
+        /* Mon compte : bureau = 2 colonnes (menu | contenu), mobile = une colonne + accordéon JS */
+        @media (min-width: 901px) {
+            #accountModal .dash-container {
+                display: grid;
+                grid-template-columns: 250px 1fr;
+                gap: 30px;
+                min-height: 0;
+                max-height: calc(100vh - 88px);
+                overflow-y: auto;
+                overflow-x: hidden;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            #accountModal .dash-content {
+                min-height: 0;
+                max-height: calc(100vh - 88px);
+                overflow-y: auto;
             }
         }
-        #accountModal .account-page.spirit-acc-opening {
-            animation: spirit-account-acc-open 0.4s ease-out forwards;
-        }
-        /* Après la règle 2 colonnes ci-dessus : sur ≤900px empiler menu + contenu (sinon 250px+1fr repasse en cascade et le panneau contenu disparaît / est rogné). Bureau ≥901px inchangé. */
         @media (max-width: 900px) {
             #accountModal .dash-container {
+                display: grid;
                 grid-template-columns: 1fr;
-                gap: 16px;
+                gap: 0;
                 min-width: 0;
+                min-height: 0;
+                max-height: calc(100vh - 88px);
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+            #accountModal .spirit-account-acc-item {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            #accountModal .spirit-account-acc-panel {
+                padding: 12px 14px 16px;
+                box-sizing: border-box;
+                border: 1px solid rgba(255, 102, 0, 0.22);
+                border-radius: 8px;
+                margin: 0 4px 12px;
+                background: rgba(0, 0, 0, 0.4);
+            }
+            @keyframes spirit-account-acc-open {
+                from {
+                    opacity: 0;
+                    transform: translateY(-12px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            #accountModal .account-page.spirit-acc-opening {
+                animation: spirit-account-acc-open 0.4s ease-out forwards;
             }
             #accountModal .dash-nav {
                 border-right: none;
@@ -827,12 +832,10 @@
                 background: rgba(8, 8, 8, 0.65);
             }
         }
-        @media (prefers-reduced-motion: reduce) {
+        @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
             #accountModal .account-page.spirit-acc-opening {
                 animation: none;
             }
-        }
-        @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
             #accountModal .dash-nav button::after {
                 transition: none;
             }
@@ -3605,6 +3608,8 @@
     var spiritMarketAuxOnce = false;
     var spiritAccountLastTab = '';
     var spiritAccountLastTabTs = 0;
+    var spiritAccountResizeBucket = null;
+    var spiritAccountResizeDebounceTmr = null;
     var spiritScopedUiLastUserId = '';
 
     // --- PRÉCOMMANDES HOT TOYS (PARTENAIRE OFFICIEL) ---
@@ -8443,8 +8448,15 @@ async function confirmPayment(method) {
                 } catch (e) {}
                 const account = document.getElementById('accountModal');
                 if (account) account.style.setProperty('display', 'flex', 'important');
-                try { if (typeof spiritAccountAccordionMount === 'function') spiritAccountAccordionMount(); } catch (eM) {}
-                try { if (typeof spiritAccountTabsCollapseAll === 'function') spiritAccountTabsCollapseAll(); } catch (e) {}
+                try { if (typeof spiritAccountLayoutSync === 'function') spiritAccountLayoutSync(); } catch (eM) {}
+                try {
+                    var _wAccNav = window.innerWidth || 9999;
+                    if (_wAccNav <= 900) {
+                        if (typeof spiritAccountTabsCollapseAll === 'function') spiritAccountTabsCollapseAll();
+                    } else if (typeof showAccountTab === 'function') {
+                        showAccountTab('dashboard');
+                    }
+                } catch (eAccNav) {}
                 try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
                 try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (eNot) {}
                 break;
@@ -8598,13 +8610,14 @@ async function confirmPayment(method) {
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
-/** Déplace chaque #tab-* juste sous son bouton (accordéon Mon compte). Idempotent. */
+/** Déplace chaque #tab-* juste sous son bouton (accordéon Mon compte, ≤900px). Idempotent. */
 function spiritAccountAccordionMount() {
     try {
         var nav = document.querySelector('#accountModal .dash-nav');
         var dc = document.querySelector('#accountModal .dash-content');
         if (!nav || !dc || nav.getAttribute('data-spirit-acc-mounted') === '1') return;
         nav.setAttribute('data-spirit-acc-mounted', '1');
+        try { nav.classList.add('spirit-account-acc-root'); } catch (eR) {}
         var buttons = Array.prototype.slice.call(nav.querySelectorAll('button[id^="btn-"]'), 0);
         var frag = document.createDocumentFragment();
         buttons.forEach(function (btn) {
@@ -8625,6 +8638,76 @@ function spiritAccountAccordionMount() {
     } catch (e) {}
 }
 try { window.spiritAccountAccordionMount = spiritAccountAccordionMount; } catch (eM) {}
+
+/** Restaure menu à gauche + .dash-content à droite (bureau ≥901px). */
+function spiritAccountAccordionUnmount() {
+    try {
+        var nav = document.querySelector('#accountModal .dash-nav');
+        var container = document.querySelector('#accountModal .dash-container');
+        if (!nav || !container || nav.getAttribute('data-spirit-acc-mounted') !== '1') return;
+        var items = Array.prototype.slice.call(nav.querySelectorAll('.spirit-account-acc-item'), 0);
+        var fragBtns = document.createDocumentFragment();
+        var dc = document.createElement('div');
+        dc.className = 'dash-content';
+        items.forEach(function (wrap) {
+            var btn = wrap.querySelector('button[id^="btn-"]');
+            var panel = wrap.querySelector('.account-page');
+            if (btn) fragBtns.appendChild(btn);
+            if (panel) {
+                try { panel.classList.remove('spirit-account-acc-panel'); } catch (eP) {}
+                dc.appendChild(panel);
+            }
+            try { wrap.remove(); } catch (eW) {}
+        });
+        while (nav.firstChild) nav.removeChild(nav.firstChild);
+        nav.appendChild(fragBtns);
+        container.appendChild(dc);
+        nav.removeAttribute('data-spirit-acc-mounted');
+        try { nav.classList.remove('spirit-account-acc-root'); } catch (eN) {}
+    } catch (e) {}
+}
+try { window.spiritAccountAccordionUnmount = spiritAccountAccordionUnmount; } catch (eU) {}
+
+function spiritAccountLayoutSync() {
+    try {
+        var w = window.innerWidth || 9999;
+        if (w <= 900) {
+            if (typeof spiritAccountAccordionMount === 'function') spiritAccountAccordionMount();
+        } else {
+            if (typeof spiritAccountAccordionUnmount === 'function') spiritAccountAccordionUnmount();
+        }
+    } catch (e) {}
+}
+try { window.spiritAccountLayoutSync = spiritAccountLayoutSync; } catch (eL) {}
+
+function spiritAccountHandleResizeLayout() {
+    try {
+        if (spiritAccountResizeDebounceTmr) clearTimeout(spiritAccountResizeDebounceTmr);
+        spiritAccountResizeDebounceTmr = setTimeout(function () {
+            try {
+                var w = window.innerWidth || 9999;
+                var b = w <= 900 ? 1 : 0;
+                if (typeof spiritAccountLayoutSync === 'function') spiritAccountLayoutSync();
+                if (spiritAccountResizeBucket === null) {
+                    spiritAccountResizeBucket = b;
+                    return;
+                }
+                if (spiritAccountResizeBucket === b) return;
+                spiritAccountResizeBucket = b;
+                var t = '';
+                try { t = String(spiritAccountLastTab || '').trim(); } catch (e0) {}
+                if (typeof showAccountTab !== 'function') return;
+                if (b === 1) {
+                    if (t) showAccountTab(t);
+                    else if (typeof spiritAccountTabsCollapseAll === 'function') spiritAccountTabsCollapseAll();
+                } else {
+                    showAccountTab(t || 'dashboard');
+                }
+            } catch (e1) {}
+        }, 180);
+    } catch (e) {}
+}
+try { window.addEventListener('resize', spiritAccountHandleResizeLayout); } catch (eRw) {}
 
 function spiritAccountTabsCollapseAll() {
     try {
@@ -8653,7 +8736,13 @@ function spiritAccountAccordionReveal(tab) {
                 b.setAttribute('aria-expanded', tabFromBtn === tStr ? 'true' : 'false');
             });
         }
+        var wAcc = window.innerWidth || 9999;
         var pageActive = document.getElementById('tab-' + tab);
+        if (wAcc > 900) {
+            var dDesk = document.querySelector('#accountModal .dash-content');
+            if (dDesk) dDesk.scrollTop = 0;
+            return;
+        }
         document.querySelectorAll('#accountModal .account-page').forEach(function (p) {
             p.classList.remove('spirit-acc-opening');
         });
@@ -8693,7 +8782,8 @@ window.showAccountTab = function showAccountTab(tab) {
         window.MY_TEST_ID = String(MY_TEST_ID).trim();
     }
 
-    try { if (typeof spiritAccountAccordionMount === 'function') spiritAccountAccordionMount(); } catch (eM0) {}
+    try { if (typeof spiritAccountLayoutSync === 'function') spiritAccountLayoutSync(); } catch (eM0) {}
+    var spiritAccountMob = (window.innerWidth || 9999) <= 900;
 
     tab = String(tab || '').trim();
     if (tab === 'favoris') tab = 'liste-envie';
@@ -8710,20 +8800,22 @@ window.showAccountTab = function showAccountTab(tab) {
         if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
     } catch (e) {}
 
-    /* Même entrée déjà ouverte → refermer (liste des menus seule). */
+    /* Mobile : même entrée déjà ouverte → refermer (liste des menus seule). Bureau : onglets classiques. */
     try {
-        var pageToggle = document.getElementById('tab-' + tab);
-        if (pageToggle && pageToggle.classList.contains('active')) {
-            pageToggle.style.display = 'none';
-            pageToggle.classList.remove('active');
-            try { pageToggle.classList.remove('spirit-acc-opening'); } catch (eT0) {}
-            var btnT = document.getElementById('btn-' + tab);
-            if (btnT) {
-                btnT.classList.remove('active');
-                btnT.setAttribute('aria-expanded', 'false');
+        if (spiritAccountMob) {
+            var pageToggle = document.getElementById('tab-' + tab);
+            if (pageToggle && pageToggle.classList.contains('active')) {
+                pageToggle.style.display = 'none';
+                pageToggle.classList.remove('active');
+                try { pageToggle.classList.remove('spirit-acc-opening'); } catch (eT0) {}
+                var btnT = document.getElementById('btn-' + tab);
+                if (btnT) {
+                    btnT.classList.remove('active');
+                    btnT.setAttribute('aria-expanded', 'false');
+                }
+                spiritAccountLastTab = '';
+                return;
             }
-            spiritAccountLastTab = '';
-            return;
         }
     } catch (eTog) {}
 
@@ -12572,7 +12664,16 @@ async function fetchAnnonces() {
 // BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
 document.addEventListener('DOMContentLoaded', () => {
     void (async function spiritDomReady() {
-        try { if (typeof spiritAccountAccordionMount === 'function') spiritAccountAccordionMount(); } catch (eAccM) {}
+        try {
+            if (typeof spiritAccountLayoutSync === 'function') spiritAccountLayoutSync();
+            var wBoot = window.innerWidth || 9999;
+            if (wBoot <= 900) {
+                if (typeof spiritAccountTabsCollapseAll === 'function') spiritAccountTabsCollapseAll();
+            } else if (typeof showAccountTab === 'function') {
+                showAccountTab('dashboard');
+            }
+            spiritAccountResizeBucket = wBoot <= 900 ? 1 : 0;
+        } catch (eAccM) {}
         try { if (typeof spiritInitMarketViewMobile === 'function') spiritInitMarketViewMobile(); } catch (eMv) {}
         try { if (typeof spiritMobAccordionInit === 'function') spiritMobAccordionInit(); } catch (eAcc) {}
         try { if (typeof spiritMobileLayoutReflow === 'function') spiritMobileLayoutReflow(); } catch (eMob) {}
