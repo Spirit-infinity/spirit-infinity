@@ -771,11 +771,60 @@
                 padding-right: 0;
                 padding-bottom: 10px;
             }
+            #accountModal .dash-nav button {
+                position: relative;
+                padding-right: 36px;
+                border-radius: 6px;
+                margin-bottom: 6px;
+                transition: background 0.22s ease, border-color 0.22s ease;
+            }
+            #accountModal .dash-nav button::after {
+                content: '';
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                width: 7px;
+                height: 7px;
+                border-right: 2px solid #555;
+                border-bottom: 2px solid #555;
+                transform: translateY(-60%) rotate(45deg);
+                transition: transform 0.28s ease, border-color 0.22s ease;
+                pointer-events: none;
+            }
+            #accountModal .dash-nav button.active::after {
+                transform: translateY(-20%) rotate(-135deg);
+                border-color: var(--neon-orange);
+            }
             #accountModal .dash-content {
                 min-width: 0;
                 width: 100%;
                 max-height: min(75vh, 100dvh - 120px);
                 box-sizing: border-box;
+                border: 1px solid rgba(255, 102, 0, 0.28);
+                border-radius: 10px;
+                padding: 12px 12px 14px;
+                background: rgba(8, 8, 8, 0.65);
+            }
+            @keyframes spirit-account-acc-open {
+                from {
+                    opacity: 0;
+                    transform: translateY(-12px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            #accountModal .dash-content .account-page.spirit-acc-opening {
+                animation: spirit-account-acc-open 0.4s ease-out forwards;
+            }
+        }
+        @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+            #accountModal .dash-content .account-page.spirit-acc-opening {
+                animation: none;
+            }
+            #accountModal .dash-nav button::after {
+                transition: none;
             }
         }
         #tab-ventes #my-sales-list {
@@ -2760,17 +2809,17 @@
     <div class="modal-content" style="max-width:1100px;">
         <button onclick="closeSpiritMenu()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div class="dash-container">
-            <div class="dash-nav">
-                <button type="button" id="btn-dashboard" class="active" onclick="showAccountTab('dashboard')">DASHBOARD<span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
-                <button id="btn-messages" onclick="showAccountTab('messages')">MESSAGES<span id="messages-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
-                <button id="btn-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
-                <button id="btn-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
-                <button id="btn-portefeuille" onclick="showAccountTab('portefeuille')">PORTEFEUILLE</button>
-                <button id="btn-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
-                <button type="button" id="btn-liste-envie" onclick="showAccountTab('liste-envie')"><span data-key="account_wishlist_menu">LISTE D’ENVIE</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
-                <button type="button" id="btn-favoris-recus" onclick="showAccountTab('favoris-recus')"><span data-key="account_seller_fav_menu">FAVORIS</span><span id="seller-received-fav-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
-                <button type="button" id="btn-sanctuary" onclick="showAccountTab('sanctuary')">SANCTUAIRE</button>
-                <button id="btn-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
+            <div class="dash-nav" role="tablist" aria-label="Sections du compte">
+                <button type="button" id="btn-dashboard" class="active" role="tab" aria-expanded="true" aria-controls="tab-dashboard" onclick="showAccountTab('dashboard')">DASHBOARD<span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button type="button" id="btn-messages" role="tab" aria-expanded="false" aria-controls="tab-messages" onclick="showAccountTab('messages')">MESSAGES<span id="messages-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button type="button" id="btn-achats" role="tab" aria-expanded="false" aria-controls="tab-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
+                <button type="button" id="btn-ventes" role="tab" aria-expanded="false" aria-controls="tab-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
+                <button type="button" id="btn-portefeuille" role="tab" aria-expanded="false" aria-controls="tab-portefeuille" onclick="showAccountTab('portefeuille')">PORTEFEUILLE</button>
+                <button type="button" id="btn-annonces" role="tab" aria-expanded="false" aria-controls="tab-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
+                <button type="button" id="btn-liste-envie" role="tab" aria-expanded="false" aria-controls="tab-liste-envie" onclick="showAccountTab('liste-envie')"><span data-key="account_wishlist_menu">LISTE D’ENVIE</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button type="button" id="btn-favoris-recus" role="tab" aria-expanded="false" aria-controls="tab-favoris-recus" onclick="showAccountTab('favoris-recus')"><span data-key="account_seller_fav_menu">FAVORIS</span><span id="seller-received-fav-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button type="button" id="btn-sanctuary" role="tab" aria-expanded="false" aria-controls="tab-sanctuary" onclick="showAccountTab('sanctuary')">SANCTUAIRE</button>
+                <button type="button" id="btn-params" role="tab" aria-expanded="false" aria-controls="tab-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
             </div>
             
             <div class="dash-content">
@@ -8538,6 +8587,46 @@ async function confirmPayment(method) {
   
  // (c) 2026 Spirit Infinity - Tous droits réservés
 
+function spiritAccountAccordionReveal(tab) {
+    try {
+        var nav = document.querySelector('#accountModal .dash-nav');
+        if (nav) {
+            var tStr = String(tab || '');
+            nav.querySelectorAll('button').forEach(function (b) {
+                var bid = String(b.getAttribute('id') || '');
+                var tabFromBtn = bid.indexOf('btn-') === 0 ? bid.slice(4) : '';
+                b.setAttribute('aria-expanded', tabFromBtn === tStr ? 'true' : 'false');
+            });
+        }
+        var w = window.innerWidth || 9999;
+        if (w > 900) return;
+        var pageActive = document.getElementById('tab-' + tab);
+        document.querySelectorAll('#accountModal .account-page').forEach(function (p) {
+            p.classList.remove('spirit-acc-opening');
+        });
+        if (!pageActive) return;
+        void pageActive.offsetWidth;
+        pageActive.classList.add('spirit-acc-opening');
+        var dc = document.querySelector('#accountModal .dash-content');
+        if (dc) dc.scrollTop = 0;
+        var tmr = setTimeout(function () {
+            try { pageActive.classList.remove('spirit-acc-opening'); } catch (eT) {}
+        }, 500);
+        try {
+            var endFn = function (ev) {
+                try {
+                    if (ev && ev.animationName && ev.animationName !== 'spirit-account-acc-open') return;
+                } catch (eN) {}
+                try { clearTimeout(tmr); } catch (eCl) {}
+                try { pageActive.removeEventListener('animationend', endFn); } catch (eR) {}
+                try { pageActive.classList.remove('spirit-acc-opening'); } catch (eC) {}
+            };
+            pageActive.addEventListener('animationend', endFn);
+        } catch (eA) {}
+    } catch (e) {}
+}
+try { window.spiritAccountAccordionReveal = spiritAccountAccordionReveal; } catch (eW) {}
+
 window.showAccountTab = function showAccountTab(tab) {
    
     // AJOUT : Sécurité ID avant chargement
@@ -8673,6 +8762,7 @@ window.showAccountTab = function showAccountTab(tab) {
     if (boutonActif) {
         boutonActif.classList.add('active');
     }
+    try { if (typeof spiritAccountAccordionReveal === 'function') spiritAccountAccordionReveal(tab); } catch (eAcc) {}
 }
 
 function spiritRefreshUserScopedUi() {
