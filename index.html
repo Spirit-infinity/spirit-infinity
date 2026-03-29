@@ -1085,16 +1085,16 @@
             display: block;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            object-position: center;
+            object-fit: contain;
+            object-position: center center;
             background: #050505;
         }
         img.spirit-card-img,
         .spirit-card-img {
             width: 100%;
             height: 200px;
-            object-fit: cover;
-            object-position: center;
+            object-fit: contain;
+            object-position: center center;
             display: block;
         }
         #heroSection.spirit-hero {
@@ -1503,11 +1503,12 @@
 
         /* ≤768px : cartes / modales (barre nav = bannière accordéon ≤900px) */
         @media screen and (max-width: 768px) {
-            #marketplaceSection .card .img-placeholder img {
+            #marketplaceSection .card .img-placeholder img,
+            #marketStatuesView .card .img-placeholder img {
                 width: 100%;
                 height: 100%;
-                object-fit: cover;
-                object-position: center;
+                object-fit: contain;
+                object-position: center center;
             }
             #certifModal .modal-content,
             #paymentModal .modal-content {
@@ -2064,8 +2065,8 @@
             }
             #marketplaceSection .card .img-placeholder .spirit-card-img-wrap img,
             #marketStatuesView .card .img-placeholder .spirit-card-img-wrap img {
-                object-fit: cover !important;
-                object-position: center 45% !important;
+                object-fit: contain !important;
+                object-position: center center !important;
             }
             #marketplaceSection .card .spirit-card-img-wrap,
             #marketStatuesView .card .spirit-card-img-wrap {
