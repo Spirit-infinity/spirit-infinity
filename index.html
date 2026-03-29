@@ -1966,73 +1966,101 @@
                 border-color: var(--neon-orange);
                 box-shadow: 0 0 0 1px rgba(255, 102, 0, 0.35);
             }
+            /* Selects réels conservés pour la logique ; masqués visuellement sur mobile (accordéons VUE / DEVISE) */
             .spirit-mob-vue-slot .market-toolbar {
-                margin: 0;
-                justify-content: stretch;
-                align-items: stretch;
-                width: 100%;
-                min-height: 24px;
-                min-width: 0;
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                padding: 0 !important;
+                margin: -1px !important;
+                overflow: hidden !important;
+                clip: rect(0, 0, 0, 0) !important;
+                border: 0 !important;
+                white-space: nowrap !important;
+            }
+            .spirit-mob-vue-slot {
                 position: relative;
-                z-index: 1;
-                overflow: visible;
             }
-            .spirit-mob-vue-slot .market-view-box {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-                grid-template-rows: auto minmax(22px, 1fr);
-                column-gap: 4px;
-                row-gap: 1px;
-                margin-left: 0;
+            .spirit-mob-vue-devise-acc {
+                display: flex;
+                flex-direction: column;
                 width: 100%;
-                min-height: 24px;
-                align-items: center;
-                overflow: visible;
-                box-sizing: border-box;
+                min-width: 0;
+                gap: 0;
             }
-            .spirit-mob-vue-slot .market-view-box > span {
-                font-size: 0.4rem;
-                color: #777;
+            .spirit-mob-vue-devise-row {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                align-items: stretch;
+                gap: 6px;
+                width: 100%;
+                min-width: 0;
+            }
+            .spirit-mob-vue-slot .spirit-mob-vue-dd-trigger {
+                flex: 1 1 0;
+                min-width: 0;
+                min-height: 28px;
+                padding: 6px 8px;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 4px;
+                background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+                border: 1px solid rgba(255, 102, 0, 0.45);
+                border-radius: 8px;
+                color: #eee;
+                cursor: pointer;
+                box-sizing: border-box;
+                font-size: 0.52rem;
+                font-weight: 800;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                transition: border-color 0.25s ease, box-shadow 0.25s ease;
+            }
+            .spirit-mob-vue-slot .spirit-mob-vue-dd-trigger .spirit-mob-vue-dd-inner {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                min-width: 0;
+                flex: 1 1 auto;
+                text-align: left;
+            }
+            .spirit-mob-vue-slot .spirit-mob-vue-dd-trigger .spirit-mob-acc-chevron {
+                flex-shrink: 0;
+            }
+            .spirit-mob-vue-slot .spirit-mob-vue-dd-trigger[aria-expanded="true"] {
+                border-color: var(--neon-orange);
+                box-shadow: inset 0 0 12px rgba(255, 102, 0, 0.15);
+            }
+            .spirit-mob-vue-slot .spirit-mob-vue-acc-panel {
+                margin-top: 4px;
+            }
+            .spirit-mob-vue-slot .spirit-mob-vue-dd-options {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                padding: 8px 10px 10px;
+            }
+            .spirit-mob-vue-slot .spirit-mob-vue-dd-btn {
+                width: 100%;
+                text-align: left;
+                padding: 10px 12px;
+                font-size: 0.62rem;
+                font-weight: 700;
                 letter-spacing: 0.04em;
                 text-transform: uppercase;
-                line-height: 1;
-            }
-            .spirit-mob-vue-slot .market-view-box > span:nth-child(1) {
-                grid-column: 1;
-                grid-row: 1;
-            }
-            .spirit-mob-vue-slot .market-view-box > select:nth-of-type(1) {
-                grid-column: 1;
-                grid-row: 2;
-            }
-            .spirit-mob-vue-slot .market-view-box > span:nth-child(3) {
-                grid-column: 2;
-                grid-row: 1;
-            }
-            .spirit-mob-vue-slot .market-view-box > select:nth-of-type(2) {
-                grid-column: 2;
-                grid-row: 2;
-            }
-            .spirit-mob-vue-slot .market-view-box select {
-                width: 100% !important;
-                min-width: 0 !important;
-                max-width: none !important;
-                min-height: 22px;
-                height: 22px;
-                max-height: 22px;
-                font-size: 0.4rem;
-                padding: 0 2px;
+                border: 1px solid #2a2a2a;
+                border-radius: 6px;
+                background: #111;
+                color: #eee;
+                cursor: pointer;
                 box-sizing: border-box;
-                touch-action: manipulation;
-                border: 1px solid #3a3a3a !important;
-                background: #0b0b0b !important;
-                color: #eee !important;
-                box-shadow: none !important;
             }
-            .spirit-mob-vue-slot #marketViewSelect,
-            .spirit-mob-vue-slot #marketCurrencySelect {
-                min-width: 0 !important;
-                max-width: 100% !important;
+            .spirit-mob-vue-slot .spirit-mob-vue-dd-btn:active {
+                border-color: var(--neon-orange);
+                color: var(--neon-orange);
             }
             #marketplaceSection .card .img-placeholder .spirit-card-img-wrap img,
             #marketStatuesView .card .img-placeholder .spirit-card-img-wrap img {
@@ -2155,6 +2183,18 @@
         }
         @media (min-width: 901px) {
             .spirit-header-mobile { display: none !important; }
+            .spirit-mob-vue-devise-acc { display: none !important; }
+            .spirit-mob-vue-slot .market-toolbar {
+                position: static !important;
+                width: auto !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                clip: auto !important;
+                border: none !important;
+                white-space: normal !important;
+            }
         }
     </style>
 </head>
@@ -2307,7 +2347,26 @@
         <div id="spiritMobToolbarRow" class="spirit-mob-toolbar-row">
             <div class="spirit-mob-market-controls-line">
                 <div id="spiritMobKindSlot" class="spirit-mob-kind-slot"></div>
-                <div id="spiritMobVueSlot" class="spirit-mob-vue-slot"></div>
+                <div id="spiritMobVueSlot" class="spirit-mob-vue-slot">
+                    <div class="spirit-mob-vue-devise-acc" id="spiritMobVueDeviseAcc" aria-label="Vue et devise">
+                        <div class="spirit-mob-vue-devise-row">
+                            <button type="button" class="spirit-mob-acc-trigger spirit-mob-vue-dd-trigger" id="spiritMobTriggerVue" aria-expanded="false" aria-controls="spiritMobPanelVue">
+                                <span class="spirit-mob-vue-dd-inner">VUE</span>
+                                <span class="spirit-mob-acc-chevron" aria-hidden="true"></span>
+                            </button>
+                            <button type="button" class="spirit-mob-acc-trigger spirit-mob-vue-dd-trigger" id="spiritMobTriggerDevise" aria-expanded="false" aria-controls="spiritMobPanelDevise">
+                                <span class="spirit-mob-vue-dd-inner">DEVISE</span>
+                                <span class="spirit-mob-acc-chevron" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                        <div class="spirit-mob-acc-panel spirit-mob-vue-acc-panel" id="spiritMobPanelVue">
+                            <div class="spirit-mob-vue-dd-options" id="spiritMobVueOptions"></div>
+                        </div>
+                        <div class="spirit-mob-acc-panel spirit-mob-vue-acc-panel" id="spiritMobPanelDevise">
+                            <div class="spirit-mob-vue-dd-options" id="spiritMobDeviseOptions"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div id="spiritMobSearchSlot" class="spirit-mob-search-slot"></div>
         </div>
@@ -3671,6 +3730,10 @@ async function loadUserPurchases() {
             if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = set[key];
             else el.textContent = set[key];
         });
+        try {
+            if (typeof spiritSyncMarketViewSelectOptions === 'function') spiritSyncMarketViewSelectOptions();
+            if (typeof spiritApplyMarketViewClasses === 'function') spiritApplyMarketViewClasses();
+        } catch (eMob) {}
         try {
             if (typeof renderMarket === 'function' && Array.isArray(marketData) && marketData.length) renderMarket();
         } catch (e) { /* ignore */ }
@@ -7761,6 +7824,8 @@ async function confirmPayment(method) {
                 btn.classList.toggle('active', (mv === 'style' || mv === 'style2') && mv === marketViewMode);
             });
         } catch (eBtn) {}
+        try { if (typeof spiritMobVueDeviseRefreshOptions === 'function') spiritMobVueDeviseRefreshOptions(); } catch (eO) {}
+        try { if (typeof spiritMobVueDeviseSyncLabels === 'function') spiritMobVueDeviseSyncLabels(); } catch (eL) {}
     }
 
     function spiritSyncMarketViewSelectOptions() {
@@ -7888,6 +7953,70 @@ async function confirmPayment(method) {
         } catch (e2) {}
     }
 
+    function spiritMobVueDeviseRefreshOptions() {
+        try {
+            var selV = document.getElementById('marketViewSelect');
+            var boxV = document.getElementById('spiritMobVueOptions');
+            if (selV && boxV) {
+                boxV.innerHTML = '';
+                Array.prototype.forEach.call(selV.querySelectorAll('option'), function (opt) {
+                    var v = String(opt.value || '');
+                    var b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'spirit-mob-vue-dd-btn';
+                    b.textContent = opt.textContent || v;
+                    b.onclick = function (ev) {
+                        try { if (ev) ev.preventDefault(); } catch (e0) {}
+                        setMarketView(v);
+                        try { spiritMobAccordionCloseAll(); } catch (e1) {}
+                    };
+                    boxV.appendChild(b);
+                });
+            }
+            var selC = document.getElementById('marketCurrencySelect');
+            var boxC = document.getElementById('spiritMobDeviseOptions');
+            if (selC && boxC) {
+                boxC.innerHTML = '';
+                Array.prototype.forEach.call(selC.querySelectorAll('option'), function (opt) {
+                    var v = String(opt.value || '');
+                    var b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'spirit-mob-vue-dd-btn';
+                    b.textContent = opt.textContent || v;
+                    b.onclick = function (ev) {
+                        try { if (ev) ev.preventDefault(); } catch (e0) {}
+                        setMarketCurrency(v);
+                        try { spiritMobAccordionCloseAll(); } catch (e1) {}
+                    };
+                    boxC.appendChild(b);
+                });
+            }
+        } catch (eR) {}
+    }
+    try { window.spiritMobVueDeviseRefreshOptions = spiritMobVueDeviseRefreshOptions; } catch (eRV) {}
+
+    function spiritMobVueDeviseSyncLabels() {
+        try {
+            var selV = document.getElementById('marketViewSelect');
+            var selC = document.getElementById('marketCurrencySelect');
+            var tV = document.getElementById('spiritMobTriggerVue');
+            var tD = document.getElementById('spiritMobTriggerDevise');
+            if (selV && tV) {
+                var optV = selV.options[selV.selectedIndex];
+                var labV = optV ? String(optV.textContent || '').trim() : '';
+                var innerV = tV.querySelector('.spirit-mob-vue-dd-inner');
+                if (innerV) innerV.textContent = labV ? ('VUE · ' + labV) : 'VUE';
+            }
+            if (selC && tD) {
+                var optC = selC.options[selC.selectedIndex];
+                var labC = optC ? String(optC.textContent || '').trim() : '';
+                var innerD = tD.querySelector('.spirit-mob-vue-dd-inner');
+                if (innerD) innerD.textContent = labC ? ('DEVISE · ' + labC) : 'DEVISE';
+            }
+        } catch (eS) {}
+    }
+    try { window.spiritMobVueDeviseSyncLabels = spiritMobVueDeviseSyncLabels; } catch (eSL) {}
+
     function spiritMobileLayoutReflow() {
         var w = window.innerWidth || 9999;
         var mob = w <= 900;
@@ -7950,6 +8079,7 @@ async function confirmPayment(method) {
         if (mtb && vs && mtb.parentElement !== vs) vs.appendChild(mtb);
         if (mobBar && br && br.parentElement !== mobBar) mobBar.appendChild(br);
         if (mobBar && bs && bs.parentElement !== mobBar) mobBar.appendChild(bs);
+        try { if (mob && typeof spiritMobVueDeviseSyncLabels === 'function') spiritMobVueDeviseSyncLabels(); } catch (eMobL) {}
     }
     try { window.spiritMobileLayoutReflow = spiritMobileLayoutReflow; } catch (eM) {}
 
@@ -8015,6 +8145,7 @@ async function confirmPayment(method) {
             var spCur = document.getElementById('salePriceCurrency');
             if (spCur && siCur && siCur.style.display !== 'none') spCur.value = marketCurrencyMode;
         } catch (eSaleCur) {}
+        try { if (typeof spiritMobVueDeviseSyncLabels === 'function') spiritMobVueDeviseSyncLabels(); } catch (eMobC) {}
     }
     window.setMarketCurrency = setMarketCurrency;
 
@@ -12240,6 +12371,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try { if (typeof spiritMobAccordionInit === 'function') spiritMobAccordionInit(); } catch (eAcc) {}
         try { if (typeof spiritMobileLayoutReflow === 'function') spiritMobileLayoutReflow(); } catch (eMob) {}
         try { ensureMarketCurrencySelect(); } catch (e) {}
+        try {
+            if (typeof spiritMobVueDeviseRefreshOptions === 'function') spiritMobVueDeviseRefreshOptions();
+            if (typeof spiritMobVueDeviseSyncLabels === 'function') spiritMobVueDeviseSyncLabels();
+        } catch (eMobVd) {}
         var appliedFromSession = false;
         try {
             if (typeof _spirit !== 'undefined' && _spirit && _spirit.auth && typeof _spirit.auth.getSession === 'function') {
