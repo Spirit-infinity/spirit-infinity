@@ -3117,6 +3117,11 @@
                         <div style="font-size:0.75rem; color:#5cf; font-weight:900; letter-spacing:1px; margin-bottom:6px;">ALERTE OFFRES</div>
                         <div id="spiritSellerOfferAlertText" style="font-size:0.72rem; color:#bbb;"></div>
                     </div>
+                    <div id="spiritListingQaAlert" style="display:none; margin-top:14px; padding:12px 14px; border:1px solid rgba(255,200,100,0.35); background:rgba(40,30,10,0.22);">
+                        <div style="font-size:0.75rem; color:#fa0; font-weight:900; letter-spacing:1px; margin-bottom:6px;">MESSAGES SUR LES ANNONCES</div>
+                        <div id="spiritListingQaAlertText" style="font-size:0.72rem; color:#bbb;"></div>
+                        <button type="button" class="btn-action" style="font-size:0.58rem;margin-top:8px;" onclick="spiritAckListingQaBannerRead()">MARQUER COMME LU</button>
+                    </div>
                     <div style="margin-top:16px;padding:14px;border:1px solid rgba(0,200,120,0.35);background:#0a1010;">
                         <p style="margin:0 0 8px;font-size:0.7rem;color:#6d8;font-weight:800;letter-spacing:1px;">MES OFFRES ENVOYÉES (FAVORIS)</p>
                         <p style="margin:0 0 10px;font-size:0.62rem;color:#666;">Récap : figurine, pseudo vendeur, prix d’origine, ton offre. Clique une ligne pour rouvrir l’annonce (prix à jour si le vendeur a accepté).</p>
@@ -4594,6 +4599,7 @@ function spiritRefreshAllAccountNotifs() {
         if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot();
         if (typeof checkGlobalNotifications === 'function') void checkGlobalNotifications();
         if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot();
+        if (typeof spiritCheckListingQaDashboardBanner === 'function') void spiritCheckListingQaDashboardBanner();
         if (typeof spiritCheckSellerReceivedFavDot === 'function') void spiritCheckSellerReceivedFavDot();
         if (typeof spiritUpdateNavSanctuaryDot === 'function') void spiritUpdateNavSanctuaryDot();
     } catch (e) {}
@@ -5022,9 +5028,7 @@ function spiritAckDashboardOfferDot() {
     var uid = spiritOwnerId(spiritGetCurrentUserId());
     if (!uid) return;
     try { localStorage.setItem(spiritGetDashboardOfferSeenKey(uid), new Date().toISOString()); } catch (e) {}
-    var dot = document.getElementById('dashboard-tab-dot');
-    spiritSetNotifDotVisible(dot, false);
-    try { spiritSyncAccountNotificationPulse(); } catch (eP4) {}
+    try { if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot(); } catch (e2) {}
 }
 
 async function spiritCheckDashboardOfferDot() {
@@ -5055,7 +5059,17 @@ async function spiritCheckDashboardOfferDot() {
             }
         } catch (eO) {}
 
-        spiritSetNotifDotVisible(dot, anyOffer);
+        var anyListingQa = false;
+        try {
+            if (!spiritSanNotifsTableMissing && typeof SPIRIT_SAN_NOTIFS_TABLE !== 'undefined') {
+                var nq = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true })
+                    .eq('owner_id', uid).eq('is_read', false)
+                    .in('type', ['listing_question', 'listing_reply']);
+                if (nq && !nq.error && Number((nq && nq.count) || 0) > 0) anyListingQa = true;
+            }
+        } catch (eQa) {}
+
+        spiritSetNotifDotVisible(dot, anyOffer || anyListingQa);
     } finally {
         try { spiritSyncAccountNotificationPulse(); } catch (eP5) {}
     }
@@ -5367,6 +5381,47 @@ async function spiritCheckSellerOfferBanner() {
         }
     } catch (e) {}
 }
+
+async function spiritCheckListingQaDashboardBanner() {
+    try {
+        var banner = document.getElementById('spiritListingQaAlert');
+        var textEl = document.getElementById('spiritListingQaAlertText');
+        if (!banner || !textEl) return;
+        banner.style.display = 'none';
+        textEl.textContent = '';
+        if (!_spirit || spiritSanNotifsTableMissing) return;
+        var uid = spiritOwnerId(spiritGetCurrentUserId());
+        if (!uid) return;
+        var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
+            .select('id,text,type,created_at,item_id')
+            .eq('owner_id', uid).eq('is_read', false)
+            .in('type', ['listing_question', 'listing_reply'])
+            .order('created_at', { ascending: false })
+            .range(0, 8);
+        if (q.error || !q.data || !q.data.length) return;
+        var lines = q.data.map(function (r) {
+            var tag = (String(r.type || '') === 'listing_question') ? 'Question' : 'Réponse';
+            return tag + ' : ' + String(r.text || '').slice(0, 96);
+        });
+        textEl.textContent = lines.join(' · ');
+        banner.style.display = 'block';
+    } catch (e) {}
+}
+
+async function spiritAckListingQaBannerRead() {
+    var uid = spiritOwnerId(spiritGetCurrentUserId());
+    if (!uid || !_spirit || spiritSanNotifsTableMissing) return;
+    try {
+        await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).update({ is_read: true })
+            .eq('owner_id', uid).eq('is_read', false)
+            .in('type', ['listing_question', 'listing_reply']);
+    } catch (e) {}
+    var banner = document.getElementById('spiritListingQaAlert');
+    if (banner) banner.style.display = 'none';
+    try { if (typeof spiritCheckDashboardOfferDot === 'function') void spiritCheckDashboardOfferDot(); } catch (e2) {}
+    try { spiritSanctuaryRefreshMessagesDot(); } catch (e3) {}
+}
+try { window.spiritAckListingQaBannerRead = spiritAckListingQaBannerRead; } catch (eAckLq) {}
 
 async function spiritSubmitProductOffer(productId, sellerId, offerAmount, originalPrice, currency) {
     if (!_spirit) {
@@ -7513,18 +7568,112 @@ async function confirmPayment(method) {
     return enregistrerVente(method);
 }
 
+async function spiritNotifyListingMessageRecipients(productId, sellerId, senderId, bodyPreview) {
+    if (!spiritSanSocialCanUseSupabase() || spiritSanNotifsTableMissing) return;
+    var pref = String(bodyPreview || '').trim().slice(0, 140);
+    var sellerN = spiritNormUid(sellerId);
+    var senderN = spiritNormUid(senderId);
+    if (!sellerN || !senderN) return;
+    if (senderN !== sellerN) {
+        await spiritSanctuaryPushNotif(sellerN, 'listing_question', String(productId), senderN, 'Question sur l\'annonce : ' + pref);
+        return;
+    }
+    if (!SPIRIT_LISTING_MSG_TABLE || spiritListingMsgTableMissing || !_spirit) return;
+    try {
+        var q = await _spirit.from(SPIRIT_LISTING_MSG_TABLE).select('sender_id').eq('product_id', productId);
+        if (q && q.error) return;
+        var buyers = Object.create(null);
+        (q.data || []).forEach(function (r) {
+            var s = spiritNormUid(r && r.sender_id);
+            if (s && s !== sellerN) buyers[s] = true;
+        });
+        var keys = Object.keys(buyers);
+        for (var i = 0; i < keys.length; i++) {
+            await spiritSanctuaryPushNotif(keys[i], 'listing_reply', String(productId), senderN, 'Réponse du vendeur : ' + pref);
+        }
+    } catch (e) {}
+}
 
+async function spiritLoadListingMessagesForProduct(productId) {
+    if (!selectedProduct) return;
+    selectedProduct.chat = [];
+    var pid = Number(productId);
+    if (!Number.isFinite(pid)) {
+        if (typeof renderChatMessages === 'function') renderChatMessages();
+        return;
+    }
+    if (!_spirit || spiritListingMsgTableMissing) {
+        if (typeof renderChatMessages === 'function') renderChatMessages();
+        return;
+    }
+    try {
+        var q = await _spirit.from(SPIRIT_LISTING_MSG_TABLE).select('sender_id,body,created_at').eq('product_id', pid).order('created_at', { ascending: true }).range(0, 400);
+        if (q && q.error) {
+            spiritListingMsgMarkMissingIf404(q.error);
+            if (typeof renderChatMessages === 'function') renderChatMessages();
+            return;
+        }
+        var rows = q.data || [];
+        var ids = [];
+        rows.forEach(function (r) {
+            var s = String(r.sender_id || '').trim();
+            if (s && ids.indexOf(s) < 0) ids.push(s);
+        });
+        var map = await spiritSanctuaryResolvePseudoMap(ids);
+        rows.forEach(function (r) {
+            var sid = String(r.sender_id || '').trim();
+            var uname = map[sid] || spiritSanctuaryFallbackLabel(sid);
+            selectedProduct.chat.push({ user: uname, text: String(r.body || ''), sender_id: sid });
+        });
+    } catch (e) {
+        spiritListingMsgMarkMissingIf404(e);
+    }
+    if (typeof renderChatMessages === 'function') renderChatMessages();
+}
 
 // --- FIN DU SYSTÈME ---
     // --- LOGIQUE CHAT ---
-    function sendMessage() {
+    async function sendMessage() {
         const input = document.getElementById('chatInput');
         const text = filterMessage(input.value.trim());
-        if(!text || !selectedProduct) return;
-        if(!selectedProduct.chat) selectedProduct.chat = [];
-        selectedProduct.chat.push({ user: currentUser, text: text });
+        if (!text || !selectedProduct) return;
+        var me = spiritOwnerId(spiritGetCurrentUserId());
+        if (!me) { alert('Connecte-toi pour envoyer un message.'); return; }
+        var pid = spiritFavoriteProductId(selectedProduct);
+        if (pid == null) { alert('Annonce sans identifiant : impossible d\'envoyer le message.'); return; }
+        var sellerId = spiritOwnerId(selectedProduct.owner_id || selectedProduct.owner);
+        if (!sellerId) { alert('Vendeur introuvable.'); return; }
+        if (!_spirit || spiritListingMsgTableMissing) {
+            if (!selectedProduct.chat) selectedProduct.chat = [];
+            selectedProduct.chat.push({ user: currentUser, text: text, sender_id: me });
+            input.value = '';
+            renderChatMessages();
+            return;
+        }
+        try {
+            var ins = await _spirit.from(SPIRIT_LISTING_MSG_TABLE).insert({
+                product_id: pid,
+                seller_id: String(sellerId),
+                sender_id: String(me),
+                body: String(text)
+            });
+            if (ins && ins.error) {
+                spiritListingMsgMarkMissingIf404(ins.error);
+                alert('Envoi impossible : ' + (ins.error.message || 'erreur Supabase / RLS.'));
+                return;
+            }
+        } catch (e) {
+            spiritListingMsgMarkMissingIf404(e);
+            alert('Envoi impossible.');
+            return;
+        }
+        if (!selectedProduct.chat) selectedProduct.chat = [];
+        selectedProduct.chat.push({ user: currentUser, text: text, sender_id: me });
         input.value = '';
         renderChatMessages();
+        try { await spiritNotifyListingMessageRecipients(pid, sellerId, me, text); } catch (eN) {}
+        try { spiritSanctuaryRefreshMessagesDot(); } catch (eD) {}
+        try { void spiritCheckDashboardOfferDot(); } catch (eDot) {}
     }
 
     function renderChatMessages() {
@@ -7562,6 +7711,14 @@ async function confirmPayment(method) {
             }
         }
         selectedProduct = item;
+        selectedProduct.chat = [];
+        try {
+            var _lpid = spiritFavoriteProductId(item);
+            if (_lpid != null && typeof spiritLoadListingMessagesForProduct === 'function')
+                await spiritLoadListingMessagesForProduct(_lpid);
+        } catch (eLm) {
+            try { if (typeof renderChatMessages === 'function') renderChatMessages(); } catch (eR) {}
+        }
         try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
         var pmRoot = document.getElementById('productModal');
         var mcRoot = pmRoot && pmRoot.querySelector('.modal-content');
@@ -9177,6 +9334,7 @@ window.showAccountTab = function showAccountTab(tab) {
         } catch (e) {}
         try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (e) {}
         try { if (typeof spiritCheckSellerOfferBanner === 'function') spiritCheckSellerOfferBanner(); } catch (e) {}
+        try { if (typeof spiritCheckListingQaDashboardBanner === 'function') void spiritCheckListingQaDashboardBanner(); } catch (eLq) {}
         try { if (typeof spiritLoadSellerOffersList === 'function') spiritLoadSellerOffersList(); } catch (e) {}
         try { if (typeof spiritLoadBuyerOffersSent === 'function') spiritLoadBuyerOffersSent(); } catch (e) {}
         try { if (typeof spiritFriendsRefreshList === 'function') spiritFriendsRefreshList(); } catch (e) {}
@@ -9407,6 +9565,31 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
    -- create policy "san_notif_delete_own" on public.spirit_sanctuary_notifications for delete using (auth.uid()::text = owner_id);
    -- drop policy if exists "san_notif_update_own" on public.spirit_sanctuary_notifications;
    -- create policy "san_notif_update_own" on public.spirit_sanctuary_notifications for update using (auth.uid()::text = owner_id);
+   -- Fil de discussion par annonce (modal produit) : types de notifs listing_question / listing_reply dans spirit_sanctuary_notifications.
+   create table if not exists public.spirit_listing_messages (
+     id bigint generated by default as identity primary key,
+     product_id bigint not null,
+     seller_id text not null,
+     sender_id text not null,
+     body text not null,
+     created_at timestamptz default now()
+   );
+   create index if not exists idx_spirit_listing_msg_product on public.spirit_listing_messages(product_id, created_at);
+   -- RLS (à exécuter après création de la table) — sans ça, insert/select renvoient 401/403 et le vendeur ne voit rien.
+   -- alter table public.spirit_listing_messages enable row level security;
+   -- drop policy if exists "spirit_listing_msg_insert_self" on public.spirit_listing_messages;
+   -- create policy "spirit_listing_msg_insert_self" on public.spirit_listing_messages
+   --   for insert to authenticated with check (sender_id = auth.uid()::text);
+   -- drop policy if exists "spirit_listing_msg_select_thread" on public.spirit_listing_messages;
+   -- create policy "spirit_listing_msg_select_thread" on public.spirit_listing_messages
+   --   for select to authenticated using (
+   --     seller_id = auth.uid()::text
+   --     or exists (
+   --       select 1 from public.spirit_listing_messages x
+   --       where x.product_id = spirit_listing_messages.product_id
+   --         and x.sender_id = auth.uid()::text
+   --     )
+   --   );
    Buckets Storage publics : "avatars", "sanctuary" (ou ajuster les noms dans le code).
    --------------------------------------------------------------------------- */
 var spiritPublicViewUserId = null;
@@ -9436,6 +9619,8 @@ var spiritSanctuaryLastUnreadMsgCount = 0;
 var spiritSanSocialSupabaseEnabled = true;
 /** Mis à true si l’API renvoie 404 / table absente — évite le spam de requêtes sur les notifs. */
 var spiritSanNotifsTableMissing = false;
+var SPIRIT_LISTING_MSG_TABLE = 'spirit_listing_messages';
+var spiritListingMsgTableMissing = false;
 var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 20 * 60 * 1000;
 /** Dernières photos Sanctuaire par user_id (session) — complète le cache localStorage. */
 var spiritSanctuaryItemsSessionRows = Object.create(null);
@@ -9464,6 +9649,15 @@ function spiritSanNotifsMarkMissingIf404(err) {
     var msg = String((err.message || err.details || err.hint || '') || '').toLowerCase();
     if (st === 404 || c === 'pgrst301' || c === '42p01' || msg.indexOf('schema cache') >= 0 || msg.indexOf('could not find the table') >= 0) {
         spiritSanNotifsTableMissing = true;
+    }
+}
+function spiritListingMsgMarkMissingIf404(err) {
+    if (!err) return;
+    var st = Number(err.status || err.statusCode || (err.response && err.response.status) || 0);
+    var c = String(err.code || '').toLowerCase();
+    var msg = String((err.message || err.details || err.hint || '') || '').toLowerCase();
+    if (st === 404 || c === 'pgrst301' || c === '42p01' || msg.indexOf('schema cache') >= 0 || msg.indexOf('could not find the table') >= 0) {
+        spiritListingMsgTableMissing = true;
     }
 }
 var spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
@@ -10058,6 +10252,8 @@ function spiritLoadMessagesTab() {
                 var itemIdEsc = itemIdRaw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                 var listingBtn = (nType === 'listing_new' && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1a3a2a;border:1px solid #2a8a5a;color:#9f9;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Voir l’annonce</button></div>'
+                    : ((nType === 'listing_question' || nType === 'listing_reply') && itemIdRaw)
+                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#2a2810;border:1px solid #a88a2a;color:#fc8;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Ouvrir la discussion</button></div>'
                     : '';
                 var delBtn = (!n.synthetic && idStr !== '0')
                     ? '<button type="button" title="Supprimer" style="width:26px;height:26px;border:1px solid #633;background:#1a1012;color:#f88;cursor:pointer;font-size:0.75rem;line-height:1;border-radius:3px;padding:0;" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>'
