@@ -1607,6 +1607,98 @@
                 touch-action: pan-x pan-y;
             }
         }
+
+        /* Bureau : pas de raccourcis Style 1/2 sur la page de garde ni précommandes */
+        @media (min-width: 901px) {
+            .spirit-mobile-market-views { display: none !important; }
+        }
+        /* Mobile : raccourcis + grilles type Sanctuaire (style / style2) — inchangé au-dessus de 900px */
+        @media (max-width: 900px) {
+            .spirit-mobile-market-views {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 18px;
+                padding-top: 16px;
+                border-top: 1px solid rgba(255, 102, 0, 0.28);
+                max-width: 420px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .spirit-mobile-market-views-label {
+                width: 100%;
+                text-align: center;
+                font-size: 0.62rem;
+                color: #888;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+            }
+            .spirit-market-view-btn {
+                font-size: 0.62rem !important;
+                padding: 10px 14px !important;
+            }
+            .spirit-market-view-btn.active {
+                box-shadow: 0 0 14px rgba(255, 102, 0, 0.55);
+                border: 1px solid var(--neon-orange);
+                color: var(--neon-orange);
+                background: #111 !important;
+            }
+            #precommandes-hot-toys .spirit-preorder-views {
+                margin-top: 48px;
+                margin-bottom: 8px;
+                border-top: none;
+                padding-top: 0;
+            }
+            /* Filtres au-dessus, annonces pleine largeur (scroll vertical) */
+            #marketplaceSection.spirit-market-mobile-stacked.container {
+                flex-direction: column;
+                overflow-x: visible !important;
+                align-items: stretch !important;
+            }
+            #marketplaceSection.spirit-market-mobile-stacked .sidebar {
+                flex: 0 0 auto !important;
+                width: 100% !important;
+                max-width: none !important;
+                min-width: 0 !important;
+            }
+            #marketplaceSection.spirit-market-mobile-stacked .grid {
+                min-width: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            #marketplaceSection.spirit-market-mobile-stacked .statues-layout {
+                flex-direction: column !important;
+                overflow-x: visible !important;
+            }
+            #marketplaceSection.spirit-market-mobile-stacked .statues-sidebar {
+                width: 100% !important;
+                max-width: none !important;
+                min-width: 0 !important;
+            }
+            #marketplaceSection.spirit-market-mobile-stacked .statues-grid-wrap {
+                min-width: 0 !important;
+                width: 100% !important;
+            }
+            #marketplaceSection .grid-layout.spirit-market-mode-style {
+                display: grid;
+                grid-template-columns: 1fr;
+                max-width: 520px;
+                margin-left: auto;
+                margin-right: auto;
+                gap: 18px;
+                width: 100%;
+            }
+            #marketplaceSection .grid-layout.spirit-market-mode-style2 {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 16px;
+                width: 100%;
+                justify-content: center;
+                align-content: start;
+            }
+        }
     </style>
 </head>
 
@@ -1643,6 +1735,11 @@
     <h1>SPIRIT INFINITY</h1>
     <p>Écosystème sécurisé — marketplace, ledger hardware &amp; protection acheteur.</p>
     <button type="button" class="btn-action" onclick="navigateTo('market')">ACCÉDER AU MARKETPLACE</button>
+    <div class="spirit-mobile-market-views" aria-label="Vues annonces mobile">
+        <span class="spirit-mobile-market-views-label">Annonces — écran vertical</span>
+        <button type="button" class="btn-action spirit-market-view-btn" data-spirit-mv="style" onclick="spiritSetMarketViewFromMobile('style')">Style 1</button>
+        <button type="button" class="btn-action spirit-market-view-btn" data-spirit-mv="style2" onclick="spiritSetMarketViewFromMobile('style2')">Style 2</button>
+    </div>
 </section>
 
 <div id="marketplaceSection" class="container">
@@ -2468,6 +2565,11 @@
 <section id="precommandes-hot-toys" class="overlay">
 <div style="padding: 40px; background: #050505; color: white; position: relative;">
     <button type="button" onclick="closeSpiritMenu()" style="position:absolute; top:16px; right:16px; background:#111; border:1px solid var(--neon-orange); color:var(--neon-orange); cursor:pointer; font-weight:bold; padding:8px 14px; font-size:0.7rem;">✕ ACCUEIL</button>
+    <div class="spirit-mobile-market-views spirit-preorder-views" aria-label="Vues annonces mobile">
+        <span class="spirit-mobile-market-views-label">Annonces — écran vertical</span>
+        <button type="button" class="btn-action spirit-market-view-btn" data-spirit-mv="style" onclick="spiritSetMarketViewFromMobile('style')">Style 1</button>
+        <button type="button" class="btn-action spirit-market-view-btn" data-spirit-mv="style2" onclick="spiritSetMarketViewFromMobile('style2')">Style 2</button>
+    </div>
     <h1 style="color: #ff6600; text-align: center; text-shadow: 0 0 10px #ff6600;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1>
     <p style="text-align:center; color:#444; margin:0 0 18px 0;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
     <div class="hottoys-grid">
@@ -7108,16 +7210,117 @@ async function confirmPayment(method) {
         renderMarket(filtered);
     }
 
+    function spiritApplyMarketViewClasses() {
+        var gn = document.getElementById('marketGridNative');
+        var gl = document.getElementById('marketGridLegacy');
+        var gs = document.getElementById('marketGridStatues');
+        var ms = document.getElementById('marketplaceSection');
+        [gn, gl, gs].forEach(function (g) {
+            if (!g) return;
+            g.classList.remove('list-view', 'spirit-market-mode-style', 'spirit-market-mode-style2');
+            if (marketViewMode === 'list') g.classList.add('list-view');
+            else if (marketViewMode === 'style') g.classList.add('spirit-market-mode-style');
+            else if (marketViewMode === 'style2') g.classList.add('spirit-market-mode-style2');
+        });
+        if (ms) {
+            var stacked = !!(window.innerWidth <= 900 && (marketViewMode === 'style' || marketViewMode === 'style2'));
+            ms.classList.toggle('spirit-market-mobile-stacked', stacked);
+        }
+        var sel = document.getElementById('marketViewSelect');
+        if (sel) {
+            var v = marketViewMode === 'list' ? 'list' : (marketViewMode === 'style' ? 'style' : (marketViewMode === 'style2' ? 'style2' : 'gallery'));
+            if (sel.querySelector('option[value="' + v + '"]')) sel.value = v;
+            else sel.value = 'gallery';
+        }
+        try {
+            document.querySelectorAll('.spirit-market-view-btn[data-spirit-mv]').forEach(function (btn) {
+                var mv = String(btn.getAttribute('data-spirit-mv') || '');
+                btn.classList.toggle('active', (mv === 'style' || mv === 'style2') && mv === marketViewMode);
+            });
+        } catch (eBtn) {}
+    }
+
+    function spiritSyncMarketViewSelectOptions() {
+        var sel = document.getElementById('marketViewSelect');
+        if (!sel) return;
+        var w = window.innerWidth || 9999;
+        var o1 = sel.querySelector('option[value="style"]');
+        var o2 = sel.querySelector('option[value="style2"]');
+        if (w > 900) {
+            if (o1) o1.remove();
+            if (o2) o2.remove();
+            if (marketViewMode === 'style' || marketViewMode === 'style2') {
+                marketViewMode = 'gallery';
+                spiritApplyMarketViewClasses();
+            }
+        } else {
+            if (!o1) {
+                o1 = document.createElement('option');
+                o1.value = 'style';
+                o1.textContent = 'Style 1';
+                sel.appendChild(o1);
+            }
+            if (!o2) {
+                o2 = document.createElement('option');
+                o2.value = 'style2';
+                o2.textContent = 'Style 2';
+                sel.appendChild(o2);
+            }
+        }
+    }
+
     function setMarketView(mode) {
-        marketViewMode = (mode === 'list') ? 'list' : 'gallery';
-        const gn = marketKindMode === 'statues'
-            ? document.getElementById('marketGridStatues')
-            : document.getElementById('marketGridNative');
-        if (!gn) return;
-        if (marketViewMode === 'list') gn.classList.add('list-view');
-        else gn.classList.remove('list-view');
+        var m = String(mode || 'gallery');
+        if (m === 'list') marketViewMode = 'list';
+        else if (m === 'style') marketViewMode = 'style';
+        else if (m === 'style2') marketViewMode = 'style2';
+        else marketViewMode = 'gallery';
+        if ((window.innerWidth || 9999) > 900 && (marketViewMode === 'style' || marketViewMode === 'style2')) {
+            marketViewMode = 'gallery';
+        }
+        try {
+            if ((window.innerWidth || 9999) <= 900) localStorage.setItem('spirit_market_view', marketViewMode);
+        } catch (eLs) {}
+        spiritSyncMarketViewSelectOptions();
+        spiritApplyMarketViewClasses();
     }
     window.setMarketView = setMarketView;
+
+    function spiritSetMarketViewFromMobile(mode) {
+        try {
+            if (typeof navigateTo === 'function') navigateTo('market');
+        } catch (eNav) {}
+        setMarketView(mode);
+    }
+    try { window.spiritSetMarketViewFromMobile = spiritSetMarketViewFromMobile; } catch (eG) {}
+
+    function spiritInitMarketViewMobile() {
+        try {
+            var w = window.innerWidth || 9999;
+            var saved = '';
+            try { saved = String(localStorage.getItem('spirit_market_view') || ''); } catch (e0) {}
+            if (w <= 900) {
+                if (saved === 'style' || saved === 'style2' || saved === 'list' || saved === 'gallery') marketViewMode = saved;
+                else if (!saved) {
+                    marketViewMode = 'style';
+                    try { localStorage.setItem('spirit_market_view', 'style'); } catch (e1) {}
+                }
+            } else {
+                marketViewMode = 'gallery';
+            }
+        } catch (e2) {}
+        spiritSyncMarketViewSelectOptions();
+        spiritApplyMarketViewClasses();
+        var rz = null;
+        window.addEventListener('resize', function () {
+            clearTimeout(rz);
+            rz = setTimeout(function () {
+                spiritSyncMarketViewSelectOptions();
+                spiritApplyMarketViewClasses();
+            }, 150);
+        });
+    }
+    try { window.spiritInitMarketViewMobile = spiritInitMarketViewMobile; } catch (e) {}
 
     function setMarketKind(kind) {
         marketKindMode = (kind === 'statues') ? 'statues' : 'figurines';
@@ -11391,6 +11594,7 @@ async function fetchAnnonces() {
 // BOOTSTRAP CRITIQUE : synchronisation Marketplace + rendu UI dès chargement
 document.addEventListener('DOMContentLoaded', () => {
     void (async function spiritDomReady() {
+        try { if (typeof spiritInitMarketViewMobile === 'function') spiritInitMarketViewMobile(); } catch (eMv) {}
         try { ensureMarketCurrencySelect(); } catch (e) {}
         var appliedFromSession = false;
         try {
