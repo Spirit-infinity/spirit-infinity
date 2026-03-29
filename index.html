@@ -50,7 +50,13 @@
             --info-blue: #0066ff;
         }
         html, body { background-color: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
-        body { padding-left: env(safe-area-inset-left, 0); padding-right: env(safe-area-inset-right, 0); }
+        body {
+            padding-left: env(safe-area-inset-left, 0);
+            padding-right: env(safe-area-inset-right, 0);
+            overflow-x: hidden;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
         /* HEADER */
         header {
             width: 100%;
@@ -189,7 +195,7 @@
 
         /* ========== Tablettes & smartphones (Android / iPhone) ========== */
         @media (max-width: 900px) {
-            .grid-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+            .grid-layout { gap: 12px; }
             .container { flex-direction: column; padding: 14px max(12px, env(safe-area-inset-left)) 18px max(12px, env(safe-area-inset-right)); gap: 14px; }
             .sidebar { width: 100%; max-width: none; box-sizing: border-box; }
             .statues-layout { flex-direction: column; align-items: stretch; }
@@ -224,7 +230,7 @@
 
         @media (max-width: 600px) {
             html { -webkit-text-size-adjust: 100%; }
-            .grid-layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+            .grid-layout { gap: 12px; }
             .grid-layout.list-view .card {
                 flex-direction: column;
                 align-items: stretch;
@@ -234,58 +240,6 @@
                 min-width: 0;
                 max-width: none;
                 height: 200px !important;
-            }
-            header {
-                flex-wrap: wrap;
-                row-gap: 6px;
-                padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 8px max(10px, env(safe-area-inset-left));
-                min-height: 0;
-            }
-            .logo-box { flex: 1 1 auto; min-width: 0; max-width: 55%; }
-            .logo-top { font-size: 1.05rem; }
-            .logo-sub { font-size: 0.58rem; letter-spacing: 1.4px; }
-            .actions-right {
-                flex: 0 0 auto;
-                flex-wrap: wrap;
-                justify-content: flex-end;
-                gap: 6px;
-                max-width: 45%;
-            }
-            .actions-right .btn-action {
-                padding: 10px 10px;
-                font-size: 0.52rem;
-                min-height: 42px;
-                box-sizing: border-box;
-            }
-            .menu-center {
-                flex: 1 1 100%;
-                order: 3;
-                width: 100%;
-                min-width: 0;
-                margin: 4px 0 0 0;
-                padding: 4px 0 6px;
-                justify-content: flex-start;
-                overflow-x: auto;
-                overflow-y: hidden;
-                -webkit-overflow-scrolling: touch;
-                flex-wrap: nowrap;
-                gap: 8px;
-                scrollbar-width: none;
-            }
-            .menu-center::-webkit-scrollbar { height: 0; display: none; }
-            .menu-center button {
-                font-size: 9px !important;
-                letter-spacing: 0.35px;
-                padding: 8px 8px !important;
-                flex-shrink: 0;
-                min-height: 40px;
-                box-sizing: border-box;
-            }
-            .menu-center button + button::before { display: none; }
-            .menu-center .lang-selector {
-                flex-shrink: 0;
-                font-size: 0.62rem !important;
-                padding: 6px 4px !important;
             }
             #heroSection.spirit-hero { padding: 24px max(14px, env(safe-area-inset-left)) 32px max(14px, env(safe-area-inset-right)); }
             #heroSection.spirit-hero h1 { font-size: 1.2rem; letter-spacing: 2px; }
@@ -361,7 +315,16 @@
 
         .btn-action { background: var(--neon-orange); color: black; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 2px; text-transform: uppercase; font-size: 0.75rem; }
         /* LAYOUT */
-        .container { display: flex; padding: 20px 5%; gap: 20px; }
+        .container {
+            display: flex;
+            padding: 20px max(16px, 5%);
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }
         .sidebar { width: 280px; background: var(--card-bg); padding: 20px; border: 1px solid var(--border); height: fit-content; }
         .grid { flex: 1; min-width: 0; }
         .cat-title { color: var(--neon-orange); font-size: 1.2rem; font-weight: 900; margin: 30px 0 15px 0; border-left: 4px solid var(--neon-orange); padding-left: 15px; text-transform: uppercase; letter-spacing: 1px; }
@@ -373,13 +336,20 @@
             text-shadow: 0 0 14px rgba(255, 102, 0, 0.55), 0 0 32px rgba(255, 102, 0, 0.22);
         }
         .market-title { text-align: center; border-left: none; padding-left: 0; }
-        .grid-layout { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; }
         .grid-layout.list-view { display: block; }
         /* CARDS */
         .card { background: var(--card-bg); border: 1px solid var(--border); cursor: pointer; position: relative; transition: 0.3s; border-radius: 4px; overflow: hidden; }
         .card:hover { border-color: var(--neon-orange); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .grid-layout.list-view .card { display:flex; gap:14px; min-height:180px; margin-bottom:15px; transform:none !important; }
-        .grid-layout.list-view .img-placeholder { width:260px; min-width:260px; height:180px !important; border-right:1px solid #111; border-bottom:none; }
+        .grid-layout.list-view .img-placeholder {
+            width: 100%;
+            max-width: 260px;
+            min-width: 0;
+            height: 200px !important;
+            border-right: 1px solid #111;
+            border-bottom: none;
+        }
         .grid-layout.list-view .card-info { width:100%; min-height:auto; }
         .img-placeholder { width: 100%; height: 200px; background: #050505; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; border-bottom: 1px solid var(--border); text-align: center; padding: 10px; }
         .card-info { padding: 15px; display:flex; flex-direction:column; gap:8px; min-height:150px; }
@@ -674,6 +644,8 @@
         input, select, textarea { width: 100%; background: #111; border: 1px solid #333; color: white; padding: 12px; margin: 10px 0; border-radius: 4px; box-sizing: border-box; }
         /* DASHBOARD XL STYLE — scroll compte (Mes Ventes / listes) */
         #accountModal .modal-content {
+            max-width: min(1200px, calc(100vw - 24px)) !important;
+            width: 100% !important;
             max-height: 100vh;
             overflow: hidden;
             box-sizing: border-box;
@@ -1010,8 +982,8 @@
         .spirit-card-img-wrap {
             position: relative;
             width: 100%;
-            height: 100%;
-            min-height: 180px;
+            height: 200px;
+            min-height: 200px;
             background: #050505;
             overflow: hidden;
         }
@@ -1021,9 +993,17 @@
             display: block;
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover;
             object-position: center;
             background: #050505;
+        }
+        img.spirit-card-img,
+        .spirit-card-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            object-position: center;
+            display: block;
         }
         #heroSection.spirit-hero {
             display: none;
@@ -1429,40 +1409,67 @@
         }
         .spirit-account-san-add-row { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 16px; }
 
-        /* Mobile ≤768px : marketplace 2 col, cartes, nav, modales scan/paiement, titres — (c) Spirit Infinity */
+        /* Mobile ≤768px : nav colonne, zones tactiles 44px, modales scan/paiement, titres — grille marketplace = auto-fit global */
         @media screen and (max-width: 768px) {
-            #marketGridNative.grid-layout,
-            #marketGridLegacy.grid-layout,
-            #marketGridStatues.grid-layout {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            header {
+                flex-direction: column;
+                align-items: stretch;
                 gap: 10px;
+                padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
             }
-            .spirit-card-img-wrap {
-                height: 160px !important;
-                min-height: 160px !important;
-                max-height: 160px !important;
+            .logo-box {
+                align-self: center;
+                max-width: 100%;
             }
-            .spirit-card-img-wrap img,
-            img.spirit-card-img,
-            #marketplaceSection .card .img-placeholder img {
-                height: 100% !important;
-                width: 100% !important;
-                object-fit: cover !important;
-                object-position: center;
-            }
-            #marketplaceSection .card .img-placeholder {
-                height: 160px !important;
-                min-height: 160px !important;
-            }
-            header .menu-center {
-                flex-wrap: wrap;
+            .logo-top { font-size: 1.05rem; }
+            .logo-sub { font-size: 0.58rem; letter-spacing: 1.4px; }
+            .actions-right {
+                width: 100%;
                 justify-content: center;
-                row-gap: 6px;
+                flex-wrap: wrap;
+                gap: 8px;
             }
-            header .menu-center button {
-                font-size: clamp(7px, 2.1vw, 10px) !important;
-                letter-spacing: 0.3px !important;
-                padding: 4px 5px !important;
+            .actions-right .btn-action {
+                min-height: 44px;
+                box-sizing: border-box;
+                padding: 10px 14px;
+                font-size: 0.58rem;
+            }
+            .menu-center {
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+                margin: 0;
+                padding: 6px 0 8px;
+                overflow: visible;
+                flex-wrap: nowrap;
+                gap: 8px;
+                white-space: normal;
+            }
+            .menu-center button {
+                min-height: 44px;
+                width: min(100%, 360px);
+                box-sizing: border-box;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: clamp(9px, 2.4vw, 11px) !important;
+                letter-spacing: 0.4px !important;
+                padding: 10px 12px !important;
+            }
+            .menu-center button + button::before { display: none; }
+            .menu-center .lang-selector {
+                min-height: 44px;
+                width: min(100%, 360px);
+                box-sizing: border-box;
+                font-size: 0.72rem !important;
+                padding: 10px 12px !important;
+            }
+            #marketplaceSection .card .img-placeholder img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                object-position: center;
             }
             #certifModal .modal-content,
             #paymentModal .modal-content {
