@@ -402,11 +402,35 @@
                 margin-right: auto;
             }
 
-            /* Mon compte (mobile) : achats centrés, liste d’envie / favoris, sanctuaire */
+            /* Mon compte (mobile) : même colonne que portefeuille (accordéon : pas de .dash-content — sélecteurs sans .dash-content) */
+            #accountModal #tab-portefeuille,
             #accountModal #tab-achats,
-            #accountModal #tab-liste-envie,
-            #accountModal #tab-favoris-recus,
+            #accountModal #tab-ventes,
             #accountModal #tab-sanctuary {
+                overflow-x: hidden;
+                width: 100%;
+                max-width: min(580px, 100%);
+                margin-left: auto;
+                margin-right: auto;
+                box-sizing: border-box;
+            }
+            #accountModal #tab-achats > h2,
+            #accountModal #tab-ventes > h2,
+            #accountModal #tab-portefeuille > h2 {
+                font-size: 1rem;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                margin: 0 0 10px 0;
+            }
+            #accountModal #tab-sanctuary > h3 {
+                font-size: 1rem;
+                font-weight: 800;
+                letter-spacing: 0.12em;
+                margin: 0 0 8px 0;
+            }
+            /* Mon compte (mobile) : liste d’envie / favoris */
+            #accountModal #tab-liste-envie,
+            #accountModal #tab-favoris-recus {
                 overflow-x: hidden;
                 max-width: 100%;
                 box-sizing: border-box;
