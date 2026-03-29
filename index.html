@@ -1689,10 +1689,20 @@
                 flex: 1 1 0;
                 min-width: 0;
                 max-width: none;
-                font-size: 0.5rem;
-                padding: 8px 5px;
-                white-space: nowrap;
-                line-height: 1.15;
+                font-size: 0.48rem;
+                padding: 7px 4px;
+                white-space: normal;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+                text-align: center;
+                line-height: 1.08;
+                max-height: 3.15em;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                align-self: stretch;
+                box-sizing: border-box;
             }
             .spirit-mob-acc-panel-tagline {
                 margin: 0 0 8px 0;
@@ -1867,43 +1877,60 @@
             }
             .spirit-mob-toolbar-row {
                 display: flex !important;
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
+                flex-direction: column;
+                flex-wrap: nowrap;
+                align-items: stretch;
+                gap: 10px;
                 width: 100%;
                 margin: 0 0 16px 0;
                 padding: 0 12px;
                 box-sizing: border-box;
             }
-            #spiritMobKindSlot {
-                order: 1;
-                flex: 0 0 auto;
+            .spirit-mob-market-controls-line {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                align-items: stretch;
+                gap: 8px;
+                width: 100%;
                 min-width: 0;
-                max-width: 100%;
             }
-            #spiritMobVueSlot {
-                order: 2;
-                flex: 0 0 auto;
+            .spirit-mob-kind-slot {
+                flex: 1 1 0;
                 min-width: 0;
-                max-width: min(52vw, 220px);
+                display: flex;
+                align-items: stretch;
             }
-            #spiritMobSearchSlot {
-                order: 3;
-                flex: 1 1 100%;
+            .spirit-mob-vue-slot {
+                flex: 1 1 0;
+                min-width: 0;
+                display: flex;
+                align-items: stretch;
+            }
+            .spirit-mob-search-slot {
                 width: 100%;
                 min-width: 0;
             }
             .spirit-mob-kind-slot .market-kind-toggle {
                 margin-bottom: 0 !important;
                 transform: none;
+                width: 100%;
+                flex: 1;
+                min-height: 40px;
+                align-self: stretch;
+                box-sizing: border-box;
+                border-radius: 8px;
+                contain: layout;
             }
             .spirit-mob-kind-slot .market-kind-toggle button {
-                padding: 6px 8px;
-                font-size: 0.52rem;
+                flex: 1 1 0;
+                padding: 0 5px;
+                font-size: 0.56rem;
                 font-weight: 800;
-                letter-spacing: 0.04em;
+                letter-spacing: 0.03em;
+                min-height: 40px;
+                box-sizing: border-box;
+                line-height: 1.1;
             }
             .spirit-mob-search-slot .spirit-market-search-bar {
                 width: 100%;
@@ -1925,25 +1952,69 @@
             }
             .spirit-mob-vue-slot .market-toolbar {
                 margin: 0;
-                justify-content: flex-end;
+                justify-content: stretch;
+                align-items: stretch;
                 width: 100%;
+                min-height: 40px;
                 min-width: 0;
                 position: relative;
                 z-index: 1;
+                overflow: visible;
             }
             .spirit-mob-vue-slot .market-view-box {
-                display: inline-flex;
-                flex-wrap: nowrap;
-                gap: 4px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto minmax(40px, 1fr);
+                column-gap: 6px;
+                row-gap: 3px;
                 margin-left: 0;
-                max-width: 100%;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
+                width: 100%;
+                min-height: 40px;
+                align-items: center;
+                overflow: visible;
+                box-sizing: border-box;
+            }
+            .spirit-mob-vue-slot .market-view-box > span {
+                font-size: 0.52rem;
+                color: #888;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                line-height: 1.1;
+            }
+            .spirit-mob-vue-slot .market-view-box > span:nth-child(1) {
+                grid-column: 1;
+                grid-row: 1;
+            }
+            .spirit-mob-vue-slot .market-view-box > select:nth-of-type(1) {
+                grid-column: 1;
+                grid-row: 2;
+            }
+            .spirit-mob-vue-slot .market-view-box > span:nth-child(3) {
+                grid-column: 2;
+                grid-row: 1;
+            }
+            .spirit-mob-vue-slot .market-view-box > select:nth-of-type(2) {
+                grid-column: 2;
+                grid-row: 2;
             }
             .spirit-mob-vue-slot .market-view-box select {
-                flex-shrink: 0;
-                min-height: 36px;
+                width: 100%;
+                min-width: 0;
+                min-height: 40px;
+                height: 40px;
+                font-size: 0.58rem;
+                padding: 4px 6px;
+                box-sizing: border-box;
                 touch-action: manipulation;
+            }
+            #marketplaceSection .card .img-placeholder .spirit-card-img-wrap img,
+            #marketStatuesView .card .img-placeholder .spirit-card-img-wrap img {
+                object-fit: cover !important;
+                object-position: center center !important;
+            }
+            #marketplaceSection .card .spirit-card-img-wrap,
+            #marketStatuesView .card .spirit-card-img-wrap {
+                overflow: hidden;
             }
             #marketplaceSection .sidebar {
                 display: none !important;
@@ -1978,8 +2049,15 @@
             #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .img-placeholder {
                 height: 140px !important;
                 min-height: 0;
-                padding: 4px;
+                padding: 0 !important;
                 box-sizing: border-box;
+                align-items: stretch !important;
+                justify-content: stretch !important;
+            }
+            #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .spirit-card-img-wrap {
+                height: 100% !important;
+                min-height: 0 !important;
+                flex: 1 1 auto;
             }
             #marketplaceSection .grid-layout:not(.list-view):not(.spirit-market-mode-style):not(.spirit-market-mode-style2) .card .card-info {
                 padding: 8px 10px;
@@ -2156,9 +2234,11 @@
 
     <div class="grid">
         <div id="spiritMobToolbarRow" class="spirit-mob-toolbar-row">
-            <div id="spiritMobKindSlot" class="spirit-mob-kind-slot"></div>
+            <div class="spirit-mob-market-controls-line">
+                <div id="spiritMobKindSlot" class="spirit-mob-kind-slot"></div>
+                <div id="spiritMobVueSlot" class="spirit-mob-vue-slot"></div>
+            </div>
             <div id="spiritMobSearchSlot" class="spirit-mob-search-slot"></div>
-            <div id="spiritMobVueSlot" class="spirit-mob-vue-slot"></div>
         </div>
         <div class="spirit-market-search-bar">
             <input type="text" inputmode="search" enterkeyhint="search" id="marketAnnonceSearchInput" name="market_annonce_q" value="" data-key="market_search_ph" placeholder="Rechercher une annonce (ex. Spider-Man)…" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="if(typeof applyFilters==='function')applyFilters();" aria-label="Recherche annonces" role="searchbox">
@@ -2167,12 +2247,12 @@
         <div class="market-toolbar">
             <div class="market-view-box">
                 <span data-i18n="market_view">Vue</span>
-                <select id="marketViewSelect" onchange="setMarketView(this.value)">
+                <select id="marketViewSelect" onchange="setMarketView(this.value)" aria-label="Vue des annonces">
                     <option value="gallery" data-i18n="market_gallery">Galerie</option>
                     <option value="list" data-i18n="market_list">Liste</option>
                 </select>
                 <span data-i18n="market_currency">Devise</span>
-                <select id="marketCurrencySelect" onchange="setMarketCurrency(this.value)">
+                <select id="marketCurrencySelect" onchange="setMarketCurrency(this.value)" aria-label="Devise">
                     <option value="EUR">EUR</option>
                     <option value="USD">USD</option>
                     <option value="CNY">CNY</option>
@@ -7765,7 +7845,12 @@ async function confirmPayment(method) {
 
         if (kindSlot) {
             var kindEl = mk === 'statues' ? ks : kf;
+            var other = mk === 'statues' ? kf : ks;
             if (kindEl && kindEl.parentElement !== kindSlot) kindSlot.appendChild(kindEl);
+            if (other && other.parentElement === kindSlot) {
+                if (other === kf && sb) sb.insertBefore(kf, sb.firstChild);
+                else if (other === ks && staSide) staSide.insertBefore(ks, staSide.firstChild);
+            }
         }
         if (mount) {
             if (mk === 'statues' && sf && sf.parentElement !== mount) mount.appendChild(sf);
