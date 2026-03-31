@@ -993,6 +993,13 @@
                 max-height: calc(100vh - 88px);
                 overflow-y: auto;
             }
+            /* Bureau uniquement : fenêtre Vendre & Certifier plus compacte et totalement visible. */
+            #certifModal .modal-content {
+                max-width: min(520px, calc(100vw - 28px)) !important;
+                max-height: min(88vh, 860px) !important;
+                overflow-y: auto;
+                padding: 14px 16px !important;
+            }
         }
         @media (max-width: 900px) {
             #accountModal .dash-container {
@@ -2788,7 +2795,7 @@
             <div id="spiritMobSearchSlot" class="spirit-mob-search-slot"></div>
         </div>
         <div class="spirit-market-search-bar">
-            <input type="text" inputmode="search" enterkeyhint="search" id="marketAnnonceSearchInput" name="market_annonce_q" value="" data-key="market_search_ph" placeholder="Rechercher une annonce (ex. Spider-Man)…" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="if(typeof applyFilters==='function')applyFilters();" aria-label="Recherche annonces" role="searchbox">
+            <input type="text" inputmode="search" enterkeyhint="search" id="marketAnnonceSearchInput" value="" data-key="market_search_ph" placeholder="Rechercher une annonce (ex. Spider-Man)…" autocomplete="new-password" autocapitalize="off" spellcheck="false" oninput="if(typeof applyFilters==='function')applyFilters();" aria-label="Recherche annonces" role="searchbox">
         </div>
         <div id="spiritMarketLoader" class="spirit-market-loader" style="display:none;" aria-live="polite"></div>
         <div class="market-toolbar">
