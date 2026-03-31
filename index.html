@@ -738,9 +738,9 @@
         /* Certif modal compact to reduce scrolling */
         #certifModal .modal-content { padding: 10px 11px; }
         #certifModal .steps { margin-bottom: 10px; }
-        #stepInfo h2 { margin: 0 0 6px 0; font-size: 0.95rem; }
-        #stepInfo input, #stepInfo select, #stepInfo textarea { margin: 5px 0; padding: 7px; font-size: 0.76rem; }
-        #stepInfo textarea { min-height: 72px; }
+        #stepInfo h2 { margin: 0 0 4px 0; font-size: 0.9rem; }
+        #stepInfo input, #stepInfo select, #stepInfo textarea { margin: 4px 0; padding: 6px; font-size: 0.73rem; }
+        #stepInfo textarea { min-height: 62px; }
         .market-kind-toggle { display:flex; align-items:center; border:1px solid #ff6600; border-radius:999px; overflow:hidden; box-shadow:0 0 12px rgba(255,102,0,0.22); }
         .market-kind-toggle button { border:none; background:#0a0a0a; color:#777; padding:10px 24px; font-weight:800; letter-spacing:0.8px; cursor:pointer; transition:0.2s ease; }
         .market-kind-toggle button.active { color:#000; background:#ff6600; }
@@ -3004,7 +3004,7 @@
 </div>
 
 <div id="certifModal" class="overlay">
-    <div class="modal-content" style="max-width:600px;text-align:left;">
+    <div class="modal-content" style="max-width:540px;text-align:left;">
         <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">PHOTOS & INFOS</span><span class="step" id="s3">ANALYSE IA</span><span class="step" id="s4">PUBLICATION</span></div>
         <div id="stepMethod">
             <h2 id="sell-title" style="text-align:center;" data-key="btn_sell">VENDRE & CERTIFIER</h2>
@@ -3052,6 +3052,14 @@
                 <option value="Prime 1 Studio">Prime 1 Studio</option>
                 <option value="Queen Studios">Queen Studios</option>
                 <option value="Autre">Autre</option>
+            </select>
+            <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;">ÉTAT</label>
+            <select id="saleCond">
+                <option value="Neuf">Neuf</option>
+                <option value="Très bon état" selected>Très bon état</option>
+                <option value="Bon état">Bon état</option>
+                <option value="Moyen">Moyen</option>
+                <option value="Satisfaisant">Satisfaisant</option>
             </select>
             <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;">PAYS / ZONE D'EXPÉDITION DU COLIS</label>
             <select id="saleOriginCountry" title="Depuis où l'objet est expédié (filtre marketplace)">
@@ -6635,7 +6643,9 @@ async function loadMySales() {
         } catch (eCur0) {}
         document.getElementById('inputDesc').value = '';
         if (typeof spiritApplySaleCatOptions === 'function') spiritApplySaleCatOptions(false);
+        try { spiritApplySaleBrandOptions('other'); } catch (eBr0) {}
         document.getElementById('saleCat').value = '';
+        if (document.getElementById('saleCond')) document.getElementById('saleCond').value = 'Très bon état';
         document.getElementById('saleShip').value = 'Moyen';
         if (document.getElementById('saleMatiere')) document.getElementById('saleMatiere').value = '';
         var smRow = document.getElementById('statueMatiereRow');
@@ -6645,6 +6655,8 @@ async function loadMySales() {
         }
         document.getElementById('diag-link').style.display = 'none';
         if (document.getElementById('saleHasCoa')) document.getElementById('saleHasCoa').checked = false;
+        var coaRow0 = document.querySelector('.switch-row-coa');
+        if (coaRow0) coaRow0.style.display = 'none';
         if (document.getElementById('saleOriginCountry')) document.getElementById('saleOriginCountry').value = '';
         document.getElementById('stepMethod').style.display = 'block';
         document.getElementById('stepInfo').style.display = 'none';
@@ -6683,6 +6695,31 @@ async function loadMySales() {
         document.getElementById('certifModal').style.setProperty('display', 'flex', 'important');
     }
 
+function spiritApplySaleBrandOptions(method) {
+    var sel = document.getElementById('saleBrand');
+    if (!sel) return;
+    var isHot = (method === 'hot_native' || method === 'hot_legacy');
+    if (isHot) {
+        sel.innerHTML = '<option value="Hot Toys">Hot Toys</option>';
+        sel.value = 'Hot Toys';
+        sel.disabled = true;
+        sel.style.opacity = '0.8';
+    } else {
+        sel.disabled = false;
+        sel.style.opacity = '1';
+        sel.innerHTML = '' +
+            '<option value="">-- MARQUE --</option>' +
+            '<option value="Hot Toys">Hot Toys</option>' +
+            '<option value="Sideshow">Sideshow</option>' +
+            '<option value="InArt">InArt</option>' +
+            '<option value="JND">JND</option>' +
+            '<option value="Present Toys">Present Toys</option>' +
+            '<option value="Prime 1 Studio">Prime 1 Studio</option>' +
+            '<option value="Queen Studios">Queen Studios</option>' +
+            '<option value="Autre">Autre</option>';
+    }
+}
+
     function chooseMethod(m) {
         currentMethod = m;
         document.getElementById('stepMethod').style.display = 'none';
@@ -6694,6 +6731,11 @@ async function loadMySales() {
             if (sp1 && !ed1) sp1.value = (typeof marketCurrencyMode !== 'undefined' && marketCurrencyMode) ? marketCurrencyMode : 'EUR';
         } catch (eCur1) {}
         if (typeof spiritApplySaleCatOptions === 'function') spiritApplySaleCatOptions(m === 'statue');
+        try { spiritApplySaleBrandOptions(m); } catch (eBr) {}
+        var coaRow = document.querySelector('.switch-row-coa');
+        var coaSw = document.getElementById('saleHasCoa');
+        if (coaRow) coaRow.style.display = (m === 'statue') ? 'flex' : 'none';
+        if (coaSw && m !== 'statue') coaSw.checked = false;
         var smRow = document.getElementById('statueMatiereRow');
         var smSel = document.getElementById('saleMatiere');
         if (smRow && smSel) {
@@ -6890,6 +6932,9 @@ async function publierAnnonce() {
         return;
     }
     var desc = document.getElementById('inputDesc').value;
+    var condEl = document.getElementById('saleCond');
+    var saleCond = condEl && condEl.value ? String(condEl.value).trim() : 'Très bon état';
+    if (saleCond) desc = 'ÉTAT : ' + saleCond + '\n\n' + desc;
     if (typeof currentMethod !== 'undefined' && currentMethod === 'statue') {
         var smPub = document.getElementById('saleMatiere');
         var matPub = smPub && smPub.value ? String(smPub.value).trim() : '';
@@ -6906,7 +6951,9 @@ async function publierAnnonce() {
     const isSmokeFree = !!(document.getElementById('saleSmokeFree') && document.getElementById('saleSmokeFree').checked);
     const isLightProtect = !!(document.getElementById('saleLightProtect') && document.getElementById('saleLightProtect').checked);
     const isFirstHand = !!(document.getElementById('saleFirstHand') && document.getElementById('saleFirstHand').checked);
-    const hasCoa = !!(document.getElementById('saleHasCoa') && document.getElementById('saleHasCoa').checked);
+    const hasCoa = (typeof currentMethod !== 'undefined' && currentMethod === 'statue')
+        ? !!(document.getElementById('saleHasCoa') && document.getElementById('saleHasCoa').checked)
+        : false;
     const shipSize = document.getElementById('saleShip') ? document.getElementById('saleShip').value : 'Moyen';
     var saleOriginCountryEl = document.getElementById('saleOriginCountry');
     var saleOriginCountry = saleOriginCountryEl && saleOriginCountryEl.value ? String(saleOriginCountryEl.value).trim() : '';
@@ -7274,6 +7321,7 @@ async function editAnnonce(id) {
     if(document.getElementById('saleMatiere') && mExEd.matiere) document.getElementById('saleMatiere').value = mExEd.matiere;
     if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat || 'figurine';
     if(document.getElementById('saleBrand')) document.getElementById('saleBrand').value = item.brand || '';
+    if(document.getElementById('saleCond')) document.getElementById('saleCond').value = item.cond || item.condition || 'Très bon état';
     try {
         var ocEd = String(item.origin_country || item.country || '').trim();
         var ocSel = document.getElementById('saleOriginCountry');
