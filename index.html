@@ -5186,9 +5186,10 @@ async function spiritCheckDashboardOfferDot() {
     try {
         if (!dot || !_spirit) return;
         var uid = spiritOwnerId(spiritGetCurrentUserId());
-        if (!uid) { spiritSetNotifDotVisible(dot, false); return; }
+        var uidN = spiritNormUid(uid);
+        if (!uidN) { spiritSetNotifDotVisible(dot, false); return; }
         var seenRaw = '';
-        try { seenRaw = localStorage.getItem(spiritGetDashboardOfferSeenKey(uid)) || ''; } catch (e) {}
+        try { seenRaw = localStorage.getItem(spiritGetDashboardOfferSeenKey(uidN)) || ''; } catch (e) {}
         var seenTs = seenRaw ? new Date(seenRaw).getTime() : 0;
         if (!Number.isFinite(seenTs)) seenTs = 0;
 
@@ -5197,10 +5198,19 @@ async function spiritCheckDashboardOfferDot() {
             var out = await _spirit
                 .from('product_offers')
                 .select('id,created_at')
-                .eq('seller_id', uid)
+                .eq('seller_id', uidN)
                 .eq('status', 'pending')
                 .order('created_at', { ascending: false })
                 .range(0, 12);
+            if (!out.error && (!out.data || !out.data.length)) {
+                out = await _spirit
+                    .from('product_offers')
+                    .select('id,created_at')
+                    .in('seller_id', [String(uid || '').trim(), uidN].filter(function (v, i, a) { return v && a.indexOf(v) === i; }))
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: false })
+                    .range(0, 12);
+            }
             if (!out.error && out.data) {
                 (out.data || []).forEach(function (r) {
                     var ct = r && r.created_at ? new Date(r.created_at).getTime() : 0;
@@ -5208,18 +5218,19 @@ async function spiritCheckDashboardOfferDot() {
                 });
             }
         } catch (eO) {}
+        var anyBuyerOfferDecision = false;
 
         var anyListingQa = false;
         try {
             if (!spiritSanNotifsTableMissing && typeof SPIRIT_SAN_NOTIFS_TABLE !== 'undefined') {
                 var nq = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true })
                     .eq('owner_id', uid).eq('is_read', false)
-                    .in('type', ['listing_question', 'listing_reply']);
+                    .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected']);
                 if (nq && !nq.error && Number((nq && nq.count) || 0) > 0) anyListingQa = true;
             }
         } catch (eQa) {}
 
-        spiritSetNotifDotVisible(dot, anyOffer || anyListingQa);
+        spiritSetNotifDotVisible(dot, anyOffer || anyListingQa || anyBuyerOfferDecision);
     } finally {
         try { spiritSyncAccountNotificationPulse(); } catch (eP5) {}
     }
@@ -6054,23 +6065,27 @@ async function spiritLoadBuyerOffersSent() {
     if (!box || !_spirit) return;
     box.innerHTML = '';
     var uid = spiritOwnerId(spiritGetCurrentUserId());
-    if (!uid) {
+    var uidN = spiritNormUid(uid);
+    if (!uidN) {
         box.innerHTML = '<div style="font-size:0.65rem;color:#555;">Connecte-toi pour voir tes offres.</div>';
         return;
     }
     try {
-        var out = await _spirit
+        var buyerCandidates = [String(uid || '').trim(), uidN].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+        var qOut = _spirit
             .from('product_offers')
             .select('id,product_id,offer_amount,original_price,currency,status,created_at,seller_id')
-            .eq('buyer_id', uid)
             .order('created_at', { ascending: false })
             .range(0, 60);
+        if (buyerCandidates.length > 1) qOut = qOut.in('buyer_id', buyerCandidates);
+        else qOut = qOut.eq('buyer_id', buyerCandidates[0] || uidN);
+        var out = await qOut;
         if (out.error) {
             box.innerHTML = '<div style="font-size:0.65rem;color:#855;">Impossible de charger tes offres.</div>';
             return;
         }
         var rows = Array.isArray(out.data) ? out.data : [];
-        var hiddenIds = spiritBuyerOfferHiddenRead(uid);
+        var hiddenIds = spiritBuyerOfferHiddenRead(uidN);
         rows = rows.filter(function (r) { return hiddenIds.indexOf(String((r && r.id) || '')) < 0; });
         if (rows.length === 0) {
             box.innerHTML = '<div style="font-size:0.65rem;color:#555;">Aucune offre envoyée pour l’instant.</div>';
@@ -6135,17 +6150,21 @@ async function spiritLoadSellerOffersList() {
     if (!box || !_spirit) return;
     box.innerHTML = '';
     var uid = spiritOwnerId(spiritGetCurrentUserId());
-    if (!uid) {
+    var uidN = spiritNormUid(uid);
+    if (!uidN) {
         box.innerHTML = '<div style="font-size:0.65rem;color:#555;">Connecte-toi.</div>';
         return;
     }
     try {
-        var out = await _spirit
+        var sellerCandidates = [String(uid || '').trim(), uidN].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+        var qOut = _spirit
             .from('product_offers')
             .select('id,product_id,offer_amount,original_price,currency,status,created_at,buyer_id')
-            .eq('seller_id', uid)
             .order('created_at', { ascending: false })
             .range(0, 80);
+        if (sellerCandidates.length > 1) qOut = qOut.in('seller_id', sellerCandidates);
+        else qOut = qOut.eq('seller_id', sellerCandidates[0] || uidN);
+        var out = await qOut;
         if (out.error) {
             box.innerHTML = '<div style="font-size:0.65rem;color:#855;">Impossible de charger les offres reçues.</div>';
             return;
@@ -6240,8 +6259,8 @@ async function spiritRejectProductOffer(offerId) {
     if (!uid) return;
     if (!window.confirm('Refuser cette offre ?')) return;
     try {
-        var g = await _spirit.from('product_offers').select('seller_id,status').eq('id', offerId).maybeSingle();
-        if (g.error || !g.data || String(g.data.seller_id) !== uid) {
+        var g = await _spirit.from('product_offers').select('seller_id,buyer_id,product_id,status').eq('id', offerId).maybeSingle();
+        if (g.error || !g.data || spiritNormUid(g.data.seller_id) !== spiritNormUid(uid)) {
             alert('Action impossible.');
             return;
         }
@@ -6250,15 +6269,25 @@ async function spiritRejectProductOffer(offerId) {
             alert(up.error.message || 'Erreur');
             return;
         }
+        try {
+            var buyerN = spiritNormUid(g && g.data && g.data.buyer_id);
+            var sellerN = spiritNormUid(uid);
+            if (buyerN && sellerN && buyerN !== sellerN && typeof spiritSanctuaryPushNotif === 'function') {
+                await spiritSanctuaryPushNotif(buyerN, 'offer_rejected', String((g.data && g.data.product_id) || ''), sellerN, 'Ton offre a été refusée.');
+            }
+        } catch (eNrej) {}
         void spiritLoadSellerOffersList();
+        void spiritLoadBuyerOffersSent();
         void spiritCheckDashboardOfferDot();
+        try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eN0) {}
     } catch (e) {}
 }
 
 async function spiritAcceptProductOffer(offerId) {
     if (!_spirit || !offerId) return;
     var uid = spiritOwnerId(spiritGetCurrentUserId());
-    if (!uid) return;
+    var uidN = spiritNormUid(uid);
+    if (!uidN) return;
     if (!window.confirm('Accepter cette offre ? Le prix convenu sera visible uniquement entre toi et l’acheteur sur la fiche annonce. Le marché continue d’afficher le prix public pour les autres. Les autres offres en attente sur ce produit seront refusées.')) return;
     try {
         var g = await _spirit.from('product_offers').select('*').eq('id', offerId).maybeSingle();
@@ -6267,7 +6296,7 @@ async function spiritAcceptProductOffer(offerId) {
             return;
         }
         var o = g.data;
-        if (String(o.seller_id) !== uid) {
+        if (spiritNormUid(o.seller_id) !== uidN) {
             alert('Accès refusé.');
             return;
         }
@@ -6280,19 +6309,29 @@ async function spiritAcceptProductOffer(offerId) {
             alert('Montant offre invalide.');
             return;
         }
-        await _spirit.from('product_offers').update({ status: 'accepted' }).eq('id', offerId);
+        var upAcc = await _spirit.from('product_offers').update({ status: 'accepted' }).eq('id', offerId);
+        if (upAcc && upAcc.error) throw upAcc.error;
         await _spirit
             .from('product_offers')
             .update({ status: 'rejected' })
             .eq('product_id', o.product_id)
             .eq('status', 'pending')
             .neq('id', offerId);
+        try {
+            var buyerN2 = spiritNormUid(o && o.buyer_id);
+            var sellerN2 = spiritNormUid(uidN);
+            if (buyerN2 && sellerN2 && buyerN2 !== sellerN2 && typeof spiritSanctuaryPushNotif === 'function') {
+                await spiritSanctuaryPushNotif(buyerN2, 'offer_accepted', String(o.product_id || ''), sellerN2, 'Ton offre a été acceptée.');
+            }
+        } catch (eNacc) {}
         alert('Offre acceptée — prix convenu visible uniquement entre toi et l’acheteur sur la fiche (le marché garde le prix public).');
         void spiritLoadSellerOffersList();
         void spiritLoadBuyerOffersSent();
         void spiritCheckDashboardOfferDot();
+        try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eN) {}
+        try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (eP) {}
     } catch (e) {
-        alert('Erreur acceptation.');
+        alert('Erreur acceptation: ' + (e && e.message ? e.message : e));
     }
 }
 
@@ -7591,7 +7630,7 @@ function spiritApplyLocalSoldToCaches(productRow) {
     } catch (e) {}
 }
 function spiritQueueSellerShipmentPrep(sellerId, payload) {
-    var sid = String(sellerId || '').trim();
+    var sid = spiritNormUid(sellerId || '');
     if (!sid) return;
     try {
         var key = 'spirit_seller_prep_v1';
@@ -7609,7 +7648,7 @@ function spiritQueueSellerShipmentPrep(sellerId, payload) {
     } catch (e) {}
 }
 function spiritDrainSellerPrepNotices() {
-    var uid = typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '';
+    var uid = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '');
     if (!uid) return;
     try {
         var key = 'spirit_seller_prep_v1';
@@ -7618,7 +7657,7 @@ function spiritDrainSellerPrepNotices() {
         var keep = [];
         var mine = [];
         arr.forEach(function (r) {
-            if (String(r.sellerId) === uid) mine.push(r);
+            if (spiritNormUid(r && r.sellerId) === uid) mine.push(r);
             else keep.push(r);
         });
         localStorage.setItem(key, JSON.stringify(keep));
@@ -7712,19 +7751,30 @@ async function enregistrerVente(method) {
         if (ins && ins.error) throw ins.error;
 
         let figSoldErr = null;
-        const hasFigId = selectedProduct.id != null && String(selectedProduct.id).trim() !== '';
+        var pidNum = spiritParseFavoriteProductId(selectedProduct && (selectedProduct.id != null ? selectedProduct.id : selectedProduct.product_id));
+        const hasFigId = (pidNum != null) || (selectedProduct.id != null && String(selectedProduct.id).trim() !== '');
         /* Mise à jour forcée par id (clé products_live = product_id favorites). */
         if (hasFigId) {
-            const r1 = await _spirit.from('products_live').update({ status: 'sold' }).eq('id', selectedProduct.id);
+            const r1 = await _spirit.from('products_live').update({ status: 'sold' }).eq('id', pidNum != null ? pidNum : selectedProduct.id);
             figSoldErr = r1.error;
         }
         if (!hasFigId || figSoldErr) {
             const r2 = await _spirit.from('products_live').update({ status: 'sold' }).eq('title', selectedProduct.title);
             figSoldErr = r2.error;
         }
+        if ((!hasFigId || figSoldErr) && selectedProduct && selectedProduct.uuid != null && String(selectedProduct.uuid).trim() !== '') {
+            try {
+                var r2b = await _spirit.from('products_live').update({ status: 'sold' }).eq('uuid', String(selectedProduct.uuid).trim());
+                figSoldErr = r2b.error;
+            } catch (eR2b) {}
+        }
         if (!hasFigId || figSoldErr) {
             try {
-                var r3 = await _spirit.from('products_live').update({ status: 'sold' }).eq('owner_id', String(selectedProduct.owner_id || selectedProduct.owner || '')).eq('title', selectedProduct.title);
+                var ownCandidates = [String(selectedProduct.owner_id || selectedProduct.owner || '').trim(), spiritNormUid(selectedProduct.owner_id || selectedProduct.owner || '')].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+                var q3 = _spirit.from('products_live').update({ status: 'sold' }).eq('title', selectedProduct.title);
+                if (ownCandidates.length > 1) q3 = q3.in('owner_id', ownCandidates);
+                else q3 = q3.eq('owner_id', ownCandidates[0] || '');
+                var r3 = await q3;
                 figSoldErr = r3.error;
             } catch (eR3) {}
         }
