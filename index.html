@@ -977,6 +977,10 @@
         /* NOUVEAU STATUT VENDU */
         .card.sold { opacity: 0.5; filter: grayscale(1); }
         .badge-sold { background: var(--danger); color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); padding: 10px 20px; font-weight: 900; font-size: 1.2rem; border: 3px solid white; z-index: 20; text-transform: uppercase; pointer-events: none; }
+        @media (max-width: 900px) {
+            .card.sold { opacity: 0.45 !important; filter: grayscale(1) !important; }
+            .card.sold .badge-sold { display: block !important; z-index: 35 !important; }
+        }
         /* MODALS & OVERLAYS — (c) 2026 Spirit Infinity - Tous droits réservés */
         .modal-content {
             background: #000;
@@ -5225,7 +5229,7 @@ async function spiritCheckDashboardOfferDot() {
             if (!spiritSanNotifsTableMissing && typeof SPIRIT_SAN_NOTIFS_TABLE !== 'undefined') {
                 var nq = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true })
                     .eq('owner_id', uid).eq('is_read', false)
-                    .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected']);
+                    .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'evaluation_pending']);
                 if (nq && !nq.error && Number((nq && nq.count) || 0) > 0) anyListingQa = true;
             }
         } catch (eQa) {}
@@ -5556,13 +5560,13 @@ async function spiritCheckListingQaDashboardBanner() {
         var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
             .select('id,text,type,created_at,item_id')
             .eq('owner_id', uid).eq('is_read', false)
-            .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'purchase_done'])
+            .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'purchase_done', 'evaluation_pending'])
             .order('created_at', { ascending: false })
             .range(0, 8);
         if (q.error || !q.data || !q.data.length) return;
         var lines = q.data.map(function (r) {
             var tp = String(r.type || '');
-            var tag = (tp === 'listing_question') ? 'Question' : (tp === 'listing_reply' ? 'Réponse' : (tp === 'offer_accepted' ? 'Offre acceptée' : (tp === 'offer_rejected' ? 'Offre refusée' : 'Achat')));
+            var tag = (tp === 'listing_question') ? 'Question' : (tp === 'listing_reply' ? 'Réponse' : (tp === 'offer_accepted' ? 'Offre acceptée' : (tp === 'offer_rejected' ? 'Offre refusée' : (tp === 'evaluation_pending' ? 'Évaluation' : 'Achat')));
             return tag + ' : ' + String(r.text || '').slice(0, 96);
         });
         textEl.textContent = lines.join(' · ');
@@ -5576,7 +5580,7 @@ async function spiritAckListingQaBannerRead() {
     try {
         await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).update({ is_read: true })
             .eq('owner_id', uid).eq('is_read', false)
-            .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'purchase_done']);
+            .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'purchase_done', 'evaluation_pending']);
     } catch (e) {}
     var banner = document.getElementById('spiritListingQaAlert');
     if (banner) banner.style.display = 'none';
@@ -7842,6 +7846,8 @@ async function enregistrerVente(method) {
             if (_sellerN && _buyerN && _sellerN !== _buyerN && typeof spiritSanctuaryPushNotif === 'function') {
                 await spiritSanctuaryPushNotif(_sellerN, 'purchase_done', String(pidNum != null ? pidNum : (selectedProduct.id || '')), _buyerN, 'Achat confirmé : ' + _titleN + '. Prépare la livraison.');
                 await spiritSanctuaryPushNotif(_buyerN, 'purchase_done', String(pidNum != null ? pidNum : (selectedProduct.id || '')), _sellerN, 'Achat confirmé : ' + _titleN + '.');
+                await spiritSanctuaryPushNotif(_sellerN, 'evaluation_pending', String(pidNum != null ? pidNum : (selectedProduct.id || '')), _buyerN, 'Évaluation à laisser pour cette transaction.');
+                await spiritSanctuaryPushNotif(_buyerN, 'evaluation_pending', String(pidNum != null ? pidNum : (selectedProduct.id || '')), _sellerN, 'Évaluation à laisser pour cette transaction.');
             }
         } catch (eBuyN) {}
         checkGlobalNotifications().catch(function () {});
@@ -7883,7 +7889,9 @@ async function enregistrerVente(method) {
                 var qTx = await _spirit.from('transactions').select('id').eq('buyer_id', buyerIdTxt).eq('seller_id', sellerIdTxt).order('created_at', { ascending: false }).limit(1);
                 if (!qTx.error && qTx.data && qTx.data[0] && qTx.data[0].id != null) txIdCreated = String(qTx.data[0].id);
             }
-            if (txIdCreated && typeof spiritMaybePromptAutoEvaluationByTx === 'function') void spiritMaybePromptAutoEvaluationByTx(txIdCreated, 'buyer');
+            if (txIdCreated && typeof spiritMaybePromptAutoEvaluationByTx === 'function') {
+                setTimeout(function () { try { void spiritMaybePromptAutoEvaluationByTx(txIdCreated, 'buyer'); } catch (eP) {} }, 220);
+            }
         } catch (eEvalPay) {}
 
     } catch (err) {
@@ -14251,7 +14259,7 @@ async function spiritMaybePromptSellerEvaluations(rows) {
     for (var i = 0; i < rows.length; i++) {
         var tr = rows[i] || {};
         var st = String(tr.status || '').toLowerCase();
-        if (st.indexOf('livraison valid') < 0 && st.indexOf('termine') < 0) continue;
+        if (st.indexOf('livraison valid') < 0 && st.indexOf('termine') < 0 && st.indexOf('séquestre actif') < 0 && st.indexOf('sequestre actif') < 0) continue;
         var txId = String(tr.id || '');
         if (!txId) continue;
         if (spiritAutoEvalIsDone('seller', txId)) continue;
@@ -14300,7 +14308,7 @@ function closeModals() {
         <div id="spiritLitigeList" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;"></div>
     </div>
 </div>
-<div id="spiritAutoEvalModal" class="overlay" style="display:none;" onclick="spiritAutoEvalOnOverlayClick(event)">
+<div id="spiritAutoEvalModal" class="overlay" style="display:none;z-index:100350 !important;" onclick="spiritAutoEvalOnOverlayClick(event)">
     <div class="modal-content" style="max-width:620px;text-align:left;">
         <button type="button" onclick="spiritAutoEvalClose(true)" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
         <h3 style="margin-top:0;color:var(--neon-orange);">Évaluation transaction</h3>
