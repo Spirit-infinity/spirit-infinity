@@ -6588,10 +6588,11 @@ async function loadMySales() {
         
         // console.log("[SPIRIT LEDGER] Synchronisation des Ventes pour l'ID :", currentID);
 
-        const { data, error } = await _spirit
-            .from('transactions')
-            .select('*')
-            .eq('seller_id', currentID);
+        var sellerCandidates = [String(currentID || '').trim(), spiritNormUid(currentID || ''), String(MY_TEST_ID || '').trim()].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+        var salesQ = _spirit.from('transactions').select('*');
+        if (sellerCandidates.length > 1) salesQ = salesQ.in('seller_id', sellerCandidates);
+        else salesQ = salesQ.eq('seller_id', sellerCandidates[0] || String(currentID || '').trim());
+        const { data, error } = await salesQ;
 
         if (error) throw error;
 
@@ -7721,9 +7722,17 @@ async function enregistrerVente(method) {
             const r2 = await _spirit.from('products_live').update({ status: 'sold' }).eq('title', selectedProduct.title);
             figSoldErr = r2.error;
         }
+        if (!hasFigId || figSoldErr) {
+            try {
+                var r3 = await _spirit.from('products_live').update({ status: 'sold' }).eq('owner_id', String(selectedProduct.owner_id || selectedProduct.owner || '')).eq('title', selectedProduct.title);
+                figSoldErr = r3.error;
+            } catch (eR3) {}
+        }
         if (figSoldErr) console.warn('[SPIRIT] products_live (statut vendu):', figSoldErr.message);
 
         spiritApplyLocalSoldToCaches(Object.assign({}, selectedProduct, { status: 'sold' }));
+        try { selectedProduct.status = 'sold'; } catch (eSel) {}
+        try { if (typeof applyFilters === 'function') applyFilters(); else if (typeof renderMarket === 'function') renderMarket(); } catch (eRf) {}
         try {
             spiritQueueSellerShipmentPrep(String(selectedProduct.owner_id || selectedProduct.owner || ''), {
                 title: selectedProduct.title || selectedProduct.name || '',
@@ -7756,6 +7765,12 @@ async function enregistrerVente(method) {
         try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
         try { if (typeof loadMyPurchases === 'function') loadMyPurchases(); } catch (e) {}
         try { if (typeof loadMySales === 'function') loadMySales(); } catch (e) {}
+        try { if (typeof spiritLoadSellerOffersList === 'function') spiritLoadSellerOffersList(); } catch (eOf1) {}
+        try { if (typeof spiritLoadBuyerOffersSent === 'function') spiritLoadBuyerOffersSent(); } catch (eOf2) {}
+        try { if (typeof spiritCheckSellerOfferBanner === 'function') spiritCheckSellerOfferBanner(); } catch (eOf3) {}
+        try { if (typeof spiritCheckDashboardOfferDot === 'function') spiritCheckDashboardOfferDot(); } catch (eOf4) {}
+        try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (eOf5) {}
+        try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eOf6) {}
 
     } catch (err) {
         console.error("ERREUR COLONNE :", err.message);
@@ -13176,9 +13191,12 @@ async function loadMyPurchases() {
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE ACHATS...</div>';
 
     try {
-        const { data, error } = await _spirit.from('transactions')
-            .select('*')
-            .eq('buyer_id', String(MY_TEST_ID))
+        var buyerBase = String(MY_TEST_ID || '').trim();
+        var buyerCandidates = [buyerBase, spiritNormUid(buyerBase)].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+        var buyQ = _spirit.from('transactions').select('*');
+        if (buyerCandidates.length > 1) buyQ = buyQ.in('buyer_id', buyerCandidates);
+        else buyQ = buyQ.eq('buyer_id', buyerCandidates[0] || buyerBase);
+        const { data, error } = await buyQ;
             // .order('created_at', { ascending: false });
 
         // Correction : Vérification que data existe avant le rendu pour éviter "data is not defined"
@@ -13316,6 +13334,9 @@ async function openDispute(transactionId) {
 
         alert("⚖️ LITIGE OUVERT : Le séquestre est bloqué. L'équipe Spirit Infinity va analyser les preuves.");
         loadMyPurchases(); // Rafraîchit l'affichage
+        try { if (typeof loadMySales === 'function') loadMySales(); } catch (eSales2) {}
+        try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eN4) {}
+        try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (eN5) {}
     } catch (err) {
         console.error("Erreur Ledger:", err.message);
         alert("Erreur lors de l'ouverture : " + err.message);
@@ -13338,6 +13359,10 @@ async function confirmReception(transactionId) {
 
         alert("✅ TRANSACTION TERMINÉE : Merci de votre confiance.");
         loadMyPurchases();
+        try { if (typeof loadMySales === 'function') loadMySales(); } catch (eSales) {}
+        try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eN1) {}
+        try { if (typeof spiritCheckDashboardOfferDot === 'function') spiritCheckDashboardOfferDot(); } catch (eN2) {}
+        try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (eN3) {}
         try { if (typeof spiritMaybePromptAutoEvaluationByTx === 'function') void spiritMaybePromptAutoEvaluationByTx(transactionId, 'buyer'); } catch (eEvalB) {}
     } catch (err) {
         console.error("Erreur Ledger:", err.message);
