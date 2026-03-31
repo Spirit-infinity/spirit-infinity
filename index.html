@@ -10442,26 +10442,58 @@ async function spiritOpenEvaluationFromNotif(refId, fromUid) {
     try {
         var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
         if (!me || !_spirit) { alert('Connecte-toi pour évaluer.'); return; }
-        var tr = await _spirit.from('transactions')
-            .select('id,buyer_id,seller_id,buyer_name,seller_name,status')
-            .eq('id', refId)
-            .maybeSingle();
+        var tr = { data: null, error: null };
+        // Requête directe par id seulement si l'identifiant ressemble à un id numérique (évite 400 si UUID/non compatible).
+        if (/^\d+$/.test(refId)) {
+            tr = await _spirit.from('transactions')
+                .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
+                .eq('id', Number(refId))
+                .maybeSingle();
+        }
         // Fallback: anciennes notifs stockaient parfois l'id annonce au lieu de l'id transaction.
         if (tr.error || !tr.data) {
             try {
                 var out = null;
                 if (fromUid) {
+                    // 1) moi acheteur / autre vendeur
                     out = await _spirit.from('transactions')
                         .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
-                        .or('and(buyer_id.eq.' + me + ',seller_id.eq.' + fromUid + '),and(buyer_id.eq.' + fromUid + ',seller_id.eq.' + me + ')')
+                        .eq('buyer_id', me)
+                        .eq('seller_id', fromUid)
                         .order('created_at', { ascending: false })
                         .limit(1);
+                    // 2) inverse
+                    if ((out.error || !out.data || !out.data[0])) {
+                        out = await _spirit.from('transactions')
+                            .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
+                            .eq('buyer_id', fromUid)
+                            .eq('seller_id', me)
+                            .order('created_at', { ascending: false })
+                            .limit(1);
+                    }
                 } else {
-                    out = await _spirit.from('transactions')
+                    // Sans fromUid: on prend la plus récente me=buyer ou me=seller.
+                    var outB = await _spirit.from('transactions')
                         .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
-                        .or('buyer_id.eq.' + me + ',seller_id.eq.' + me)
+                        .eq('buyer_id', me)
                         .order('created_at', { ascending: false })
                         .limit(1);
+                    var outS = await _spirit.from('transactions')
+                        .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
+                        .eq('seller_id', me)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    var b0 = (!outB.error && outB.data && outB.data[0]) ? outB.data[0] : null;
+                    var s0 = (!outS.error && outS.data && outS.data[0]) ? outS.data[0] : null;
+                    if (b0 && s0) {
+                        var tb = new Date(b0.created_at || 0).getTime();
+                        var ts = new Date(s0.created_at || 0).getTime();
+                        out = { error: null, data: [tb >= ts ? b0 : s0] };
+                    } else if (b0 || s0) {
+                        out = { error: null, data: [b0 || s0] };
+                    } else {
+                        out = { error: outB.error || outS.error || null, data: [] };
+                    }
                 }
                 if (!out.error && out.data && out.data[0]) tr = { data: out.data[0], error: null };
             } catch (eFb) {}
