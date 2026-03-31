@@ -14272,10 +14272,13 @@ function spiritAutoEvalIsDone(role, txId) {
 }
 async function spiritEvalExistsByAuthor(txId, authorUid) {
     if (!_spirit || spiritEvalTableMissing) return false;
+    txId = String(txId || '').trim();
+    // transaction_id côté table évaluations attend un id transaction numérique.
+    if (!/^\d+$/.test(txId)) return false;
     try {
         var out = await _spirit.from(SPIRIT_EVAL_TABLE)
             .select('id')
-            .eq('transaction_id', String(txId))
+            .eq('transaction_id', txId)
             .eq('author_user_id', spiritNormUid(authorUid || ''))
             .limit(1);
         if (out.error) { spiritEvalMarkMissingIf404(out.error); return false; }
@@ -14379,9 +14382,11 @@ function spiritAutoEvalOnOverlayClick(ev) {
 }
 async function spiritMaybePromptAutoEvaluationByTx(txId, roleHint) {
     if (!txId || !_spirit) return;
+    txId = String(txId || '').trim();
+    if (!/^\d+$/.test(txId)) return;
     var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
     if (!me) return;
-    var tr = await _spirit.from('transactions').select('id,buyer_id,seller_id,buyer_name,seller_name,status').eq('id', txId).maybeSingle();
+    var tr = await _spirit.from('transactions').select('id,buyer_id,seller_id,buyer_name,seller_name,status').eq('id', Number(txId)).maybeSingle();
     if (tr.error || !tr.data) return;
     var t = tr.data;
     var status = String(t.status || '').toLowerCase();
