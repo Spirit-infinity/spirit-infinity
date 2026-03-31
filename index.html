@@ -404,11 +404,25 @@
                 padding: 10px 6px;
                 font-size: 0.58rem;
             }
-            #spiritPublicProfileSection .spirit-public-hero { padding: 16px 12px; gap: 12px; flex-wrap: nowrap; align-items: center; }
+            #spiritPublicProfileSection .spirit-public-hero {
+                padding: 16px 12px;
+                gap: 10px;
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+            }
+            #spiritPublicProfileSection .spirit-public-hero > div:first-child {
+                flex: 0 0 auto;
+            }
+            #spiritPublicProfileSection .spirit-public-hero > div:nth-child(2) {
+                flex: 1 1 auto !important;
+                min-width: 0 !important;
+            }
             #spiritPublicProfileSection #spiritPublicSocialStats {
                 flex-wrap: nowrap !important;
                 margin-top: 0 !important;
                 gap: 6px !important;
+                justify-content: flex-start !important;
             }
             #spiritPublicProfileSection #spiritPublicSocialStats .spirit-pub-badge {
                 min-width: 0 !important;
