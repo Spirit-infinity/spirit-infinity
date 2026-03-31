@@ -5556,12 +5556,13 @@ async function spiritCheckListingQaDashboardBanner() {
         var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
             .select('id,text,type,created_at,item_id')
             .eq('owner_id', uid).eq('is_read', false)
-            .in('type', ['listing_question', 'listing_reply'])
+            .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'purchase_done'])
             .order('created_at', { ascending: false })
             .range(0, 8);
         if (q.error || !q.data || !q.data.length) return;
         var lines = q.data.map(function (r) {
-            var tag = (String(r.type || '') === 'listing_question') ? 'Question' : 'Réponse';
+            var tp = String(r.type || '');
+            var tag = (tp === 'listing_question') ? 'Question' : (tp === 'listing_reply' ? 'Réponse' : (tp === 'offer_accepted' ? 'Offre acceptée' : (tp === 'offer_rejected' ? 'Offre refusée' : 'Achat')));
             return tag + ' : ' + String(r.text || '').slice(0, 96);
         });
         textEl.textContent = lines.join(' · ');
@@ -5575,7 +5576,7 @@ async function spiritAckListingQaBannerRead() {
     try {
         await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).update({ is_read: true })
             .eq('owner_id', uid).eq('is_read', false)
-            .in('type', ['listing_question', 'listing_reply']);
+            .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'purchase_done']);
     } catch (e) {}
     var banner = document.getElementById('spiritListingQaAlert');
     if (banner) banner.style.display = 'none';
@@ -7278,7 +7279,7 @@ function publishFinal() {
 function spiritRenderUserAnnoncesRows(container, myAnnonces) {
     if (!container) return;
     myAnnonces = Array.isArray(myAnnonces) ? myAnnonces : [];
-    const currentUserID = String(window.MY_TEST_ID || MY_TEST_ID).trim();
+    const currentUserID = String((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : (window.MY_TEST_ID || MY_TEST_ID)) || '').trim();
     container.innerHTML = '';
     if (myAnnonces.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE ANNONCE EN LIGNE (ID: ${currentUserID})</div>`;
@@ -7357,9 +7358,13 @@ async function updateUserAnnonces() {
     let hadSupabaseError = false;
     if (_spirit) {
         try {
-            const { data, error } = await _spirit.from('products_live').select(
+            var ownCandidates = [String(currentUserID || '').trim(), spiritNormUid(currentUserID || '')].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+            var qMine = _spirit.from('products_live').select(
                 'id,uuid,title,price,old_price,ia_score,category,brand,ship_size,image_url,description,is_native,status,owner_id,currency,cat,is_smoke_free,is_light_protect,is_first_hand,origin_country,has_coa,amount'
-            ).eq('owner_id', currentUserID);
+            );
+            if (ownCandidates.length > 1) qMine = qMine.in('owner_id', ownCandidates);
+            else qMine = qMine.eq('owner_id', ownCandidates[0] || currentUserID);
+            const { data, error } = await qMine;
             if (error) {
                 hadSupabaseError = true;
                 console.error('[SPIRIT] Mes annonces products_live erreur exacte:', error.message || String(error),
@@ -7615,13 +7620,20 @@ function spiritApplyLocalPriceToCaches(productRow, newPrice) {
 function spiritApplyLocalSoldToCaches(productRow) {
     if (!productRow) return;
     var pid = spiritFavoriteProductId(productRow);
-    if (pid == null) return;
+    var titleN = String((productRow.title || productRow.name || '')).trim().toLowerCase();
+    var ownerN = spiritNormUid(productRow.owner_id || productRow.owner || '');
+    var uuidN = String(productRow.uuid || '').trim();
+    if (pid == null && !titleN && !uuidN) return;
     var patch = { status: 'sold' };
     ['figurine', 'statue'].forEach(function (key) {
         var b = typeof spiritMarketBucket !== 'undefined' ? spiritMarketBucket[key] : null;
         if (!b || !Array.isArray(b.rows)) return;
         for (var i = 0; i < b.rows.length; i++) {
-            if (spiritFavoriteProductId(b.rows[i]) === pid) b.rows[i] = Object.assign({}, b.rows[i], patch);
+            var row = b.rows[i] || {};
+            var byId = (pid != null && spiritFavoriteProductId(row) === pid);
+            var byUuid = (!!uuidN && String(row.uuid || '').trim() === uuidN);
+            var byTitleOwner = (!!titleN && String((row.title || row.name || '')).trim().toLowerCase() === titleN && spiritNormUid(row.owner_id || row.owner || '') === ownerN);
+            if (byId || byUuid || byTitleOwner) b.rows[i] = Object.assign({}, row, patch);
         }
     });
     try {
@@ -7789,6 +7801,15 @@ async function enregistrerVente(method) {
                 productId: selectedProduct.id
             });
         } catch (e) {}
+        try {
+            var _sellerN = spiritNormUid(String(selectedProduct.owner_id || selectedProduct.owner || ''));
+            var _buyerN = spiritNormUid(buyerIdTxt);
+            var _titleN = String(selectedProduct.title || selectedProduct.name || 'Annonce').trim();
+            if (_sellerN && _buyerN && _sellerN !== _buyerN && typeof spiritSanctuaryPushNotif === 'function') {
+                await spiritSanctuaryPushNotif(_sellerN, 'purchase_done', String(pidNum != null ? pidNum : (selectedProduct.id || '')), _buyerN, 'Achat confirmé : ' + _titleN + '. Prépare la livraison.');
+                await spiritSanctuaryPushNotif(_buyerN, 'purchase_done', String(pidNum != null ? pidNum : (selectedProduct.id || '')), _sellerN, 'Achat confirmé : ' + _titleN + '.');
+            }
+        } catch (eBuyN) {}
         checkGlobalNotifications().catch(function () {});
 
         const buyRep = {
@@ -10818,7 +10839,7 @@ function spiritLoadMessagesTab() {
                 var itemIdEsc = itemIdRaw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                 var listingBtn = (nType === 'listing_new' && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1a3a2a;border:1px solid #2a8a5a;color:#9f9;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Voir l’annonce</button></div>'
-                    : ((nType === 'listing_question' || nType === 'listing_reply') && itemIdRaw)
+                    : ((nType === 'listing_question' || nType === 'listing_reply' || nType === 'offer_accepted' || nType === 'offer_rejected' || nType === 'purchase_done') && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#2a2810;border:1px solid #a88a2a;color:#fc8;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Ouvrir la discussion</button></div>'
                     : '';
                 var delBtn = (!n.synthetic && idStr !== '0')
@@ -13241,7 +13262,7 @@ async function loadMyPurchases() {
     listBody.innerHTML = '<div style="text-align:center; padding:20px; color:var(--neon-orange);">FILTRAGE ACHATS...</div>';
 
     try {
-        var buyerBase = String(MY_TEST_ID || '').trim();
+        var buyerBase = String((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : (MY_TEST_ID || '')) || '').trim();
         var buyerCandidates = [buyerBase, spiritNormUid(buyerBase)].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
         var buyQ = _spirit.from('transactions').select('*');
         if (buyerCandidates.length > 1) buyQ = buyQ.in('buyer_id', buyerCandidates);
