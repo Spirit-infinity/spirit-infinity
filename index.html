@@ -6345,6 +6345,39 @@ try {
 // --- MARKET : seller pseudo + navigation profil entre utilisateurs ---
 var spiritOwnerPseudoCache = {};
 var spiritOwnerPseudoInFlight = {};
+var SPIRIT_LOCAL_SOLD_HINTS_KEY = 'spirit_local_sold_hints_v1';
+function spiritLocalSoldHintsRead() {
+    try {
+        var o = JSON.parse(localStorage.getItem(SPIRIT_LOCAL_SOLD_HINTS_KEY) || '{}');
+        return o && typeof o === 'object' ? o : {};
+    } catch (e) { return {}; }
+}
+function spiritLocalSoldHintsWrite(o) {
+    try { localStorage.setItem(SPIRIT_LOCAL_SOLD_HINTS_KEY, JSON.stringify(o || {})); } catch (e) {}
+}
+function spiritLocalSoldMark(productRow) {
+    if (!productRow) return;
+    var o = spiritLocalSoldHintsRead();
+    var pid = spiritFavoriteProductId(productRow);
+    var uuid = String(productRow.uuid || '').trim();
+    var t = String((productRow.title || productRow.name || '')).trim().toLowerCase();
+    var own = spiritNormUid(productRow.owner_id || productRow.owner || '');
+    if (pid != null) o['id:' + String(pid)] = 1;
+    if (uuid) o['uuid:' + uuid] = 1;
+    if (t && own) o['to:' + t + '::' + own] = 1;
+    spiritLocalSoldHintsWrite(o);
+}
+function spiritLocalSoldMatches(row) {
+    var o = spiritLocalSoldHintsRead();
+    var pid = spiritFavoriteProductId(row);
+    var uuid = String((row && row.uuid) || '').trim();
+    var t = String(((row && (row.title || row.name)) || '')).trim().toLowerCase();
+    var own = spiritNormUid((row && (row.owner_id || row.owner)) || '');
+    if (pid != null && o['id:' + String(pid)]) return true;
+    if (uuid && o['uuid:' + uuid]) return true;
+    if (t && own && o['to:' + t + '::' + own]) return true;
+    return false;
+}
 
 function spiritDefaultLabelFromUid(uid) {
     uid = spiritOwnerId(uid);
@@ -7640,6 +7673,7 @@ function spiritApplyLocalSoldToCaches(productRow) {
         var mk = typeof spiritBucketKeyFromMode === 'function' ? spiritBucketKeyFromMode() : 'figurine';
         if (typeof spiritMarketBucket !== 'undefined' && spiritMarketBucket[mk]) marketData = spiritMarketBucket[mk].rows.slice();
     } catch (e) {}
+    try { spiritLocalSoldMark(productRow); } catch (eLs) {}
 }
 function spiritQueueSellerShipmentPrep(sellerId, payload) {
     var sid = spiritNormUid(sellerId || '');
@@ -7842,6 +7876,15 @@ async function enregistrerVente(method) {
         try { if (typeof spiritCheckDashboardOfferDot === 'function') spiritCheckDashboardOfferDot(); } catch (eOf4) {}
         try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (eOf5) {}
         try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eOf6) {}
+        try {
+            var txIdCreated = '';
+            if (ins && ins.data && ins.data[0] && ins.data[0].id != null) txIdCreated = String(ins.data[0].id);
+            if (!txIdCreated) {
+                var qTx = await _spirit.from('transactions').select('id').eq('buyer_id', buyerIdTxt).eq('seller_id', sellerIdTxt).order('created_at', { ascending: false }).limit(1);
+                if (!qTx.error && qTx.data && qTx.data[0] && qTx.data[0].id != null) txIdCreated = String(qTx.data[0].id);
+            }
+            if (txIdCreated && typeof spiritMaybePromptAutoEvaluationByTx === 'function') void spiritMaybePromptAutoEvaluationByTx(txIdCreated, 'buyer');
+        } catch (eEvalPay) {}
 
     } catch (err) {
         console.error("ERREUR COLONNE :", err.message);
@@ -10388,9 +10431,11 @@ function spiritSanctuaryActivityUnreadSince(feed, sinceTs) {
 function spiritSanctuaryRefreshMessagesDot() {
     var uid = '';
     try { uid = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : (typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim()); } catch (e) {}
+    var uidN = spiritNormUid(uid);
+    var ownerCandidates = [String(uid || '').trim(), uidN].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
     var dot = document.getElementById('messages-tab-dot');
     if (!dot) { try { spiritSyncAccountNotificationPulse(); } catch (ePm0) {} return; }
-    if (!uid || !spiritSanSocialCanUseSupabase()) {
+    if (!uidN || !spiritSanSocialCanUseSupabase()) {
         spiritSetNotifDotVisible(dot, false);
         try { spiritSyncAccountNotificationPulse(); } catch (ePm1) {}
         return;
@@ -10401,7 +10446,7 @@ function spiritSanctuaryRefreshMessagesDot() {
             var notifErr = false;
             if (!spiritSanNotifsTableMissing) {
                 try {
-                    var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).eq('owner_id', uid).eq('is_read', false);
+                    var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).in('owner_id', ownerCandidates).eq('is_read', false);
                     if (q && q.error) {
                         spiritSanNotifsMarkMissingIf404(q.error);
                         notifErr = true;
@@ -10414,7 +10459,7 @@ function spiritSanctuaryRefreshMessagesDot() {
                 }
             }
             try {
-                var feed = await spiritSanctuaryFetchSocialActivityFeed(uid);
+                var feed = await spiritSanctuaryFetchSocialActivityFeed(uidN);
                 var since = spiritSanctuaryGetActivityLastSeenTs();
                 var aUn = spiritSanctuaryActivityUnreadSince(feed, since);
                 if (notifErr || spiritSanNotifsTableMissing) c = aUn;
@@ -10778,7 +10823,9 @@ function spiritLoadMessagesTab() {
     if (!box) return;
     var me = '';
     try { me = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : (typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim()); } catch (e) {}
-    if (!me) {
+    var meN = spiritNormUid(me);
+    var ownerCandidates = [String(me || '').trim(), meN].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+    if (!meN) {
         box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Connecte-toi pour voir tes messages.</div>';
         return;
     }
@@ -10794,7 +10841,7 @@ function spiritLoadMessagesTab() {
             try {
                 var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
                     .select('id,owner_id,type,item_id,from_uid,text,created_at,is_read')
-                    .eq('owner_id', me)
+                    .in('owner_id', ownerCandidates)
                     .order('created_at', { ascending: false })
                     .range(0, 200);
                 if (q && q.error) {
@@ -10811,7 +10858,7 @@ function spiritLoadMessagesTab() {
             dbOk = false;
         }
         var syn = [];
-        try { syn = await spiritSanctuaryFetchSocialActivityFeed(me); } catch (eSyn) {}
+        try { syn = await spiritSanctuaryFetchSocialActivityFeed(meN); } catch (eSyn) {}
         var merged = spiritSanctuaryMergeNotifRows(rows, syn);
         if (!merged.length) {
             var hint = '';
@@ -13815,6 +13862,9 @@ async function fetchMarketplaceFromSupabase(opts) {
     }
 
     var chunk = Array.isArray(data) ? data : [];
+    try {
+        chunk.forEach(function (r) { if (spiritLocalSoldMatches(r)) r.status = 'sold'; });
+    } catch (eSoldHint) {}
     if (opts.staleRefresh && prevSigStale !== null) {
         if (spiritMarketRowsSig(chunk) === prevSigStale && (chunk.length === ps) === prevHasMoreStale) {
             setSpiritMarketLoading(false);
@@ -14169,7 +14219,7 @@ async function spiritMaybePromptAutoEvaluationByTx(txId, roleHint) {
     if (tr.error || !tr.data) return;
     var t = tr.data;
     var status = String(t.status || '').toLowerCase();
-    if (status.indexOf('livraison valid') < 0 && status.indexOf('termine') < 0) return;
+    if (status.indexOf('livraison valid') < 0 && status.indexOf('termine') < 0 && status.indexOf('séquestre actif') < 0 && status.indexOf('sequestre actif') < 0) return;
     var buyer = spiritNormUid(t.buyer_id || '');
     var seller = spiritNormUid(t.seller_id || '');
     var isBuyer = me && me === buyer;
