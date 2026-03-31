@@ -13596,14 +13596,6 @@ function closeModals() {
     try { if (typeof hideTopicEditor === 'function') hideTopicEditor(); } catch (e) {}
     console.log("[SPIRIT] Fermeture des modales.");
 }
-/* PWA: enregistre un Service Worker pour que Chrome propose "Installer l'application". */
-try {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-            navigator.serviceWorker.register('sw.js').catch(function () {});
-        });
-    }
-} catch (eSw) {}
 // (c) 2026 Spirit Infinity - Tous droits réservés
 /* Panneau : transferToSale() → certif modal uniquement ; succès annonce = publierAnnonce() après validation */
 
@@ -13618,6 +13610,14 @@ try {
         <button onclick="window.print()" style="background:white; color:black; padding:12px; border:none; font-weight:bold; cursor:pointer; width:100%; border-radius:4px; text-transform:uppercase;">🖨️ Imprimer</button>
     </div>
 </div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
 
 </body>
 </html>
