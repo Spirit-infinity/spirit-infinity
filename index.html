@@ -1077,6 +1077,8 @@
                 border-radius: 6px;
                 margin-bottom: 6px;
                 transition: background 0.22s ease, border-color 0.22s ease;
+                color: var(--neon-orange) !important;
+                border-color: rgba(255, 102, 0, 0.22);
             }
             #accountModal .dash-nav button::after {
                 content: '';
@@ -1087,6 +1089,8 @@
                 height: 7px;
                 border-right: 2px solid #555;
                 border-bottom: 2px solid #555;
+                border-right-color: rgba(255, 160, 80, 0.75);
+                border-bottom-color: rgba(255, 160, 80, 0.75);
                 transform: translateY(-60%) rotate(45deg);
                 transition: transform 0.28s ease, border-color 0.22s ease;
                 pointer-events: none;
@@ -14386,6 +14390,17 @@ async function spiritAutoEvalInsert(stars, comment, categoryOverride) {
         var ins = await _spirit.from(SPIRIT_EVAL_TABLE).insert([payload]);
         if (ins.error) { spiritEvalMarkMissingIf404(ins.error); throw ins.error; }
         spiritAutoEvalMarkDone(ctx.role || '', ctx.txId || '');
+        try {
+            if (!spiritSanNotifsTableMissing) {
+                await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
+                    .delete()
+                    .eq('owner_id', spiritNormUid(ctx.authorUid || ''))
+                    .eq('type', 'evaluation_pending')
+                    .eq('item_id', String(txIdNum));
+            }
+        } catch (eDelEval) {}
+        try { if (typeof spiritLoadMessagesTab === 'function') spiritLoadMessagesTab(); } catch (eRMsg) {}
+        try { if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot(); } catch (eRDot) {}
         return true;
     } catch (e) {
         var st = document.getElementById('spiritAutoEvalStatus');
