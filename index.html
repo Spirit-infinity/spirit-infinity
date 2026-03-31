@@ -5566,7 +5566,12 @@ async function spiritCheckListingQaDashboardBanner() {
         if (q.error || !q.data || !q.data.length) return;
         var lines = q.data.map(function (r) {
             var tp = String(r.type || '');
-            var tag = (tp === 'listing_question') ? 'Question' : (tp === 'listing_reply' ? 'Réponse' : (tp === 'offer_accepted' ? 'Offre acceptée' : (tp === 'offer_rejected' ? 'Offre refusée' : (tp === 'evaluation_pending' ? 'Évaluation' : 'Achat')));
+            var tag = (tp === 'listing_question') ? 'Question'
+                : (tp === 'listing_reply') ? 'Réponse'
+                : (tp === 'offer_accepted') ? 'Offre acceptée'
+                : (tp === 'offer_rejected') ? 'Offre refusée'
+                : (tp === 'evaluation_pending') ? 'Évaluation'
+                : 'Achat';
             return tag + ' : ' + String(r.text || '').slice(0, 96);
         });
         textEl.textContent = lines.join(' · ');
