@@ -10439,13 +10439,39 @@ async function spiritOpenEvaluationFromNotif(txId) {
     txId = String(txId != null ? txId : '').trim();
     if (!txId) return;
     try {
-        if (typeof showAccountTab === 'function') showAccountTab('dashboard');
-    } catch (eT) {}
-    try {
-        if (typeof spiritMaybePromptAutoEvaluationByTx === 'function') {
-            await spiritMaybePromptAutoEvaluationByTx(txId, '');
+        var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
+        if (!me || !_spirit) { alert('Connecte-toi pour évaluer.'); return; }
+        var tr = await _spirit.from('transactions')
+            .select('id,buyer_id,seller_id,buyer_name,seller_name,status')
+            .eq('id', txId)
+            .maybeSingle();
+        if (tr.error || !tr.data) { alert('Transaction introuvable.'); return; }
+        var t = tr.data;
+        var buyer = spiritNormUid(t.buyer_id || '');
+        var seller = spiritNormUid(t.seller_id || '');
+        var isBuyer = me && me === buyer;
+        var isSeller = me && me === seller;
+        if (!isBuyer && !isSeller) { alert('Cette évaluation ne te concerne pas.'); return; }
+        var role = isBuyer ? 'buyer' : 'seller';
+        if (await spiritEvalExistsByAuthor(txId, me)) {
+            spiritAutoEvalMarkDone(role, txId);
+            alert('Tu as déjà laissé une évaluation pour cette transaction.');
             return;
         }
+        var targetUid = isBuyer ? seller : buyer;
+        var targetPseudo = isBuyer ? (t.seller_name || 'Vendeur') : (t.buyer_name || 'Acheteur');
+        var defaultCategory = isBuyer ? 'achat' : 'vente';
+        var authorPseudo = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : 'Membre';
+        await spiritAutoEvalOpen({
+            txId: String(txId),
+            role: role,
+            authorUid: me,
+            targetUid: targetUid,
+            targetPseudo: String(targetPseudo || 'Membre'),
+            authorPseudo: authorPseudo,
+            category: defaultCategory
+        });
+        return;
     } catch (eP) {}
     alert('Évaluation indisponible pour cette notification.');
 }
@@ -10920,7 +10946,7 @@ function spiritLoadMessagesTab() {
                 var listingBtn = (nType === 'listing_new' && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1a3a2a;border:1px solid #2a8a5a;color:#9f9;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Voir l’annonce</button></div>'
                     : (nType === 'evaluation_pending' && itemIdRaw)
-                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1f2a12;border:1px solid #8aaa2a;color:#efe28a;" onclick="spiritOpenEvaluationFromNotif(\'' + itemIdEsc + '\')">Noter maintenant</button></div>'
+                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1f2a12;border:1px solid #8aaa2a;color:#efe28a;" onclick="try{event.preventDefault();event.stopPropagation();}catch(e){};spiritOpenEvaluationFromNotif(\'' + itemIdEsc + '\')">Noter maintenant</button></div>'
                     : ((nType === 'listing_question' || nType === 'listing_reply' || nType === 'offer_accepted' || nType === 'offer_rejected' || nType === 'purchase_done') && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#2a2810;border:1px solid #a88a2a;color:#fc8;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Ouvrir la discussion</button></div>'
                     : '';
