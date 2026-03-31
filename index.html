@@ -6599,8 +6599,8 @@ function renderMarket(filteredData = null) {
             
             // --- LOGIQUE D'AFFICHAGE CORRIGÉE ---
 
-            // 1. Affichage Global : On montre ce qui est 'available' OU ce qui m'appartient (pour voir mes ventes même finies)
-            if (isAvailable || isMine) {
+            // 1. Affichage Global : on garde aussi les vendues visibles (grisées + badge VENDU)
+            if (isAvailable || isSold || isMine) {
                 gn.appendChild(card);
             }
             
@@ -14213,7 +14213,7 @@ function spiritAutoEvalOnOverlayClick(ev) {
 }
 async function spiritMaybePromptAutoEvaluationByTx(txId, roleHint) {
     if (!txId || !_spirit) return;
-    var me = spiritNormUid(MY_TEST_ID || '');
+    var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
     if (!me) return;
     var tr = await _spirit.from('transactions').select('id,buyer_id,seller_id,buyer_name,seller_name,status').eq('id', txId).maybeSingle();
     if (tr.error || !tr.data) return;
@@ -14246,7 +14246,7 @@ async function spiritMaybePromptAutoEvaluationByTx(txId, roleHint) {
     });
 }
 async function spiritMaybePromptSellerEvaluations(rows) {
-    var me = spiritNormUid(MY_TEST_ID || '');
+    var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
     if (!me || !Array.isArray(rows) || !rows.length) return;
     for (var i = 0; i < rows.length; i++) {
         var tr = rows[i] || {};
