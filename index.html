@@ -7851,8 +7851,6 @@ async function enregistrerVente(method) {
             if (_sellerN && _buyerN && _sellerN !== _buyerN && typeof spiritSanctuaryPushNotif === 'function') {
                 await spiritSanctuaryPushNotif(_sellerN, 'purchase_done', String(pidNum != null ? pidNum : (selectedProduct.id || '')), _buyerN, 'Achat confirmé : ' + _titleN + '. Prépare la livraison.');
                 await spiritSanctuaryPushNotif(_buyerN, 'purchase_done', String(pidNum != null ? pidNum : (selectedProduct.id || '')), _sellerN, 'Achat confirmé : ' + _titleN + '.');
-                await spiritSanctuaryPushNotif(_sellerN, 'evaluation_pending', String(pidNum != null ? pidNum : (selectedProduct.id || '')), _buyerN, 'Évaluation à laisser pour cette transaction.');
-                await spiritSanctuaryPushNotif(_buyerN, 'evaluation_pending', String(pidNum != null ? pidNum : (selectedProduct.id || '')), _sellerN, 'Évaluation à laisser pour cette transaction.');
             }
         } catch (eBuyN) {}
         checkGlobalNotifications().catch(function () {});
@@ -7894,6 +7892,14 @@ async function enregistrerVente(method) {
                 var qTx = await _spirit.from('transactions').select('id').eq('buyer_id', buyerIdTxt).eq('seller_id', sellerIdTxt).order('created_at', { ascending: false }).limit(1);
                 if (!qTx.error && qTx.data && qTx.data[0] && qTx.data[0].id != null) txIdCreated = String(qTx.data[0].id);
             }
+            try {
+                var _sellerN2 = spiritNormUid(String(selectedProduct.owner_id || selectedProduct.owner || ''));
+                var _buyerN2 = spiritNormUid(buyerIdTxt);
+                if (txIdCreated && _sellerN2 && _buyerN2 && _sellerN2 !== _buyerN2 && typeof spiritSanctuaryPushNotif === 'function') {
+                    await spiritSanctuaryPushNotif(_sellerN2, 'evaluation_pending', txIdCreated, _buyerN2, 'Évaluation à laisser pour cette transaction.');
+                    await spiritSanctuaryPushNotif(_buyerN2, 'evaluation_pending', txIdCreated, _sellerN2, 'Évaluation à laisser pour cette transaction.');
+                }
+            } catch (eEvN2) {}
             if (txIdCreated && typeof spiritMaybePromptAutoEvaluationByTx === 'function') {
                 setTimeout(function () { try { void spiritMaybePromptAutoEvaluationByTx(txIdCreated, 'buyer'); } catch (eP) {} }, 220);
             }
@@ -10429,6 +10435,20 @@ async function spiritOpenListingFromNotif(listingId) {
         console.warn('[SPIRIT] spiritOpenListingFromNotif', e);
     }
 }
+async function spiritOpenEvaluationFromNotif(txId) {
+    txId = String(txId != null ? txId : '').trim();
+    if (!txId) return;
+    try {
+        if (typeof showAccountTab === 'function') showAccountTab('dashboard');
+    } catch (eT) {}
+    try {
+        if (typeof spiritMaybePromptAutoEvaluationByTx === 'function') {
+            await spiritMaybePromptAutoEvaluationByTx(txId, '');
+            return;
+        }
+    } catch (eP) {}
+    alert('Évaluation indisponible pour cette notification.');
+}
 try { window.spiritOpenListingFromNotif = spiritOpenListingFromNotif; } catch (eWolf) {}
 
 function spiritSanctuaryActivityUnreadSince(feed, sinceTs) {
@@ -10899,6 +10919,8 @@ function spiritLoadMessagesTab() {
                 var itemIdEsc = itemIdRaw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                 var listingBtn = (nType === 'listing_new' && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1a3a2a;border:1px solid #2a8a5a;color:#9f9;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Voir l’annonce</button></div>'
+                    : (nType === 'evaluation_pending' && itemIdRaw)
+                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1f2a12;border:1px solid #8aaa2a;color:#efe28a;" onclick="spiritOpenEvaluationFromNotif(\'' + itemIdEsc + '\')">Noter maintenant</button></div>'
                     : ((nType === 'listing_question' || nType === 'listing_reply' || nType === 'offer_accepted' || nType === 'offer_rejected' || nType === 'purchase_done') && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#2a2810;border:1px solid #a88a2a;color:#fc8;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Ouvrir la discussion</button></div>'
                     : '';
@@ -13799,6 +13821,7 @@ async function fetchMarketplaceFromSupabase(opts) {
         var cached = spiritMarketCacheRead(key);
         if (cached && Array.isArray(cached.rows)) {
             b.rows = cached.rows;
+            try { b.rows.forEach(function (r) { if (spiritLocalSoldMatches(r)) r.status = 'sold'; }); } catch (eSoldCached) {}
             b.hasMore = !!cached.hasMore;
             b.loading = false;
             if (spiritBucketKeyFromMode() === key) marketData = b.rows.slice();
