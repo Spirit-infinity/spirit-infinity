@@ -10435,16 +10435,37 @@ async function spiritOpenListingFromNotif(listingId) {
         console.warn('[SPIRIT] spiritOpenListingFromNotif', e);
     }
 }
-async function spiritOpenEvaluationFromNotif(txId) {
-    txId = String(txId != null ? txId : '').trim();
-    if (!txId) return;
+async function spiritOpenEvaluationFromNotif(refId, fromUid) {
+    refId = String(refId != null ? refId : '').trim();
+    fromUid = spiritNormUid(fromUid || '');
+    if (!refId) return;
     try {
         var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
         if (!me || !_spirit) { alert('Connecte-toi pour évaluer.'); return; }
         var tr = await _spirit.from('transactions')
             .select('id,buyer_id,seller_id,buyer_name,seller_name,status')
-            .eq('id', txId)
+            .eq('id', refId)
             .maybeSingle();
+        // Fallback: anciennes notifs stockaient parfois l'id annonce au lieu de l'id transaction.
+        if (tr.error || !tr.data) {
+            try {
+                var out = null;
+                if (fromUid) {
+                    out = await _spirit.from('transactions')
+                        .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
+                        .or('and(buyer_id.eq.' + me + ',seller_id.eq.' + fromUid + '),and(buyer_id.eq.' + fromUid + ',seller_id.eq.' + me + ')')
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                } else {
+                    out = await _spirit.from('transactions')
+                        .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
+                        .or('buyer_id.eq.' + me + ',seller_id.eq.' + me)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                }
+                if (!out.error && out.data && out.data[0]) tr = { data: out.data[0], error: null };
+            } catch (eFb) {}
+        }
         if (tr.error || !tr.data) { alert('Transaction introuvable.'); return; }
         var t = tr.data;
         var buyer = spiritNormUid(t.buyer_id || '');
@@ -10453,6 +10474,7 @@ async function spiritOpenEvaluationFromNotif(txId) {
         var isSeller = me && me === seller;
         if (!isBuyer && !isSeller) { alert('Cette évaluation ne te concerne pas.'); return; }
         var role = isBuyer ? 'buyer' : 'seller';
+        var txId = String(t.id || refId);
         if (await spiritEvalExistsByAuthor(txId, me)) {
             spiritAutoEvalMarkDone(role, txId);
             alert('Tu as déjà laissé une évaluation pour cette transaction.');
@@ -10463,7 +10485,7 @@ async function spiritOpenEvaluationFromNotif(txId) {
         var defaultCategory = isBuyer ? 'achat' : 'vente';
         var authorPseudo = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : 'Membre';
         await spiritAutoEvalOpen({
-            txId: String(txId),
+            txId: txId,
             role: role,
             authorUid: me,
             targetUid: targetUid,
@@ -10475,7 +10497,7 @@ async function spiritOpenEvaluationFromNotif(txId) {
     } catch (eP) {}
     alert('Évaluation indisponible pour cette notification.');
 }
-try { window.spiritOpenListingFromNotif = spiritOpenListingFromNotif; } catch (eWolf) {}
+try { window.spiritOpenListingFromNotif = spiritOpenListingFromNotif; window.spiritOpenEvaluationFromNotif = spiritOpenEvaluationFromNotif; } catch (eWolf) {}
 
 function spiritSanctuaryActivityUnreadSince(feed, sinceTs) {
     var now = Date.now();
@@ -10943,10 +10965,11 @@ function spiritLoadMessagesTab() {
                 var nType = String(n.type || '');
                 var itemIdRaw = String(n.item_id || '').trim().replace(/[^a-zA-Z0-9-]/g, '');
                 var itemIdEsc = itemIdRaw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                var fromUidEsc = uidFrom.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                 var listingBtn = (nType === 'listing_new' && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1a3a2a;border:1px solid #2a8a5a;color:#9f9;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Voir l’annonce</button></div>'
                     : (nType === 'evaluation_pending' && itemIdRaw)
-                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1f2a12;border:1px solid #8aaa2a;color:#efe28a;" onclick="try{event.preventDefault();event.stopPropagation();}catch(e){};spiritOpenEvaluationFromNotif(\'' + itemIdEsc + '\')">Noter maintenant</button></div>'
+                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1f2a12;border:1px solid #8aaa2a;color:#efe28a;" onclick="try{event.preventDefault();event.stopPropagation();}catch(e){};spiritOpenEvaluationFromNotif(\'' + itemIdEsc + '\',\'' + fromUidEsc + '\')">Noter maintenant</button></div>'
                     : ((nType === 'listing_question' || nType === 'listing_reply' || nType === 'offer_accepted' || nType === 'offer_rejected' || nType === 'purchase_done') && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#2a2810;border:1px solid #a88a2a;color:#fc8;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Ouvrir la discussion</button></div>'
                     : '';
