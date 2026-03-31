@@ -1569,6 +1569,19 @@
             padding: 8px 14px; border: 1px solid #333; background: #111; font-size: 0.65rem; font-weight: 800;
             letter-spacing: 0.5px; text-transform: uppercase; min-width: 100px; text-align: center;
         }
+        .spirit-badge-cmt-btn {
+            margin-top: 6px; font-size: 0.52rem; padding: 3px 8px; border: 1px solid #333; background: #0d0d0d; color: #aaa; cursor: pointer;
+        }
+        #spiritBadgeLitWrap.spirit-litige-blink {
+            animation: spiritBadgeLitBlink 0.9s ease-in-out infinite;
+            border-color: #f33;
+        }
+        .spirit-market-litige-chip {
+            position: absolute; top: 8px; left: 8px; z-index: 12; font-size: 0.58rem; font-weight: 900;
+            padding: 4px 8px; background: rgba(120,0,0,0.82); border: 1px solid #f44; color: #ffd7d7;
+            animation: spiritBadgeLitBlink 1s ease-in-out infinite;
+        }
+        @keyframes spiritBadgeLitBlink { 0%,100% { box-shadow:0 0 0 rgba(255,0,0,0.1);} 50% { box-shadow:0 0 18px rgba(255,0,0,0.65);} }
         #spiritPublicProfileSection .spirit-pub-badge b { display: block; color: var(--neon-orange); font-size: 1.1rem; margin-top: 4px; }
         #spiritPublicProfileSection .spirit-public-subnav {
             display: flex; gap: 0; padding: 0 20px; border-bottom: 1px solid #222; background: #050505;
@@ -3207,6 +3220,7 @@
                 <button type="button" id="btn-ventes" role="tab" aria-expanded="false" aria-controls="tab-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
                 <button type="button" id="btn-portefeuille" role="tab" aria-expanded="false" aria-controls="tab-portefeuille" onclick="showAccountTab('portefeuille')">PORTEFEUILLE</button>
                 <button type="button" id="btn-annonces" role="tab" aria-expanded="false" aria-controls="tab-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
+                <button type="button" id="btn-evaluations" role="tab" aria-expanded="false" aria-controls="tab-evaluations" onclick="showAccountTab('evaluations')">ÉVALUATIONS</button>
                 <button type="button" id="btn-liste-envie" role="tab" aria-expanded="false" aria-controls="tab-liste-envie" onclick="showAccountTab('liste-envie')"><span data-key="account_wishlist_menu">LISTE D’ENVIE</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-favoris-recus" role="tab" aria-expanded="false" aria-controls="tab-favoris-recus" onclick="showAccountTab('favoris-recus')"><span data-key="account_seller_fav_menu">FAVORIS</span><span id="seller-received-fav-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-sanctuary" role="tab" aria-expanded="false" aria-controls="tab-sanctuary" onclick="showAccountTab('sanctuary')">SANCTUAIRE</button>
@@ -3316,6 +3330,36 @@
     <div id="user-annonces-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
         <p style="font-size:0.8rem; color:#777;">Aucune annonce active.</p>
     </div>
+</div>
+
+<div id="tab-evaluations" class="account-page">
+    <h3>ÉVALUATIONS</h3>
+    <p style="font-size:0.68rem;color:#777;margin-top:0;">Laisse une note (1 à 5) et un commentaire. Les moyennes alimentent les badges publics Achat / Vente / Livraison / Litige.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end;">
+        <div>
+            <label style="font-size:0.62rem;color:#888;">Transaction ID</label>
+            <input id="evalTxId" type="text" placeholder="id transaction">
+        </div>
+        <div>
+            <label style="font-size:0.62rem;color:#888;">Catégorie</label>
+            <select id="evalCategory">
+                <option value="achat">Achat</option>
+                <option value="vente">Vente</option>
+                <option value="livraison">Livraison</option>
+                <option value="litige">Litige</option>
+            </select>
+        </div>
+        <div>
+            <label style="font-size:0.62rem;color:#888;">Note /5</label>
+            <select id="evalStars">
+                <option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option>
+            </select>
+        </div>
+    </div>
+    <textarea id="evalComment" placeholder="Ton commentaire..." style="margin-top:10px;"></textarea>
+    <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 12px;" onclick="spiritSubmitEvaluation()">ENVOYER L’ÉVALUATION</button>
+    <div id="evalStatus" style="font-size:0.64rem;color:#888;margin-top:8px;"></div>
+    <div id="evalMyList" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;"></div>
 </div>
 
 <div id="tab-liste-envie" class="account-page">
@@ -3435,10 +3479,10 @@
         <span class="spirit-public-brand">Profil public — Spirit Infinity</span>
         <div class="spirit-public-topbar-right">
             <div class="spirit-public-badges spirit-public-badges--topbar" id="spiritPublicBadges">
-                <div class="spirit-pub-badge">Achat<b id="spiritBadgeAchat">0</b></div>
-                <div class="spirit-pub-badge">Vente<b id="spiritBadgeVente">0</b></div>
-                <div class="spirit-pub-badge">Livraison<b id="spiritBadgeLivr">0</b></div>
-                <div class="spirit-pub-badge">Litige<b id="spiritBadgeLit">0</b></div>
+                <div class="spirit-pub-badge">Achat<b id="spiritBadgeAchat">0</b><button type="button" id="spiritBadgeAchatBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('achat')">0 avis</button></div>
+                <div class="spirit-pub-badge">Vente<b id="spiritBadgeVente">0</b><button type="button" id="spiritBadgeVenteBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('vente')">0 avis</button></div>
+                <div class="spirit-pub-badge">Livraison<b id="spiritBadgeLivr">0</b><button type="button" id="spiritBadgeLivrBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('livraison')">0 avis</button></div>
+                <div class="spirit-pub-badge" id="spiritBadgeLitWrap">Litige<b id="spiritBadgeLit">0</b><button type="button" id="spiritBadgeLitBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('litige')">0 avis</button></div>
             </div>
             <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 14px;" onclick="spiritCopyPublicProfileUrl()">COPIER L’URL</button>
         </div>
@@ -6375,6 +6419,7 @@ function renderMarket(filteredData = null) {
             const hasCoa = item.has_coa === true || item.has_coa === 'true' || item.has_coa === 1 || String(item.has_coa).toLowerCase() === 't';
             
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
+            const litigeBadge = '<div class="spirit-market-litige-chip" style="display:none;">LITIGE EN COURS</div>';
             const favNum = spiritFavoriteProductId(item);
             const favKey = favNum != null ? String(favNum) : '';
             var fc = (favKey && spiritFavoriteCountMap[favKey] != null) ? spiritFavoriteCountMap[favKey] : 0;
@@ -6419,6 +6464,7 @@ function renderMarket(filteredData = null) {
             const firstTxt = item.is_first_hand ? '1ere main' : 'Multi-mains';
             card.innerHTML = `
                 ${soldBadge}
+                ${litigeBadge}
                 ${favBlock}
                 ${ownerTag}
                 <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#050505; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
@@ -6454,6 +6500,13 @@ function renderMarket(filteredData = null) {
             // Charge le pseudo réel en cache (évite de requêter à chaque rendu).
             if (oid) {
                 (async function () {
+                    try {
+                        var lb = card.querySelector('.spirit-market-litige-chip');
+                        if (lb) {
+                            var hasLit = await spiritHasOpenLitigeForUser(oid);
+                            lb.style.display = hasLit ? 'block' : 'none';
+                        }
+                    } catch (eL) {}
                     var btn = card.querySelector('.btn-action[data-seller-uid="' + oid + '"]');
                     if (!btn) return;
                     var pseudo = '';
@@ -9639,7 +9692,7 @@ window.showAccountTab = function showAccountTab(tab) {
     try {
         var p = (typeof spiritParsePublicHash === 'function') ? spiritParsePublicHash() : null;
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params' || tab === 'portefeuille' || tab === 'messages' || tab === 'liste-envie' || tab === 'favoris-recus')) {
+        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params' || tab === 'portefeuille' || tab === 'messages' || tab === 'liste-envie' || tab === 'favoris-recus' || tab === 'evaluations')) {
             tab = 'dashboard';
         }
     } catch (e) {}
@@ -9741,6 +9794,8 @@ window.showAccountTab = function showAccountTab(tab) {
         try { if (typeof spiritLoadWallet === 'function') spiritLoadWallet(); } catch (eW) {}
     } else if (tab === 'messages') {
         try { if (typeof spiritLoadMessagesTab === 'function') spiritLoadMessagesTab(); } catch (eM) {}
+    } else if (tab === 'evaluations') {
+        try { if (typeof spiritLoadMyEvaluations === 'function') void spiritLoadMyEvaluations(); } catch (eEv) {}
     }
 
     if (tab === 'dashboard') {
@@ -10052,6 +10107,10 @@ var spiritSanSocialSupabaseEnabled = true;
 var spiritSanNotifsTableMissing = false;
 var SPIRIT_LISTING_MSG_TABLE = 'spirit_listing_messages';
 var spiritListingMsgTableMissing = false;
+var SPIRIT_EVAL_TABLE = 'spirit_listing_evaluations';
+var spiritEvalTableMissing = false;
+var spiritOpenLitigeByOwner = Object.create(null);
+var spiritEvalCurrentModalCategory = 'achat';
 var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 20 * 60 * 1000;
 /** Dernières photos Sanctuaire par user_id (session) — complète le cache localStorage. */
 var spiritSanctuaryItemsSessionRows = Object.create(null);
@@ -10089,6 +10148,15 @@ function spiritListingMsgMarkMissingIf404(err) {
     var msg = String((err.message || err.details || err.hint || '') || '').toLowerCase();
     if (st === 404 || c === 'pgrst301' || c === '42p01' || msg.indexOf('schema cache') >= 0 || msg.indexOf('could not find the table') >= 0) {
         spiritListingMsgTableMissing = true;
+    }
+}
+function spiritEvalMarkMissingIf404(err) {
+    if (!err) return;
+    var st = Number(err.status || err.statusCode || (err.response && err.response.status) || 0);
+    var c = String(err.code || '').toLowerCase();
+    var msg = String((err.message || err.details || err.hint || '') || '').toLowerCase();
+    if (st === 404 || c === 'pgrst301' || c === '42p01' || msg.indexOf('schema cache') >= 0 || msg.indexOf('could not find the table') >= 0) {
+        spiritEvalTableMissing = true;
     }
 }
 var spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
@@ -11395,13 +11463,170 @@ async function spiritPublicFetchUserProfile(uid) {
         return row;
     } catch (e) { return null; }
 }
-function spiritPublicApplyBadgesFromRow(row) {
+function spiritEvalCategoryNorm(v) {
+    v = String(v || '').toLowerCase().trim();
+    if (v === 'achat' || v === 'buy') return 'achat';
+    if (v === 'vente' || v === 'sale') return 'vente';
+    if (v === 'livraison' || v === 'shipping') return 'livraison';
+    if (v === 'litige' || v === 'dispute') return 'litige';
+    return '';
+}
+async function spiritEvalFetchForUser(targetUid) {
+    targetUid = spiritNormUid(targetUid || '');
+    if (!targetUid || spiritEvalTableMissing || !_spirit) return [];
+    try {
+        var out = await _spirit.from(SPIRIT_EVAL_TABLE)
+            .select('id,target_user_id,author_user_id,author_pseudo,category,stars,comment,created_at,target_reply')
+            .eq('target_user_id', targetUid)
+            .order('created_at', { ascending: false })
+            .limit(500);
+        if (out.error) { spiritEvalMarkMissingIf404(out.error); return []; }
+        return Array.isArray(out.data) ? out.data : [];
+    } catch (e) { spiritEvalMarkMissingIf404(e); return []; }
+}
+function spiritEvalAggregate(rows) {
+    var seed = { achat: { sum: 0, n: 0 }, vente: { sum: 0, n: 0 }, livraison: { sum: 0, n: 0 }, litige: { sum: 0, n: 0 } };
+    (Array.isArray(rows) ? rows : []).forEach(function (r) {
+        var c = spiritEvalCategoryNorm(r && r.category);
+        if (!c || !seed[c]) return;
+        var s = Number(r && r.stars);
+        if (!Number.isFinite(s)) return;
+        if (s < 1) s = 1;
+        if (s > 5) s = 5;
+        seed[c].sum += s;
+        seed[c].n += 1;
+    });
+    return seed;
+}
+function spiritEvalSetBadgeCommentCount(cat, n) {
+    var id = cat === 'achat' ? 'spiritBadgeAchatBtn' : (cat === 'vente' ? 'spiritBadgeVenteBtn' : (cat === 'livraison' ? 'spiritBadgeLivrBtn' : 'spiritBadgeLitBtn'));
+    var el = document.getElementById(id);
+    if (el) el.textContent = String(Math.max(0, Number(n) || 0)) + ' avis';
+}
+function spiritPublicApplyBadgesFromAgg(agg) {
+    function z(id, v) { var el = document.getElementById(id); if (el) el.textContent = String(v); }
+    function avg(a) { return (a && a.n > 0) ? (Math.round((a.sum / a.n) * 10) / 10) : 0; }
+    z('spiritBadgeAchat', avg(agg.achat));
+    z('spiritBadgeVente', avg(agg.vente));
+    z('spiritBadgeLivr', avg(agg.livraison));
+    z('spiritBadgeLit', avg(agg.litige));
+    spiritEvalSetBadgeCommentCount('achat', agg.achat.n);
+    spiritEvalSetBadgeCommentCount('vente', agg.vente.n);
+    spiritEvalSetBadgeCommentCount('livraison', agg.livraison.n);
+    spiritEvalSetBadgeCommentCount('litige', agg.litige.n);
+}
+async function spiritPublicApplyBadgesFromRow(row) {
     function z(id, v) { var el = document.getElementById(id); if (el) el.textContent = String(v); }
     var zv = function (n) { return (n != null && Number.isFinite(Number(n))) ? Math.max(0, Math.round(Number(n))) : 0; };
     z('spiritBadgeAchat', row ? zv(row.badge_achat) : 0);
     z('spiritBadgeVente', row ? zv(row.badge_vente) : 0);
     z('spiritBadgeLivr', row ? zv(row.badge_livr) : 0);
     z('spiritBadgeLit', row ? zv(row.badge_lit) : 0);
+    var uid = spiritPublicViewUserId ? spiritNormUid(spiritPublicViewUserId) : '';
+    if (!uid) return;
+    var rows = await spiritEvalFetchForUser(uid);
+    var agg = spiritEvalAggregate(rows);
+    spiritPublicApplyBadgesFromAgg(agg);
+}
+async function spiritOpenBadgeComments(category) {
+    var cat = spiritEvalCategoryNorm(category);
+    if (!cat || !spiritPublicViewUserId) return;
+    if (cat === 'litige') {
+        await spiritOpenLitigePage();
+        return;
+    }
+    spiritEvalCurrentModalCategory = cat;
+    var root = document.getElementById('spiritBadgeCommentsModal');
+    var title = document.getElementById('spiritBadgeCommentsTitle');
+    var list = document.getElementById('spiritBadgeCommentsList');
+    if (!root || !title || !list) return;
+    title.textContent = 'Commentaires - ' + cat.toUpperCase();
+    list.innerHTML = '<div style="font-size:0.7rem;color:#888;">Chargement...</div>';
+    root.style.setProperty('display', 'block', 'important');
+    var rows = await spiritEvalFetchForUser(spiritPublicViewUserId);
+    var f = rows.filter(function (r) { return spiritEvalCategoryNorm(r.category) === cat; });
+    if (!f.length) {
+        list.innerHTML = '<div style="font-size:0.72rem;color:#777;">Aucun commentaire.</div>';
+        return;
+    }
+    list.innerHTML = f.map(function (r) {
+        var p = String((r && r.author_pseudo) || 'Membre').replace(/</g, '&lt;');
+        var c = String((r && r.comment) || '').replace(/</g, '&lt;');
+        var rr = String((r && r.target_reply) || '').replace(/</g, '&lt;');
+        var stars = Math.max(1, Math.min(5, Number(r && r.stars) || 0));
+        return '<div style="border:1px solid #222;background:#090909;padding:10px;">'
+            + '<div style="font-size:0.66rem;color:#aaa;">' + p + ' - ' + '★'.repeat(stars) + '</div>'
+            + '<div style="margin-top:6px;font-size:0.72rem;color:#ddd;">' + (c || '—') + '</div>'
+            + (rr ? '<div style="margin-top:8px;border-left:2px solid var(--neon-orange);padding-left:8px;font-size:0.66rem;color:#f6b16a;"><b>Réponse :</b> ' + rr + '</div>' : '')
+            + (spiritNormUid(spiritPublicViewUserId) === spiritNormUid(MY_TEST_ID) ? '<button type="button" class="btn-action" style="margin-top:8px;font-size:0.56rem;" onclick="spiritReplyToEvaluation(\'' + String(r.id || '') + '\')">RÉPONDRE</button>' : '')
+            + '</div>';
+    }).join('');
+}
+async function spiritFetchOpenLitigesForUser(uid) {
+    uid = spiritNormUid(uid || '');
+    if (!uid || !_spirit) return [];
+    try {
+        var out = await _spirit.from('transactions')
+            .select('id,created_at,status,title,amount,seller_id,buyer_id,seller_name,buyer_name')
+            .or('seller_id.eq.' + uid + ',buyer_id.eq.' + uid)
+            .order('created_at', { ascending: false })
+            .limit(200);
+        if (out.error) throw out.error;
+        var rows = Array.isArray(out.data) ? out.data : [];
+        return rows.filter(function (r) {
+            var s = String((r && r.status) || '').toLowerCase();
+            var isDispute = s.indexOf('litige') >= 0 || s.indexOf('dispute') >= 0;
+            var resolved = s.indexOf('resolu') >= 0 || s.indexOf('resolved') >= 0 || s.indexOf('close') >= 0 || s.indexOf('closed') >= 0;
+            return isDispute && !resolved;
+        });
+    } catch (e) {
+        return [];
+    }
+}
+async function spiritOpenLitigePage() {
+    if (!spiritPublicViewUserId) return;
+    var root = document.getElementById('spiritLitigeModal');
+    var title = document.getElementById('spiritLitigeTitle');
+    var list = document.getElementById('spiritLitigeList');
+    if (!root || !title || !list) return;
+    title.textContent = 'Litiges en cours';
+    list.innerHTML = '<div style="font-size:0.7rem;color:#888;">Chargement...</div>';
+    root.style.setProperty('display', 'block', 'important');
+    var uid = spiritNormUid(spiritPublicViewUserId || '');
+    var rows = await spiritFetchOpenLitigesForUser(uid);
+    if (!rows.length) {
+        list.innerHTML = '<div style="font-size:0.72rem;color:#6f6;">Aucun litige en cours.</div>';
+        return;
+    }
+    list.innerHTML = rows.map(function (r) {
+        var t = String((r && (r.title || 'Transaction')) || 'Transaction').replace(/</g, '&lt;');
+        var st = String((r && r.status) || '').replace(/</g, '&lt;');
+        var sid = spiritNormUid((r && r.seller_id) || '');
+        var bid = spiritNormUid((r && r.buyer_id) || '');
+        var sp = String((r && r.seller_name) || sid || 'Vendeur').replace(/</g, '&lt;');
+        var bp = String((r && r.buyer_name) || bid || 'Acheteur').replace(/</g, '&lt;');
+        var amt = Number(r && r.amount);
+        var amtTxt = Number.isFinite(amt) ? (amt.toFixed(2) + ' EUR') : '—';
+        var d = (r && r.created_at) ? new Date(r.created_at) : null;
+        var dt = (d && !isNaN(d.getTime())) ? d.toLocaleString() : '—';
+        return '<div style="border:1px solid #5b1a1a;background:#140909;padding:10px;">'
+            + '<div style="font-size:0.64rem;color:#f2a4a4;font-weight:800;">LITIGE EN COURS - TX #' + String(r && r.id || '—') + '</div>'
+            + '<div style="font-size:0.72rem;color:#ddd;margin-top:4px;">' + t + '</div>'
+            + '<div style="font-size:0.62rem;color:#aaa;margin-top:4px;">Vendeur: ' + sp + ' | Acheteur: ' + bp + '</div>'
+            + '<div style="font-size:0.62rem;color:#aaa;margin-top:2px;">Montant: ' + amtTxt + ' | Statut: ' + st + '</div>'
+            + '<div style="font-size:0.58rem;color:#777;margin-top:2px;">Ouvert le: ' + dt + '</div>'
+            + '</div>';
+    }).join('');
+}
+async function spiritReplyToEvaluation(evalId) {
+    var txt = window.prompt('Ta réponse publique :', '');
+    if (!txt) return;
+    if (!_spirit || spiritEvalTableMissing) return;
+    try {
+        var up = await _spirit.from(SPIRIT_EVAL_TABLE).update({ target_reply: String(txt).slice(0, 800) }).eq('id', evalId);
+        if (up.error) throw up.error;
+        await spiritOpenBadgeComments(spiritEvalCurrentModalCategory || 'achat');
+    } catch (e) { alert('Erreur réponse évaluation: ' + (e && e.message ? e.message : e)); }
 }
 async function spiritOpenPublicProfileUI(userId, opts) {
     opts = opts || {};
@@ -11465,7 +11690,8 @@ async function spiritOpenPublicProfileUI(userId, opts) {
             ph.style.display = 'flex';
         }
     }
-    spiritPublicApplyBadgesFromRow(row);
+    await spiritPublicApplyBadgesFromRow(row);
+    try { await spiritRefreshPublicLitigeBlink(); } catch (eLit) {}
     await spiritPublicLoadIaScore(spiritPublicViewUserId, row);
     try { await spiritPublicRefreshFollowButton(); } catch (eBtn) {}
     try { await spiritPublicRefreshSocialStats(spiritPublicViewUserId); } catch (eSoc) {}
@@ -13666,6 +13892,84 @@ function showLedgerModal() {
     try { refreshSpiritPanneauHardwareUI().catch(function (e) { console.warn(e); }); } catch (e) { console.warn(e); }
 }
 
+async function spiritHasOpenLitigeForUser(uid) {
+    uid = spiritNormUid(uid || '');
+    if (!uid || !_spirit) return false;
+    if (spiritOpenLitigeByOwner[uid] != null) return !!spiritOpenLitigeByOwner[uid];
+    try {
+        var out = await _spirit.from('transactions').select('id,status,seller_id,buyer_id').or('seller_id.eq.' + uid + ',buyer_id.eq.' + uid).order('created_at', { ascending: false }).limit(200);
+        if (out.error) throw out.error;
+        var rows = Array.isArray(out.data) ? out.data : [];
+        var has = rows.some(function (r) {
+            var s = String((r && r.status) || '').toLowerCase();
+            var isDispute = s.indexOf('litige') >= 0 || s.indexOf('dispute') >= 0;
+            var resolved = s.indexOf('resolu') >= 0 || s.indexOf('resolved') >= 0 || s.indexOf('close') >= 0 || s.indexOf('closed') >= 0;
+            return isDispute && !resolved;
+        });
+        spiritOpenLitigeByOwner[uid] = has;
+        return has;
+    } catch (e) {
+        spiritOpenLitigeByOwner[uid] = false;
+        return false;
+    }
+}
+async function spiritRefreshPublicLitigeBlink() {
+    var wrap = document.getElementById('spiritBadgeLitWrap');
+    if (!wrap || !spiritPublicViewUserId) return;
+    var has = await spiritHasOpenLitigeForUser(spiritPublicViewUserId);
+    wrap.classList.toggle('spirit-litige-blink', !!has);
+}
+async function spiritLoadMyEvaluations() {
+    var box = document.getElementById('evalMyList');
+    if (!box) return;
+    var me = spiritNormUid(MY_TEST_ID || '');
+    if (!me) { box.innerHTML = ''; return; }
+    var rows = await spiritEvalFetchForUser(me);
+    if (!rows.length) {
+        box.innerHTML = '<div style="font-size:0.68rem;color:#777;">Aucune évaluation reçue pour le moment.</div>';
+        return;
+    }
+    box.innerHTML = rows.slice(0, 80).map(function (r) {
+        var c = spiritEvalCategoryNorm(r.category) || '—';
+        var p = String(r.author_pseudo || 'Membre').replace(/</g, '&lt;');
+        var cm = String(r.comment || '').replace(/</g, '&lt;');
+        var stars = Math.max(1, Math.min(5, Number(r.stars) || 0));
+        return '<div style="border:1px solid #222;background:#0a0a0a;padding:10px;">'
+            + '<div style="font-size:0.62rem;color:#999;">' + p + ' - ' + c.toUpperCase() + ' - ' + '★'.repeat(stars) + '</div>'
+            + '<div style="font-size:0.7rem;color:#ddd;margin-top:5px;">' + (cm || '—') + '</div>'
+            + '</div>';
+    }).join('');
+}
+async function spiritSubmitEvaluation() {
+    var st = document.getElementById('evalStatus');
+    var me = spiritNormUid(MY_TEST_ID || '');
+    if (!me || !_spirit) { if (st) st.textContent = 'Connexion requise.'; return; }
+    if (spiritEvalTableMissing) { if (st) st.textContent = 'Table évaluations absente côté Supabase.'; return; }
+    var txId = String((document.getElementById('evalTxId') || {}).value || '').trim();
+    var category = spiritEvalCategoryNorm((document.getElementById('evalCategory') || {}).value || '');
+    var stars = Math.max(1, Math.min(5, Number((document.getElementById('evalStars') || {}).value || 0)));
+    var comment = String((document.getElementById('evalComment') || {}).value || '').trim();
+    if (!txId || !category || !comment) { if (st) st.textContent = 'Transaction, catégorie et commentaire obligatoires.'; return; }
+    try {
+        var tr = await _spirit.from('transactions').select('id,seller_id,buyer_id,status').eq('id', txId).maybeSingle();
+        if (tr.error || !tr.data) throw (tr.error || new Error('Transaction introuvable'));
+        var t = tr.data;
+        var seller = spiritNormUid(t.seller_id || '');
+        var buyer = spiritNormUid(t.buyer_id || '');
+        var targetUid = me === buyer ? seller : (me === seller ? buyer : '');
+        if (!targetUid) throw new Error('Tu ne participes pas à cette transaction.');
+        var pseudo = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : 'Membre';
+        var ins = await _spirit.from(SPIRIT_EVAL_TABLE).insert([{ transaction_id: String(t.id), category: category, stars: stars, comment: comment.slice(0, 1200), author_user_id: me, target_user_id: targetUid, author_pseudo: pseudo }]);
+        if (ins.error) { spiritEvalMarkMissingIf404(ins.error); throw ins.error; }
+        if (st) st.textContent = 'Évaluation publiée.';
+        try { (document.getElementById('evalComment') || {}).value = ''; } catch (eC) {}
+        await spiritLoadMyEvaluations();
+        if (spiritPublicViewUserId && spiritNormUid(spiritPublicViewUserId) === targetUid) await spiritPublicApplyBadgesFromRow(null);
+    } catch (e) {
+        if (st) st.textContent = 'Erreur: ' + (e && e.message ? e.message : e);
+    }
+}
+
 function closeModals() {
     try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
     document.querySelectorAll('.overlay').forEach(function (m) {
@@ -13687,6 +13991,21 @@ function closeModals() {
     <div id="labelContent" style="background:white; padding:10px; border-radius:4px; color:black;"></div>
     <div style="margin-top:20px; text-align:center;">
         <button onclick="window.print()" style="background:white; color:black; padding:12px; border:none; font-weight:bold; cursor:pointer; width:100%; border-radius:4px; text-transform:uppercase;">🖨️ Imprimer</button>
+    </div>
+</div>
+
+<div id="spiritBadgeCommentsModal" class="overlay" style="display:none;">
+    <div class="modal-content" style="max-width:760px;text-align:left;">
+        <button type="button" onclick="document.getElementById('spiritBadgeCommentsModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
+        <h3 id="spiritBadgeCommentsTitle" style="margin-top:0;color:var(--neon-orange);">Commentaires</h3>
+        <div id="spiritBadgeCommentsList" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;"></div>
+    </div>
+</div>
+<div id="spiritLitigeModal" class="overlay" style="display:none;">
+    <div class="modal-content" style="max-width:760px;text-align:left;">
+        <button type="button" onclick="document.getElementById('spiritLitigeModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
+        <h3 id="spiritLitigeTitle" style="margin-top:0;color:#ff6666;">Litiges</h3>
+        <div id="spiritLitigeList" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;"></div>
     </div>
 </div>
 
