@@ -10446,7 +10446,7 @@ async function spiritOpenEvaluationFromNotif(refId, fromUid) {
         // Requête directe par id seulement si l'identifiant ressemble à un id numérique (évite 400 si UUID/non compatible).
         if (/^\d+$/.test(refId)) {
             tr = await _spirit.from('transactions')
-                .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
+                .select('*')
                 .eq('id', Number(refId))
                 .maybeSingle();
         }
@@ -10457,7 +10457,7 @@ async function spiritOpenEvaluationFromNotif(refId, fromUid) {
                 if (fromUid) {
                     // 1) moi acheteur / autre vendeur
                     out = await _spirit.from('transactions')
-                        .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
+                        .select('*')
                         .eq('buyer_id', me)
                         .eq('seller_id', fromUid)
                         .order('created_at', { ascending: false })
@@ -10465,7 +10465,7 @@ async function spiritOpenEvaluationFromNotif(refId, fromUid) {
                     // 2) inverse
                     if ((out.error || !out.data || !out.data[0])) {
                         out = await _spirit.from('transactions')
-                            .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
+                            .select('*')
                             .eq('buyer_id', fromUid)
                             .eq('seller_id', me)
                             .order('created_at', { ascending: false })
@@ -10474,12 +10474,12 @@ async function spiritOpenEvaluationFromNotif(refId, fromUid) {
                 } else {
                     // Sans fromUid: on prend la plus récente me=buyer ou me=seller.
                     var outB = await _spirit.from('transactions')
-                        .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
+                        .select('*')
                         .eq('buyer_id', me)
                         .order('created_at', { ascending: false })
                         .limit(1);
                     var outS = await _spirit.from('transactions')
-                        .select('id,buyer_id,seller_id,buyer_name,seller_name,status,created_at')
+                        .select('*')
                         .eq('seller_id', me)
                         .order('created_at', { ascending: false })
                         .limit(1);
@@ -10513,7 +10513,7 @@ async function spiritOpenEvaluationFromNotif(refId, fromUid) {
             return;
         }
         var targetUid = isBuyer ? seller : buyer;
-        var targetPseudo = isBuyer ? (t.seller_name || 'Vendeur') : (t.buyer_name || 'Acheteur');
+        var targetPseudo = isBuyer ? (t.seller_name || t.seller_pseudo || 'Vendeur') : (t.buyer_name || t.buyer_pseudo || 'Acheteur');
         var defaultCategory = isBuyer ? 'achat' : 'vente';
         var authorPseudo = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : 'Membre';
         await spiritAutoEvalOpen({
