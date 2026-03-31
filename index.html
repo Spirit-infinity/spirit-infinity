@@ -7137,7 +7137,7 @@ async function publierAnnonce() {
     var photoUrls = (typeof previewPhotos !== 'undefined' && Array.isArray(previewPhotos))
         ? previewPhotos.filter(function (p) { return p != null && String(p).trim() !== ''; })
         : [];
-    var ownerIdPub = String(MY_TEST_ID || '').trim();
+    var ownerIdPub = String((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '').trim();
     var listingFolderKey = uuidVal;
     if (typeof editingId !== 'undefined' && editingId != null && String(editingId).trim() !== '') {
         listingFolderKey = String(editingId);
@@ -7176,7 +7176,7 @@ async function publierAnnonce() {
         price: price,
         description: desc,
         ia_score: scoreIA || 0,
-        owner_id: String(MY_TEST_ID),
+        owner_id: ownerIdPub,
         image_url: imageUrlPayload,
         category: category || 'Collection',
         cat: normalizedCat,
@@ -13898,31 +13898,7 @@ async function fetchMarketplaceFromSupabase(opts) {
     }
 
     var chunk = Array.isArray(data) ? data : [];
-    try {
-        var ownerList = chunk.map(function (r) { return spiritNormUid((r && r.owner_id) || ''); }).filter(function (v, i, a) { return v && a.indexOf(v) === i; });
-        if (ownerList.length) {
-            var tx = await _spirit.from('transactions')
-                .select('seller_id,figurine_name,listing_title,status')
-                .in('seller_id', ownerList)
-                .order('created_at', { ascending: false })
-                .limit(500);
-            if (!tx.error && Array.isArray(tx.data)) {
-                var soldKeys = Object.create(null);
-                tx.data.forEach(function (t) {
-                    var st = String((t && t.status) || '').toLowerCase();
-                    if (st.indexOf('séquestre actif') < 0 && st.indexOf('sequestre actif') < 0 && st.indexOf('livraison valid') < 0 && st.indexOf('termine') < 0) return;
-                    var s = spiritNormUid((t && t.seller_id) || '');
-                    var nm = String((t && (t.figurine_name || t.listing_title)) || '').trim().toLowerCase();
-                    if (s && nm) soldKeys[s + '::' + nm] = 1;
-                });
-                chunk.forEach(function (r) {
-                    var s2 = spiritNormUid((r && r.owner_id) || '');
-                    var n2 = String((r && (r.title || r.name)) || '').trim().toLowerCase();
-                    if (s2 && n2 && soldKeys[s2 + '::' + n2]) r.status = 'sold';
-                });
-            }
-        }
-    } catch (eTxSold) {}
+    // IMPORTANT: ne pas marquer "sold" via vendeur+titre (risque de croisement entre annonces similaires).
     try {
         chunk.forEach(function (r) { if (spiritLocalSoldMatches(r)) r.status = 'sold'; });
     } catch (eSoldHint) {}
@@ -13952,6 +13928,22 @@ async function fetchMarketplaceFromSupabase(opts) {
     try { if (typeof applyFilters === 'function') applyFilters(); }
     catch (e) { try { renderMarket(); } catch (e2) { console.error('[SPIRIT MARKET] renderMarket:', e2); } }
 }
+
+var spiritMarketAutoSyncTimer = null;
+function spiritMarketAutoSyncStart() {
+    try { if (spiritMarketAutoSyncTimer) clearInterval(spiritMarketAutoSyncTimer); } catch (e) {}
+    spiritMarketAutoSyncTimer = setInterval(function () {
+        try {
+            var sec = document.getElementById('marketplaceSection');
+            var visible = !!(sec && sec.style && String(sec.style.display || '').toLowerCase() !== 'none');
+            if (!visible) return;
+            if (typeof fetchMarketplaceFromSupabase === 'function') {
+                fetchMarketplaceFromSupabase({ reset: true, forceNetwork: true, silentLoader: true, staleRefresh: true });
+            }
+        } catch (e2) {}
+    }, 9000);
+}
+try { window.spiritMarketAutoSyncStart = spiritMarketAutoSyncStart; } catch (eWAuto) {}
 
 async function loadAnnonces(opts) {
     return fetchMarketplaceFromSupabase(Object.assign({ reset: true }, opts || {}));
@@ -14010,6 +14002,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (_msi) _msi.value = '';
         } catch (eClrMs) {}
         try { await loadAnnonces(); } catch (e) {}
+        try { if (typeof spiritMarketAutoSyncStart === 'function') spiritMarketAutoSyncStart(); } catch (eAuto) {}
         try { spiritMarketInitScrollObserver(); } catch (e) {}
         try { spiritInitFavoriteClickDelegation(); } catch (e) {}
         try { window.addEventListener('hashchange', function () { spiritApplyPublicHashRoute(); }); } catch (e) {}
