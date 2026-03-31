@@ -6709,6 +6709,7 @@ async function loadMySales() {
                     <small style="display:block; margin-top:10px; color:#444;">ID de session : ${currentID}</small>
                 </div>`;
         }
+        try { if (typeof spiritMaybePromptSellerEvaluations === 'function') void spiritMaybePromptSellerEvaluations(rows); } catch (eEvS) {}
     } catch (err) { 
         console.error("[SPIRIT ERROR] Échec loadMySales:", err); 
         listBody.innerHTML = "<div style='color:var(--danger); text-align:center; padding:20px; border:1px solid var(--danger);'>ERREUR DE SYNCHRONISATION LEDGER</div>";
@@ -10111,6 +10112,7 @@ var SPIRIT_EVAL_TABLE = 'spirit_listing_evaluations';
 var spiritEvalTableMissing = false;
 var spiritOpenLitigeByOwner = Object.create(null);
 var spiritEvalCurrentModalCategory = 'achat';
+var spiritAutoEvalCtx = null;
 var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 20 * 60 * 1000;
 /** Dernières photos Sanctuaire par user_id (session) — complète le cache localStorage. */
 var spiritSanctuaryItemsSessionRows = Object.create(null);
@@ -13336,6 +13338,7 @@ async function confirmReception(transactionId) {
 
         alert("✅ TRANSACTION TERMINÉE : Merci de votre confiance.");
         loadMyPurchases();
+        try { if (typeof spiritMaybePromptAutoEvaluationByTx === 'function') void spiritMaybePromptAutoEvaluationByTx(transactionId, 'buyer'); } catch (eEvalB) {}
     } catch (err) {
         console.error("Erreur Ledger:", err.message);
         alert("Erreur de validation : " + err.message);
@@ -13969,6 +13972,149 @@ async function spiritSubmitEvaluation() {
         if (st) st.textContent = 'Erreur: ' + (e && e.message ? e.message : e);
     }
 }
+function spiritAutoEvalPromptKey(role, txId) {
+    return 'spirit_auto_eval_done_v1:' + String(role || '') + ':' + String(txId || '');
+}
+function spiritAutoEvalMarkDone(role, txId) {
+    try { localStorage.setItem(spiritAutoEvalPromptKey(role, txId), '1'); } catch (e) {}
+}
+function spiritAutoEvalIsDone(role, txId) {
+    try { return localStorage.getItem(spiritAutoEvalPromptKey(role, txId)) === '1'; } catch (e) { return false; }
+}
+async function spiritEvalExistsByAuthor(txId, authorUid) {
+    if (!_spirit || spiritEvalTableMissing) return false;
+    try {
+        var out = await _spirit.from(SPIRIT_EVAL_TABLE)
+            .select('id')
+            .eq('transaction_id', String(txId))
+            .eq('author_user_id', spiritNormUid(authorUid || ''))
+            .limit(1);
+        if (out.error) { spiritEvalMarkMissingIf404(out.error); return false; }
+        return !!(out.data && out.data.length);
+    } catch (e) { spiritEvalMarkMissingIf404(e); return false; }
+}
+function spiritAutoEvalResetUi() {
+    var st = document.getElementById('spiritAutoEvalStatus');
+    if (st) st.textContent = '';
+    var c = document.getElementById('spiritAutoEvalComment');
+    if (c) c.value = '';
+    var s = document.getElementById('spiritAutoEvalStars');
+    if (s) s.value = '5';
+}
+async function spiritAutoEvalOpen(ctx) {
+    ctx = ctx || {};
+    var root = document.getElementById('spiritAutoEvalModal');
+    if (!root) return;
+    spiritAutoEvalCtx = ctx;
+    spiritAutoEvalResetUi();
+    var pseudo = document.getElementById('spiritAutoEvalPseudo');
+    var cat = document.getElementById('spiritAutoEvalCategory');
+    var tx = document.getElementById('spiritAutoEvalTx');
+    if (pseudo) pseudo.value = String(ctx.targetPseudo || 'Membre');
+    if (cat) cat.value = String(ctx.category || 'achat');
+    if (tx) tx.value = String(ctx.txId || '');
+    root.style.setProperty('display', 'block', 'important');
+}
+async function spiritAutoEvalInsert(stars, comment, categoryOverride) {
+    var ctx = spiritAutoEvalCtx;
+    if (!ctx || !_spirit || spiritEvalTableMissing) return false;
+    try {
+        var category = spiritEvalCategoryNorm(categoryOverride || ctx.category || 'achat') || 'achat';
+        var payload = {
+            transaction_id: String(ctx.txId || ''),
+            category: category,
+            stars: Math.max(1, Math.min(5, Number(stars) || 5)),
+            comment: String(comment || '').slice(0, 1200),
+            author_user_id: spiritNormUid(ctx.authorUid || ''),
+            target_user_id: spiritNormUid(ctx.targetUid || ''),
+            author_pseudo: String(ctx.authorPseudo || 'Membre')
+        };
+        var ins = await _spirit.from(SPIRIT_EVAL_TABLE).insert([payload]);
+        if (ins.error) { spiritEvalMarkMissingIf404(ins.error); throw ins.error; }
+        spiritAutoEvalMarkDone(ctx.role || '', ctx.txId || '');
+        return true;
+    } catch (e) {
+        var st = document.getElementById('spiritAutoEvalStatus');
+        if (st) st.textContent = 'Erreur: ' + (e && e.message ? e.message : e);
+        return false;
+    }
+}
+async function spiritAutoEvalSubmit() {
+    var s = document.getElementById('spiritAutoEvalStars');
+    var c = document.getElementById('spiritAutoEvalComment');
+    var cat = document.getElementById('spiritAutoEvalCategory');
+    var ok = await spiritAutoEvalInsert(Number(s && s.value), String(c && c.value || ''), cat && cat.value);
+    if (!ok) return;
+    var root = document.getElementById('spiritAutoEvalModal');
+    if (root) root.style.setProperty('display', 'none', 'important');
+    var st = document.getElementById('spiritAutoEvalStatus');
+    if (st) st.textContent = '';
+    spiritAutoEvalCtx = null;
+}
+async function spiritAutoEvalClose(applyFallback) {
+    var root = document.getElementById('spiritAutoEvalModal');
+    if (!root) return;
+    if (applyFallback && spiritAutoEvalCtx) {
+        var cm = 'Note automatique 5 étoiles (fenêtre fermée sans évaluation manuelle).';
+        await spiritAutoEvalInsert(5, cm, spiritAutoEvalCtx.category);
+    }
+    root.style.setProperty('display', 'none', 'important');
+    spiritAutoEvalCtx = null;
+}
+function spiritAutoEvalOnOverlayClick(ev) {
+    if (!ev || ev.target !== ev.currentTarget) return;
+    void spiritAutoEvalClose(true);
+}
+async function spiritMaybePromptAutoEvaluationByTx(txId, roleHint) {
+    if (!txId || !_spirit) return;
+    var me = spiritNormUid(MY_TEST_ID || '');
+    if (!me) return;
+    var tr = await _spirit.from('transactions').select('id,buyer_id,seller_id,buyer_name,seller_name,status').eq('id', txId).maybeSingle();
+    if (tr.error || !tr.data) return;
+    var t = tr.data;
+    var status = String(t.status || '').toLowerCase();
+    if (status.indexOf('livraison valid') < 0 && status.indexOf('termine') < 0) return;
+    var buyer = spiritNormUid(t.buyer_id || '');
+    var seller = spiritNormUid(t.seller_id || '');
+    var isBuyer = me && me === buyer;
+    var isSeller = me && me === seller;
+    if (!isBuyer && !isSeller) return;
+    var role = roleHint || (isBuyer ? 'buyer' : 'seller');
+    if (spiritAutoEvalIsDone(role, txId)) return;
+    if (await spiritEvalExistsByAuthor(txId, me)) {
+        spiritAutoEvalMarkDone(role, txId);
+        return;
+    }
+    var targetUid = isBuyer ? seller : buyer;
+    var targetPseudo = isBuyer ? (t.seller_name || 'Vendeur') : (t.buyer_name || 'Acheteur');
+    var defaultCategory = isBuyer ? 'achat' : 'vente';
+    var authorPseudo = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : 'Membre';
+    await spiritAutoEvalOpen({
+        txId: String(txId),
+        role: role,
+        authorUid: me,
+        targetUid: targetUid,
+        targetPseudo: String(targetPseudo || 'Membre'),
+        authorPseudo: authorPseudo,
+        category: defaultCategory
+    });
+}
+async function spiritMaybePromptSellerEvaluations(rows) {
+    var me = spiritNormUid(MY_TEST_ID || '');
+    if (!me || !Array.isArray(rows) || !rows.length) return;
+    for (var i = 0; i < rows.length; i++) {
+        var tr = rows[i] || {};
+        var st = String(tr.status || '').toLowerCase();
+        if (st.indexOf('livraison valid') < 0 && st.indexOf('termine') < 0) continue;
+        var txId = String(tr.id || '');
+        if (!txId) continue;
+        if (spiritAutoEvalIsDone('seller', txId)) continue;
+        var exists = await spiritEvalExistsByAuthor(txId, me);
+        if (exists) { spiritAutoEvalMarkDone('seller', txId); continue; }
+        await spiritMaybePromptAutoEvaluationByTx(txId, 'seller');
+        break;
+    }
+}
 
 function closeModals() {
     try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
@@ -14006,6 +14152,45 @@ function closeModals() {
         <button type="button" onclick="document.getElementById('spiritLitigeModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
         <h3 id="spiritLitigeTitle" style="margin-top:0;color:#ff6666;">Litiges</h3>
         <div id="spiritLitigeList" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;"></div>
+    </div>
+</div>
+<div id="spiritAutoEvalModal" class="overlay" style="display:none;" onclick="spiritAutoEvalOnOverlayClick(event)">
+    <div class="modal-content" style="max-width:620px;text-align:left;">
+        <button type="button" onclick="spiritAutoEvalClose(true)" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
+        <h3 style="margin-top:0;color:var(--neon-orange);">Évaluation transaction</h3>
+        <p style="font-size:0.66rem;color:#f3bf89;border-left:2px solid var(--neon-orange);padding-left:8px;">
+            Si tu fermes cette fenêtre sans envoyer ton avis, une note automatique de 5 étoiles sera enregistrée.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Pseudo à évaluer</label>
+                <input id="spiritAutoEvalPseudo" type="text" readonly />
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Catégorie</label>
+                <select id="spiritAutoEvalCategory">
+                    <option value="achat">Achat</option>
+                    <option value="vente">Vente</option>
+                    <option value="livraison">Livraison</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Note /5</label>
+                <select id="spiritAutoEvalStars">
+                    <option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Transaction</label>
+                <input id="spiritAutoEvalTx" type="text" readonly />
+            </div>
+        </div>
+        <textarea id="spiritAutoEvalComment" placeholder="Ton commentaire (optionnel)..."></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+            <button type="button" class="btn-action" style="font-size:0.6rem;" onclick="spiritAutoEvalSubmit()">ENVOYER L'ÉVALUATION</button>
+            <button type="button" class="btn-action" style="font-size:0.6rem;background:#222;border:1px solid #444;color:#bbb;" onclick="spiritAutoEvalClose(true)">FERMER</button>
+        </div>
+        <div id="spiritAutoEvalStatus" style="font-size:0.64rem;color:#888;margin-top:8px;"></div>
     </div>
 </div>
 
