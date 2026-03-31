@@ -13899,6 +13899,31 @@ async function fetchMarketplaceFromSupabase(opts) {
 
     var chunk = Array.isArray(data) ? data : [];
     try {
+        var ownerList = chunk.map(function (r) { return spiritNormUid((r && r.owner_id) || ''); }).filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+        if (ownerList.length) {
+            var tx = await _spirit.from('transactions')
+                .select('seller_id,figurine_name,listing_title,status')
+                .in('seller_id', ownerList)
+                .order('created_at', { ascending: false })
+                .limit(500);
+            if (!tx.error && Array.isArray(tx.data)) {
+                var soldKeys = Object.create(null);
+                tx.data.forEach(function (t) {
+                    var st = String((t && t.status) || '').toLowerCase();
+                    if (st.indexOf('séquestre actif') < 0 && st.indexOf('sequestre actif') < 0 && st.indexOf('livraison valid') < 0 && st.indexOf('termine') < 0) return;
+                    var s = spiritNormUid((t && t.seller_id) || '');
+                    var nm = String((t && (t.figurine_name || t.listing_title)) || '').trim().toLowerCase();
+                    if (s && nm) soldKeys[s + '::' + nm] = 1;
+                });
+                chunk.forEach(function (r) {
+                    var s2 = spiritNormUid((r && r.owner_id) || '');
+                    var n2 = String((r && (r.title || r.name)) || '').trim().toLowerCase();
+                    if (s2 && n2 && soldKeys[s2 + '::' + n2]) r.status = 'sold';
+                });
+            }
+        }
+    } catch (eTxSold) {}
+    try {
         chunk.forEach(function (r) { if (spiritLocalSoldMatches(r)) r.status = 'sold'; });
     } catch (eSoldHint) {}
     if (opts.staleRefresh && prevSigStale !== null) {
@@ -14182,6 +14207,26 @@ function spiritAutoEvalResetUi() {
     if (c) c.value = '';
     var s = document.getElementById('spiritAutoEvalStars');
     if (s) s.value = '5';
+    try { spiritAutoEvalSetStars(5); } catch (eS) {}
+    var ds = document.getElementById('spiritAutoEvalDeliverySafe');
+    if (ds) ds.value = 'oui';
+}
+function spiritAutoEvalSetStars(n) {
+    n = Math.max(1, Math.min(5, Number(n) || 5));
+    var hidden = document.getElementById('spiritAutoEvalStars');
+    if (hidden) hidden.value = String(n);
+    try {
+        document.querySelectorAll('#spiritAutoEvalStarsRow .spirit-auto-star').forEach(function (b) {
+            var s = Number(b.getAttribute('data-star') || 0);
+            var on = s <= n;
+            b.textContent = on ? '★' : '☆';
+            b.style.background = on ? '#2a1a08' : '#111';
+            b.style.borderColor = on ? 'var(--neon-orange)' : '#333';
+            b.style.color = on ? 'var(--neon-orange)' : '#777';
+            b.style.minWidth = '34px';
+            b.style.padding = '6px 8px';
+        });
+    } catch (e) {}
 }
 async function spiritAutoEvalOpen(ctx) {
     ctx = ctx || {};
@@ -14225,7 +14270,10 @@ async function spiritAutoEvalSubmit() {
     var s = document.getElementById('spiritAutoEvalStars');
     var c = document.getElementById('spiritAutoEvalComment');
     var cat = document.getElementById('spiritAutoEvalCategory');
-    var ok = await spiritAutoEvalInsert(Number(s && s.value), String(c && c.value || ''), cat && cat.value);
+    var ds = document.getElementById('spiritAutoEvalDeliverySafe');
+    var safeTxt = ds && ds.value === 'non' ? 'Livraison: non protégée. ' : 'Livraison: protégée. ';
+    var fullComment = safeTxt + String(c && c.value || '');
+    var ok = await spiritAutoEvalInsert(Number(s && s.value), fullComment, cat && cat.value);
     if (!ok) return;
     var root = document.getElementById('spiritAutoEvalModal');
     if (root) root.style.setProperty('display', 'none', 'important');
@@ -14358,14 +14406,26 @@ function closeModals() {
             </div>
             <div>
                 <label style="font-size:0.62rem;color:#888;">Note /5</label>
-                <select id="spiritAutoEvalStars">
-                    <option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option>
-                </select>
+                <div id="spiritAutoEvalStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetStars(1)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetStars(2)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetStars(3)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetStars(4)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetStars(5)">☆</button>
+                </div>
+                <input id="spiritAutoEvalStars" type="hidden" value="5" />
             </div>
             <div>
                 <label style="font-size:0.62rem;color:#888;">Transaction</label>
                 <input id="spiritAutoEvalTx" type="text" readonly />
             </div>
+        </div>
+        <div style="margin-top:8px;">
+            <label style="font-size:0.62rem;color:#888;">Livraison bien protégée ?</label>
+            <select id="spiritAutoEvalDeliverySafe">
+                <option value="oui">Oui</option>
+                <option value="non">Non</option>
+            </select>
         </div>
         <textarea id="spiritAutoEvalComment" placeholder="Ton commentaire (optionnel)..."></textarea>
         <div style="display:flex;gap:8px;margin-top:8px;">
