@@ -11663,7 +11663,7 @@ async function spiritPublicLoadAnnonces(uid, opts) {
             try { im.loading = (box && box.childElementCount < 6) ? 'eager' : 'lazy'; } catch (e2) {}
             try { im.fetchPriority = (box && box.childElementCount < 6) ? 'high' : 'low'; } catch (e3) {}
             // Hauteur fixe + object-fit pour cadrage stable (titre/prix restent au-dessous via flex-column)
-            im.style.cssText = 'width:100%;height:250px;object-fit:cover;object-position:center;display:block;flex:0 0 auto;';
+            im.style.cssText = 'width:100%;height:250px;object-fit:contain;object-position:center center;display:block;flex:0 0 auto;background:#050505;margin-left:auto;margin-right:auto;';
             div.appendChild(im);
         }
         var info = document.createElement('div');
