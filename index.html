@@ -14322,6 +14322,29 @@ async function spiritEvalResolveDisplayPseudo(uid, fallback) {
     } catch (e) {}
     return fb || 'Membre';
 }
+async function spiritEvalResolveTxId(authorUid, targetUid) {
+    if (!_spirit) return '';
+    var a = spiritNormUid(authorUid || '');
+    var b = spiritNormUid(targetUid || '');
+    if (!a || !b) return '';
+    try {
+        var q1 = await _spirit.from('transactions').select('*').eq('buyer_id', a).eq('seller_id', b).order('created_at', { ascending: false }).limit(1);
+        var q2 = await _spirit.from('transactions').select('*').eq('buyer_id', b).eq('seller_id', a).order('created_at', { ascending: false }).limit(1);
+        var r1 = (!q1.error && q1.data && q1.data[0]) ? q1.data[0] : null;
+        var r2 = (!q2.error && q2.data && q2.data[0]) ? q2.data[0] : null;
+        var pick = null;
+        if (r1 && r2) {
+            var t1 = new Date(r1.created_at || 0).getTime();
+            var t2 = new Date(r2.created_at || 0).getTime();
+            pick = t1 >= t2 ? r1 : r2;
+        } else pick = r1 || r2;
+        if (pick && pick.id != null) {
+            var id = String(pick.id).trim();
+            return /^\d+$/.test(id) ? id : '';
+        }
+    } catch (e) {}
+    return '';
+}
 async function spiritAutoEvalOpen(ctx) {
     ctx = ctx || {};
     var root = document.getElementById('spiritAutoEvalModal');
@@ -14341,7 +14364,11 @@ async function spiritAutoEvalInsert(stars, comment, categoryOverride) {
     if (!ctx || !_spirit || spiritEvalTableMissing) return false;
     try {
         var category = spiritEvalCategoryNorm(categoryOverride || ctx.category || 'achat') || 'achat';
-        var txIdNum = Number(String(ctx.txId || '').trim());
+        var txIdTxt = String(ctx.txId || '').trim();
+        if (!/^\d+$/.test(txIdTxt)) {
+            txIdTxt = await spiritEvalResolveTxId(ctx.authorUid, ctx.targetUid);
+        }
+        var txIdNum = Number(txIdTxt);
         if (!Number.isFinite(txIdNum)) {
             var st0 = document.getElementById('spiritAutoEvalStatus');
             if (st0) st0.textContent = 'Transaction invalide pour évaluation.';
