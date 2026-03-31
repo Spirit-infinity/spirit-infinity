@@ -10,46 +10,12 @@
     <title>Spirit Infinity | Écosystème Global</title>
     <link rel="icon" type="image/png" sizes="512x512" href="icon-512-v2.png">
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512-v2.png">
+    <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://eagmxrbtcajqlhivvpww.supabase.co" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-    (function () {
-        try {
-            var manifest = {
-                name: 'Spirit Infinity',
-                short_name: 'Spirit',
-                start_url: '.',
-                scope: '/spirit-infinity/',
-                display: 'standalone',
-                background_color: '#050505',
-                theme_color: '#050505',
-                icons: [
-                    {
-                        src: 'icon-192.png',
-                        sizes: '192x192',
-                        type: 'image/png',
-                        purpose: 'any maskable'
-                    },
-                    {
-                        src: 'icon-512-v2.png',
-                        sizes: '512x512',
-                        type: 'image/png',
-                        purpose: 'any'
-                    }
-                ]
-            };
-            var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-            var url = URL.createObjectURL(blob);
-            var link = document.createElement('link');
-            link.rel = 'manifest';
-            link.href = url;
-            document.head.appendChild(link);
-        } catch (e) {}
-    })();
-    </script>
     <script>
     (function () {
         function spiritNavTo(section) {
@@ -13630,6 +13596,14 @@ function closeModals() {
     try { if (typeof hideTopicEditor === 'function') hideTopicEditor(); } catch (e) {}
     console.log("[SPIRIT] Fermeture des modales.");
 }
+/* PWA: enregistre un Service Worker pour que Chrome propose "Installer l'application". */
+try {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('sw.js').catch(function () {});
+        });
+    }
+} catch (eSw) {}
 // (c) 2026 Spirit Infinity - Tous droits réservés
 /* Panneau : transferToSale() → certif modal uniquement ; succès annonce = publierAnnonce() après validation */
 
