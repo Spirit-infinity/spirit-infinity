@@ -3358,32 +3358,9 @@
 
 <div id="tab-evaluations" class="account-page">
     <h3>ÉVALUATIONS</h3>
-    <p style="font-size:0.68rem;color:#777;margin-top:0;">Laisse une note (1 à 5) et un commentaire. Les moyennes alimentent les badges publics Achat / Vente / Livraison / Litige.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end;">
-        <div>
-            <label style="font-size:0.62rem;color:#888;">Transaction ID</label>
-            <input id="evalTxId" type="text" placeholder="id transaction">
-        </div>
-        <div>
-            <label style="font-size:0.62rem;color:#888;">Catégorie</label>
-            <select id="evalCategory">
-                <option value="achat">Achat</option>
-                <option value="vente">Vente</option>
-                <option value="livraison">Livraison</option>
-                <option value="litige">Litige</option>
-            </select>
-        </div>
-        <div>
-            <label style="font-size:0.62rem;color:#888;">Note /5</label>
-            <select id="evalStars">
-                <option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option>
-            </select>
-        </div>
-    </div>
-    <textarea id="evalComment" placeholder="Ton commentaire..." style="margin-top:10px;"></textarea>
-    <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 12px;" onclick="spiritSubmitEvaluation()">ENVOYER L’ÉVALUATION</button>
-    <div id="evalStatus" style="font-size:0.64rem;color:#888;margin-top:8px;"></div>
-    <div id="evalMyList" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;"></div>
+    <p style="font-size:0.68rem;color:#777;margin-top:0;line-height:1.4;">Avis reçus sur ton profil public. Tu peux répondre à chaque commentaire ; la réponse est visible par tous.</p>
+    <p style="font-size:0.62rem;color:#666;margin-top:6px;">Pour laisser une note à quelqu’un, utilise le flux après une transaction (fenêtre d’évaluation ou notification).</p>
+    <div id="evalMyList" style="display:flex;flex-direction:column;gap:10px;margin-top:14px;"></div>
 </div>
 
 <div id="tab-liste-envie" class="account-page">
@@ -11778,10 +11755,11 @@ function spiritEvalSetBadgeCommentCount(cat, n) {
 function spiritPublicApplyBadgesFromAgg(agg) {
     function z(id, v) { var el = document.getElementById(id); if (el) el.textContent = String(v); }
     function avg(a) { return (a && a.n > 0) ? (Math.round((a.sum / a.n) * 10) / 10) : 0; }
+    /* Achat / Vente / Livraison : moyenne sur 5. Litige : nombre d’avis (pas de moyenne). */
     z('spiritBadgeAchat', avg(agg.achat));
     z('spiritBadgeVente', avg(agg.vente));
     z('spiritBadgeLivr', avg(agg.livraison));
-    z('spiritBadgeLit', avg(agg.litige));
+    z('spiritBadgeLit', (agg.litige && agg.litige.n > 0) ? agg.litige.n : 0);
     spiritEvalSetBadgeCommentCount('achat', agg.achat.n);
     spiritEvalSetBadgeCommentCount('vente', agg.vente.n);
     spiritEvalSetBadgeCommentCount('livraison', agg.livraison.n);
@@ -11830,7 +11808,6 @@ async function spiritOpenBadgeComments(category) {
             + '<div style="font-size:0.66rem;color:#aaa;">' + p + ' - ' + '★'.repeat(stars) + '</div>'
             + '<div style="margin-top:6px;font-size:0.72rem;color:#ddd;">' + (c || '—') + '</div>'
             + (rr ? '<div style="margin-top:8px;border-left:2px solid var(--neon-orange);padding-left:8px;font-size:0.66rem;color:#f6b16a;"><b>Réponse :</b> ' + rr + '</div>' : '')
-            + (spiritNormUid(spiritPublicViewUserId) === spiritNormUid(MY_TEST_ID) ? '<button type="button" class="btn-action" style="margin-top:8px;font-size:0.56rem;" onclick="spiritReplyToEvaluation(\'' + String(r.id || '') + '\')">RÉPONDRE</button>' : '')
             + '</div>';
     }).join('');
 }
@@ -11891,13 +11868,19 @@ async function spiritOpenLitigePage() {
     }).join('');
 }
 async function spiritReplyToEvaluation(evalId) {
+    evalId = String(evalId != null ? evalId : '').trim();
+    if (!evalId) return;
     var txt = window.prompt('Ta réponse publique :', '');
     if (!txt) return;
     if (!_spirit || spiritEvalTableMissing) return;
     try {
         var up = await _spirit.from(SPIRIT_EVAL_TABLE).update({ target_reply: String(txt).slice(0, 800) }).eq('id', evalId);
         if (up.error) throw up.error;
-        await spiritOpenBadgeComments(spiritEvalCurrentModalCategory || 'achat');
+        var modal = document.getElementById('spiritBadgeCommentsModal');
+        var open = false;
+        try { open = modal && window.getComputedStyle(modal).display !== 'none'; } catch (eM) {}
+        if (open) await spiritOpenBadgeComments(spiritEvalCurrentModalCategory || 'achat');
+        if (typeof spiritLoadMyEvaluations === 'function') await spiritLoadMyEvaluations();
     } catch (e) { alert('Erreur réponse évaluation: ' + (e && e.message ? e.message : e)); }
 }
 async function spiritOpenPublicProfileUI(userId, opts) {
@@ -14236,51 +14219,30 @@ async function spiritLoadMyEvaluations() {
     var box = document.getElementById('evalMyList');
     if (!box) return;
     var me = spiritNormUid(MY_TEST_ID || '');
-    if (!me) { box.innerHTML = ''; return; }
+    if (!me) { box.innerHTML = '<div style="font-size:0.68rem;color:#777;">Connecte-toi pour voir tes avis.</div>'; return; }
+    box.innerHTML = '<div style="font-size:0.68rem;color:#888;">Chargement…</div>';
     var rows = await spiritEvalFetchForUser(me);
     if (!rows.length) {
         box.innerHTML = '<div style="font-size:0.68rem;color:#777;">Aucune évaluation reçue pour le moment.</div>';
         return;
     }
-    box.innerHTML = rows.slice(0, 80).map(function (r) {
-        var c = spiritEvalCategoryNorm(r.category) || '—';
+    box.innerHTML = rows.slice(0, 120).map(function (r) {
+        var cat = spiritEvalCategoryNorm(r.category) || '—';
         var p = String(r.author_pseudo || 'Membre').replace(/</g, '&lt;');
         var cm = String(r.comment || '').replace(/</g, '&lt;');
+        var rr = String((r && r.target_reply) || '').replace(/</g, '&lt;');
         var stars = Math.max(1, Math.min(5, Number(r.stars) || 0));
-        return '<div style="border:1px solid #222;background:#0a0a0a;padding:10px;">'
-            + '<div style="font-size:0.62rem;color:#999;">' + p + ' - ' + c.toUpperCase() + ' - ' + '★'.repeat(stars) + '</div>'
-            + '<div style="font-size:0.7rem;color:#ddd;margin-top:5px;">' + (cm || '—') + '</div>'
+        var idJson = JSON.stringify(String(r.id || ''));
+        var dt = (r && r.created_at) ? new Date(r.created_at) : null;
+        var dtTxt = (dt && !isNaN(dt.getTime())) ? dt.toLocaleString() : '';
+        return '<div style="border:1px solid #2a2a2a;background:#0a0a0a;padding:12px;border-radius:4px;">'
+            + '<div style="font-size:0.6rem;color:#666;">' + (dtTxt ? dtTxt + ' · ' : '') + cat.toUpperCase() + '</div>'
+            + '<div style="font-size:0.64rem;color:#aaa;margin-top:4px;">' + p + ' · ' + '★'.repeat(stars) + '</div>'
+            + '<div style="font-size:0.72rem;color:#e8e8e8;margin-top:8px;line-height:1.45;">' + (cm || '—') + '</div>'
+            + (rr ? '<div style="margin-top:10px;border-left:2px solid var(--neon-orange);padding-left:10px;font-size:0.66rem;color:#f6b16a;"><b>Ta réponse :</b> ' + rr + '</div>' : '')
+            + '<button type="button" class="btn-action" style="margin-top:10px;font-size:0.56rem;padding:6px 12px;" onclick=\'void spiritReplyToEvaluation(' + idJson + ')\'>' + (rr ? 'MODIFIER LA RÉPONSE' : 'RÉPONDRE') + '</button>'
             + '</div>';
     }).join('');
-}
-async function spiritSubmitEvaluation() {
-    var st = document.getElementById('evalStatus');
-    var me = spiritNormUid(MY_TEST_ID || '');
-    if (!me || !_spirit) { if (st) st.textContent = 'Connexion requise.'; return; }
-    if (spiritEvalTableMissing) { if (st) st.textContent = 'Table évaluations absente côté Supabase.'; return; }
-    var txId = String((document.getElementById('evalTxId') || {}).value || '').trim();
-    var category = spiritEvalCategoryNorm((document.getElementById('evalCategory') || {}).value || '');
-    var stars = Math.max(1, Math.min(5, Number((document.getElementById('evalStars') || {}).value || 0)));
-    var comment = String((document.getElementById('evalComment') || {}).value || '').trim();
-    if (!txId || !category || !comment) { if (st) st.textContent = 'Transaction, catégorie et commentaire obligatoires.'; return; }
-    try {
-        var tr = await _spirit.from('transactions').select('id,seller_id,buyer_id,status').eq('id', txId).maybeSingle();
-        if (tr.error || !tr.data) throw (tr.error || new Error('Transaction introuvable'));
-        var t = tr.data;
-        var seller = spiritNormUid(t.seller_id || '');
-        var buyer = spiritNormUid(t.buyer_id || '');
-        var targetUid = me === buyer ? seller : (me === seller ? buyer : '');
-        if (!targetUid) throw new Error('Tu ne participes pas à cette transaction.');
-        var pseudo = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : 'Membre';
-        var ins = await _spirit.from(SPIRIT_EVAL_TABLE).insert([{ transaction_id: String(t.id), category: category, stars: stars, comment: comment.slice(0, 1200), author_user_id: me, target_user_id: targetUid, author_pseudo: pseudo }]);
-        if (ins.error) { spiritEvalMarkMissingIf404(ins.error); throw ins.error; }
-        if (st) st.textContent = 'Évaluation publiée.';
-        try { (document.getElementById('evalComment') || {}).value = ''; } catch (eC) {}
-        await spiritLoadMyEvaluations();
-        if (spiritPublicViewUserId && spiritNormUid(spiritPublicViewUserId) === targetUid) await spiritPublicApplyBadgesFromRow(null);
-    } catch (e) {
-        if (st) st.textContent = 'Erreur: ' + (e && e.message ? e.message : e);
-    }
 }
 function spiritAutoEvalPromptKey(role, txId) {
     return 'spirit_auto_eval_done_v1:' + String(role || '') + ':' + String(txId || '');
