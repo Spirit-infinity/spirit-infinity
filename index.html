@@ -11374,7 +11374,7 @@ var SPIRIT_WEB_PUSH_TABLE = 'spirit_web_push_subscriptions';
  * Coller la clé publique ici. Tant que vide, le bouton « notifications » explique qu’il faut la configurer côté projet.
  * L’envoi réel quand l’app est fermée exige en plus une Edge Function (ou job) qui appelle web-push avec la clé privée.
  */
-var SPIRIT_VAPID_PUBLIC_KEY = '';
+var SPIRIT_VAPID_PUBLIC_KEY = 'BCPaXro8tvIMN5cyf9hU87LNDEoVWMKqMVQ2RiWRj3exQOTesNGlpgg1DwT5z2P1uQOpRWIIZcRQidZXI9rlFsk';
 
 function spiritWebPushUrlBase64ToUint8Array(base64String) {
     var padding = '='.repeat((4 - (base64String.length % 4)) % 4);
