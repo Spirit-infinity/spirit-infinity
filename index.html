@@ -1440,6 +1440,11 @@
             padding-bottom: 32px;
             z-index: 100150 !important;
         }
+        /* Profil public plein écran z-index 100300 : ces modales doivent passer devant */
+        #spiritBadgeCommentsModal.overlay,
+        #spiritLitigeModal.overlay {
+            z-index: 100400 !important;
+        }
         .spirit-fav-price-drop-badge {
             display: inline-block;
             margin-left: 8px;
