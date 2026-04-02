@@ -2960,9 +2960,9 @@
     <div class="modal-content" style="max-width:400px;text-align:left;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <h2 style="text-align:center; color:var(--neon-orange);" data-key="modal_reg_title">CREER UN COMPTE</h2>
-        <input type="text" id="regUser" placeholder="Nom d'utilisateur">
-        <input type="email" id="regEmail" placeholder="Email">
-        <input type="password" id="regPass" placeholder="Mot de passe">
+        <input type="text" id="regUser" data-key="reg_ph_user" placeholder="Nom d'utilisateur">
+        <input type="email" id="regEmail" data-key="reg_ph_email" placeholder="Email">
+        <input type="password" id="regPass" data-key="reg_ph_pass" placeholder="Mot de passe">
         <label for="regCountry" style="display:block;margin-top:10px;font-size:0.78rem;color:#bbb;" data-key="lbl_reg_country">Pays / région</label>
         <select id="regCountry" style="width:100%;margin-top:4px;padding:8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.85rem;">
             <option value="" data-key="reg_country_placeholder">— Choisir un pays —</option>
@@ -2973,7 +2973,7 @@
         </select>
         <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:0.78rem; color:#bbb;">
             <input type="checkbox" id="regRemember" checked>
-            <span>Rester connectée</span>
+            <span data-key="reg_remember">Rester connectée</span>
         </label>
         <button class="btn-action" style="width:100%; margin-top:10px;" onclick="handleRegister()" data-key="btn_reg_confirm">S'INSCRIRE</button>
     </div>
@@ -2988,13 +2988,13 @@
                 <div class="chat-container">
                     <div id="msg-alert" class="msg-safety-alert" data-key="safety_msg_escrow">SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).</div>
                     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
-                        <span style="font-size:0.62rem;color:#888;">Discussion · affichage selon ton pays (profil)</span>
-                        <button type="button" id="btnClearListingChat" class="btn-action" style="font-size:0.55rem;display:none;padding:4px 10px;background:#2a1010;color:#e88;border:1px solid rgba(200,80,80,0.45);" onclick="spiritDeleteListingChatThread()">Effacer tout le fil</button>
+                        <span data-key="pm_discuss_hint" style="font-size:0.62rem;color:#888;">Discussion · affichage selon ton pays (profil)</span>
+                        <button type="button" id="btnClearListingChat" class="btn-action" style="font-size:0.55rem;display:none;padding:4px 10px;background:#2a1010;color:#e88;border:1px solid rgba(200,80,80,0.45);" onclick="spiritDeleteListingChatThread()" data-key="pm_clear_thread">Effacer tout le fil</button>
                     </div>
                     <div class="chat-messages" id="chatMsgs"></div>
                     <div class="chat-input-area">
-                        <input type="text" id="chatInput" placeholder="Votre message..." style="margin:0; border-radius:2px 0 0 2px;">
-                        <button class="btn-action" onclick="sendMessage()" style="padding:0 15px;">OK</button>
+                        <input type="text" id="chatInput" data-key="pm_chat_ph" placeholder="Votre message..." style="margin:0; border-radius:2px 0 0 2px;">
+                        <button class="btn-action" onclick="sendMessage()" style="padding:0 15px;" data-key="pm_chat_ok">OK</button>
                     </div>
                 </div>
             </div>
@@ -3003,12 +3003,12 @@
                 <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
                 <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
                 <div id="pDescBox" style="font-size:0.85rem; color:#aaa; margin-bottom:15px; background:#111; padding:10px; border-left:2px solid var(--neon-orange);"></div>
-                <div id="pNegotiatedNote" style="display:none;font-size:0.62rem;color:#6cf;margin:-4px 0 10px 0;line-height:1.35;padding:6px 8px;border:1px solid rgba(0,200,255,0.35);background:rgba(0,80,120,0.12);">Prix convenu — visible uniquement entre le vendeur et l’acheteur concerné. Sur le marché, le prix public reste affiché pour les autres.</div>
+                <div id="pNegotiatedNote" data-key="pm_negotiated_note" style="display:none;font-size:0.62rem;color:#6cf;margin:-4px 0 10px 0;line-height:1.35;padding:6px 8px;border:1px solid rgba(0,200,255,0.35);background:rgba(0,80,120,0.12);">Prix convenu — visible uniquement entre le vendeur et l’acheteur concerné. Sur le marché, le prix public reste affiché pour les autres.</div>
                 
                 <div style="background:rgba(255,102,0,0.05); padding:15px; border:1px solid #333; margin-bottom:15px;">
-                    <label style="font-size:0.7rem; color:var(--neon-orange); font-weight:bold; display:block; margin-bottom:5px;">LIVRAISON (Taille: <span id="pSizeLabel">---</span>)</label>
+                    <label style="font-size:0.7rem; color:var(--neon-orange); font-weight:bold; display:block; margin-bottom:5px;"><span data-key="pm_delivery_lbl">LIVRAISON (Taille:</span> <span id="pSizeLabel">---</span><span data-key="pm_delivery_end">)</span></label>
                     <select id="pCarrierSelect" onchange="updateTotalWithCarrier()" style="margin:0;">
-                        <option value="0">-- CHOISIR UN TRANSPORTEUR --</option>
+                        <option value="0" data-key="pm_carrier_pick">-- CHOISIR UN TRANSPORTEUR --</option>
                         <option value="mr">Mondial Relay</option>
                         <option value="cl">Colissimo</option>
                         <option value="dh">DHL Express</option>
@@ -3017,8 +3017,8 @@
 
                 <div class="summary-box">
                     <div class="summary-line"><span data-key="lbl_price">Prix</span> <span id="sumPrice">0 €</span></div>
-                    <div class="summary-line"><span>Livraison (<span id="sumCarrierName">Sélectionner</span>)</span> <span id="sumShip">0.00 €</span></div>
-                    <div class="summary-line"><span>Protection Acheteur Spirit (Garantie Fonds)</span> <span id="sumProt">0 €</span></div>
+                    <div class="summary-line"><span data-key="pm_sum_ship">Livraison (</span><span id="sumCarrierName">Sélectionner</span><span data-key="pm_sum_ship_end">)</span> <span id="sumShip">0.00 €</span></div>
+                    <div class="summary-line"><span data-key="pm_sum_prot">Protection Acheteur Spirit (Garantie Fonds)</span> <span id="sumProt">0 €</span></div>
                     <div id="dutyLine" class="summary-line" style="color:orange; display:none;"><span data-key="lbl_duty">Frais de Douane Est.</span> <span id="sumDuty">0 €</span></div>
                     <hr style="border-color:#333;">
                     <div class="summary-line" style="font-weight:bold; font-size:1.1rem; color:var(--neon-orange);"><span data-key="lbl_total_pay">TOTAL À PAYER</span> <span id="sumTotal">0 €</span></div>
@@ -3035,20 +3035,20 @@
 <div id="paymentModal" class="overlay" style="z-index:20000 !important; background:rgba(0,0,0,0.45); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);">
     <div class="modal-content" style="max-width:500px;text-align:left;">
         <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <h2 style="text-align:center; color:var(--neon-orange);">FINALISER LE PAIEMENT</h2>
+        <h2 data-key="pay_title" style="text-align:center; color:var(--neon-orange);">FINALISER LE PAIEMENT</h2>
         <div class="summary-box" style="margin-bottom:20px;">
-            <div class="summary-line"><span>Montant Total :</span> <span id="payTotalAmount" style="font-weight:bold; color:var(--spirit-green);">0 €</span></div>
+            <div class="summary-line"><span data-key="pay_total_lbl">Montant Total :</span> <span id="payTotalAmount" style="font-weight:bold; color:var(--spirit-green);">0 €</span></div>
         </div>
-        <p style="font-size:0.8rem; text-align:center;">Choisissez votre mode de paiement sécurisé Spirit Infinity :</p>
+        <p data-key="pay_pick" style="font-size:0.8rem; text-align:center;">Choisissez votre mode de paiement sécurisé Spirit Infinity :</p>
         <div style="display:grid; grid-template-columns: 1fr; gap:15px; margin-top:20px;">
-            <button class="btn-action" onclick="confirmPayment('CB')" style="background:#fff; color:#000; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <button class="btn-action" onclick="confirmPayment('CB')" data-key="pay_stripe" style="background:#fff; color:#000; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; gap:10px;">
                 💳 CARTE BANCAIRE (STRIPE)
             </button>
-            <button class="btn-action" onclick="confirmPayment('Paypal')" style="background:#ffc439; color:#000; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <button class="btn-action" onclick="confirmPayment('Paypal')" data-key="pay_paypal" style="background:#ffc439; color:#000; display:flex; align-items:center; justify-content:center; gap:10px;">
                 🅿️ PAYPAL SÉCURISÉ
             </button>
         </div>
-        <p style="font-size:0.6rem; color:#777; margin-top:15px; text-align:center;">
+        <p data-key="pay_footer" style="font-size:0.6rem; color:#777; margin-top:15px; text-align:center;">
             En cliquant sur un mode de paiement, vos fonds seront placés sous séquestre Spirit jusqu'à réception de la figurine.
         </p>
     </div>
@@ -3059,23 +3059,23 @@
         <button type="button" onclick="spiritCloseIndustrialPopup('spiritPurchaseSuccessModal')" style="position:absolute; top:16px; right:16px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2rem;">✕</button>
         <h2 data-key="purchase_success_title" style="margin:0; color:var(--neon-orange); font-size:1rem; letter-spacing:2px;">SPIRIT SECURE</h2>
         <p id="spiritPurchaseSuccessText" class="spirit-industrial-popup-text"></p>
-        <button type="button" class="btn-action" style="width:100%;" onclick="spiritCloseIndustrialPopup('spiritPurchaseSuccessModal')">OK</button>
+        <button type="button" class="btn-action" style="width:100%;" onclick="spiritCloseIndustrialPopup('spiritPurchaseSuccessModal')" data-key="btn_ok_short">OK</button>
     </div>
 </div>
 <div id="spiritSellerPrepModal" class="overlay" style="display:none !important; z-index:100200 !important;">
     <div class="modal-content spirit-industrial-popup" style="max-width:480px;">
         <button type="button" onclick="spiritCloseIndustrialPopup('spiritSellerPrepModal')" style="position:absolute; top:16px; right:16px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2rem;">✕</button>
-        <h2 style="margin:0; color:var(--spirit-green); font-size:0.95rem; letter-spacing:1.5px;">PRÉPARER L'EXPÉDITION</h2>
-        <p class="spirit-industrial-popup-text" style="color:#888; font-size:0.72rem; margin-bottom:8px;">Un acheteur a validé le paiement — merci de préparer l'envoi.</p>
+        <h2 data-key="prep_ship_h" style="margin:0; color:var(--spirit-green); font-size:0.95rem; letter-spacing:1.5px;">PRÉPARER L'EXPÉDITION</h2>
+        <p data-key="prep_ship_p" class="spirit-industrial-popup-text" style="color:#888; font-size:0.72rem; margin-bottom:8px;">Un acheteur a validé le paiement — merci de préparer l'envoi.</p>
         <div id="spiritSellerPrepText" class="spirit-industrial-popup-text" style="margin-top:0;"></div>
-        <button type="button" class="btn-action" style="width:100%; background:var(--spirit-green); color:#000;" onclick="spiritCloseIndustrialPopup('spiritSellerPrepModal')">COMPRIS</button>
+        <button type="button" class="btn-action" style="width:100%; background:var(--spirit-green); color:#000;" onclick="spiritCloseIndustrialPopup('spiritSellerPrepModal')" data-key="prep_ok">COMPRIS</button>
     </div>
 </div>
 
 <div id="certifModal" class="overlay">
     <div class="modal-content" style="max-width:540px;text-align:left;">
         <button type="button" onclick="closeModals()" style="position:absolute; top:-18px; left:8px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:#0b0b0b; border:1px solid #444; color:#bbb; cursor:pointer; font-size:1.05rem; line-height:1; border-radius:6px; z-index:12; box-shadow:0 4px 14px rgba(0,0,0,0.45);">✕</button>
-        <div class="steps"><span class="step active" id="s1">MÉTHODE</span><span class="step" id="s2">PHOTOS & INFOS</span><span class="step" id="s3">ANALYSE IA</span><span class="step" id="s4">PUBLICATION</span></div>
+        <div class="steps"><span class="step active" id="s1" data-key="cert_step_method">MÉTHODE</span><span class="step" id="s2" data-key="cert_step_photos">PHOTOS & INFOS</span><span class="step" id="s3" data-key="cert_step_ai">ANALYSE IA</span><span class="step" id="s4" data-key="cert_step_pub">PUBLICATION</span></div>
         <div id="stepMethod">
             <h2 id="sell-title" style="text-align:center;" data-key="btn_sell">VENDRE & CERTIFIER</h2>
             <div style="display:grid; grid-template-columns: 1fr; gap:10px; margin-top:20px;">
@@ -3253,10 +3253,10 @@
             
             <div class="dash-content">
                 <div id="tab-dashboard" class="account-page">
-                    <h2>🏠 TABLEAU DE BORD</h2>
-                    <p>C'est ici que s'affiche ton résumé.</p>
+                    <h2 data-key="dash_title">🏠 TABLEAU DE BORD</h2>
+                    <p data-key="dash_intro">C'est ici que s'affiche ton résumé.</p>
                     <div id="spiritSellerOfferAlert" style="display:none; margin-top:14px; padding:12px 14px; border:1px solid rgba(0,200,255,0.45); background:rgba(0,120,180,0.08);">
-                        <div style="font-size:0.75rem; color:#5cf; font-weight:900; letter-spacing:1px; margin-bottom:6px;">ALERTE OFFRES</div>
+                        <div data-key="dash_seller_offer_alert" style="font-size:0.75rem; color:#5cf; font-weight:900; letter-spacing:1px; margin-bottom:6px;">ALERTE OFFRES</div>
                         <div id="spiritSellerOfferAlertText" style="font-size:0.72rem; color:#bbb;"></div>
                     </div>
                     <div id="spiritListingQaAlert" style="display:none; margin-top:14px; padding:12px 14px; border:1px solid rgba(255,200,100,0.35); background:rgba(40,30,10,0.22);">
@@ -3265,39 +3265,39 @@
                         <button type="button" class="btn-action" style="font-size:0.58rem;margin-top:8px;" data-key="dashboard_listing_qa_mark_read" onclick="spiritAckListingQaBannerRead()">MARQUER COMME LU</button>
                     </div>
                     <div style="margin-top:16px;padding:14px;border:1px solid rgba(0,200,120,0.35);background:#0a1010;">
-                        <p style="margin:0 0 8px;font-size:0.7rem;color:#6d8;font-weight:800;letter-spacing:1px;">MES OFFRES ENVOYÉES (FAVORIS)</p>
-                        <p style="margin:0 0 10px;font-size:0.62rem;color:#666;">Récap : figurine, pseudo vendeur, prix d’origine, ton offre. Clique une ligne pour rouvrir l’annonce (prix à jour si le vendeur a accepté).</p>
+                        <p data-key="dash_buyer_offers_title" style="margin:0 0 8px;font-size:0.7rem;color:#6d8;font-weight:800;letter-spacing:1px;">MES OFFRES ENVOYÉES (FAVORIS)</p>
+                        <p data-key="dash_buyer_offers_hint" style="margin:0 0 10px;font-size:0.62rem;color:#666;">Récap : figurine, pseudo vendeur, prix d’origine, ton offre. Clique une ligne pour rouvrir l’annonce (prix à jour si le vendeur a accepté).</p>
                         <div id="spiritBuyerOffersList" style="display:flex;flex-direction:column;gap:8px;"></div>
                     </div>
                     <div style="margin-top:16px;padding:14px;border:1px solid rgba(255,102,0,0.35);background:#0c0c0c;">
-                        <p style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">OFFRES REÇUES SUR TES ANNONCES</p>
+                        <p data-key="dash_seller_offers_title" style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">OFFRES REÇUES SUR TES ANNONCES</p>
                         <div id="spiritSellerOffersList" style="display:flex;flex-direction:column;gap:10px;"></div>
                     </div>
                     <div style="margin-top:16px;padding:14px;border:1px solid rgba(255,102,0,0.35);background:#0c0c0c;">
-                        <p style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">PROFIL PUBLIC &amp; SANCTUAIRE</p>
-                        <p style="margin:0 0 10px;font-size:0.65rem;color:#777;">URL unique (partage) :</p>
+                        <p data-key="dash_public_block_title" style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">PROFIL PUBLIC &amp; SANCTUAIRE</p>
+                        <p data-key="dash_public_url_hint" style="margin:0 0 10px;font-size:0.65rem;color:#777;">URL unique (partage) :</p>
                         <code id="spirit-dashboard-public-url" style="display:block;font-size:0.6rem;color:#aaa;word-break:break-all;margin-bottom:10px;">—</code>
-                        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;margin-right:8px;" onclick="spiritCopyMyPublicUrl()">COPIER L’URL</button>
-                        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#222;color:var(--neon-orange);border:1px solid var(--neon-orange);" onclick="spiritOpenMyPublicProfile()">OUVRIR MON PROFIL PUBLIC</button>
+                        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;margin-right:8px;" onclick="spiritCopyMyPublicUrl()" data-key="dash_copy_url_btn">COPIER L’URL</button>
+                        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#222;color:var(--neon-orange);border:1px solid var(--neon-orange);" onclick="spiritOpenMyPublicProfile()" data-key="dash_open_profile_btn">OUVRIR MON PROFIL PUBLIC</button>
                     </div>
                     <div style="margin-top:16px;padding:14px;border:1px solid rgba(0,200,255,0.35);background:#090d11;">
-                        <p style="margin:0 0 8px;font-size:0.7rem;color:#5cf;font-weight:800;letter-spacing:1px;">MES AMIS / ABONNEMENTS</p>
-                        <p style="margin:0 0 10px;font-size:0.62rem;color:#777;">Pseudos cliquables pour ouvrir leur profil public.</p>
+                        <p data-key="dash_friends_title" style="margin:0 0 8px;font-size:0.7rem;color:#5cf;font-weight:800;letter-spacing:1px;">MES AMIS / ABONNEMENTS</p>
+                        <p data-key="dash_friends_hint" style="margin:0 0 10px;font-size:0.62rem;color:#777;">Pseudos cliquables pour ouvrir leur profil public.</p>
                         <div id="spiritFriendsPreview" style="display:flex;flex-direction:column;gap:8px;"></div>
-                        <button type="button" class="btn-action" style="margin-top:10px;font-size:0.6rem;padding:8px 12px;" onclick="spiritOpenFriendsModal()">VOIR LA LISTE COMPLÈTE</button>
+                        <button type="button" class="btn-action" style="margin-top:10px;font-size:0.6rem;padding:8px 12px;" onclick="spiritOpenFriendsModal()" data-key="dash_friends_full">VOIR LA LISTE COMPLÈTE</button>
                     </div>
                 </div>
 
 <div id="tab-messages" class="account-page">
-    <h2>📩 MESSAGES SANCTUAIRE</h2>
-    <p style="font-size:0.72rem;color:#888;">Alertes likes et commentaires sur tes photos du sanctuaire.</p>
+    <h2 data-key="tab_sanctuary_msgs_h">📩 MESSAGES SANCTUAIRE</h2>
+    <p data-key="tab_sanctuary_msgs_p" style="font-size:0.72rem;color:#888;">Alertes likes et commentaires sur tes photos du sanctuaire.</p>
     <div id="spiritMessagesList" style="display:flex;flex-direction:column;gap:10px;"></div>
 </div>
 
             <div id="tab-achats" class="account-page">
-    <h2>🛒 MES ACHATS</h2>
+    <h2 data-key="tab_purchases_h">🛒 MES ACHATS</h2>
     <div style="background:#0a0a0a; padding:10px; border:1px solid #222; margin-bottom:15px; font-size:0.75rem; color:#888;">
-        <p style="margin:0;">
+        <p data-key="tab_purchases_note" style="margin:0;">
             Les fonds sont bloqués en <b>Séquestre Spirit</b>. 
             Une fois le bouton "REÇU" cliqué, le vendeur est payé et la transaction est définitive.
         </p>
@@ -3308,11 +3308,11 @@
     <table class="table-spirit">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Produit</th>
-                <th>Montant</th>
-                <th>Statut</th>
-                <th style="text-align:center;">Actions Spirit Shield</th>
+                <th data-key="th_date">Date</th>
+                <th data-key="th_product">Produit</th>
+                <th data-key="th_amount">Montant</th>
+                <th data-key="th_status">Statut</th>
+                <th data-key="th_actions_spirit" style="text-align:center;">Actions Spirit Shield</th>
             </tr>
         </thead>
         <tbody id="list-achats">
@@ -3321,47 +3321,47 @@
 </div>
 
 <div id="tab-ventes" class="account-page">
-    <h2>💰 MES VENTES</h2>
-    <p>Ici, tu verras ce que tu as vendu.</p>
+    <h2 data-key="tab_sales_h">💰 MES VENTES</h2>
+    <p id="tab-ventes-static-intro" data-key="tab_sales_intro">Ici, tu verras ce que tu as vendu.</p>
     
     <div id="my-sales-list"></div>
 
     <div id="shipping-list"></div>
     <div id="labelPreview" style="display:none;">
         <div class="shipping-label" id="labelContent"></div>
-        <button class="btn-action" style="margin-top:10px; width:100%; background:#222; color:white;" onclick="document.getElementById('labelPreview').style.display='none'">FERMER L'APERCU</button>
+        <button class="btn-action" style="margin-top:10px; width:100%; background:#222; color:white;" onclick="document.getElementById('labelPreview').style.display='none'" data-key="btn_close_preview">FERMER L'APERCU</button>
     </div>
 </div>
 
 <div id="tab-portefeuille" class="account-page">
-    <h2>🏦 MON PORTEFEUILLE</h2>
-    <p style="font-size:0.72rem;color:#888;">Les montants de tes ventes sont cumulés ici.</p>
+    <h2 data-key="tab_wallet_h">🏦 MON PORTEFEUILLE</h2>
+    <p data-key="tab_wallet_p" style="font-size:0.72rem;color:#888;">Les montants de tes ventes sont cumulés ici.</p>
     <div style="background:#0b1115;border:1px solid #1e3344;padding:14px;border-radius:6px;">
-        <div style="font-size:0.72rem;color:#7ea5c0;letter-spacing:1px;">SOLDE DISPONIBLE</div>
+        <div data-key="wallet_balance_lbl" style="font-size:0.72rem;color:#7ea5c0;letter-spacing:1px;">SOLDE DISPONIBLE</div>
         <div id="spiritWalletTotal" style="font-size:1.6rem;font-weight:900;color:#8ce8ff;margin-top:6px;">0.00 EUR</div>
-        <button type="button" class="btn-action" style="margin-top:12px;font-size:0.68rem;padding:9px 14px;background:#0f1c25;border:1px solid #2a546f;color:#c9eeff;" onclick="spiritRequestBankTransfer()">VIREMENT BANCAIRE</button>
-        <div id="spiritWalletHint" style="font-size:0.62rem;color:#6f8594;margin-top:8px;">RIB utilisé : paramètres du compte.</div>
+        <button type="button" class="btn-action" style="margin-top:12px;font-size:0.68rem;padding:9px 14px;background:#0f1c25;border:1px solid #2a546f;color:#c9eeff;" onclick="spiritRequestBankTransfer()" data-key="wallet_transfer_btn">VIREMENT BANCAIRE</button>
+        <div id="spiritWalletHint" data-key="wallet_rib_note" style="font-size:0.62rem;color:#6f8594;margin-top:8px;">RIB utilisé : paramètres du compte.</div>
     </div>
     <div style="margin-top:14px;padding:12px;border:1px solid #222;background:#0b0b0b;">
-        <div style="font-size:0.72rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;margin-bottom:8px;">HISTORIQUE DES ENTRÉES (VENTES)</div>
+        <div data-key="wallet_history_h" style="font-size:0.72rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;margin-bottom:8px;">HISTORIQUE DES ENTRÉES (VENTES)</div>
         <div id="spiritWalletSalesList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
 </div>
 
 <div id="tab-annonces" class="account-page">
-    <h3>MES ANNONCES ACTIVES</h3>
+    <h3 data-key="tab_my_listings_h">MES ANNONCES ACTIVES</h3>
     
     <div id="user-annonces-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-        <p style="font-size:0.8rem; color:#777;">Aucune annonce active.</p>
+        <p data-key="tab_my_listings_empty" style="font-size:0.8rem; color:#777;">Aucune annonce active.</p>
     </div>
 </div>
 
 <div id="tab-evaluations" class="account-page">
-    <h3>ÉVALUATIONS</h3>
-    <p style="font-size:0.68rem;color:#777;margin-top:0;line-height:1.4;">Avis reçus sur ton profil public. Tu peux répondre à chaque commentaire ; la réponse est visible par tous.</p>
-    <p style="font-size:0.62rem;color:#666;margin-top:6px;">Pour laisser une note à quelqu’un, utilise le flux après une transaction (fenêtre d’évaluation ou notification).</p>
+    <h3 data-key="eval_page_h">ÉVALUATIONS</h3>
+    <p data-key="eval_page_p1" style="font-size:0.68rem;color:#777;margin-top:0;line-height:1.4;">Avis reçus sur ton profil public. Tu peux répondre à chaque commentaire ; la réponse est visible par tous.</p>
+    <p data-key="eval_page_p2" style="font-size:0.62rem;color:#666;margin-top:6px;">Pour laisser une note à quelqu’un, utilise le flux après une transaction (fenêtre d’évaluation ou notification).</p>
     <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px;">
-        <button type="button" class="btn-action" style="font-size:0.55rem;padding:6px 12px;background:#241010;border:1px solid #633;color:#e88;" onclick="void spiritDeleteAllMyReceivedEvaluations()">TOUT EFFACER LE FIL</button>
+        <button type="button" class="btn-action" style="font-size:0.55rem;padding:6px 12px;background:#241010;border:1px solid #633;color:#e88;" onclick="void spiritDeleteAllMyReceivedEvaluations()" data-key="eval_clear_all_btn">TOUT EFFACER LE FIL</button>
     </div>
     <div id="evalMyList" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;"></div>
 </div>
@@ -3380,12 +3380,12 @@
 </div>
 
 <div id="tab-sanctuary" class="account-page">
-    <h3 style="color:var(--neon-orange);letter-spacing:2px;font-size:0.85rem;">SANCTUAIRE</h3>
-    <p style="font-size:0.65rem;color:#666;margin-top:0;">Galerie noire &amp; néon — jusqu’à 15 pièces (bucket Storage <code>sanctuary</code>).</p>
+    <h3 data-key="san_acc_h" style="color:var(--neon-orange);letter-spacing:2px;font-size:0.85rem;">SANCTUAIRE</h3>
+    <p data-key="san_acc_p" style="font-size:0.65rem;color:#666;margin-top:0;">Galerie noire &amp; néon — jusqu’à 15 pièces (bucket Storage <code>sanctuary</code>).</p>
     <div id="spiritAccountSanctuaryRoot" style="background:#000000;border:1px solid rgba(255,102,0,0.4);padding:16px;margin-top:12px;">
         <h2 id="spiritAccountSanctuaryPseudoBanner">—</h2>
         <div class="spirit-sanctuary-toolbar">
-            <span style="font-size:0.65rem;color:#888;">Néon (nouvelle photo)</span>
+            <span data-key="ui_neon_new" style="font-size:0.65rem;color:#888;">Néon (nouvelle photo)</span>
             <select id="spiritAccountSanctuaryNeonSelect" aria-label="Couleur néon">
                 <option value="#ff6600">Orange Spirit</option>
                 <option value="#00ff88">Vert</option>
@@ -3395,35 +3395,35 @@
                 <option value="#ffcc00">Or</option>
             </select>
             <span style="flex:1"></span>
-            <label style="font-size:0.65rem;color:#888;">Vue</label>
-            <button type="button" class="spirit-san-view-acc active" data-sanview="list" onclick="spiritAccountSanctuarySetView('list')">Vue Liste</button>
-            <button type="button" class="spirit-san-view-acc" data-sanview="icons-lg" onclick="spiritAccountSanctuarySetView('icons-lg')">Vue Grille</button>
-            <button type="button" class="spirit-san-view-acc" data-sanview="style" onclick="spiritAccountSanctuarySetView('style')">Vue Style</button>
-            <button type="button" class="spirit-san-view-acc" data-sanview="style2" onclick="spiritAccountSanctuarySetView('style2')">Vue Style 2</button>
+            <label data-key="ui_view" style="font-size:0.65rem;color:#888;">Vue</label>
+            <button type="button" class="spirit-san-view-acc active" data-sanview="list" onclick="spiritAccountSanctuarySetView('list')" data-key="ui_v_list">Vue Liste</button>
+            <button type="button" class="spirit-san-view-acc" data-sanview="icons-lg" onclick="spiritAccountSanctuarySetView('icons-lg')" data-key="ui_v_grid">Vue Grille</button>
+            <button type="button" class="spirit-san-view-acc" data-sanview="style" onclick="spiritAccountSanctuarySetView('style')" data-key="ui_v_style">Vue Style</button>
+            <button type="button" class="spirit-san-view-acc" data-sanview="style2" onclick="spiritAccountSanctuarySetView('style2')" data-key="ui_v_style2">Vue Style 2</button>
         </div>
         <input type="file" id="spiritAccountSanctuaryFileInput" accept="image/*" style="display:none;" />
         <div id="spiritAccountSanctuaryGrid" class="spirit-san-mode-list"></div>
         <div class="spirit-sanctuary-chat" style="margin-top:20px;">
-            <h4 style="color:var(--neon-orange);font-size:0.7rem;">CHAT DU SANCTUAIRE</h4>
-            <p style="font-size:0.6rem;color:#555;margin:0 0 8px;">@, .com et numéros de téléphone sont bloqués — marketplace Spirit.</p>
+            <h4 data-key="san_chat_h" style="color:var(--neon-orange);font-size:0.7rem;">CHAT DU SANCTUAIRE</h4>
+            <p data-key="san_chat_rules" style="font-size:0.6rem;color:#555;margin:0 0 8px;">@, .com et numéros de téléphone sont bloqués — marketplace Spirit.</p>
             <div style="margin:0 0 8px;">
-                <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:4px;">Conversation</label>
+                <label data-key="ui_conversation" style="font-size:0.62rem;color:#888;display:block;margin-bottom:4px;">Conversation</label>
                 <select id="spiritAccountSanctuaryChatPeer" style="width:100%;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;"></select>
             </div>
             <div class="spirit-san-chat-msgs" id="spiritAccountSanctuaryChatMsgs"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;">
-                <input type="text" id="spiritAccountSanctuaryChatInput" placeholder="Message…" style="flex:1;min-width:160px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
-                <button type="button" class="btn-action" style="font-size:0.6rem;padding:10px 14px;" onclick="spiritAccountSanctuarySendChat()">ENVOYER</button>
+                <input type="text" id="spiritAccountSanctuaryChatInput" data-key="ui_msg_ph" placeholder="Message…" style="flex:1;min-width:160px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
+                <button type="button" class="btn-action" style="font-size:0.6rem;padding:10px 14px;" onclick="spiritAccountSanctuarySendChat()" data-key="ui_send">ENVOYER</button>
             </div>
         </div>
     </div>
 </div>
 
 <div id="tab-params" class="account-page">
-    <h3>PARAMÈTRES DU COMPTE</h3>
+    <h3 data-key="params_h">PARAMÈTRES DU COMPTE</h3>
     
     <div id="user-ratings" style="margin-bottom:20px; padding:10px; background:rgba(255,165,0,0.05); border:1px solid #333;">
-        <h4 style="color:var(--neon-orange); margin-top:0; font-size:0.8rem;">MA RÉPUTATION VENDEUR</h4>
+        <h4 data-key="params_rep_h" style="color:var(--neon-orange); margin-top:0; font-size:0.8rem;">MA RÉPUTATION VENDEUR</h4>
         <div id="rating-stars" style="color:gold;">⭐⭐⭐⭐⭐ (5/5)</div>
     </div>
 
@@ -3433,10 +3433,10 @@
         BIC : SPIRITFRXX
     </div>
     <div style="margin-top:12px; padding:10px; border:1px solid #333; background:#101010;">
-        <label for="paramsPseudoInput" style="display:block; font-size:0.68rem; color:#aaa; margin-bottom:6px;">MODIFIER PSEUDO</label>
+        <label for="paramsPseudoInput" data-key="params_pseudo_lbl" style="display:block; font-size:0.68rem; color:#aaa; margin-bottom:6px;">MODIFIER PSEUDO</label>
         <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-            <input id="paramsPseudoInput" type="text" maxlength="40" placeholder="Nouveau pseudo" style="flex:1; min-width:180px; padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.75rem;">
-            <button type="button" class="btn-action" style="font-size:0.62rem; padding:8px 12px;" onclick="spiritUpdatePseudo()">ENREGISTRER LE PSEUDO</button>
+            <input id="paramsPseudoInput" type="text" maxlength="40" data-key="params_pseudo_ph" placeholder="Nouveau pseudo" style="flex:1; min-width:180px; padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.75rem;">
+            <button type="button" class="btn-action" style="font-size:0.62rem; padding:8px 12px;" onclick="spiritUpdatePseudo()" data-key="params_pseudo_save">ENREGISTRER LE PSEUDO</button>
         </div>
     </div>
     <div style="margin-top:12px; padding:10px; border:1px solid #333; background:#101010;">
@@ -3454,22 +3454,22 @@
         </div>
     </div>
     <div style="margin-top:12px; padding:10px; border:1px solid #333; background:#101010;">
-        <label style="display:block; font-size:0.68rem; color:#aaa; margin-bottom:8px;">ADRESSE POSTALE (LIVRAISON)</label>
+        <label data-key="ship_addr_h" style="display:block; font-size:0.68rem; color:#aaa; margin-bottom:8px;">ADRESSE POSTALE (LIVRAISON)</label>
         <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px;">
-            <input id="shipLastName" type="text" maxlength="60" placeholder="Nom" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
-            <input id="shipFirstName" type="text" maxlength="60" placeholder="Prénom" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
-            <input id="shipStreet" type="text" maxlength="140" placeholder="Adresse" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem; grid-column:1 / -1;">
-            <input id="shipPostalCode" type="text" maxlength="20" placeholder="Code postal" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
-            <input id="shipCity" type="text" maxlength="80" placeholder="Ville" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
-            <input id="shipCountry" type="text" maxlength="80" placeholder="Pays" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
+            <input id="shipLastName" type="text" maxlength="60" data-key="ship_ph_last" placeholder="Nom" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
+            <input id="shipFirstName" type="text" maxlength="60" data-key="ship_ph_first" placeholder="Prénom" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
+            <input id="shipStreet" type="text" maxlength="140" data-key="ship_ph_street" placeholder="Adresse" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem; grid-column:1 / -1;">
+            <input id="shipPostalCode" type="text" maxlength="20" data-key="ship_ph_zip" placeholder="Code postal" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
+            <input id="shipCity" type="text" maxlength="80" data-key="ship_ph_city" placeholder="Ville" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
+            <input id="shipCountry" type="text" maxlength="80" data-key="ship_ph_country" placeholder="Pays" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; align-items:center;">
-            <button type="button" class="btn-action" style="font-size:0.62rem; padding:8px 12px;" onclick="spiritSaveShippingAddress()">ENREGISTRER ADRESSE</button>
-            <span id="shipAddrStatus" style="font-size:0.64rem; color:#888;">Renseignée une seule fois puis réutilisée à chaque achat.</span>
+            <button type="button" class="btn-action" style="font-size:0.62rem; padding:8px 12px;" onclick="spiritSaveShippingAddress()" data-key="ship_save_btn">ENREGISTRER ADRESSE</button>
+            <span id="shipAddrStatus" data-key="ship_save_hint" style="font-size:0.64rem; color:#888;">Renseignée une seule fois puis réutilisée à chaque achat.</span>
         </div>
     </div>
-    <button class="btn-action" style="margin-top:10px; font-size:0.7rem;" onclick="changeRIB()">METTRE / CHANGER UN RIB ACTIF</button>
-    <button class="btn-action" style="margin-top:10px; font-size:0.7rem; background:#222; color:#fff; border:1px solid #555;" onclick="spiritLogout()">DÉCONNEXION</button>
+    <button class="btn-action" style="margin-top:10px; font-size:0.7rem;" onclick="changeRIB()" data-key="btn_rib_change">METTRE / CHANGER UN RIB ACTIF</button>
+    <button class="btn-action" style="margin-top:10px; font-size:0.7rem; background:#222; color:#fff; border:1px solid #555;" onclick="spiritLogout()" data-key="btn_logout">DÉCONNEXION</button>
 </div>
 
             </div>
@@ -3479,16 +3479,16 @@
 
 <section id="spiritPublicProfileSection" aria-label="Profil public Spirit">
     <div class="spirit-public-topbar">
-        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 14px;background:#111;border:1px solid #444;color:#eee;" onclick="spiritExitPublicProfile()">← MARKETPLACE</button>
-        <span class="spirit-public-brand">Profil public — Spirit Infinity</span>
+        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 14px;background:#111;border:1px solid #444;color:#eee;" onclick="spiritExitPublicProfile()" data-key="pub_back">← MARKETPLACE</button>
+        <span class="spirit-public-brand" data-key="pub_brand">Profil public — Spirit Infinity</span>
         <div class="spirit-public-topbar-right">
             <div class="spirit-public-badges spirit-public-badges--topbar" id="spiritPublicBadges">
-                <div class="spirit-pub-badge">Achat<b id="spiritBadgeAchat">0</b><button type="button" id="spiritBadgeAchatBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('achat')">0 avis</button></div>
-                <div class="spirit-pub-badge">Vente<b id="spiritBadgeVente">0</b><button type="button" id="spiritBadgeVenteBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('vente')">0 avis</button></div>
-                <div class="spirit-pub-badge">Livraison<b id="spiritBadgeLivr">0</b><button type="button" id="spiritBadgeLivrBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('livraison')">0 avis</button></div>
-                <div class="spirit-pub-badge" id="spiritBadgeLitWrap">Litige<b id="spiritBadgeLit">0</b><button type="button" id="spiritBadgeLitBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('litige')">0 avis</button></div>
+                <div class="spirit-pub-badge"><span data-key="pub_lbl_achat">Achat</span><b id="spiritBadgeAchat">0</b><button type="button" id="spiritBadgeAchatBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('achat')">0 avis</button></div>
+                <div class="spirit-pub-badge"><span data-key="pub_lbl_vente">Vente</span><b id="spiritBadgeVente">0</b><button type="button" id="spiritBadgeVenteBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('vente')">0 avis</button></div>
+                <div class="spirit-pub-badge"><span data-key="pub_lbl_livr">Livraison</span><b id="spiritBadgeLivr">0</b><button type="button" id="spiritBadgeLivrBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('livraison')">0 avis</button></div>
+                <div class="spirit-pub-badge" id="spiritBadgeLitWrap"><span data-key="pub_lbl_lit">Litige</span><b id="spiritBadgeLit">0</b><button type="button" id="spiritBadgeLitBtn" class="spirit-badge-cmt-btn" onclick="spiritOpenBadgeComments('litige')">0 avis</button></div>
             </div>
-            <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 14px;" onclick="spiritCopyPublicProfileUrl()">COPIER L’URL</button>
+            <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 14px;" onclick="spiritCopyPublicProfileUrl()" data-key="pub_copy_url">COPIER L’URL</button>
         </div>
     </div>
     <div id="spiritPublicView">
@@ -3504,32 +3504,32 @@
                 </div>
                 <input type="file" id="spiritPublicAvatarFile" accept="image/*" style="display:none;" />
             </div>
-            <button type="button" id="spiritPublicAvatarBtn" class="btn-action" style="display:none;font-size:0.58rem;padding:6px 10px;" onclick="document.getElementById('spiritPublicAvatarFile').click()">CHANGER LA PHOTO</button>
-            <button type="button" id="spiritPublicSanctuaryAddBtn" class="btn-action" style="display:none;font-size:0.58rem;padding:6px 10px;background:#131313;border:1px solid #444;color:#ddd;" onclick="document.getElementById('spiritSanctuaryFileInput').click()">+ PHOTO SANCTUAIRE</button>
-            <button type="button" id="spiritPublicFollowBtn" class="btn-action" style="display:none;font-size:0.6rem;padding:6px 12px;background:#111;border:1px solid #00ccff;color:#7fe7ff;" onclick="spiritToggleFollowCurrentPublic()">SUIVRE</button>
+            <button type="button" id="spiritPublicAvatarBtn" class="btn-action" style="display:none;font-size:0.58rem;padding:6px 10px;" onclick="document.getElementById('spiritPublicAvatarFile').click()" data-key="pub_chg_photo">CHANGER LA PHOTO</button>
+            <button type="button" id="spiritPublicSanctuaryAddBtn" class="btn-action" style="display:none;font-size:0.58rem;padding:6px 10px;background:#131313;border:1px solid #444;color:#ddd;" onclick="document.getElementById('spiritSanctuaryFileInput').click()" data-key="pub_add_san">+ PHOTO SANCTUAIRE</button>
+            <button type="button" id="spiritPublicFollowBtn" class="btn-action" style="display:none;font-size:0.6rem;padding:6px 12px;background:#111;border:1px solid #00ccff;color:#7fe7ff;" onclick="spiritToggleFollowCurrentPublic()" data-key="pub_follow">SUIVRE</button>
         </div>
         <div style="flex:1;min-width:200px;">
             <h1 id="spiritPublicPseudo" style="margin:0 0 8px;color:#fff;font-size:1.35rem;letter-spacing:1px;">—</h1>
             <p id="spiritPublicCountryRow" style="margin:0;font-size:0.8rem;color:#888;"><span id="spiritPublicCountry">—</span></p>
             <p id="spiritPublicIAScore" style="margin:10px 0 0;font-size:0.85rem;color:var(--spirit-green);font-weight:700;">IA Score : —</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;" id="spiritPublicSocialStats">
-                <div class="spirit-pub-badge" style="min-width:90px;">Likes<b id="spiritPublicLikeTotal">0</b></div>
-                <div class="spirit-pub-badge" style="min-width:90px;">Followers<b id="spiritPublicFollowersCount">0</b></div>
-                <div class="spirit-pub-badge" style="min-width:90px;">Following<b id="spiritPublicFollowingCount">0</b></div>
+                <div class="spirit-pub-badge" style="min-width:90px;"><span data-key="pub_likes">Likes</span><b id="spiritPublicLikeTotal">0</b></div>
+                <div class="spirit-pub-badge" style="min-width:90px;"><span data-key="pub_followers">Followers</span><b id="spiritPublicFollowersCount">0</b></div>
+                <div class="spirit-pub-badge" style="min-width:90px;"><span data-key="pub_following">Following</span><b id="spiritPublicFollowingCount">0</b></div>
             </div>
             <div style="margin-top:12px;display:none;align-items:center;gap:8px;flex-wrap:wrap;" id="spiritPublicCountryEdit">
-                <label style="font-size:0.65rem;color:#666;">Pays (visible publiquement)</label>
+                <label data-key="pub_country_lbl" style="font-size:0.65rem;color:#666;">Pays (visible publiquement)</label>
                 <input type="text" id="spiritPublicCountryInput" placeholder="France" style="padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;max-width:200px;" />
-                <button type="button" class="btn-action" style="font-size:0.55rem;padding:6px 10px;" onclick="spiritPublicSaveMeta()">ENREGISTRER</button>
+                <button type="button" class="btn-action" style="font-size:0.55rem;padding:6px 10px;" onclick="spiritPublicSaveMeta()" data-key="pub_save">ENREGISTRER</button>
             </div>
         </div>
     </div>
     <div class="spirit-public-subnav">
-        <button type="button" id="spiritPublicBtnAnnonces" class="active" onclick="spiritPublicSetTab('annonces')">ANNONCES</button>
-        <button type="button" id="spiritPublicBtnSanctuary" onclick="spiritPublicSetTab('sanctuary')">SANCTUAIRE</button>
+        <button type="button" id="spiritPublicBtnAnnonces" class="active" onclick="spiritPublicSetTab('annonces')" data-key="pub_tab_ads">ANNONCES</button>
+        <button type="button" id="spiritPublicBtnSanctuary" onclick="spiritPublicSetTab('sanctuary')" data-key="pub_tab_san">SANCTUAIRE</button>
     </div>
     <div class="spirit-public-pane" id="spiritPublicPaneAnnonces">
-        <p style="font-size:0.7rem;color:#666;margin-top:0;">Annonces publiques (products_live)</p>
+        <p data-key="pub_ads_note" style="font-size:0.7rem;color:#666;margin-top:0;">Annonces publiques (products_live)</p>
         <div id="spiritPublicAnnoncesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;"></div>
     </div>
     <div class="spirit-public-pane" id="spiritPublicPaneSanctuary" style="display:none;">
@@ -3538,7 +3538,7 @@
                 <h1 id="spiritSanctuaryPseudoBanner">—</h1>
             </div>
             <div class="spirit-sanctuary-toolbar">
-                <span style="font-size:0.65rem;color:#888;">Bordure néon (nouvelle photo)</span>
+                <span data-key="pub_neon_border" style="font-size:0.65rem;color:#888;">Bordure néon (nouvelle photo)</span>
                 <select id="spiritSanctuaryNeonSelect" aria-label="Couleur néon">
                     <option value="#ff6600">Orange Spirit</option>
                     <option value="#00ff88">Vert</option>
@@ -3548,25 +3548,25 @@
                     <option value="#ffcc00">Or</option>
                 </select>
                 <span style="flex:1"></span>
-                <label style="font-size:0.65rem;color:#888;">Vue</label>
-                <button type="button" class="spirit-san-view active" data-sanview="list" onclick="spiritSanctuarySetView('list')">Vue Liste</button>
-                <button type="button" class="spirit-san-view" data-sanview="icons-lg" onclick="spiritSanctuarySetView('icons-lg')">Vue Grille</button>
-                <button type="button" class="spirit-san-view" data-sanview="style" onclick="spiritSanctuarySetView('style')">Vue Style</button>
-                <button type="button" class="spirit-san-view" data-sanview="style2" onclick="spiritSanctuarySetView('style2')">Vue Style 2</button>
+                <label data-key="ui_view" style="font-size:0.65rem;color:#888;">Vue</label>
+                <button type="button" class="spirit-san-view active" data-sanview="list" onclick="spiritSanctuarySetView('list')" data-key="ui_v_list">Vue Liste</button>
+                <button type="button" class="spirit-san-view" data-sanview="icons-lg" onclick="spiritSanctuarySetView('icons-lg')" data-key="ui_v_grid">Vue Grille</button>
+                <button type="button" class="spirit-san-view" data-sanview="style" onclick="spiritSanctuarySetView('style')" data-key="ui_v_style">Vue Style</button>
+                <button type="button" class="spirit-san-view" data-sanview="style2" onclick="spiritSanctuarySetView('style2')" data-key="ui_v_style2">Vue Style 2</button>
             </div>
             <input type="file" id="spiritSanctuaryFileInput" accept="image/*" style="display:none;" />
             <div id="spiritSanctuaryGrid" class="spirit-san-mode-list"></div>
             <div class="spirit-sanctuary-chat">
-                <h4>CHAT DU SANCTUAIRE</h4>
-                <p style="font-size:0.62rem;color:#555;margin:0 0 8px;">Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.</p>
+                <h4 data-key="pub_san_chat_h">CHAT DU SANCTUAIRE</h4>
+                <p data-key="pub_san_chat_rules" style="font-size:0.62rem;color:#555;margin:0 0 8px;">Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.</p>
                 <div style="margin:0 0 8px;">
-                    <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:4px;">Conversation</label>
+                    <label data-key="ui_conversation" style="font-size:0.62rem;color:#888;display:block;margin-bottom:4px;">Conversation</label>
                     <select id="spiritSanctuaryChatPeer" style="width:100%;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;"></select>
                 </div>
                 <div class="spirit-san-chat-msgs" id="spiritSanctuaryChatMsgs"></div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                    <input type="text" id="spiritSanctuaryChatInput" placeholder="Message…" style="flex:1;min-width:180px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
-                    <button type="button" class="btn-action" style="font-size:0.65rem;padding:10px 16px;" onclick="spiritSanctuarySendChat('public')">ENVOYER</button>
+                    <input type="text" id="spiritSanctuaryChatInput" data-key="ui_msg_ph" placeholder="Message…" style="flex:1;min-width:180px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
+                    <button type="button" class="btn-action" style="font-size:0.65rem;padding:10px 16px;" onclick="spiritSanctuarySendChat('public')" data-key="ui_send">ENVOYER</button>
                 </div>
             </div>
         </div>
@@ -3577,8 +3577,8 @@
 <div id="spiritFriendsModal" class="overlay" style="display:none;">
     <div class="modal-content" style="max-width:640px;">
         <button type="button" onclick="spiritCloseFriendsModal()" style="position:absolute;top:18px;right:18px;background:transparent;border:none;color:#bbb;font-size:18px;cursor:pointer;">✕</button>
-        <h3 style="margin-top:0;color:#fff;letter-spacing:1px;">LISTE D'AMIS</h3>
-        <p style="font-size:0.68rem;color:#777;margin-top:0;">Clique un pseudo pour ouvrir son profil public. Utilise la croix pour supprimer.</p>
+        <h3 data-key="friends_modal_title" style="margin-top:0;color:#fff;letter-spacing:1px;">LISTE D'AMIS</h3>
+        <p data-key="friends_modal_p" style="font-size:0.68rem;color:#777;margin-top:0;">Clique un pseudo pour ouvrir son profil public. Utilise la croix pour supprimer.</p>
         <div id="spiritFriendsModalList" style="display:flex;flex-direction:column;gap:8px;max-height:56vh;overflow:auto;"></div>
     </div>
 </div>
@@ -3854,7 +3854,36 @@
             'mob_lang_label': 'Langue',
             'account_tab_dashboard': 'DASHBOARD', 'account_tab_messages': 'MESSAGES', 'account_tab_purchases': 'MES ACHATS',
             'account_tab_sales': 'MES VENTES', 'account_tab_wallet': 'PORTEFEUILLE', 'account_tab_listings': 'MES ANNONCES',
-            'account_tab_reviews': 'ÉVALUATIONS', 'account_tab_sanctuary': 'SANCTUAIRE', 'account_tab_settings': 'PARAMÈTRES'
+            'account_tab_reviews': 'ÉVALUATIONS', 'account_tab_sanctuary': 'SANCTUAIRE', 'account_tab_settings': 'PARAMÈTRES',
+            'dash_title': '🏠 TABLEAU DE BORD', 'dash_intro': 'C\'est ici que s\'affiche ton résumé.', 'dash_seller_offer_alert': 'ALERTE OFFRES',
+            'dash_buyer_offers_title': 'MES OFFRES ENVOYÉES (FAVORIS)', 'dash_buyer_offers_hint': 'Récap : figurine, pseudo vendeur, prix d’origine, ton offre. Clique une ligne pour rouvrir l’annonce (prix à jour si le vendeur a accepté).',
+            'dash_seller_offers_title': 'OFFRES REÇUES SUR TES ANNONCES', 'dash_public_block_title': 'PROFIL PUBLIC & SANCTUAIRE', 'dash_public_url_hint': 'URL unique (partage) :',
+            'dash_copy_url_btn': 'COPIER L’URL', 'dash_open_profile_btn': 'OUVRIR MON PROFIL PUBLIC', 'dash_friends_title': 'MES AMIS / ABONNEMENTS', 'dash_friends_hint': 'Pseudos cliquables pour ouvrir leur profil public.', 'dash_friends_full': 'VOIR LA LISTE COMPLÈTE',
+            'tab_sanctuary_msgs_h': '📩 MESSAGES SANCTUAIRE', 'tab_sanctuary_msgs_p': 'Alertes likes et commentaires sur tes photos du sanctuaire.',
+            'tab_purchases_h': '🛒 MES ACHATS', 'tab_purchases_note': 'Les fonds sont bloqués en Séquestre Spirit. Une fois le bouton « REÇU » cliqué, le vendeur est payé et la transaction est définitive.',
+            'th_date': 'Date', 'th_product': 'Produit', 'th_amount': 'Montant', 'th_status': 'Statut', 'th_actions_spirit': 'Actions Spirit Shield',
+            'tab_sales_h': '💰 MES VENTES', 'tab_sales_intro': 'Ici, tu verras ce que tu as vendu.', 'tab_sales_loading': 'INITIALISATION DU LEDGER…',
+            'btn_close_preview': 'FERMER L\'APERÇU', 'tab_wallet_h': '🏦 MON PORTEFEUILLE', 'tab_wallet_p': 'Les montants de tes ventes sont cumulés ici.', 'wallet_balance_lbl': 'SOLDE DISPONIBLE', 'wallet_transfer_btn': 'VIREMENT BANCAIRE', 'wallet_rib_note': 'RIB utilisé : paramètres du compte.', 'wallet_history_h': 'HISTORIQUE DES ENTRÉES (VENTES)',
+            'tab_my_listings_h': 'MES ANNONCES ACTIVES', 'tab_my_listings_empty': 'Aucune annonce active.',
+            'eval_page_h': 'ÉVALUATIONS', 'eval_page_p1': 'Avis reçus sur ton profil public. Tu peux répondre à chaque commentaire ; la réponse est visible par tous.', 'eval_page_p2': 'Pour laisser une note à quelqu’un, utilise le flux après une transaction (fenêtre d’évaluation ou notification).', 'eval_clear_all_btn': 'TOUT EFFACER LE FIL',
+            'san_acc_h': 'SANCTUAIRE', 'san_acc_p': 'Galerie noire & néon — jusqu’à 15 pièces (bucket Storage sanctuary).', 'ui_neon_new': 'Néon (nouvelle photo)', 'ui_view': 'Vue', 'ui_v_list': 'Vue Liste', 'ui_v_grid': 'Vue Grille', 'ui_v_style': 'Vue Style', 'ui_v_style2': 'Vue Style 2',
+            'san_chat_h': 'CHAT DU SANCTUAIRE', 'san_chat_rules': '@, .com et numéros de téléphone sont bloqués — marketplace Spirit.', 'ui_conversation': 'Conversation', 'ui_msg_ph': 'Message…', 'ui_send': 'ENVOYER',
+            'params_h': 'PARAMÈTRES DU COMPTE', 'params_rep_h': 'MA RÉPUTATION VENDEUR', 'ship_addr_h': 'ADRESSE POSTALE (LIVRAISON)', 'ship_ph_last': 'Nom', 'ship_ph_first': 'Prénom', 'ship_ph_street': 'Adresse', 'ship_ph_zip': 'Code postal', 'ship_ph_city': 'Ville', 'ship_ph_country': 'Pays',
+            'ship_save_btn': 'ENREGISTRER ADRESSE', 'ship_save_hint': 'Renseignée une seule fois puis réutilisée à chaque achat.', 'btn_rib_change': 'METTRE / CHANGER UN RIB ACTIF', 'btn_logout': 'DÉCONNEXION',
+            'reg_ph_user': 'Nom d\'utilisateur', 'reg_ph_email': 'Email', 'reg_ph_pass': 'Mot de passe', 'reg_remember': 'Rester connecté(e)',
+            'pm_discuss_hint': 'Discussion · traduction selon la langue du site', 'pm_clear_thread': 'Effacer tout le fil', 'pm_chat_ph': 'Votre message…', 'pm_chat_ok': 'OK',
+            'pm_delivery_lbl': 'LIVRAISON (Taille:', 'pm_delivery_end': ')', 'pm_carrier_pick': '-- CHOISIR UN TRANSPORTEUR --', 'pm_negotiated_note': 'Prix convenu — visible uniquement entre le vendeur et l’acheteur concerné. Sur le marché, le prix public reste affiché pour les autres.',
+            'pm_sum_ship': 'Livraison (', 'pm_sum_ship_end': ')', 'pm_sum_prot': 'Protection Acheteur Spirit (Garantie Fonds)', 'pm_carrier_select': 'Sélectionner',
+            'pay_title': 'FINALISER LE PAIEMENT', 'pay_total_lbl': 'Montant total :', 'pay_pick': 'Choisissez votre mode de paiement sécurisé Spirit Infinity :', 'pay_stripe': '💳 CARTE BANCAIRE (STRIPE)', 'pay_paypal': '🅿️ PAYPAL SÉCURISÉ', 'pay_footer': 'En cliquant sur un mode de paiement, vos fonds seront placés sous séquestre Spirit jusqu\'à réception de la figurine.',
+            'prep_ship_h': 'PRÉPARER L\'EXPÉDITION', 'prep_ship_p': 'Un acheteur a validé le paiement — merci de préparer l\'envoi.', 'prep_ok': 'COMPRIS', 'btn_ok_short': 'OK',
+            'pm_no_title': 'Sans titre', 'pm_no_desc': 'Aucune description disponible.', 'pm_no_image': 'IMAGE NON DISPONIBLE DANS LE LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURINE',
+            'pub_back': '← MARKETPLACE', 'pub_brand': 'Profil public — Spirit Infinity', 'pub_copy_url': 'COPIER L’URL', 'pub_chg_photo': 'CHANGER LA PHOTO', 'pub_add_san': '+ PHOTO SANCTUAIRE', 'pub_follow': 'SUIVRE', 'pub_ia': 'IA Score :', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
+            'pub_country_lbl': 'Pays (visible publiquement)', 'pub_save': 'ENREGISTRER', 'pub_tab_ads': 'ANNONCES', 'pub_tab_san': 'SANCTUAIRE', 'pub_ads_note': 'Annonces publiques (products_live)', 'pub_neon_border': 'Bordure néon (nouvelle photo)', 'pub_san_chat_h': 'CHAT DU SANCTUAIRE', 'pub_san_chat_rules': 'Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.',
+            'params_pseudo_lbl': 'MODIFIER PSEUDO', 'params_pseudo_ph': 'Nouveau pseudo', 'params_pseudo_save': 'ENREGISTRER LE PSEUDO',             'cert_step_method': 'MÉTHODE', 'cert_step_photos': 'PHOTOS & INFOS', 'cert_step_ai': 'ANALYSE IA', 'cert_step_pub': 'PUBLICATION',
+            'friends_modal_title': 'LISTE D\'AMIS', 'friends_modal_p': 'Clique un pseudo pour ouvrir son profil public. Utilise la croix pour supprimer.',
+            'gallery_prev': '◀ Précédent', 'gallery_next': 'Suivant ▶',
+            'pub_lbl_achat': 'Achat', 'pub_lbl_vente': 'Vente', 'pub_lbl_livr': 'Livraison', 'pub_lbl_lit': 'Litige', 'pub_review_suffix': 'avis',
+            'pub_ia_avg': 'IA Score moy. :'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -3907,7 +3936,36 @@
             'mob_lang_label': 'Language',
             'account_tab_dashboard': 'DASHBOARD', 'account_tab_messages': 'MESSAGES', 'account_tab_purchases': 'MY PURCHASES',
             'account_tab_sales': 'MY SALES', 'account_tab_wallet': 'WALLET', 'account_tab_listings': 'MY LISTINGS',
-            'account_tab_reviews': 'REVIEWS', 'account_tab_sanctuary': 'SANCTUARY', 'account_tab_settings': 'SETTINGS'
+            'account_tab_reviews': 'REVIEWS', 'account_tab_sanctuary': 'SANCTUARY', 'account_tab_settings': 'SETTINGS',
+            'dash_title': '🏠 DASHBOARD', 'dash_intro': 'Your summary appears here.', 'dash_seller_offer_alert': 'OFFER ALERT',
+            'dash_buyer_offers_title': 'MY SENT OFFERS (FAVORITES)', 'dash_buyer_offers_hint': 'Summary: figure, seller username, original price, your offer. Click a row to reopen the listing (price updates if the seller accepted).',
+            'dash_seller_offers_title': 'OFFERS ON YOUR LISTINGS', 'dash_public_block_title': 'PUBLIC PROFILE & SANCTUARY', 'dash_public_url_hint': 'Unique URL (share):',
+            'dash_copy_url_btn': 'COPY URL', 'dash_open_profile_btn': 'OPEN MY PUBLIC PROFILE', 'dash_friends_title': 'MY FRIENDS / FOLLOWING', 'dash_friends_hint': 'Click a username to open their public profile.', 'dash_friends_full': 'VIEW FULL LIST',
+            'tab_sanctuary_msgs_h': '📩 SANCTUARY MESSAGES', 'tab_sanctuary_msgs_p': 'Likes and comments on your sanctuary photos.',
+            'tab_purchases_h': '🛒 MY PURCHASES', 'tab_purchases_note': 'Funds are held in Spirit Escrow. After you click RECEIVED, the seller is paid and the sale is final.',
+            'th_date': 'Date', 'th_product': 'Product', 'th_amount': 'Amount', 'th_status': 'Status', 'th_actions_spirit': 'Spirit Shield actions',
+            'tab_sales_h': '💰 MY SALES', 'tab_sales_intro': 'Your sales will appear here.', 'tab_sales_loading': 'INITIALIZING LEDGER…',
+            'btn_close_preview': 'CLOSE PREVIEW', 'tab_wallet_h': '🏦 MY WALLET', 'tab_wallet_p': 'Your sale amounts are accumulated here.', 'wallet_balance_lbl': 'AVAILABLE BALANCE', 'wallet_transfer_btn': 'BANK TRANSFER', 'wallet_rib_note': 'IBAN used: account settings.', 'wallet_history_h': 'INCOMING HISTORY (SALES)',
+            'tab_my_listings_h': 'MY ACTIVE LISTINGS', 'tab_my_listings_empty': 'No active listings.',
+            'eval_page_h': 'REVIEWS', 'eval_page_p1': 'Reviews on your public profile. You can reply to each comment; replies are visible to everyone.', 'eval_page_p2': 'To rate someone, use the flow after a transaction (review window or notification).', 'eval_clear_all_btn': 'CLEAR ENTIRE FEED',
+            'san_acc_h': 'SANCTUARY', 'san_acc_p': 'Black & neon gallery — up to 15 pieces (Storage sanctuary bucket).', 'ui_neon_new': 'Neon (new photo)', 'ui_view': 'View', 'ui_v_list': 'List view', 'ui_v_grid': 'Grid view', 'ui_v_style': 'Style view', 'ui_v_style2': 'Style view 2',
+            'san_chat_h': 'SANCTUARY CHAT', 'san_chat_rules': '@, .com and phone numbers are blocked — Spirit marketplace.', 'ui_conversation': 'Conversation', 'ui_msg_ph': 'Message…', 'ui_send': 'SEND',
+            'params_h': 'ACCOUNT SETTINGS', 'params_rep_h': 'MY SELLER REPUTATION', 'ship_addr_h': 'SHIPPING ADDRESS', 'ship_ph_last': 'Last name', 'ship_ph_first': 'First name', 'ship_ph_street': 'Address', 'ship_ph_zip': 'Postal code', 'ship_ph_city': 'City', 'ship_ph_country': 'Country',
+            'ship_save_btn': 'SAVE ADDRESS', 'ship_save_hint': 'Enter once, reused on every purchase.', 'btn_rib_change': 'ADD / CHANGE ACTIVE IBAN', 'btn_logout': 'LOG OUT',
+            'reg_ph_user': 'Username', 'reg_ph_email': 'Email', 'reg_ph_pass': 'Password', 'reg_remember': 'Stay signed in',
+            'pm_discuss_hint': 'Discussion · translated to site language', 'pm_clear_thread': 'Clear entire thread', 'pm_chat_ph': 'Your message…', 'pm_chat_ok': 'OK',
+            'pm_delivery_lbl': 'DELIVERY (Size:', 'pm_delivery_end': ')', 'pm_carrier_pick': '-- CHOOSE A CARRIER --', 'pm_negotiated_note': 'Agreed price — visible only to the buyer and seller. On the market, the public price stays shown for others.',
+            'pm_sum_ship': 'Shipping (', 'pm_sum_ship_end': ')', 'pm_sum_prot': 'Spirit Buyer Protection (Fund guarantee)', 'pm_carrier_select': 'Select',
+            'pay_title': 'COMPLETE PAYMENT', 'pay_total_lbl': 'Total amount:', 'pay_pick': 'Choose your secure Spirit Infinity payment method:', 'pay_stripe': '💳 CARD (STRIPE)', 'pay_paypal': '🅿️ SECURE PAYPAL', 'pay_footer': 'By choosing a method, funds are held in Spirit escrow until you receive the figure.',
+            'prep_ship_h': 'PREPARE SHIPMENT', 'prep_ship_p': 'A buyer has paid — please prepare the shipment.', 'prep_ok': 'GOT IT', 'btn_ok_short': 'OK',
+            'pm_no_title': 'Untitled', 'pm_no_desc': 'No description available.', 'pm_no_image': 'IMAGE NOT AVAILABLE IN LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURE',
+            'pub_back': '← MARKETPLACE', 'pub_brand': 'Public profile — Spirit Infinity', 'pub_copy_url': 'COPY URL', 'pub_chg_photo': 'CHANGE PHOTO', 'pub_add_san': '+ SANCTUARY PHOTO', 'pub_follow': 'FOLLOW', 'pub_ia': 'AI score:', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
+            'pub_country_lbl': 'Country (public)', 'pub_save': 'SAVE', 'pub_tab_ads': 'LISTINGS', 'pub_tab_san': 'SANCTUARY', 'pub_ads_note': 'Public listings (products_live)', 'pub_neon_border': 'Neon border (new photo)', 'pub_san_chat_h': 'SANCTUARY CHAT', 'pub_san_chat_rules': '@, .com domains and phone numbers are blocked — Spirit marketplace only.',
+            'params_pseudo_lbl': 'CHANGE USERNAME', 'params_pseudo_ph': 'New username', 'params_pseudo_save': 'SAVE USERNAME',             'cert_step_method': 'METHOD', 'cert_step_photos': 'PHOTOS & INFO', 'cert_step_ai': 'AI ANALYSIS', 'cert_step_pub': 'PUBLICATION',
+            'friends_modal_title': 'FRIENDS LIST', 'friends_modal_p': 'Click a username to open their public profile. Use ✕ to remove.',
+            'gallery_prev': '◀ Previous', 'gallery_next': 'Next ▶',
+            'pub_lbl_achat': 'Purchase', 'pub_lbl_vente': 'Sale', 'pub_lbl_livr': 'Shipping', 'pub_lbl_lit': 'Dispute', 'pub_review_suffix': 'reviews',
+            'pub_ia_avg': 'Avg. AI score:'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -3960,7 +4018,36 @@
             'mob_lang_label': 'Idioma',
             'account_tab_dashboard': 'PANEL', 'account_tab_messages': 'MENSAJES', 'account_tab_purchases': 'MIS COMPRAS',
             'account_tab_sales': 'MIS VENTAS', 'account_tab_wallet': 'CARTERA', 'account_tab_listings': 'MIS ANUNCIOS',
-            'account_tab_reviews': 'VALORACIONES', 'account_tab_sanctuary': 'SANTUARIO', 'account_tab_settings': 'AJUSTES'
+            'account_tab_reviews': 'VALORACIONES', 'account_tab_sanctuary': 'SANTUARIO', 'account_tab_settings': 'AJUSTES',
+            'dash_title': '🏠 PANEL', 'dash_intro': 'Aquí verás tu resumen.', 'dash_seller_offer_alert': 'ALERTA DE OFERTAS',
+            'dash_buyer_offers_title': 'MIS OFERTAS ENVIADAS (FAVORITOS)', 'dash_buyer_offers_hint': 'Resumen: figura, vendedor, precio original, tu oferta. Pulsa una fila para reabrir el anuncio (el precio se actualiza si el vendedor aceptó).',
+            'dash_seller_offers_title': 'OFERTAS EN TUS ANUNCIOS', 'dash_public_block_title': 'PERFIL PÚBLICO Y SANTUARIO', 'dash_public_url_hint': 'URL única (compartir):',
+            'dash_copy_url_btn': 'COPIAR URL', 'dash_open_profile_btn': 'ABRIR MI PERFIL PÚBLICO', 'dash_friends_title': 'AMIGOS / SEGUIDOS', 'dash_friends_hint': 'Pulsa un usuario para abrir su perfil público.', 'dash_friends_full': 'VER LISTA COMPLETA',
+            'tab_sanctuary_msgs_h': '📩 MENSAJES DEL SANTUARIO', 'tab_sanctuary_msgs_p': 'Alertas de me gusta y comentarios en tus fotos del santuario.',
+            'tab_purchases_h': '🛒 MIS COMPRAS', 'tab_purchases_note': 'Los fondos quedan en depósito Spirit. Al pulsar RECIBIDO, el vendedor cobra y la venta es definitiva.',
+            'th_date': 'Fecha', 'th_product': 'Producto', 'th_amount': 'Importe', 'th_status': 'Estado', 'th_actions_spirit': 'Acciones Spirit Shield',
+            'tab_sales_h': '💰 MIS VENTAS', 'tab_sales_intro': 'Aquí verás lo que has vendido.', 'tab_sales_loading': 'INICIANDO LEDGER…',
+            'btn_close_preview': 'CERRAR VISTA PREVIA', 'tab_wallet_h': '🏦 MI CARTERA', 'tab_wallet_p': 'Los importes de tus ventas se acumulan aquí.', 'wallet_balance_lbl': 'SALDO DISPONIBLE', 'wallet_transfer_btn': 'TRANSFERENCIA BANCARIA', 'wallet_rib_note': 'IBAN usado: ajustes de la cuenta.', 'wallet_history_h': 'HISTORIAL DE ENTRADAS (VENTAS)',
+            'tab_my_listings_h': 'MIS ANUNCIOS ACTIVOS', 'tab_my_listings_empty': 'No hay anuncios activos.',
+            'eval_page_h': 'VALORACIONES', 'eval_page_p1': 'Opiniones en tu perfil público. Puedes responder a cada comentario; la respuesta es visible para todos.', 'eval_page_p2': 'Para valorar a alguien, usa el flujo tras una transacción (ventana de valoración o notificación).', 'eval_clear_all_btn': 'BORRAR TODO EL FEED',
+            'san_acc_h': 'SANTUARIO', 'san_acc_p': 'Galería neón — hasta 15 piezas (bucket Storage sanctuary).', 'ui_neon_new': 'Neón (foto nueva)', 'ui_view': 'Vista', 'ui_v_list': 'Vista lista', 'ui_v_grid': 'Vista cuadrícula', 'ui_v_style': 'Vista estilo', 'ui_v_style2': 'Vista estilo 2',
+            'san_chat_h': 'CHAT DEL SANTUARIO', 'san_chat_rules': '@, .com y teléfonos bloqueados — marketplace Spirit.', 'ui_conversation': 'Conversación', 'ui_msg_ph': 'Mensaje…', 'ui_send': 'ENVIAR',
+            'params_h': 'AJUSTES DE LA CUENTA', 'params_rep_h': 'MI REPUTACIÓN COMO VENDEDOR', 'ship_addr_h': 'DIRECCIÓN POSTAL (ENVÍO)', 'ship_ph_last': 'Apellido', 'ship_ph_first': 'Nombre', 'ship_ph_street': 'Dirección', 'ship_ph_zip': 'Código postal', 'ship_ph_city': 'Ciudad', 'ship_ph_country': 'País',
+            'ship_save_btn': 'GUARDAR DIRECCIÓN', 'ship_save_hint': 'Una sola vez; se reutiliza en cada compra.', 'btn_rib_change': 'AÑADIR / CAMBIAR IBAN ACTIVO', 'btn_logout': 'CERRAR SESIÓN',
+            'reg_ph_user': 'Usuario', 'reg_ph_email': 'Correo', 'reg_ph_pass': 'Contraseña', 'reg_remember': 'Permanecer conectado',
+            'pm_discuss_hint': 'Discusión · traducción según idioma del sitio', 'pm_clear_thread': 'Borrar todo el hilo', 'pm_chat_ph': 'Tu mensaje…', 'pm_chat_ok': 'OK',
+            'pm_delivery_lbl': 'ENVÍO (Talla:', 'pm_delivery_end': ')', 'pm_carrier_pick': '-- ELEGIR TRANSPORTISTA --', 'pm_negotiated_note': 'Precio acordado — solo visible para comprador y vendedor. En el mercado, el precio público sigue mostrándose para los demás.',
+            'pm_sum_ship': 'Envío (', 'pm_sum_ship_end': ')', 'pm_sum_prot': 'Protección comprador Spirit (garantía de fondos)', 'pm_carrier_select': 'Seleccionar',
+            'pay_title': 'FINALIZAR PAGO', 'pay_total_lbl': 'Importe total:', 'pay_pick': 'Elige tu método de pago seguro Spirit Infinity:', 'pay_stripe': '💳 TARJETA (STRIPE)', 'pay_paypal': '🅿️ PAYPAL SEGURO', 'pay_footer': 'Al elegir un método, los fondos quedan en depósito Spirit hasta recibir la figura.',
+            'prep_ship_h': 'PREPARAR ENVÍO', 'prep_ship_p': 'Un comprador ha pagado — prepara el envío.', 'prep_ok': 'ENTENDIDO', 'btn_ok_short': 'OK',
+            'pm_no_title': 'Sin título', 'pm_no_desc': 'Sin descripción.', 'pm_no_image': 'IMAGEN NO DISPONIBLE EN LEDGER', 'typ_statue': 'ESTATUA', 'typ_figure': 'FIGURA',
+            'pub_back': '← MARKETPLACE', 'pub_brand': 'Perfil público — Spirit Infinity', 'pub_copy_url': 'COPIAR URL', 'pub_chg_photo': 'CAMBIAR FOTO', 'pub_add_san': '+ FOTO SANTUARIO', 'pub_follow': 'SEGUIR', 'pub_ia': 'Puntuación IA:', 'pub_likes': 'Me gusta', 'pub_followers': 'Seguidores', 'pub_following': 'Siguiendo',
+            'pub_country_lbl': 'País (visible públicamente)', 'pub_save': 'GUARDAR', 'pub_tab_ads': 'ANUNCIOS', 'pub_tab_san': 'SANTUARIO', 'pub_ads_note': 'Anuncios públicos (products_live)', 'pub_neon_border': 'Borde neón (foto nueva)', 'pub_san_chat_h': 'CHAT DEL SANTUARIO', 'pub_san_chat_rules': '@, dominios .com y teléfonos bloqueados — solo marketplace Spirit.',
+            'params_pseudo_lbl': 'CAMBIAR USUARIO', 'params_pseudo_ph': 'Nuevo usuario', 'params_pseudo_save': 'GUARDAR USUARIO',             'cert_step_method': 'MÉTODO', 'cert_step_photos': 'FOTOS E INFO', 'cert_step_ai': 'ANÁLISIS IA', 'cert_step_pub': 'PUBLICACIÓN',
+            'friends_modal_title': 'LISTA DE AMIGOS', 'friends_modal_p': 'Pulsa un usuario para abrir su perfil público. Usa ✕ para eliminar.',
+            'gallery_prev': '◀ Anterior', 'gallery_next': 'Siguiente ▶',
+            'pub_lbl_achat': 'Compra', 'pub_lbl_vente': 'Venta', 'pub_lbl_livr': 'Envío', 'pub_lbl_lit': 'Disputa', 'pub_review_suffix': 'reseñas',
+            'pub_ia_avg': 'IA media:'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -4013,7 +4100,36 @@
             'mob_lang_label': '语言',
             'account_tab_dashboard': '概览', 'account_tab_messages': '消息', 'account_tab_purchases': '我的购买',
             'account_tab_sales': '我的销售', 'account_tab_wallet': '钱包', 'account_tab_listings': '我的上架',
-            'account_tab_reviews': '评价', 'account_tab_sanctuary': '圣地', 'account_tab_settings': '设置'
+            'account_tab_reviews': '评价', 'account_tab_sanctuary': '圣地', 'account_tab_settings': '设置',
+            'dash_title': '🏠 控制面板', 'dash_intro': '在此查看你的摘要。', 'dash_seller_offer_alert': '出价提醒',
+            'dash_buyer_offers_title': '我发出的出价（收藏）', 'dash_buyer_offers_hint': '摘要：手办、卖家昵称、原价、你的出价。点击一行可重新打开商品（若卖家已接受，价格会更新）。',
+            'dash_seller_offers_title': '你商品上收到的出价', 'dash_public_block_title': '公开资料与圣地', 'dash_public_url_hint': '唯一链接（分享）：',
+            'dash_copy_url_btn': '复制链接', 'dash_open_profile_btn': '打开我的公开资料', 'dash_friends_title': '好友 / 关注', 'dash_friends_hint': '点击用户名打开其公开资料。', 'dash_friends_full': '查看完整列表',
+            'tab_sanctuary_msgs_h': '📩 圣地消息', 'tab_sanctuary_msgs_p': '你圣地照片上的点赞与评论提醒。',
+            'tab_purchases_h': '🛒 我的购买', 'tab_purchases_note': '资金由 Spirit 托管。点击「已收货」后卖家收款，交易完成。',
+            'th_date': '日期', 'th_product': '商品', 'th_amount': '金额', 'th_status': '状态', 'th_actions_spirit': 'Spirit Shield 操作',
+            'tab_sales_h': '💰 我的销售', 'tab_sales_intro': '你售出的订单会显示在这里。', 'tab_sales_loading': '正在初始化账本…',
+            'btn_close_preview': '关闭预览', 'tab_wallet_h': '🏦 我的钱包', 'tab_wallet_p': '销售收入会累计在此。', 'wallet_balance_lbl': '可用余额', 'wallet_transfer_btn': '银行转账', 'wallet_rib_note': '使用的 IBAN：账户设置。', 'wallet_history_h': '入账记录（销售）',
+            'tab_my_listings_h': '我的在售商品', 'tab_my_listings_empty': '暂无在售商品。',
+            'eval_page_h': '评价', 'eval_page_p1': '公开资料上收到的评价。你可以逐条回复；回复对所有人可见。', 'eval_page_p2': '要给他人评分，请在交易后使用评价流程（评价窗口或通知）。', 'eval_clear_all_btn': '清空全部动态',
+            'san_acc_h': '圣地', 'san_acc_p': '黑底霓虹画廊 — 最多 15 件（Storage sanctuary 桶）。', 'ui_neon_new': '霓虹（新照片）', 'ui_view': '视图', 'ui_v_list': '列表视图', 'ui_v_grid': '网格视图', 'ui_v_style': '风格视图', 'ui_v_style2': '风格视图 2',
+            'san_chat_h': '圣地聊天', 'san_chat_rules': '@、.com 与电话号码已屏蔽 — Spirit 市场。', 'ui_conversation': '会话', 'ui_msg_ph': '消息…', 'ui_send': '发送',
+            'params_h': '账户设置', 'params_rep_h': '我的卖家信誉', 'ship_addr_h': '收货地址', 'ship_ph_last': '姓', 'ship_ph_first': '名', 'ship_ph_street': '地址', 'ship_ph_zip': '邮编', 'ship_ph_city': '城市', 'ship_ph_country': '国家',
+            'ship_save_btn': '保存地址', 'ship_save_hint': '填写一次，每次购买复用。', 'btn_rib_change': '添加 / 更换有效 IBAN', 'btn_logout': '退出登录',
+            'reg_ph_user': '用户名', 'reg_ph_email': '邮箱', 'reg_ph_pass': '密码', 'reg_remember': '保持登录',
+            'pm_discuss_hint': '讨论 · 按网站语言自动翻译', 'pm_clear_thread': '清空整个会话', 'pm_chat_ph': '输入消息…', 'pm_chat_ok': '确定',
+            'pm_delivery_lbl': '运费（尺寸：', 'pm_delivery_end': '）', 'pm_carrier_pick': '-- 选择承运商 --', 'pm_negotiated_note': '约定价格 — 仅买卖双方可见。市场上其他人仍看到公开价格。',
+            'pm_sum_ship': '运费（', 'pm_sum_ship_end': '）', 'pm_sum_prot': 'Spirit 买家保护（资金保障）', 'pm_carrier_select': '选择',
+            'pay_title': '完成支付', 'pay_total_lbl': '应付总额：', 'pay_pick': '选择 Spirit Infinity 安全支付方式：', 'pay_stripe': '💳 银行卡（STRIPE）', 'pay_paypal': '🅿️ 安全 PayPal', 'pay_footer': '选择支付方式后，资金将由 Spirit 托管，直至你收到手办。',
+            'prep_ship_h': '准备发货', 'prep_ship_p': '买家已付款 — 请准备寄送。', 'prep_ok': '知道了', 'btn_ok_short': '确定',
+            'pm_no_title': '无标题', 'pm_no_desc': '暂无描述。', 'pm_no_image': '账本中无可用图片', 'typ_statue': '雕像', 'typ_figure': '手办',
+            'pub_back': '← 市场', 'pub_brand': '公开资料 — Spirit Infinity', 'pub_copy_url': '复制链接', 'pub_chg_photo': '更换头像', 'pub_add_san': '+ 圣地照片', 'pub_follow': '关注', 'pub_ia': 'AI 评分：', 'pub_likes': '赞', 'pub_followers': '粉丝', 'pub_following': '关注',
+            'pub_country_lbl': '国家（公开显示）', 'pub_save': '保存', 'pub_tab_ads': '商品', 'pub_tab_san': '圣地', 'pub_ads_note': '公开上架（products_live）', 'pub_neon_border': '霓虹边框（新照片）', 'pub_san_chat_h': '圣地聊天', 'pub_san_chat_rules': '@、.com 域名与电话已屏蔽 — 仅限 Spirit 市场。',
+            'params_pseudo_lbl': '修改用户名', 'params_pseudo_ph': '新用户名', 'params_pseudo_save': '保存用户名', 'cert_step_method': '方式', 'cert_step_photos': '照片与信息', 'cert_step_ai': 'AI 分析', 'cert_step_pub': '发布',
+            'friends_modal_title': '好友列表', 'friends_modal_p': '点击用户名打开公开资料。使用 ✕ 删除。',
+            'gallery_prev': '◀ 上一张', 'gallery_next': '下一张 ▶',
+            'pub_lbl_achat': '购买', 'pub_lbl_vente': '销售', 'pub_lbl_livr': '物流', 'pub_lbl_lit': '纠纷', 'pub_review_suffix': '条评价',
+            'pub_ia_avg': 'AI 平均分：'
         }
     };
 
@@ -4298,6 +4414,23 @@ async function loadUserPurchases() {
                 if (typeof renderChatMessages === 'function') renderChatMessages();
             })();
         } catch (eChatLang) {}
+        try { if (typeof spiritRefreshEvalBadgeButtonLang === 'function') spiritRefreshEvalBadgeButtonLang(); } catch (eBad) {}
+        try {
+            var secPub = document.getElementById('spiritPublicProfileSection');
+            if (secPub && typeof spiritPublicViewUserId !== 'undefined' && spiritPublicViewUserId) {
+                var dsp = '';
+                try { dsp = window.getComputedStyle(secPub).display; } catch (eDsp) { dsp = secPub.style.display || ''; }
+                if (dsp !== 'none' && typeof spiritPublicLoadIaScore === 'function')
+                    void spiritPublicLoadIaScore(String(spiritPublicViewUserId).trim(), null);
+            }
+        } catch (eIaPub) {}
+        try { if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier(); } catch (eTot) {}
+        try {
+            void (async function () {
+                if (typeof window.spiritRetranslateOpenProductListing !== 'function') return;
+                await window.spiritRetranslateOpenProductListing();
+            })();
+        } catch (ePL) {}
     }
     function changeLang(lang) { switchLanguage(lang); }
 
@@ -6871,6 +7004,11 @@ async function loadMySales() {
     } catch (err) { 
         console.error("[SPIRIT ERROR] Échec loadMySales:", err); 
         listBody.innerHTML = "<div style='color:var(--danger); text-align:center; padding:20px; border:1px solid var(--danger);'>ERREUR DE SYNCHRONISATION LEDGER</div>";
+    } finally {
+        try {
+            var tvi = document.getElementById('tab-ventes-static-intro');
+            if (tvi && typeof spiritT === 'function') tvi.textContent = spiritT('tab_sales_intro');
+        } catch (eTV) {}
     }
     try { spiritDrainSellerPrepNotices(); } catch (e) {}
 }
@@ -8089,6 +8227,22 @@ async function spiritTranslateListingMessage(text, fromLang, toLang) {
         return '';
     }
 }
+/** Découpe long texte pour MyMemory (limite ~480 car. par requête). */
+async function spiritTranslateLongListingText(text, fromLang, toLang) {
+    var raw = String(text || '').trim();
+    if (!raw) return '';
+    var f = spiritListingChatLangNormalize(fromLang);
+    var t = spiritListingChatLangNormalize(toLang);
+    if (f === t) return raw;
+    var maxChunk = 420;
+    var parts = [];
+    for (var i = 0; i < raw.length; i += maxChunk) {
+        var chunk = raw.slice(i, i + maxChunk);
+        var tr = await spiritTranslateListingMessage(chunk, f, t);
+        parts.push(tr || chunk);
+    }
+    return parts.join('');
+}
 function spiritPrimeListingChatForTranslate() {
     if (!selectedProduct || !selectedProduct.chat || !selectedProduct.chat.length) return;
     var vNorm = spiritListingChatLangNormalize(spiritListingChatViewerLangSync());
@@ -8327,6 +8481,41 @@ async function spiritLoadListingMessagesForProduct(productId) {
         box.scrollTop = box.scrollHeight;
     }
 
+    async function spiritApplyProductModalTexts(item) {
+        item = item || {};
+        var viewL = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+        var src = 'FR';
+        var tEl = document.getElementById('pTitle');
+        var dEl = document.getElementById('pDescBox');
+        var rawTitle = String(item.title || '').trim();
+        var rawDesc = String(item.description || item.desc || '').trim();
+        function T(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
+        if (tEl) tEl.innerText = rawTitle || T('pm_no_title');
+        if (dEl) dEl.innerText = rawDesc || T('pm_no_desc');
+        if (viewL === src || (!rawTitle && !rawDesc)) return;
+        try {
+            if (rawTitle && tEl && typeof spiritTranslateLongListingText === 'function') {
+                var tt = await spiritTranslateLongListingText(rawTitle, src, viewL);
+                if (tt) tEl.innerText = tt;
+            }
+            if (rawDesc && dEl && typeof spiritTranslateLongListingText === 'function') {
+                var td = await spiritTranslateLongListingText(rawDesc, src, viewL);
+                if (td) dEl.innerText = td;
+            }
+        } catch (eTr) {}
+    }
+    async function spiritRetranslateOpenProductListing() {
+        try {
+            var pm = document.getElementById('productModal');
+            if (!pm || typeof selectedProduct === 'undefined' || !selectedProduct) return;
+            var vis = '';
+            try { vis = window.getComputedStyle(pm).display; } catch (eC) { vis = pm.style.display || ''; }
+            if (vis === 'none') return;
+            await spiritApplyProductModalTexts(selectedProduct);
+        } catch (e) {}
+    }
+    try { window.spiritRetranslateOpenProductListing = spiritRetranslateOpenProductListing; } catch (eW) {}
+
  async function openProduct(item) {
         item = Object.assign({}, item);
         var keepNegotiated = item._spiritDisplayPrice != null;
@@ -8358,22 +8547,24 @@ async function spiritLoadListingMessagesForProduct(productId) {
             mcRoot.classList.add(isStatueTpl ? 'spirit-ad-statue' : 'spirit-ad-figurine');
             var pBadgeEl = document.getElementById('pBadge');
             if (pBadgeEl) {
-                pBadgeEl.textContent = isStatueTpl ? 'STATUE' : 'FIGURINE';
+                pBadgeEl.textContent = (typeof spiritT === 'function') ? spiritT(isStatueTpl ? 'typ_statue' : 'typ_figure') : (isStatueTpl ? 'STATUE' : 'FIGURINE');
                 pBadgeEl.className = 'badge spirit-detail-type-badge ' + (isStatueTpl ? 'spirit-detail-statue-badge' : 'spirit-detail-figurine-badge');
             }
         }
         if (pmRoot) pmRoot.style.setProperty('display', 'flex', 'important');
         
         // CORRECTION : Gestion des noms de colonnes Supabase vs Local
-        document.getElementById('pTitle').innerText = item.title || "Sans Titre";
+        try { await spiritApplyProductModalTexts(item); } catch (eTxt) {
+            var tEl0 = document.getElementById('pTitle');
+            var dEl0 = document.getElementById('pDescBox');
+            if (tEl0) tEl0.innerText = item.title || (typeof spiritT === 'function' ? spiritT('pm_no_title') : 'Sans Titre');
+            if (dEl0) dEl0.innerText = item.description || item.desc || (typeof spiritT === 'function' ? spiritT('pm_no_desc') : '');
+        }
         
         // AJOUT : Fallback pour les données pays et condition
         const displayCountry = item.origin_country || item.country || "France";
         const displayCond = item.cond || "Certifié Spirit";
         document.getElementById('pOrigin').innerText = displayCountry + " | " + displayCond;
-        
-        // CORRECTION : Supabase utilise 'description' au lieu de 'desc'
-        document.getElementById('pDescBox').innerText = item.description || item.desc || "Aucune description disponible.";
         
         // CORRECTION : Supabase utilise 'ship_size' au lieu de 'shipSize'
         document.getElementById('pSizeLabel').innerText = item.ship_size || item.shipSize || "Moyen";
@@ -8384,7 +8575,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
         gBox.innerHTML = '';
         var gUrls = spiritImageUrlList(item);
         if (gUrls.length === 0) {
-            gBox.innerHTML = "<div style='color:#555; padding:20px;'>IMAGE NON DISPONIBLE DANS LE LEDGER</div>";
+            var noImg = (typeof spiritT === 'function') ? spiritT('pm_no_image') : 'IMAGE NON DISPONIBLE DANS LE LEDGER';
+            gBox.innerHTML = "<div style='color:#555; padding:20px;'>" + String(noImg).replace(/</g, '&lt;') + "</div>";
         } else if (gUrls.length === 1) {
             var w1 = document.createElement('div');
             w1.style.cssText = 'position:relative;width:95%;max-width:100%;min-height:220px;margin:5px auto;';
@@ -8427,12 +8619,12 @@ async function spiritLoadListingMessagesForProduct(productId) {
             btnP.type = 'button';
             btnP.className = 'btn-action';
             btnP.style.cssText = 'padding:6px 16px;font-size:0.65rem;';
-            btnP.textContent = '◀ Précédent';
+            btnP.textContent = (typeof spiritT === 'function') ? spiritT('gallery_prev') : '◀ Précédent';
             var btnN = document.createElement('button');
             btnN.type = 'button';
             btnN.className = 'btn-action';
             btnN.style.cssText = 'padding:6px 16px;font-size:0.65rem;';
-            btnN.textContent = 'Suivant ▶';
+            btnN.textContent = (typeof spiritT === 'function') ? spiritT('gallery_next') : 'Suivant ▶';
             window.spiritGalleryUrls = gUrls.slice();
             window.spiritGalleryIndex = 0;
             function spiritGalleryRefresh() {
@@ -9393,7 +9585,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
         // CORRECTION : Support Supabase 'ship_size' + local 'shipSize'
         const size = selectedProduct.ship_size || selectedProduct.shipSize || "Moyen";
         let shipCost = 0;
-        let carrierName = "---";
+        var carrierPlaceholder = (typeof spiritT === 'function') ? spiritT('pm_carrier_select') : '---';
+        let carrierName = carrierPlaceholder;
         if(carrierKey !== "0") {
             shipCost = shippingRates[size][carrierKey];
             carrierName = document.getElementById('pCarrierSelect').options[document.getElementById('pCarrierSelect').selectedIndex].text;
@@ -10010,10 +10203,11 @@ window.showAccountTab = function showAccountTab(tab) {
         pageActive.classList.add('active');
         // console.log("[SPIRIT NAV] Navigation vers :", tab);
         
-        // AJOUT : Nettoyage du message statique "Ici tu verras..." pour laisser place au Ledger
-        const staticMsg = pageActive.querySelector('p');
-        if (staticMsg && staticMsg.innerText.includes("Ici, tu verras")) {
-            staticMsg.innerHTML = '<span style="color:var(--neon-orange);">INITIALISATION DU LEDGER...</span>';
+        if (tab === 'ventes') {
+            try {
+                var tvi = document.getElementById('tab-ventes-static-intro');
+                if (tvi && typeof spiritT === 'function') tvi.textContent = spiritT('tab_sales_loading');
+            } catch (eTV0) {}
         }
     }
 
@@ -10088,12 +10282,12 @@ window.showAccountTab = function showAccountTab(tab) {
         console.log("[SPIRIT SYSTEM] Accès paramètres");
         try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR) {}
         try { if (typeof spiritRenderShippingAddressForm === 'function') spiritRenderShippingAddressForm(); } catch (eA) {}
-        try {
-            if (typeof switchLanguage === 'function') switchLanguage(typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR');
-        } catch (eI18nP) {}
         try { void spiritSyncAccountCountrySelectFromUser(); } catch (eCo) {}
     }
 
+    try {
+        if (typeof switchLanguage === 'function') switchLanguage(typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR');
+    } catch (eI18nTab) {}
 
     // 4. On allume le bouton du menu correspondant (ID: btn-achats, etc.)
     const boutonActif = document.getElementById('btn-' + tab);
@@ -11877,7 +12071,19 @@ function spiritEvalAggregate(rows) {
 function spiritEvalSetBadgeCommentCount(cat, n) {
     var id = cat === 'achat' ? 'spiritBadgeAchatBtn' : (cat === 'vente' ? 'spiritBadgeVenteBtn' : (cat === 'livraison' ? 'spiritBadgeLivrBtn' : 'spiritBadgeLitBtn'));
     var el = document.getElementById(id);
-    if (el) el.textContent = String(Math.max(0, Number(n) || 0)) + ' avis';
+    if (!el) return;
+    var num = String(Math.max(0, Number(n) || 0));
+    var suf = (typeof spiritT === 'function') ? spiritT('pub_review_suffix') : 'avis';
+    el.textContent = num + ' ' + suf;
+}
+function spiritRefreshEvalBadgeButtonLang() {
+    var map = [['spiritBadgeAchatBtn', 'achat'], ['spiritBadgeVenteBtn', 'vente'], ['spiritBadgeLivrBtn', 'livraison'], ['spiritBadgeLitBtn', 'litige']];
+    for (var i = 0; i < map.length; i++) {
+        var el = document.getElementById(map[i][0]);
+        if (!el) continue;
+        var m = String(el.textContent || '').match(/^(\d+)/);
+        if (m) spiritEvalSetBadgeCommentCount(map[i][1], Number(m[1]));
+    }
 }
 function spiritPublicApplyBadgesFromAgg(agg) {
     function z(id, v) { var el = document.getElementById(id); if (el) el.textContent = String(v); }
@@ -12206,23 +12412,25 @@ function spiritPublicWireAvatarOnce() {
 async function spiritPublicLoadIaScore(uid, row) {
     var el = document.getElementById('spiritPublicIAScore');
     if (!el) return;
+    function iaLbl() { return (typeof spiritT === 'function') ? spiritT('pub_ia') : 'IA Score :'; }
+    function iaAvgLbl() { return (typeof spiritT === 'function') ? spiritT('pub_ia_avg') : 'IA Score moy. :'; }
     uid = String(uid || '').trim();
-    if (!uid) { el.textContent = 'IA Score : —'; return; }
+    if (!uid) { el.textContent = iaLbl() + ' —'; return; }
     if (row && row.ia_score != null && row.ia_score !== '' && Number.isFinite(Number(row.ia_score))) {
         var scoreRow = Math.round(Number(row.ia_score));
-        el.textContent = 'IA Score : ' + scoreRow;
+        el.textContent = iaLbl() + ' ' + scoreRow;
         spiritLsCacheWrite(spiritPublicIaScoreCacheKey(uid), [{ score: scoreRow }]);
         return;
     }
     var c = spiritLsCacheRead(spiritPublicIaScoreCacheKey(uid), SPIRIT_PUBLIC_IASCORE_CACHE_TTL_MS);
     if (Array.isArray(c) && c[0] && Number.isFinite(Number(c[0].score))) {
-        el.textContent = 'IA Score : ' + Math.round(Number(c[0].score));
+        el.textContent = iaLbl() + ' ' + Math.round(Number(c[0].score));
         return;
     }
-    if (typeof _spirit === 'undefined' || !_spirit) { el.textContent = 'IA Score : —'; return; }
+    if (typeof _spirit === 'undefined' || !_spirit) { el.textContent = iaLbl() + ' —'; return; }
     try {
         var out = await _spirit.from('products_live').select('ia_score').eq('owner_id', uid);
-        if (out.error || !out.data || !out.data.length) { el.textContent = 'IA Score : —'; return; }
+        if (out.error || !out.data || !out.data.length) { el.textContent = iaLbl() + ' —'; return; }
         var sum = 0, n = 0;
         out.data.forEach(function (r) {
             var v = Number(r.ia_score);
@@ -12230,12 +12438,12 @@ async function spiritPublicLoadIaScore(uid, row) {
         });
         if (n) {
             var avg = Math.round(sum / n);
-            el.textContent = 'IA Score moy. : ' + avg;
+            el.textContent = iaAvgLbl() + ' ' + avg;
             spiritLsCacheWrite(spiritPublicIaScoreCacheKey(uid), [{ score: avg }]);
         } else {
-            el.textContent = 'IA Score : —';
+            el.textContent = iaLbl() + ' —';
         }
-    } catch (e) { el.textContent = 'IA Score : —'; }
+    } catch (e) { el.textContent = iaLbl() + ' —'; }
 }
 async function spiritPublicLoadAnnonces(uid, opts) {
     opts = opts || {};
