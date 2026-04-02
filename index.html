@@ -8420,10 +8420,10 @@ async function enregistrerVente(method) {
         try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eOf6) {}
         try {
             var txIdCreated = '';
-            if (ins && ins.data && ins.data[0] && ins.data[0].id != null) txIdCreated = String(ins.data[0].id);
+            if (ins && ins.data && ins.data[0] && ins.data[0].id != null) txIdCreated = String(ins.data[0].id).trim().toLowerCase();
             if (!txIdCreated) {
                 var qTx = await _spirit.from('transactions').select('id').eq('buyer_id', buyerIdTxt).eq('seller_id', sellerIdTxt).order('created_at', { ascending: false }).limit(1);
-                if (!qTx.error && qTx.data && qTx.data[0] && qTx.data[0].id != null) txIdCreated = String(qTx.data[0].id);
+                if (!qTx.error && qTx.data && qTx.data[0] && qTx.data[0].id != null) txIdCreated = String(qTx.data[0].id).trim().toLowerCase();
             }
             try {
                 var _sellerN2 = spiritNormUid(String(selectedProduct.owner_id || selectedProduct.owner || ''));
@@ -11122,11 +11122,11 @@ async function spiritOpenEvaluationFromNotif(refId, fromUid) {
         var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
         if (!me || !_spirit) { alert('Connecte-toi pour évaluer.'); return; }
         var tr = { data: null, error: null };
-        // Requête directe par id seulement si l'identifiant ressemble à un id numérique (évite 400 si UUID/non compatible).
-        if (/^\d+$/.test(refId)) {
+        var refNorm = String(refId || '').trim().toLowerCase();
+        if (typeof spiritIsUuid === 'function' && spiritIsUuid(refNorm)) {
             tr = await _spirit.from('transactions')
                 .select('*')
-                .eq('id', Number(refId))
+                .eq('id', refNorm)
                 .maybeSingle();
         }
         // Fallback: anciennes notifs stockaient parfois l'id annonce au lieu de l'id transaction.
@@ -11185,7 +11185,7 @@ async function spiritOpenEvaluationFromNotif(refId, fromUid) {
         var isSeller = me && me === seller;
         if (!isBuyer && !isSeller) { alert('Cette évaluation ne te concerne pas.'); return; }
         var role = isBuyer ? 'buyer' : 'seller';
-        var txId = String(t.id || refId);
+        var txId = String(t.id || refId).trim().toLowerCase();
         if (await spiritEvalExistsByAuthor(txId, me)) {
             spiritAutoEvalMarkDone(role, txId);
             alert('Tu as déjà laissé une évaluation pour cette transaction.');
@@ -15275,9 +15275,8 @@ function spiritAutoEvalIsDone(role, txId) {
 }
 async function spiritEvalExistsByAuthor(txId, authorUid) {
     if (!_spirit || spiritEvalTableMissing) return false;
-    txId = String(txId || '').trim();
-    // transaction_id côté table évaluations attend un id transaction numérique.
-    if (!/^\d+$/.test(txId)) return false;
+    txId = String(txId || '').trim().toLowerCase();
+    if (typeof spiritIsUuid !== 'function' || !spiritIsUuid(txId)) return false;
     try {
         var out = await _spirit.from(SPIRIT_EVAL_TABLE)
             .select('id')
@@ -15368,8 +15367,8 @@ async function spiritEvalResolveTxId(authorUid, targetUid) {
             pick = t1 >= t2 ? r1 : r2;
         } else pick = r1 || r2;
         if (pick && pick.id != null) {
-            var id = String(pick.id).trim();
-            return /^\d+$/.test(id) ? id : '';
+            var id = String(pick.id).trim().toLowerCase();
+            if (typeof spiritIsUuid === 'function' && spiritIsUuid(id)) return id;
         }
     } catch (e) {}
     return '';
@@ -15395,18 +15394,17 @@ async function spiritAutoEvalInsert(stars, mainComment, categoryOverride, delive
     if (!ctx || !_spirit || spiritEvalTableMissing) return false;
     try {
         var category = spiritEvalCategoryNorm(categoryOverride || ctx.category || 'achat') || 'achat';
-        var txIdTxt = String(ctx.txId || '').trim();
-        if (!/^\d+$/.test(txIdTxt)) {
-            txIdTxt = await spiritEvalResolveTxId(ctx.authorUid, ctx.targetUid);
+        var txIdTxt = String(ctx.txId || '').trim().toLowerCase();
+        if (typeof spiritIsUuid !== 'function' || !spiritIsUuid(txIdTxt)) {
+            txIdTxt = String((await spiritEvalResolveTxId(ctx.authorUid, ctx.targetUid)) || '').trim().toLowerCase();
         }
-        var txIdNum = Number(txIdTxt);
-        if (!Number.isFinite(txIdNum)) {
+        if (typeof spiritIsUuid !== 'function' || !spiritIsUuid(txIdTxt)) {
             var st0 = document.getElementById('spiritAutoEvalStatus');
             if (st0) st0.textContent = 'Transaction invalide pour évaluation.';
             return false;
         }
         var basePayload = {
-            transaction_id: txIdNum,
+            transaction_id: txIdTxt,
             author_user_id: spiritNormUid(ctx.authorUid || ''),
             target_user_id: spiritNormUid(ctx.targetUid || ''),
             author_pseudo: String(ctx.authorPseudo || 'Membre')
@@ -15429,14 +15427,14 @@ async function spiritAutoEvalInsert(stars, mainComment, categoryOverride, delive
             var ins2 = await _spirit.from(SPIRIT_EVAL_TABLE).insert([payloadLiv]);
             if (ins2.error) { spiritEvalMarkMissingIf404(ins2.error); throw ins2.error; }
         }
-        spiritAutoEvalMarkDone(ctx.role || '', ctx.txId || '');
+        spiritAutoEvalMarkDone(ctx.role || '', txIdTxt);
         try {
             if (!spiritSanNotifsTableMissing) {
                 await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
                     .delete()
                     .eq('owner_id', spiritNormUid(ctx.authorUid || ''))
                     .eq('type', 'evaluation_pending')
-                    .eq('item_id', String(txIdNum));
+                    .eq('item_id', txIdTxt);
             }
         } catch (eDelEval) {}
         try { if (typeof spiritLoadMessagesTab === 'function') spiritLoadMessagesTab(); } catch (eRMsg) {}
@@ -15487,11 +15485,11 @@ function spiritAutoEvalOnOverlayClick(ev) {
 }
 async function spiritMaybePromptAutoEvaluationByTx(txId, roleHint) {
     if (!txId || !_spirit) return;
-    txId = String(txId || '').trim();
-    if (!/^\d+$/.test(txId)) return;
+    txId = String(txId || '').trim().toLowerCase();
+    if (typeof spiritIsUuid !== 'function' || !spiritIsUuid(txId)) return;
     var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
     if (!me) return;
-    var tr = await _spirit.from('transactions').select('*').eq('id', Number(txId)).maybeSingle();
+    var tr = await _spirit.from('transactions').select('*').eq('id', txId).maybeSingle();
     if (tr.error || !tr.data) return;
     var t = tr.data;
     var status = String(t.status || '').toLowerCase();
@@ -15513,7 +15511,7 @@ async function spiritMaybePromptAutoEvaluationByTx(txId, roleHint) {
     var defaultCategory = isBuyer ? 'achat' : 'vente';
     var authorPseudo = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser).trim() : 'Membre';
     await spiritAutoEvalOpen({
-        txId: String(txId),
+        txId: txId,
         role: role,
         authorUid: me,
         targetUid: targetUid,
@@ -15529,7 +15527,7 @@ async function spiritMaybePromptSellerEvaluations(rows) {
         var tr = rows[i] || {};
         var st = String(tr.status || '').toLowerCase();
         if (st.indexOf('livraison valid') < 0 && st.indexOf('termine') < 0 && st.indexOf('séquestre actif') < 0 && st.indexOf('sequestre actif') < 0) continue;
-        var txId = String(tr.id || '');
+        var txId = String(tr.id || '').trim().toLowerCase();
         if (!txId) continue;
         if (spiritAutoEvalIsDone('seller', txId)) continue;
         var exists = await spiritEvalExistsByAuthor(txId, me);
