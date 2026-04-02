@@ -1076,9 +1076,21 @@
                 padding-right: 36px;
                 border-radius: 6px;
                 margin-bottom: 6px;
-                transition: background 0.22s ease, border-color 0.22s ease;
-                color: var(--neon-orange) !important;
-                border-color: rgba(255, 102, 0, 0.22);
+                transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease, text-shadow 0.22s ease;
+                /* Inactif : orange discret */
+                color: rgba(255, 160, 100, 0.72) !important;
+                border-color: rgba(255, 102, 0, 0.18);
+                background: rgba(255, 102, 0, 0.03);
+                box-shadow: none;
+                text-shadow: none;
+            }
+            #accountModal .dash-nav button.active {
+                /* Actif : orange néon plus lumineux */
+                color: #ffb366 !important;
+                border-color: rgba(255, 102, 0, 0.65);
+                background: rgba(255, 102, 0, 0.14);
+                box-shadow: 0 0 0 1px rgba(255, 102, 0, 0.2), 0 0 18px rgba(255, 102, 0, 0.12);
+                text-shadow: 0 0 14px rgba(255, 140, 60, 0.35);
             }
             #accountModal .dash-nav button::after {
                 content: '';
@@ -1087,17 +1099,16 @@
                 top: 50%;
                 width: 7px;
                 height: 7px;
-                border-right: 2px solid #555;
-                border-bottom: 2px solid #555;
-                border-right-color: rgba(255, 160, 80, 0.75);
-                border-bottom-color: rgba(255, 160, 80, 0.75);
+                border-right: 2px solid rgba(255, 140, 90, 0.45);
+                border-bottom: 2px solid rgba(255, 140, 90, 0.45);
                 transform: translateY(-60%) rotate(45deg);
                 transition: transform 0.28s ease, border-color 0.22s ease;
                 pointer-events: none;
             }
             #accountModal .dash-nav button.active::after {
                 transform: translateY(-20%) rotate(-135deg);
-                border-color: var(--neon-orange);
+                border-right-color: rgba(255, 180, 100, 0.95);
+                border-bottom-color: rgba(255, 180, 100, 0.95);
             }
             #accountModal .dash-container {
                 max-height: min(calc(100dvh - 100px), calc(100vh - 100px));
@@ -14290,6 +14301,13 @@ async function spiritEvalExistsByAuthor(txId, authorUid) {
         return !!(out.data && out.data.length);
     } catch (e) { spiritEvalMarkMissingIf404(e); return false; }
 }
+function spiritAutoEvalSyncDeliveryBlock() {
+    var cat = document.getElementById('spiritAutoEvalCategory');
+    var block = document.getElementById('spiritAutoEvalDeliveryStarsBlock');
+    if (!block) return;
+    var c = spiritEvalCategoryNorm(cat && cat.value || '');
+    block.style.display = (c === 'livraison') ? 'none' : '';
+}
 function spiritAutoEvalResetUi() {
     var st = document.getElementById('spiritAutoEvalStatus');
     if (st) st.textContent = '';
@@ -14298,6 +14316,9 @@ function spiritAutoEvalResetUi() {
     var s = document.getElementById('spiritAutoEvalStars');
     if (s) s.value = '5';
     try { spiritAutoEvalSetStars(5); } catch (eS) {}
+    var sd = document.getElementById('spiritAutoEvalDeliveryStars');
+    if (sd) sd.value = '5';
+    try { spiritAutoEvalSetDeliveryStars(5); } catch (eD) {}
     var ds = document.getElementById('spiritAutoEvalDeliverySafe');
     if (ds) ds.value = 'oui';
 }
@@ -14307,6 +14328,23 @@ function spiritAutoEvalSetStars(n) {
     if (hidden) hidden.value = String(n);
     try {
         document.querySelectorAll('#spiritAutoEvalStarsRow .spirit-auto-star').forEach(function (b) {
+            var s = Number(b.getAttribute('data-star') || 0);
+            var on = s <= n;
+            b.textContent = on ? '★' : '☆';
+            b.style.background = on ? '#2a1a08' : '#111';
+            b.style.borderColor = on ? 'var(--neon-orange)' : '#333';
+            b.style.color = on ? 'var(--neon-orange)' : '#777';
+            b.style.minWidth = '34px';
+            b.style.padding = '6px 8px';
+        });
+    } catch (e) {}
+}
+function spiritAutoEvalSetDeliveryStars(n) {
+    n = Math.max(1, Math.min(5, Number(n) || 5));
+    var hidden = document.getElementById('spiritAutoEvalDeliveryStars');
+    if (hidden) hidden.value = String(n);
+    try {
+        document.querySelectorAll('#spiritAutoEvalDeliveryStarsRow .spirit-auto-star').forEach(function (b) {
             var s = Number(b.getAttribute('data-star') || 0);
             var on = s <= n;
             b.textContent = on ? '★' : '☆';
@@ -14361,9 +14399,11 @@ async function spiritAutoEvalOpen(ctx) {
     if (pseudo) pseudo.value = String(ctx.targetPseudo || 'Membre');
     if (cat) cat.value = String(ctx.category || 'achat');
     if (tx) tx.value = String(ctx.txId || '');
+    try { spiritAutoEvalSyncDeliveryBlock(); } catch (eB) {}
     root.style.setProperty('display', 'block', 'important');
 }
-async function spiritAutoEvalInsert(stars, comment, categoryOverride) {
+/** deliveryStars: nombre = 2e ligne catégorie livraison ; null = pas de 2e insert (ex. catégorie déjà livraison). deliveryComment: texte associé à la ligne livraison. */
+async function spiritAutoEvalInsert(stars, mainComment, categoryOverride, deliveryStars, deliveryComment) {
     var ctx = spiritAutoEvalCtx;
     if (!ctx || !_spirit || spiritEvalTableMissing) return false;
     try {
@@ -14378,17 +14418,30 @@ async function spiritAutoEvalInsert(stars, comment, categoryOverride) {
             if (st0) st0.textContent = 'Transaction invalide pour évaluation.';
             return false;
         }
-        var payload = {
+        var basePayload = {
             transaction_id: txIdNum,
-            category: category,
-            stars: Math.max(1, Math.min(5, Number(stars) || 5)),
-            comment: String(comment || '').slice(0, 1200),
             author_user_id: spiritNormUid(ctx.authorUid || ''),
             target_user_id: spiritNormUid(ctx.targetUid || ''),
             author_pseudo: String(ctx.authorPseudo || 'Membre')
         };
-        var ins = await _spirit.from(SPIRIT_EVAL_TABLE).insert([payload]);
+        var payloadMain = Object.assign({}, basePayload, {
+            category: category,
+            stars: Math.max(1, Math.min(5, Number(stars) || 5)),
+            comment: String(mainComment || '').slice(0, 1200)
+        });
+        var ins = await _spirit.from(SPIRIT_EVAL_TABLE).insert([payloadMain]);
         if (ins.error) { spiritEvalMarkMissingIf404(ins.error); throw ins.error; }
+        var doLiv = deliveryStars != null && category !== 'livraison';
+        if (doLiv) {
+            var livComment = String(deliveryComment || '').trim() || 'Évaluation livraison.';
+            var payloadLiv = Object.assign({}, basePayload, {
+                category: 'livraison',
+                stars: Math.max(1, Math.min(5, Number(deliveryStars) || 5)),
+                comment: String(livComment).slice(0, 1200)
+            });
+            var ins2 = await _spirit.from(SPIRIT_EVAL_TABLE).insert([payloadLiv]);
+            if (ins2.error) { spiritEvalMarkMissingIf404(ins2.error); throw ins2.error; }
+        }
         spiritAutoEvalMarkDone(ctx.role || '', ctx.txId || '');
         try {
             if (!spiritSanNotifsTableMissing) {
@@ -14413,9 +14466,14 @@ async function spiritAutoEvalSubmit() {
     var c = document.getElementById('spiritAutoEvalComment');
     var cat = document.getElementById('spiritAutoEvalCategory');
     var ds = document.getElementById('spiritAutoEvalDeliverySafe');
+    var dStarsEl = document.getElementById('spiritAutoEvalDeliveryStars');
     var safeTxt = ds && ds.value === 'non' ? 'Livraison: non protégée. ' : 'Livraison: protégée. ';
-    var fullComment = safeTxt + String(c && c.value || '');
-    var ok = await spiritAutoEvalInsert(Number(s && s.value), fullComment, cat && cat.value);
+    var catNorm = spiritEvalCategoryNorm(cat && cat.value || '');
+    var userTxt = String(c && c.value || '').trim();
+    var mainComment = (catNorm === 'livraison') ? (safeTxt + userTxt) : userTxt;
+    var deliveryStars = (catNorm === 'livraison') ? null : Math.max(1, Math.min(5, Number(dStarsEl && dStarsEl.value) || 5));
+    var livComment = deliveryStars != null ? safeTxt : '';
+    var ok = await spiritAutoEvalInsert(Number(s && s.value), mainComment, cat && cat.value, deliveryStars, livComment);
     if (!ok) return;
     var root = document.getElementById('spiritAutoEvalModal');
     if (root) root.style.setProperty('display', 'none', 'important');
@@ -14428,7 +14486,10 @@ async function spiritAutoEvalClose(applyFallback) {
     if (!root) return;
     if (applyFallback && spiritAutoEvalCtx) {
         var cm = 'Note automatique 5 étoiles (fenêtre fermée sans évaluation manuelle).';
-        await spiritAutoEvalInsert(5, cm, spiritAutoEvalCtx.category);
+        var catF = spiritEvalCategoryNorm(spiritAutoEvalCtx.category || 'achat');
+        var delF = (catF === 'livraison') ? null : 5;
+        var livF = delF != null ? 'Livraison: protégée. Note automatique 5★.' : '';
+        await spiritAutoEvalInsert(5, cm, spiritAutoEvalCtx.category, delF, livF);
     }
     root.style.setProperty('display', 'none', 'important');
     spiritAutoEvalCtx = null;
@@ -14543,7 +14604,7 @@ function closeModals() {
             </div>
             <div>
                 <label style="font-size:0.62rem;color:#888;">Catégorie</label>
-                <select id="spiritAutoEvalCategory">
+                <select id="spiritAutoEvalCategory" onchange="spiritAutoEvalSyncDeliveryBlock()">
                     <option value="achat">Achat</option>
                     <option value="vente">Vente</option>
                     <option value="livraison">Livraison</option>
@@ -14564,6 +14625,17 @@ function closeModals() {
                 <label style="font-size:0.62rem;color:#888;">Transaction</label>
                 <input id="spiritAutoEvalTx" type="text" readonly />
             </div>
+        </div>
+        <div id="spiritAutoEvalDeliveryStarsBlock" style="margin-top:10px;padding-top:10px;border-top:1px solid #222;">
+            <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:6px;">Livraison — note sur 5</label>
+            <div id="spiritAutoEvalDeliveryStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetDeliveryStars(1)">☆</button>
+                <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetDeliveryStars(2)">☆</button>
+                <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetDeliveryStars(3)">☆</button>
+                <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetDeliveryStars(4)">☆</button>
+                <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetDeliveryStars(5)">☆</button>
+            </div>
+            <input id="spiritAutoEvalDeliveryStars" type="hidden" value="5" />
         </div>
         <div style="margin-top:8px;">
             <label style="font-size:0.62rem;color:#888;">Livraison bien protégée ?</label>
