@@ -1822,6 +1822,20 @@
         .spirit-sanctuary-chat .spirit-san-chat-msgs { max-height: 200px; overflow-y: auto; margin-bottom: 10px; font-size: 0.72rem; }
         .spirit-sanctuary-chat .spirit-san-chat-line { padding: 6px 0; border-bottom: 1px solid #151515; }
         .spirit-sanctuary-chat .spirit-san-chat-line .who { color: var(--spirit-green); font-weight: 700; }
+        .spirit-san-comments-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.38s ease, opacity 0.22s ease;
+            opacity: 0;
+        }
+        .spirit-san-comments-panel.spirit-san-comments-open {
+            max-height: 220px;
+            overflow-y: auto;
+            opacity: 1;
+            margin-top: 4px;
+        }
+        .spirit-san-comments-toggle .spirit-san-acc-ic { font-size: 0.55rem; color: #888; transition: transform 0.2s ease; display: inline-block; }
+        .spirit-san-comments-toggle.spirit-san-toggle-open .spirit-san-acc-ic { transform: rotate(180deg); }
         #nav-account { position: relative; }
         #nav-account-sanctuary-dot {
             display: none; position: absolute; top: 2px; right: 2px; width: 9px; height: 9px; border-radius: 50%;
@@ -3883,7 +3897,23 @@
             'friends_modal_title': 'LISTE D\'AMIS', 'friends_modal_p': 'Clique un pseudo pour ouvrir son profil public. Utilise la croix pour supprimer.',
             'gallery_prev': '◀ Précédent', 'gallery_next': 'Suivant ▶',
             'pub_lbl_achat': 'Achat', 'pub_lbl_vente': 'Vente', 'pub_lbl_livr': 'Livraison', 'pub_lbl_lit': 'Litige', 'pub_review_suffix': 'avis',
-            'pub_ia_avg': 'IA Score moy. :'
+            'pub_ia_avg': 'IA Score moy. :',
+            'san_like_title': 'J’aime', 'san_comment_title': 'Commenter', 'san_login_like': 'Connecte-toi pour aimer.', 'san_login_comment': 'Connecte-toi pour commenter.',
+            'san_prompt_comment': 'Ton commentaire :', 'san_no_comments': 'Aucun commentaire.', 'san_comments_toggle': 'Commentaires',
+            'san_desc_ph': 'Description', 'san_desc_none': 'Aucune description.', 'san_neon_lbl': 'Néon', 'san_trash_title': 'CORBEILLE', 'san_work_prefix': 'Œuvre #',
+            'san_neon_current': 'Couleur actuelle',
+            'msg_login': 'Connecte-toi pour voir tes messages.', 'msg_supabase': 'Supabase indisponible.', 'msg_loading': 'Chargement des alertes…', 'msg_empty': 'Aucune alerte pour le moment.',
+            'msg_new_activity': 'Nouvelle activité',
+            'msg_activity': '(activité)', 'msg_del_btn': 'Supprimer', 'msg_see_ad': 'Voir l’annonce', 'msg_rate_now': 'Noter maintenant', 'msg_open_discussion': 'Ouvrir la discussion',
+            'msg_hint_rls': 'Astuce : si la table spirit_sanctuary_notifications manque ou les politiques RLS bloquent les insert, les alertes ci-dessus proviennent directement des likes et commentaires. Exécute le SQL du fichier et les policies san_notif_* (commentaires dans le bloc SQL).',
+            'pub_ad_empty': 'Aucune annonce publique.', 'pub_ad_loading': 'Chargement…', 'pub_ad_sold': 'VENDU', 'pub_ad_avail': 'DISPONIBLE', 'pub_ad_view': 'VOIR L’ANNONCE',
+            'eval_hide_confirm': 'Retirer cet avis de la liste Mon compte ? Il restera visible sur ton profil public.',
+            'eval_hide_all_confirm': 'Retirer tous les avis de la liste Mon compte ? Ils resteront visibles sur ton profil public.',
+            'eval_hide_all_confirm2': 'Confirmer : vider la liste dans Mon compte (les avis restent en base et sur le profil public).',
+            'eval_hidden_ok': 'Avis retiré de cette liste.', 'eval_hide_all_ok': 'Liste Mon compte vidée (avis toujours sur le profil public).', 'eval_hide_err': 'Erreur : ',
+            'eval_hide_btn_title': 'Retirer de la liste Mon compte', 'eval_your_reply': 'Ta réponse :', 'eval_reply': 'RÉPONDRE', 'eval_reply_edit': 'MODIFIER LA RÉPONSE',
+            'eval_none_list': 'Aucune évaluation reçue pour le moment.', 'eval_login': 'Connecte-toi pour voir tes avis.', 'eval_loading': 'Chargement…', 'san_add_title': 'Ajouter une photo',
+            'san_max_15': 'Maximum 15 photos dans le Sanctuaire.', 'san_import_err': 'Import Sanctuaire impossible (bucket / RLS) : '
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -3965,7 +3995,23 @@
             'friends_modal_title': 'FRIENDS LIST', 'friends_modal_p': 'Click a username to open their public profile. Use ✕ to remove.',
             'gallery_prev': '◀ Previous', 'gallery_next': 'Next ▶',
             'pub_lbl_achat': 'Purchase', 'pub_lbl_vente': 'Sale', 'pub_lbl_livr': 'Shipping', 'pub_lbl_lit': 'Dispute', 'pub_review_suffix': 'reviews',
-            'pub_ia_avg': 'Avg. AI score:'
+            'pub_ia_avg': 'Avg. AI score:',
+            'san_like_title': 'Like', 'san_comment_title': 'Comment', 'san_login_like': 'Sign in to like.', 'san_login_comment': 'Sign in to comment.',
+            'san_prompt_comment': 'Your comment:', 'san_no_comments': 'No comments yet.', 'san_comments_toggle': 'Comments',
+            'san_desc_ph': 'Description', 'san_desc_none': 'No description.', 'san_neon_lbl': 'Neon', 'san_trash_title': 'TRASH', 'san_work_prefix': 'Piece #',
+            'san_neon_current': 'Current color',
+            'msg_login': 'Sign in to see your messages.', 'msg_supabase': 'Supabase unavailable.', 'msg_loading': 'Loading alerts…', 'msg_empty': 'No alerts yet.',
+            'msg_new_activity': 'New activity',
+            'msg_activity': '(activity)', 'msg_del_btn': 'Delete', 'msg_see_ad': 'View listing', 'msg_rate_now': 'Rate now', 'msg_open_discussion': 'Open thread',
+            'msg_hint_rls': 'Tip: if spirit_sanctuary_notifications is missing or RLS blocks inserts, the alerts below come straight from likes and comments. Run the SQL file and san_notif_* policies (see SQL comments).',
+            'pub_ad_empty': 'No public listings.', 'pub_ad_loading': 'Loading…', 'pub_ad_sold': 'SOLD', 'pub_ad_avail': 'AVAILABLE', 'pub_ad_view': 'VIEW LISTING',
+            'eval_hide_confirm': 'Remove this review from My Account only? It will stay on your public profile.',
+            'eval_hide_all_confirm': 'Remove all reviews from My Account only? They will stay on your public profile.',
+            'eval_hide_all_confirm2': 'Confirm: clear the My Account list (reviews remain in the database and on the public profile).',
+            'eval_hidden_ok': 'Removed from this list.', 'eval_hide_all_ok': 'My Account list cleared (reviews still on public profile).', 'eval_hide_err': 'Error: ',
+            'eval_hide_btn_title': 'Remove from My Account list', 'eval_your_reply': 'Your reply:', 'eval_reply': 'REPLY', 'eval_reply_edit': 'EDIT REPLY',
+            'eval_none_list': 'No reviews received yet.', 'eval_login': 'Sign in to see your reviews.', 'eval_loading': 'Loading…', 'san_add_title': 'Add a photo',
+            'san_max_15': 'Maximum 15 photos in the Sanctuary.', 'san_import_err': 'Sanctuary import failed (bucket / RLS): '
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -4047,7 +4093,23 @@
             'friends_modal_title': 'LISTA DE AMIGOS', 'friends_modal_p': 'Pulsa un usuario para abrir su perfil público. Usa ✕ para eliminar.',
             'gallery_prev': '◀ Anterior', 'gallery_next': 'Siguiente ▶',
             'pub_lbl_achat': 'Compra', 'pub_lbl_vente': 'Venta', 'pub_lbl_livr': 'Envío', 'pub_lbl_lit': 'Disputa', 'pub_review_suffix': 'reseñas',
-            'pub_ia_avg': 'IA media:'
+            'pub_ia_avg': 'IA media:',
+            'san_like_title': 'Me gusta', 'san_comment_title': 'Comentar', 'san_login_like': 'Inicia sesión para dar me gusta.', 'san_login_comment': 'Inicia sesión para comentar.',
+            'san_prompt_comment': 'Tu comentario:', 'san_no_comments': 'Sin comentarios.', 'san_comments_toggle': 'Comentarios',
+            'san_desc_ph': 'Descripción', 'san_desc_none': 'Sin descripción.', 'san_neon_lbl': 'Neón', 'san_trash_title': 'PAPELERA', 'san_work_prefix': 'Pieza n.º ',
+            'san_neon_current': 'Color actual',
+            'msg_login': 'Inicia sesión para ver tus mensajes.', 'msg_supabase': 'Supabase no disponible.', 'msg_loading': 'Cargando alertas…', 'msg_empty': 'Sin alertas por ahora.',
+            'msg_new_activity': 'Nueva actividad',
+            'msg_activity': '(actividad)', 'msg_del_btn': 'Eliminar', 'msg_see_ad': 'Ver anuncio', 'msg_rate_now': 'Valorar ahora', 'msg_open_discussion': 'Abrir conversación',
+            'msg_hint_rls': 'Consejo: si falta spirit_sanctuary_notifications o RLS bloquea inserts, las alertas vienen de me gusta y comentarios. Ejecuta el SQL y las policies san_notif_*.',
+            'pub_ad_empty': 'Sin anuncios públicos.', 'pub_ad_loading': 'Cargando…', 'pub_ad_sold': 'VENDIDO', 'pub_ad_avail': 'DISPONIBLE', 'pub_ad_view': 'VER ANUNCIO',
+            'eval_hide_confirm': '¿Quitar esta valoración solo de Mi cuenta? Seguirá visible en tu perfil público.',
+            'eval_hide_all_confirm': '¿Quitar todas las valoraciones solo de Mi cuenta? Seguirán visibles en tu perfil público.',
+            'eval_hide_all_confirm2': 'Confirmar: vaciar la lista en Mi cuenta (las valoraciones siguen en base y en el perfil público).',
+            'eval_hidden_ok': 'Quitada de esta lista.', 'eval_hide_all_ok': 'Lista de Mi cuenta vaciada (valoraciones aún en el perfil público).', 'eval_hide_err': 'Error: ',
+            'eval_hide_btn_title': 'Quitar de la lista Mi cuenta', 'eval_your_reply': 'Tu respuesta:', 'eval_reply': 'RESPONDER', 'eval_reply_edit': 'EDITAR RESPUESTA',
+            'eval_none_list': 'Aún no hay valoraciones recibidas.', 'eval_login': 'Inicia sesión para ver tus valoraciones.', 'eval_loading': 'Cargando…', 'san_add_title': 'Añadir una foto',
+            'san_max_15': 'Máximo 15 fotos en el Santuario.', 'san_import_err': 'Importación al Santuario imposible (bucket / RLS): '
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -4129,7 +4191,23 @@
             'friends_modal_title': '好友列表', 'friends_modal_p': '点击用户名打开公开资料。使用 ✕ 删除。',
             'gallery_prev': '◀ 上一张', 'gallery_next': '下一张 ▶',
             'pub_lbl_achat': '购买', 'pub_lbl_vente': '销售', 'pub_lbl_livr': '物流', 'pub_lbl_lit': '纠纷', 'pub_review_suffix': '条评价',
-            'pub_ia_avg': 'AI 平均分：'
+            'pub_ia_avg': 'AI 平均分：',
+            'san_like_title': '点赞', 'san_comment_title': '评论', 'san_login_like': '请登录后再点赞。', 'san_login_comment': '请登录后再评论。',
+            'san_prompt_comment': '你的评论：', 'san_no_comments': '暂无评论。', 'san_comments_toggle': '评论',
+            'san_desc_ph': '描述', 'san_desc_none': '暂无描述。', 'san_neon_lbl': '霓虹', 'san_trash_title': '删除', 'san_work_prefix': '作品 #',
+            'san_neon_current': '当前颜色',
+            'msg_login': '请登录查看消息。', 'msg_supabase': 'Supabase 不可用。', 'msg_loading': '正在加载提醒…', 'msg_empty': '暂无提醒。',
+            'msg_new_activity': '新动态',
+            'msg_activity': '（动态）', 'msg_del_btn': '删除', 'msg_see_ad': '查看商品', 'msg_rate_now': '立即评价', 'msg_open_discussion': '打开对话',
+            'msg_hint_rls': '提示：若缺少 spirit_sanctuary_notifications 或 RLS 阻止写入，下方提醒来自点赞与评论。请执行 SQL 与 san_notif_* 策略。',
+            'pub_ad_empty': '暂无公开上架。', 'pub_ad_loading': '加载中…', 'pub_ad_sold': '已售', 'pub_ad_avail': '在售', 'pub_ad_view': '查看商品',
+            'eval_hide_confirm': '仅从「我的账户」列表移除此评价？公开资料仍将显示。',
+            'eval_hide_all_confirm': '仅从「我的账户」移除全部评价？公开资料仍将显示。',
+            'eval_hide_all_confirm2': '确认：清空我的账户列表（数据库与公开资料中的评价保留）。',
+            'eval_hidden_ok': '已从列表移除。', 'eval_hide_all_ok': '我的账户列表已清空（公开资料仍显示评价）。', 'eval_hide_err': '错误：',
+            'eval_hide_btn_title': '从我的账户列表移除', 'eval_your_reply': '你的回复：', 'eval_reply': '回复', 'eval_reply_edit': '修改回复',
+            'eval_none_list': '暂无收到的评价。', 'eval_login': '请登录查看你的评价。', 'eval_loading': '加载中…', 'san_add_title': '添加照片',
+            'san_max_15': '圣地最多 15 张照片。', 'san_import_err': '圣地导入失败（存储桶 / RLS）：'
         }
     };
 
@@ -10470,6 +10548,8 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      created_at timestamptz default now()
    );
    create index if not exists idx_sanctuary_items_user on public.sanctuary_items(user_id);
+   -- Profil public : les visiteurs doivent pouvoir SELECT (au moins image_url, description, neon_color, sort_order) pour user_id = profil consulté.
+   -- Si la description est vide côté public alors qu’elle s’affiche pour le propriétaire, vérifie les policies RLS (ex. policy SELECT pour tous les utilisateurs authentifiés ou anon sur les lignes des autres).
    create table if not exists public.sanctuary_chat (
      id bigint primary key generated always as identity,
      recipient_id text not null,
@@ -11280,19 +11360,20 @@ try { window.spiritSanctuaryDeleteNotification = spiritSanctuaryDeleteNotificati
 function spiritLoadMessagesTab() {
     var box = document.getElementById('spiritMessagesList');
     if (!box) return;
+    function mT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
     var me = '';
     try { me = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : (typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim()); } catch (e) {}
     var meN = spiritNormUid(me);
     var ownerCandidates = [String(me || '').trim(), meN].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
     if (!meN) {
-        box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Connecte-toi pour voir tes messages.</div>';
+        box.innerHTML = '<div style="font-size:0.68rem;color:#666;">' + String(mT('msg_login')).replace(/</g, '&lt;') + '</div>';
         return;
     }
     if (!spiritSanSocialCanUseSupabase()) {
-        box.innerHTML = '<div style="font-size:0.68rem;color:#855;">Supabase indisponible.</div>';
+        box.innerHTML = '<div style="font-size:0.68rem;color:#855;">' + String(mT('msg_supabase')).replace(/</g, '&lt;') + '</div>';
         return;
     }
-    box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Chargement des alertes...</div>';
+    box.innerHTML = '<div style="font-size:0.68rem;color:#666;">' + String(mT('msg_loading')).replace(/</g, '&lt;') + '</div>';
     void (async function () {
         var rows = [];
         var dbOk = true;
@@ -11322,9 +11403,9 @@ function spiritLoadMessagesTab() {
         if (!merged.length) {
             var hint = '';
             if (!dbOk || spiritSanNotifsTableMissing) {
-                hint = '<div style="font-size:0.62rem;color:#666;margin-top:8px;line-height:1.4;">Astuce : si la table <code style="color:#fa0;">spirit_sanctuary_notifications</code> manque ou les politiques RLS bloquent les insert, les alertes ci-dessus proviennent directement des likes et commentaires. Exécute le SQL du fichier et les policies <b>san_notif_*</b> (commentaires dans le bloc SQL).</div>';
+                hint = '<div style="font-size:0.62rem;color:#666;margin-top:8px;line-height:1.4;">' + String(mT('msg_hint_rls')).replace(/</g, '&lt;') + '</div>';
             }
-            box.innerHTML = '<div style="font-size:0.68rem;color:#666;">Aucune alerte pour le moment.</div>' + hint;
+            box.innerHTML = '<div style="font-size:0.68rem;color:#666;">' + String(mT('msg_empty')).replace(/</g, '&lt;') + '</div>' + hint;
         } else {
             var uidList = [];
             merged.forEach(function (n) {
@@ -11336,8 +11417,8 @@ function spiritLoadMessagesTab() {
                 var uidFrom = String(n.from_uid || '').trim();
                 var from = fromMap[uidFrom] || spiritSanctuaryFallbackLabel(uidFrom);
                 var dt = n.created_at ? new Date(n.created_at).toLocaleString() : '—';
-                var txt = String(n.text || 'Nouvelle activité');
-                var synTag = n.synthetic ? '<span style="font-size:0.55rem;color:#666;margin-left:6px;">(activité)</span>' : '';
+                var txt = String(n.text || mT('msg_new_activity'));
+                var synTag = n.synthetic ? '<span style="font-size:0.55rem;color:#666;margin-left:6px;">' + String(mT('msg_activity')).replace(/</g, '&lt;') + '</span>' : '';
                 var nid = Number(n.id);
                 var idStr = Number.isFinite(nid) && nid > 0 ? String(nid) : '0';
                 var nType = String(n.type || '');
@@ -11345,14 +11426,14 @@ function spiritLoadMessagesTab() {
                 var itemIdEsc = itemIdRaw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                 var fromUidEsc = uidFrom.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                 var listingBtn = (nType === 'listing_new' && itemIdRaw)
-                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1a3a2a;border:1px solid #2a8a5a;color:#9f9;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Voir l’annonce</button></div>'
+                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1a3a2a;border:1px solid #2a8a5a;color:#9f9;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">' + String(mT('msg_see_ad')).replace(/</g, '&lt;') + '</button></div>'
                     : (nType === 'evaluation_pending' && itemIdRaw)
-                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1f2a12;border:1px solid #8aaa2a;color:#efe28a;" onclick="try{event.preventDefault();event.stopPropagation();}catch(e){};spiritOpenEvaluationFromNotif(\'' + itemIdEsc + '\',\'' + fromUidEsc + '\')">Noter maintenant</button></div>'
+                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1f2a12;border:1px solid #8aaa2a;color:#efe28a;" onclick="try{event.preventDefault();event.stopPropagation();}catch(e){};spiritOpenEvaluationFromNotif(\'' + itemIdEsc + '\',\'' + fromUidEsc + '\')">' + String(mT('msg_rate_now')).replace(/</g, '&lt;') + '</button></div>'
                     : ((nType === 'listing_question' || nType === 'listing_reply' || nType === 'offer_accepted' || nType === 'offer_rejected' || nType === 'purchase_done') && itemIdRaw)
-                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#2a2810;border:1px solid #a88a2a;color:#fc8;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">Ouvrir la discussion</button></div>'
+                    ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#2a2810;border:1px solid #a88a2a;color:#fc8;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">' + String(mT('msg_open_discussion')).replace(/</g, '&lt;') + '</button></div>'
                     : '';
                 var delBtn = (!n.synthetic && idStr !== '0')
-                    ? '<button type="button" title="Supprimer" style="width:26px;height:26px;border:1px solid #633;background:#1a1012;color:#f88;cursor:pointer;font-size:0.75rem;line-height:1;border-radius:3px;padding:0;" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>'
+                    ? '<button type="button" title="' + String(mT('msg_del_btn')).replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" style="width:26px;height:26px;border:1px solid #633;background:#1a1012;color:#f88;cursor:pointer;font-size:0.75rem;line-height:1;border-radius:3px;padding:0;" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>'
                     : '';
                 return '<div style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;border-radius:4px;">' +
                     '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">' +
@@ -11734,8 +11815,14 @@ function spiritSanctuaryViewModeSet(ctx, m) {
         try { localStorage.setItem(SPIRIT_SAN_VIEW_KEY_PUBLIC, String(m || 'list')); } catch (e2) {}
     }
 }
-function spiritSanctuaryItemsCacheKey(uid) {
-    return 'spirit_san_items_v1__' + String(uid || '');
+function spiritSanctuarySessionCacheKey(uid, viewerIsOwner) {
+    return String(uid || '').trim() + '::' + (viewerIsOwner ? 'own' : 'pub');
+}
+function spiritSanctuaryItemsCacheKeyOwn(uid) {
+    return 'spirit_san_items_own_v1__' + String(uid || '');
+}
+function spiritSanctuaryItemsCacheKeyPub(uid) {
+    return 'spirit_san_items_pub_v1__' + String(uid || '');
 }
 function spiritPublicAnnoncesCacheKey(uid) {
     return 'spirit_pub_ann_v1__' + String(uid || '');
@@ -11766,8 +11853,12 @@ function spiritLsCacheWrite(key, rows) {
 }
 function spiritSanctuaryItemsCacheInvalidate(uid) {
     uid = String(uid || '').trim();
-    try { localStorage.removeItem(spiritSanctuaryItemsCacheKey(uid)); } catch (e) {}
-    try { delete spiritSanctuaryItemsSessionRows[uid]; } catch (e2) {}
+    try { localStorage.removeItem(spiritSanctuaryItemsCacheKeyOwn(uid)); } catch (e) {}
+    try { localStorage.removeItem(spiritSanctuaryItemsCacheKeyPub(uid)); } catch (e1) {}
+    try { localStorage.removeItem('spirit_san_items_v1__' + uid); } catch (eLeg) {}
+    try { delete spiritSanctuaryItemsSessionRows[spiritSanctuarySessionCacheKey(uid, true)]; } catch (e2) {}
+    try { delete spiritSanctuaryItemsSessionRows[spiritSanctuarySessionCacheKey(uid, false)]; } catch (e3) {}
+    try { delete spiritSanctuaryItemsSessionRows[uid]; } catch (e4) {}
 }
 
 /** Largeur max (px) avant upload Storage — WebP automatique (côté largeur). */
@@ -12080,6 +12171,33 @@ async function spiritEvalFetchForUser(targetUid) {
         if (out.error) { spiritEvalMarkMissingIf404(out.error); return []; }
         return Array.isArray(out.data) ? out.data : [];
     } catch (e) { spiritEvalMarkMissingIf404(e); return []; }
+}
+function spiritEvalAccountHiddenLsKey(me) {
+    return 'spirit_eval_hidden_account_v1:' + spiritNormUid(me || '');
+}
+function spiritEvalGetHiddenFromAccountIds(me) {
+    me = spiritNormUid(me || '');
+    if (!me) return [];
+    try {
+        var raw = localStorage.getItem(spiritEvalAccountHiddenLsKey(me));
+        var a = raw ? JSON.parse(raw) : [];
+        return Array.isArray(a) ? a.map(function (x) { return String(x); }) : [];
+    } catch (eH) { return []; }
+}
+function spiritEvalSetHiddenFromAccountIds(me, ids) {
+    me = spiritNormUid(me || '');
+    if (!me) return;
+    try {
+        localStorage.setItem(spiritEvalAccountHiddenLsKey(me), JSON.stringify((ids || []).map(function (x) { return String(x); })));
+    } catch (eS) {}
+}
+function spiritEvalAddHiddenFromAccountId(me, evalId) {
+    evalId = String(evalId != null ? evalId : '').trim();
+    if (!evalId) return;
+    var cur = spiritEvalGetHiddenFromAccountIds(me);
+    if (cur.indexOf(evalId) >= 0) return;
+    cur.push(evalId);
+    spiritEvalSetHiddenFromAccountIds(me, cur);
 }
 function spiritEvalAggregate(rows) {
     var seed = { achat: { sum: 0, n: 0 }, vente: { sum: 0, n: 0 }, livraison: { sum: 0, n: 0 }, litige: { sum: 0, n: 0 } };
@@ -12479,14 +12597,15 @@ async function spiritPublicLoadAnnonces(uid, opts) {
     var box = document.getElementById('spiritPublicAnnoncesList');
     if (!box) return;
     function renderAnnonceRows(rows) {
+        function pubT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
         rows = Array.isArray(rows) ? rows : [];
         if (!rows.length) {
-            box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Aucune annonce publique.</p>';
+            box.innerHTML = '<p style="color:#555;font-size:0.75rem;">' + String(pubT('pub_ad_empty')).replace(/</g, '&lt;') + '</p>';
             return;
         }
         box.innerHTML = '';
         rows.forEach(function (p) {
-        var t = String(p.title || p.name || 'Sans titre').replace(/</g, '&lt;');
+        var t = String(p.title || p.name || pubT('pm_no_title')).replace(/</g, '&lt;');
         var priceEur = (typeof spiritProductsLivePriceEUR === 'function') ? spiritProductsLivePriceEUR(p) : Number(p.price || 0);
         var priceTxt = typeof spiritFormatMoney === 'function' ? spiritFormatMoney(priceEur, 'EUR') : (Number(priceEur || 0).toFixed(2) + ' EUR');
         var st = String(p.status || '').toLowerCase();
@@ -12515,8 +12634,8 @@ async function spiritPublicLoadAnnonces(uid, opts) {
         var uuidSafe = String((p && p.uuid != null) ? p.uuid : '').replace(/'/g, '&#39;');
         info.innerHTML = '<div style="font-weight:800;color:#fff;font-size:0.8rem;">' + t + '</div>' +
             '<div style="color:var(--neon-orange);font-size:0.85rem;">' + priceTxt + '</div>' +
-            (sold ? '<span style="color:#e22;font-size:0.65rem;font-weight:800;">VENDU</span>' : '<span style="color:#696;font-size:0.65rem;">DISPONIBLE</span>') +
-            '<div style="margin-top:8px;"><button type="button" class="btn-action spirit-public-open-btn" style="font-size:0.58rem;padding:7px 10px;" onclick="event.stopPropagation();window.spiritPublicOpenAnnonce(\'' + pidSafe + '\',\'' + uuidSafe + '\')">VOIR L’ANNONCE</button></div>';
+            (sold ? '<span style="color:#e22;font-size:0.65rem;font-weight:800;">' + String(pubT('pub_ad_sold')).replace(/</g, '&lt;') + '</span>' : '<span style="color:#696;font-size:0.65rem;">' + String(pubT('pub_ad_avail')).replace(/</g, '&lt;') + '</span>') +
+            '<div style="margin-top:8px;"><button type="button" class="btn-action spirit-public-open-btn" style="font-size:0.58rem;padding:7px 10px;" onclick="event.stopPropagation();window.spiritPublicOpenAnnonce(\'' + pidSafe + '\',\'' + uuidSafe + '\')">' + String(pubT('pub_ad_view')).replace(/</g, '&lt;') + '</button></div>';
         try {
             var openBtn = info.querySelector('.spirit-public-open-btn');
             if (openBtn) openBtn.addEventListener('click', function (ev) {
@@ -12550,7 +12669,8 @@ async function spiritPublicLoadAnnonces(uid, opts) {
         }
     }
     if (!hadLocal) {
-        box.innerHTML = '<p style="color:#555;font-size:0.75rem;">Chargement…</p>';
+        var _pl = (typeof spiritT === 'function') ? spiritT('pub_ad_loading') : 'Chargement…';
+        box.innerHTML = '<p style="color:#555;font-size:0.75rem;">' + String(_pl).replace(/</g, '&lt;') + '</p>';
     }
     var prevSig = (spiritPublicAnnoncesSessionRows[uid] && Array.isArray(spiritPublicAnnoncesSessionRows[uid]))
         ? spiritPublicAnnoncesSig(spiritPublicAnnoncesSessionRows[uid]) : '';
@@ -12586,21 +12706,24 @@ async function spiritPublicLoadAnnonces(uid, opts) {
         renderAnnonceRows(rows);
     }
 }
-async function spiritSanctuaryFetchItems(uid) {
+async function spiritSanctuaryFetchItems(uid, viewerIsOwner) {
     if (typeof _spirit === 'undefined' || !_spirit) return [];
     uid = String(uid || '').trim();
     if (!uid) return [];
-    if (spiritSanctuaryItemsSessionRows[uid] && Array.isArray(spiritSanctuaryItemsSessionRows[uid])) {
-        return spiritSanctuaryItemsSessionRows[uid].slice();
+    viewerIsOwner = !!viewerIsOwner;
+    var sKey = spiritSanctuarySessionCacheKey(uid, viewerIsOwner);
+    if (spiritSanctuaryItemsSessionRows[sKey] && Array.isArray(spiritSanctuaryItemsSessionRows[sKey])) {
+        return spiritSanctuaryItemsSessionRows[sKey].slice();
     }
-    var cKey = spiritSanctuaryItemsCacheKey(uid);
+    var cKey = viewerIsOwner ? spiritSanctuaryItemsCacheKeyOwn(uid) : spiritSanctuaryItemsCacheKeyPub(uid);
     var cached = spiritLsCacheRead(cKey, SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS);
     if (Array.isArray(cached)) {
-        spiritSanctuaryItemsSessionRows[uid] = cached;
+        spiritSanctuaryItemsSessionRows[sKey] = cached;
         return cached;
     }
-    if (spiritSanctuaryItemsInFlight[uid]) return spiritSanctuaryItemsInFlight[uid];
-    spiritSanctuaryItemsInFlight[uid] = (async function () {
+    var flightKey = uid + '|' + (viewerIsOwner ? 'own' : 'pub');
+    if (spiritSanctuaryItemsInFlight[flightKey]) return spiritSanctuaryItemsInFlight[flightKey];
+    spiritSanctuaryItemsInFlight[flightKey] = (async function () {
     try {
         var out = await _spirit.from('sanctuary_items').select(SPIRIT_SANCTUARY_ITEM_COLS).eq('user_id', uid).order(SPIRIT_SANCTUARY_SORT_KEY, { ascending: true }).limit(15);
         if (out.error || !out.data) return [];
@@ -12618,9 +12741,9 @@ async function spiritSanctuaryFetchItems(uid) {
         return rows;
     } catch (e) { return []; }
     })();
-    var rowsOut = await spiritSanctuaryItemsInFlight[uid];
-    delete spiritSanctuaryItemsInFlight[uid];
-    if (Array.isArray(rowsOut)) spiritSanctuaryItemsSessionRows[uid] = rowsOut;
+    var rowsOut = await spiritSanctuaryItemsInFlight[flightKey];
+    delete spiritSanctuaryItemsInFlight[flightKey];
+    if (Array.isArray(rowsOut)) spiritSanctuaryItemsSessionRows[sKey] = rowsOut;
     return rowsOut;
 }
 async function spiritSanctuaryMarkReadForOwner(uid) {
@@ -12774,7 +12897,10 @@ async function spiritSanctuaryRender(ctx) {
     var grid = document.getElementById(d.grid);
     if (!grid || !uid) return;
     try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
-    var items = await spiritSanctuaryFetchItems(uid);
+    function sanT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
+    var me = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : '';
+    var isOwner = me && String(me) === String(uid);
+    var items = await spiritSanctuaryFetchItems(uid, isOwner);
     // Tableau des URLs déjà chargées (pour navigation Lightbox sans re-requête Supabase)
     var sanctuaryImageSrcs = items.map(function (x) { return x && x.src ? x.src : ''; }).filter(Boolean);
     var vm = spiritSanctuaryViewModeGet(ctx);
@@ -12789,12 +12915,10 @@ async function spiritSanctuaryRender(ctx) {
     else if (vm === 'style2') modeClass = 'spirit-san-mode-style2';
     grid.className = modeClass;
     grid.innerHTML = '';
-    var me = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : '';
-    var isOwner = me && String(me) === String(uid);
     if (isOwner && ctx !== 'public' && items.length < 15) {
         var add = document.createElement('div');
         add.className = 'spirit-san-add-tile';
-        add.setAttribute('title', 'Ajouter une photo');
+        add.setAttribute('title', sanT('san_add_title'));
         add.innerHTML = '+';
         add.onclick = function () { document.getElementById(d.file).click(); };
         grid.appendChild(add);
@@ -12828,10 +12952,10 @@ async function spiritSanctuaryRender(ctx) {
         bLike.type = 'button';
         bLike.style.cssText = 'flex:1;padding:5px 8px;background:rgba(0,0,0,0.6);border:1px solid ' + (likedByMe ? '#ff4d8f' : '#444') + ';color:' + (likedByMe ? '#ff86b0' : '#ddd') + ';font-size:0.62rem;cursor:pointer;';
         bLike.textContent = '♥ ' + likes.length;
-        bLike.title = 'J’aime';
+        bLike.title = sanT('san_like_title');
         bLike.onclick = async function (e) {
             e.stopPropagation();
-            if (!actorId) { alert('Connecte-toi pour liker.'); return; }
+            if (!actorId) { alert(sanT('san_login_like')); return; }
             await spiritSanctuaryToggleLike(ownerId, itemId, actorId);
             if (String(actorId) !== String(ownerId)) spiritSanctuaryRefreshMessagesDot();
             void spiritSanctuaryRender(ctx);
@@ -12841,11 +12965,11 @@ async function spiritSanctuaryRender(ctx) {
         bCom.type = 'button';
         bCom.style.cssText = 'padding:5px 8px;min-width:62px;background:rgba(0,0,0,0.6);border:1px solid #444;color:#ddd;font-size:0.62rem;cursor:pointer;';
         bCom.textContent = '💬 ' + comments.length;
-        bCom.title = 'Commenter';
+        bCom.title = sanT('san_comment_title');
         bCom.onclick = async function (e) {
             e.stopPropagation();
-            if (!actorId) { alert('Connecte-toi pour commenter.'); return; }
-            var txt = window.prompt('Ton commentaire :', '');
+            if (!actorId) { alert(sanT('san_login_comment')); return; }
+            var txt = window.prompt(sanT('san_prompt_comment'), '');
             if (txt == null) return;
             txt = String(txt || '').trim();
             if (!txt) return;
@@ -12857,21 +12981,35 @@ async function spiritSanctuaryRender(ctx) {
         overlay.appendChild(bLike);
         overlay.appendChild(bCom);
         var commentsWrap = document.createElement('div');
-        commentsWrap.style.cssText = 'margin-top:6px;font-size:0.62rem;color:#8e8e8e;line-height:1.3;';
+        commentsWrap.style.cssText = 'font-size:0.62rem;color:#8e8e8e;line-height:1.35;padding:4px 0;';
         if (comments.length) {
-            var last = comments.slice(-2);
-            commentsWrap.innerHTML = last.map(function (c) {
+            commentsWrap.innerHTML = comments.map(function (c) {
                 var uidC = String((c && c.uid) || '').trim();
                 var whoRaw = (uidC && pseudoMap[uidC]) ? pseudoMap[uidC] : String((c && c.label) || '').trim();
                 if (!whoRaw) whoRaw = uidC ? spiritSanctuaryFallbackLabel(uidC) : '—';
                 var who = String(whoRaw).replace(/</g, '&lt;');
                 var tx = String((c && c.text) || '').replace(/</g, '&lt;');
-                return '<div><span style="color:#79d6ff;">' + who + ':</span> ' + tx + '</div>';
+                return '<div style="margin-bottom:6px;"><span style="color:#79d6ff;">' + who + ':</span> ' + tx + '</div>';
             }).join('');
         } else {
-            commentsWrap.textContent = 'Aucun commentaire.';
+            commentsWrap.textContent = sanT('san_no_comments');
         }
-        return { overlay: overlay, commentsWrap: commentsWrap };
+        var commentsToggle = document.createElement('button');
+        commentsToggle.type = 'button';
+        commentsToggle.className = 'spirit-san-comments-toggle';
+        commentsToggle.style.cssText = 'margin-top:8px;width:100%;text-align:left;padding:8px 10px;background:#121212;border:1px solid #333;color:#ccc;font-size:0.62rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;border-radius:4px;';
+        commentsToggle.innerHTML = '<span>' + String(sanT('san_comments_toggle')).replace(/</g, '') + ' (' + comments.length + ')</span><span class="spirit-san-acc-ic">▼</span>';
+        var commentsPanel = document.createElement('div');
+        commentsPanel.className = 'spirit-san-comments-panel';
+        commentsPanel.appendChild(commentsWrap);
+        commentsToggle.onclick = function (ev) {
+            ev.stopPropagation();
+            var on = commentsPanel.classList.toggle('spirit-san-comments-open');
+            commentsToggle.classList.toggle('spirit-san-toggle-open', on);
+            var ic = commentsToggle.querySelector('.spirit-san-acc-ic');
+            if (ic) ic.textContent = on ? '▲' : '▼';
+        };
+        return { overlay: overlay, commentsToggle: commentsToggle, commentsPanel: commentsPanel };
     }
     function spiritSanctuaryFillNeonSelect(stSel, curNeon) {
         neonOpts.forEach(function (opt) {
@@ -12884,7 +13022,7 @@ async function spiritSanctuaryRender(ctx) {
         if (stSel.value !== curNeon && curNeon) {
             var ox = document.createElement('option');
             ox.value = curNeon;
-            ox.textContent = 'Couleur actuelle';
+            ox.textContent = (typeof spiritT === 'function') ? spiritT('san_neon_current') : 'Couleur actuelle';
             stSel.insertBefore(ox, stSel.firstChild);
             stSel.value = curNeon;
         }
@@ -12953,28 +13091,29 @@ async function spiritSanctuaryRender(ctx) {
             var inp = document.createElement('input');
             inp.type = 'text';
             inp.value = it.desc || '';
-            inp.placeholder = 'Description';
+            inp.placeholder = sanT('san_desc_ph');
             inp.disabled = !isOwner;
             inp.onchange = function () {
                 if (!rowId || typeof _spirit === 'undefined' || !_spirit) return;
                 void _spirit.from('sanctuary_items').update({ description: inp.value }).eq('id', String(rowId));
                 spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
             };
-            meta.appendChild(document.createTextNode('Œuvre #' + (idx + 1)));
+            meta.appendChild(document.createTextNode(sanT('san_work_prefix') + (idx + 1)));
             meta.appendChild(inp);
             var descSaved = document.createElement('div');
             descSaved.style.cssText = 'margin-top:6px;font-size:0.65rem;color:#9ca3af;word-break:break-word;';
-            descSaved.textContent = String(it.desc || '').trim() || 'Aucune description.';
+            descSaved.textContent = String(it.desc || '').trim() || sanT('san_desc_none');
             meta.appendChild(descSaved);
             meta.appendChild(socialUi.overlay);
-            meta.appendChild(socialUi.commentsWrap);
+            meta.appendChild(socialUi.commentsToggle);
+            meta.appendChild(socialUi.commentsPanel);
             var styleRow = document.createElement('div');
             styleRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
             var stLab = document.createElement('span');
-            stLab.textContent = 'Néon';
+            stLab.textContent = sanT('san_neon_lbl');
             stLab.style.cssText = 'font-size:0.6rem;color:#666;text-transform:uppercase;letter-spacing:1px;';
             var stSel = document.createElement('select');
-            stSel.setAttribute('aria-label', 'Couleur néon du cadre');
+            stSel.setAttribute('aria-label', sanT('san_neon_lbl'));
             stSel.style.cssText = 'padding:6px 8px;background:#111;border:1px solid #333;color:#eee;font-size:0.65rem;';
             spiritSanctuaryFillNeonSelect(stSel, neon);
             stSel.disabled = !isOwner;
@@ -12998,7 +13137,7 @@ async function spiritSanctuaryRender(ctx) {
                     btnDel = document.createElement('button');
                     btnDel.type = 'button';
                     btnDel.className = 'spirit-san-action-btn spirit-san-action-del';
-                    btnDel.title = 'CORBEILLE';
+                    btnDel.title = sanT('san_trash_title');
                     btnDel.textContent = '✕';
                     btnDel.onclick = function (e) {
                         e.stopPropagation();
@@ -13019,7 +13158,7 @@ async function spiritSanctuaryRender(ctx) {
                     btnDel = document.createElement('button');
                     btnDel.type = 'button';
                     btnDel.className = 'spirit-san-action-btn spirit-san-action-del';
-                    btnDel.title = 'CORBEILLE';
+                    btnDel.title = sanT('san_trash_title');
                     btnDel.textContent = '✕';
                     btnDel.onclick = function (e) {
                         e.stopPropagation();
@@ -13060,7 +13199,7 @@ async function spiritSanctuaryRender(ctx) {
                 });
             }
             var selMini = document.createElement('select');
-            selMini.setAttribute('aria-label', 'Néon');
+            selMini.setAttribute('aria-label', sanT('san_neon_lbl'));
             selMini.style.cssText = 'width:100%;margin-top:4px;font-size:0.55rem;padding:3px;background:#111;border:1px solid #333;color:#aaa;';
             spiritSanctuaryFillNeonSelect(selMini, neon);
             selMini.disabled = !isOwner;
@@ -13080,24 +13219,25 @@ async function spiritSanctuaryRender(ctx) {
 
             var descEl = document.createElement('div');
             descEl.className = 'spirit-san-icons-desc';
-            descEl.textContent = String(it.desc || '').trim() || 'Aucune description.';
+            descEl.textContent = String(it.desc || '').trim() || sanT('san_desc_none');
             cell.appendChild(descEl);
             if (isOwner) {
                 var descInp = document.createElement('input');
                 descInp.type = 'text';
                 descInp.value = String(it.desc || '');
-                descInp.placeholder = 'Description';
+                descInp.placeholder = sanT('san_desc_ph');
                 descInp.style.cssText = 'width:100%;margin-top:4px;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.68rem;';
                 descInp.onchange = function () {
                     if (!rowId || typeof _spirit === 'undefined' || !_spirit) return;
                     void _spirit.from('sanctuary_items').update({ description: descInp.value }).eq('id', String(rowId));
                     spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
-                    descEl.textContent = String(descInp.value || '').trim() || 'Aucune description.';
+                    descEl.textContent = String(descInp.value || '').trim() || sanT('san_desc_none');
                 };
                 cell.appendChild(descInp);
             }
             cell.appendChild(socialUi.overlay);
-            cell.appendChild(socialUi.commentsWrap);
+            cell.appendChild(socialUi.commentsToggle);
+            cell.appendChild(socialUi.commentsPanel);
 
             grid.appendChild(cell);
         }
@@ -13124,8 +13264,8 @@ function spiritSanctuaryBindFileInput(ctx) {
         void (async function () {
             try {
                 if (typeof _spirit === 'undefined' || !_spirit) return;
-                var cur = await spiritSanctuaryFetchItems(uid);
-                if (cur.length >= 15) { alert('Maximum 15 photos dans le Sanctuaire.'); return; }
+                var cur = await spiritSanctuaryFetchItems(uid, true);
+                if (cur.length >= 15) { alert((typeof spiritT === 'function') ? spiritT('san_max_15') : 'Maximum 15 photos dans le Sanctuaire.'); return; }
                 var ext = (f.name && f.name.split('.').pop()) || 'jpg';
                 var path = String(uid) + '/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
                 var url = await spiritStorageUploadPublic(SPIRIT_BUCKET_SANCTUARY, path, f);
@@ -13144,7 +13284,8 @@ function spiritSanctuaryBindFileInput(ctx) {
                 spiritSanctuaryItemsCacheInvalidate(uid);
                 await spiritSanctuaryRender(ctx);
             } catch (err) {
-                alert('Import Sanctuaire impossible (bucket « ' + SPIRIT_BUCKET_SANCTUARY + ' » / RLS) : ' + (err && err.message ? err.message : err));
+                var _im = (typeof spiritT === 'function') ? spiritT('san_import_err') : 'Import Sanctuaire impossible : ';
+                alert(_im + (err && err.message ? err.message : err));
             }
             fin.value = '';
         })();
@@ -14603,52 +14744,64 @@ async function spiritDeleteMyEvaluation(evalId) {
     evalId = String(evalId != null ? evalId : '').trim();
     if (!evalId) return;
     var me = spiritNormUid(MY_TEST_ID || '');
-    if (!me || !_spirit || spiritEvalTableMissing) return;
-    if (!window.confirm('Supprimer définitivement cet avis ? Il disparaîtra de ton profil public.')) return;
+    if (!me) return;
+    function eT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
+    if (!window.confirm(eT('eval_hide_confirm'))) return;
     try {
-        var del = await _spirit.from(SPIRIT_EVAL_TABLE).delete().eq('id', evalId).eq('target_user_id', me);
-        if (del.error) { spiritEvalMarkMissingIf404(del.error); throw del.error; }
-        alert('Avis supprimé.');
+        spiritEvalAddHiddenFromAccountId(me, evalId);
+        alert(eT('eval_hidden_ok'));
         await spiritLoadMyEvaluations();
-        await spiritEvalRefreshBadgesIfViewingSelf();
         var modal = document.getElementById('spiritBadgeCommentsModal');
         var open = false;
         try { open = modal && window.getComputedStyle(modal).display !== 'none'; } catch (eM) {}
         if (open) await spiritOpenBadgeComments(spiritEvalCurrentModalCategory || 'achat');
     } catch (e) {
-        alert('Erreur suppression : ' + (e && e.message ? e.message : e));
+        alert(eT('eval_hide_err') + (e && e.message ? e.message : e));
     }
 }
 async function spiritDeleteAllMyReceivedEvaluations() {
     var me = spiritNormUid(MY_TEST_ID || '');
     if (!me || !_spirit || spiritEvalTableMissing) return;
-    if (!window.confirm('Supprimer TOUS les avis reçus sur ton profil ? Action irréversible.')) return;
-    if (!window.confirm('Confirmer : tout le fil d’évaluations reçues sera effacé.')) return;
+    function eT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
+    if (!window.confirm(eT('eval_hide_all_confirm'))) return;
+    if (!window.confirm(eT('eval_hide_all_confirm2'))) return;
     try {
-        var del = await _spirit.from(SPIRIT_EVAL_TABLE).delete().eq('target_user_id', me);
-        if (del.error) { spiritEvalMarkMissingIf404(del.error); throw del.error; }
-        alert('Tous les avis reçus ont été supprimés.');
+        var rows = await spiritEvalFetchForUser(me);
+        var hidden = spiritEvalGetHiddenFromAccountIds(me);
+        var set = new Set(hidden);
+        rows.forEach(function (r) {
+            var id = String(r && r.id != null ? r.id : '').trim();
+            if (id) set.add(id);
+        });
+        spiritEvalSetHiddenFromAccountIds(me, Array.from(set));
+        alert(eT('eval_hide_all_ok'));
         await spiritLoadMyEvaluations();
-        await spiritEvalRefreshBadgesIfViewingSelf();
         var modal = document.getElementById('spiritBadgeCommentsModal');
         var open = false;
         try { open = modal && window.getComputedStyle(modal).display !== 'none'; } catch (eM2) {}
         if (open) await spiritOpenBadgeComments(spiritEvalCurrentModalCategory || 'achat');
     } catch (e) {
-        alert('Erreur suppression : ' + (e && e.message ? e.message : e));
+        alert(eT('eval_hide_err') + (e && e.message ? e.message : e));
     }
 }
 async function spiritLoadMyEvaluations() {
     var box = document.getElementById('evalMyList');
     if (!box) return;
+    function eT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
     var me = spiritNormUid(MY_TEST_ID || '');
-    if (!me) { box.innerHTML = '<div style="font-size:0.68rem;color:#777;">Connecte-toi pour voir tes avis.</div>'; return; }
-    box.innerHTML = '<div style="font-size:0.68rem;color:#888;">Chargement…</div>';
+    if (!me) { box.innerHTML = '<div style="font-size:0.68rem;color:#777;">' + String(eT('eval_login')).replace(/</g, '&lt;') + '</div>'; return; }
+    box.innerHTML = '<div style="font-size:0.68rem;color:#888;">' + String(eT('eval_loading')).replace(/</g, '&lt;') + '</div>';
     var rows = await spiritEvalFetchForUser(me);
+    var hideSet = spiritEvalGetHiddenFromAccountIds(me);
+    rows = rows.filter(function (r) { return hideSet.indexOf(String(r && r.id != null ? r.id : '')) < 0; });
     if (!rows.length) {
-        box.innerHTML = '<div style="font-size:0.68rem;color:#777;">Aucune évaluation reçue pour le moment.</div>';
+        box.innerHTML = '<div style="font-size:0.68rem;color:#777;">' + String(eT('eval_none_list')).replace(/</g, '&lt;') + '</div>';
         return;
     }
+    var hideTitle = String(eT('eval_hide_btn_title')).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    var replyLbl = String(eT('eval_your_reply')).replace(/</g, '&lt;');
+    var replyBtn = String(eT('eval_reply')).replace(/</g, '&lt;');
+    var replyEditBtn = String(eT('eval_reply_edit')).replace(/</g, '&lt;');
     box.innerHTML = rows.slice(0, 120).map(function (r) {
         var cat = spiritEvalCategoryNorm(r.category) || '—';
         var p = String(r.author_pseudo || 'Membre').replace(/</g, '&lt;');
@@ -14659,12 +14812,12 @@ async function spiritLoadMyEvaluations() {
         var dt = (r && r.created_at) ? new Date(r.created_at) : null;
         var dtTxt = (dt && !isNaN(dt.getTime())) ? dt.toLocaleString() : '';
         return '<div style="position:relative;border:1px solid #2a2a2a;background:#0a0a0a;padding:12px 40px 12px 12px;border-radius:4px;">'
-            + '<button type="button" title="Supprimer cet avis" aria-label="Supprimer" style="position:absolute;top:8px;right:8px;width:30px;height:30px;padding:0;border:1px solid #522;background:#180808;color:#e66;cursor:pointer;border-radius:4px;font-size:1rem;line-height:1;font-weight:bold;" onclick=\'void spiritDeleteMyEvaluation(' + idJson + ')\'>✕</button>'
+            + '<button type="button" title="' + hideTitle + '" aria-label="' + hideTitle + '" style="position:absolute;top:8px;right:8px;width:30px;height:30px;padding:0;border:1px solid #522;background:#180808;color:#e66;cursor:pointer;border-radius:4px;font-size:1rem;line-height:1;font-weight:bold;" onclick=\'void spiritDeleteMyEvaluation(' + idJson + ')\'>✕</button>'
             + '<div style="font-size:0.6rem;color:#666;">' + (dtTxt ? dtTxt + ' · ' : '') + cat.toUpperCase() + '</div>'
             + '<div style="font-size:0.64rem;color:#aaa;margin-top:4px;">' + p + ' · ' + '★'.repeat(stars) + '</div>'
             + '<div style="font-size:0.72rem;color:#e8e8e8;margin-top:8px;line-height:1.45;">' + (cm || '—') + '</div>'
-            + (rr ? '<div style="margin-top:10px;border-left:2px solid var(--neon-orange);padding-left:10px;font-size:0.66rem;color:#f6b16a;"><b>Ta réponse :</b> ' + rr + '</div>' : '')
-            + '<button type="button" class="btn-action" style="margin-top:10px;font-size:0.56rem;padding:6px 12px;" onclick=\'void spiritReplyToEvaluation(' + idJson + ')\'>' + (rr ? 'MODIFIER LA RÉPONSE' : 'RÉPONDRE') + '</button>'
+            + (rr ? '<div style="margin-top:10px;border-left:2px solid var(--neon-orange);padding-left:10px;font-size:0.66rem;color:#f6b16a;"><b>' + replyLbl + '</b> ' + rr + '</div>' : '')
+            + '<button type="button" class="btn-action" style="margin-top:10px;font-size:0.56rem;padding:6px 12px;" onclick=\'void spiritReplyToEvaluation(' + idJson + ')\'>' + (rr ? replyEditBtn : replyBtn) + '</button>'
             + '</div>';
     }).join('');
 }
