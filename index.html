@@ -8418,25 +8418,7 @@ async function enregistrerVente(method) {
         try { if (typeof spiritCheckDashboardOfferDot === 'function') spiritCheckDashboardOfferDot(); } catch (eOf4) {}
         try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (eOf5) {}
         try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eOf6) {}
-        try {
-            var txIdCreated = '';
-            if (ins && ins.data && ins.data[0] && ins.data[0].id != null) txIdCreated = String(ins.data[0].id).trim().toLowerCase();
-            if (!txIdCreated) {
-                var qTx = await _spirit.from('transactions').select('id').eq('buyer_id', buyerIdTxt).eq('seller_id', sellerIdTxt).order('created_at', { ascending: false }).limit(1);
-                if (!qTx.error && qTx.data && qTx.data[0] && qTx.data[0].id != null) txIdCreated = String(qTx.data[0].id).trim().toLowerCase();
-            }
-            try {
-                var _sellerN2 = spiritNormUid(String(selectedProduct.owner_id || selectedProduct.owner || ''));
-                var _buyerN2 = spiritNormUid(buyerIdTxt);
-                if (txIdCreated && _sellerN2 && _buyerN2 && _sellerN2 !== _buyerN2 && typeof spiritSanctuaryPushNotif === 'function') {
-                    await spiritSanctuaryPushNotif(_sellerN2, 'evaluation_pending', txIdCreated, _buyerN2, 'Évaluation à laisser pour cette transaction.');
-                    await spiritSanctuaryPushNotif(_buyerN2, 'evaluation_pending', txIdCreated, _sellerN2, 'Évaluation à laisser pour cette transaction.');
-                }
-            } catch (eEvN2) {}
-            if (txIdCreated && typeof spiritMaybePromptAutoEvaluationByTx === 'function') {
-                setTimeout(function () { try { void spiritMaybePromptAutoEvaluationByTx(txIdCreated, 'buyer'); } catch (eP) {} }, 220);
-            }
-        } catch (eEvalPay) {}
+        /* Notifs + modale « évaluation » : uniquement après réception confirmée par l’acheteur (confirmReception), pas à l’achat. */
 
     } catch (err) {
         console.error("ERREUR COLONNE :", err.message);
@@ -14401,42 +14383,6 @@ async function loadMyPurchases() {
 
 
 /**
- * ACTION : CONFIRMER RÉCEPTION (DÉBLOQUE LES FONDS)
- */
-async function confirmReception(id) {
-    if(!confirm("Valider la réception ? Cette action débloque le paiement vers le vendeur.")) return;
-    
-    const { error } = await _spirit
-        .from('transactions')
-        .update({ status: 'LIVRAISON VALIDÉE' })
-        .eq('id', id);
-
-    if (error) alert("Erreur : " + error.message);
-    else {
-        alert("✅ Réception confirmée. Transaction terminée.");
-        loadMyPurchases();
-    }
-}
-
-/**
- * ACTION : OUVRIR UN LITIGE
- */
-async function openDispute(id) {
-    if(!confirm("⚠️ Attention : Ouvrir un litige gèle les fonds et lance une analyse Spirit Guard. Confirmer ?")) return;
-
-    const { error } = await _spirit
-        .from('transactions')
-        .update({ status: 'LITIGE OUVERT' })
-        .eq('id', id);
-
-    if (error) alert("Erreur : " + error.message);
-    else {
-        alert("⚖️ Litige ouvert. Nos experts vérifient les photos d'expédition.");
-        loadMyPurchases();
-    }
-}
-
-/**
  * ACTION : GÉNÉRATION BORDEREAU D'ENVOI
  */
 async function generateSpiritLabel(id) {
@@ -14534,13 +14480,33 @@ async function openDispute(transactionId) {
 async function confirmReception(transactionId) {
     if (!confirm("✅ Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.")) return;
 
+    var txKey = String(transactionId || '').trim().toLowerCase();
+    if (!txKey || !_spirit) return;
+
     try {
-        const { error } = await _spirit
+        var trLoad = await _spirit
+            .from('transactions')
+            .select('buyer_id,seller_id,figurine_name')
+            .eq('id', txKey)
+            .maybeSingle();
+        if (trLoad.error || !trLoad.data) throw trLoad.error || new Error('Transaction introuvable.');
+
+        var upd = await _spirit
             .from('transactions')
             .update({ status: 'LIVRAISON VALIDÉE' })
-            .eq('id', transactionId);
+            .eq('id', txKey);
+        if (upd.error) throw upd.error;
 
-        if (error) throw error;
+        try {
+            if (typeof spiritSanctuaryPushNotif === 'function') {
+                var _bn = spiritNormUid(trLoad.data.buyer_id);
+                var _sn = spiritNormUid(trLoad.data.seller_id);
+                if (_bn && _sn && _bn !== _sn) {
+                    await spiritSanctuaryPushNotif(_sn, 'evaluation_pending', txKey, _bn, 'Réception confirmée — laisse une évaluation pour cette vente.');
+                    await spiritSanctuaryPushNotif(_bn, 'evaluation_pending', txKey, _sn, 'Réception confirmée — merci de laisser ton évaluation.');
+                }
+            }
+        } catch (eEvRc) {}
 
         alert("✅ TRANSACTION TERMINÉE : Merci de votre confiance.");
         loadMyPurchases();
@@ -14548,7 +14514,7 @@ async function confirmReception(transactionId) {
         try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eN1) {}
         try { if (typeof spiritCheckDashboardOfferDot === 'function') spiritCheckDashboardOfferDot(); } catch (eN2) {}
         try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (eN3) {}
-        try { if (typeof spiritMaybePromptAutoEvaluationByTx === 'function') void spiritMaybePromptAutoEvaluationByTx(transactionId, 'buyer'); } catch (eEvalB) {}
+        try { if (typeof spiritMaybePromptAutoEvaluationByTx === 'function') void spiritMaybePromptAutoEvaluationByTx(txKey, 'buyer'); } catch (eEvalB) {}
     } catch (err) {
         console.error("Erreur Ledger:", err.message);
         alert("Erreur de validation : " + err.message);
