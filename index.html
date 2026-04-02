@@ -3657,6 +3657,8 @@
                 <h1 id="spiritSanctuaryPseudoBanner">—</h1>
             </div>
             <div class="spirit-sanctuary-toolbar">
+                <!-- Profil public : ligne néon masquée (réglage par tuile / compte). Le select reste dans le DOM pour l’upload. -->
+                <div id="spiritPublicSanNeonRow" style="display:none;align-items:center;gap:8px;">
                 <span data-key="pub_neon_border" style="font-size:0.65rem;color:#888;">Bordure néon (nouvelle photo)</span>
                 <select id="spiritSanctuaryNeonSelect" aria-label="Couleur néon">
                     <option value="#ff6600">Orange Spirit</option>
@@ -3666,6 +3668,7 @@
                     <option value="#ffffff">Blanc</option>
                     <option value="#ffcc00">Or</option>
                 </select>
+                </div>
                 <span style="flex:1"></span>
                 <label data-key="ui_view" style="font-size:0.65rem;color:#888;">Vue</label>
                 <button type="button" class="spirit-san-view active" data-sanview="list" onclick="spiritSanctuarySetView('list')" data-key="ui_v_list">Vue Liste</button>
@@ -4011,6 +4014,8 @@
             'msg_login': 'Connecte-toi pour voir tes messages.', 'msg_supabase': 'Supabase indisponible.', 'msg_loading': 'Chargement des alertes…', 'msg_empty': 'Aucune alerte pour le moment.',
             'msg_new_activity': 'Nouvelle activité',
             'msg_syn_liked_photo': 'a aimé ta photo', 'msg_syn_commented_prefix': 'a commenté :',
+            'msg_notif_commented_photo_generic': 'a commenté ta photo', 'msg_notif_new_listing_prefix': 'Nouvelle annonce :',
+            'msg_toast_san_title': 'Sanctuaire', 'msg_toast_san_body': '{n} nouvelle(s) alerte(s) (likes / commentaires).',
             'msg_activity': '(activité)', 'msg_del_btn': 'Supprimer', 'msg_see_ad': 'Voir l’annonce', 'msg_rate_now': 'Noter maintenant', 'msg_open_discussion': 'Ouvrir la discussion',
             'my_ad_edit': 'MODIFIER', 'my_ad_delete': 'SUPPRIMER', 'my_ad_none_online': 'Aucune annonce en ligne.', 'my_ad_no_img': 'Sans image',
             'my_ad_online': 'EN LIGNE',
@@ -4115,6 +4120,8 @@
             'msg_login': 'Sign in to see your messages.', 'msg_supabase': 'Supabase unavailable.', 'msg_loading': 'Loading alerts…', 'msg_empty': 'No alerts yet.',
             'msg_new_activity': 'New activity',
             'msg_syn_liked_photo': 'liked your photo', 'msg_syn_commented_prefix': 'commented:',
+            'msg_notif_commented_photo_generic': 'commented on your photo', 'msg_notif_new_listing_prefix': 'New listing:',
+            'msg_toast_san_title': 'Sanctuary', 'msg_toast_san_body': '{n} new like/comment alert(s).',
             'msg_activity': '(activity)', 'msg_del_btn': 'Delete', 'msg_see_ad': 'View listing', 'msg_rate_now': 'Rate now', 'msg_open_discussion': 'Open thread',
             'my_ad_edit': 'EDIT', 'my_ad_delete': 'DELETE', 'my_ad_none_online': 'No listings online.', 'my_ad_no_img': 'No image',
             'my_ad_online': 'LIVE',
@@ -4219,6 +4226,8 @@
             'msg_login': 'Inicia sesión para ver tus mensajes.', 'msg_supabase': 'Supabase no disponible.', 'msg_loading': 'Cargando alertas…', 'msg_empty': 'Sin alertas por ahora.',
             'msg_new_activity': 'Nueva actividad',
             'msg_syn_liked_photo': 'le gustó tu foto', 'msg_syn_commented_prefix': 'comentó:',
+            'msg_notif_commented_photo_generic': 'comentó tu foto', 'msg_notif_new_listing_prefix': 'Nuevo anuncio:',
+            'msg_toast_san_title': 'Santuario', 'msg_toast_san_body': '{n} alerta(s) nueva(s) (me gusta / comentarios).',
             'msg_activity': '(actividad)', 'msg_del_btn': 'Eliminar', 'msg_see_ad': 'Ver anuncio', 'msg_rate_now': 'Valorar ahora', 'msg_open_discussion': 'Abrir conversación',
             'my_ad_edit': 'EDITAR', 'my_ad_delete': 'ELIMINAR', 'my_ad_none_online': 'No hay anuncios en línea.', 'my_ad_no_img': 'Sin imagen',
             'my_ad_online': 'EN LÍNEA',
@@ -4323,6 +4332,8 @@
             'msg_login': '请登录查看消息。', 'msg_supabase': 'Supabase 不可用。', 'msg_loading': '正在加载提醒…', 'msg_empty': '暂无提醒。',
             'msg_new_activity': '新动态',
             'msg_syn_liked_photo': '赞了你的照片', 'msg_syn_commented_prefix': '评论：',
+            'msg_notif_commented_photo_generic': '评论了你的照片', 'msg_notif_new_listing_prefix': '新上架：',
+            'msg_toast_san_title': '圣地', 'msg_toast_san_body': '{n} 条新的点赞/评论提醒。',
             'msg_activity': '（动态）', 'msg_del_btn': '删除', 'msg_see_ad': '查看商品', 'msg_rate_now': '立即评价', 'msg_open_discussion': '打开对话',
             'my_ad_edit': '编辑', 'my_ad_delete': '删除', 'my_ad_none_online': '暂无在线商品。', 'my_ad_no_img': '无图',
             'my_ad_online': '在售',
@@ -10724,7 +10735,11 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
    );
    create index if not exists idx_sanctuary_items_user on public.sanctuary_items(user_id);
    -- Profil public : les visiteurs doivent pouvoir SELECT (au moins image_url, description, neon_color, sort_order) pour user_id = profil consulté.
-   -- Si la description est vide côté public alors qu’elle s’affiche pour le propriétaire, vérifie les policies RLS (ex. policy SELECT pour tous les utilisateurs authentifiés ou anon sur les lignes des autres).
+   -- Si la description est vide côté public alors qu’elle s’affiche pour le propriétaire, la colonne description est souvent masquée par RLS (policy SELECT trop restrictive).
+   -- Exemple (à adapter) : lecture publique des pièces d’un profil pour tout utilisateur authentifié :
+   -- alter table public.sanctuary_items enable row level security;
+   -- create policy "san_items_select_public_rows" on public.sanctuary_items for select to authenticated using (true);
+   -- ou : using (user_id = auth.uid()::text or true) selon ton modèle ; l’important est que les lecteurs voient la même ligne que le propriétaire (y compris description).
    create table if not exists public.sanctuary_chat (
      id bigint primary key generated always as identity,
      recipient_id text not null,
@@ -10862,6 +10877,8 @@ var spiritOpenLitigeByOwner = Object.create(null);
 var spiritEvalCurrentModalCategory = 'achat';
 var spiritAutoEvalCtx = null;
 var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 20 * 60 * 1000;
+/** Cache « vue visiteur » du Sanctuaire : plus court pour voir description / néon à jour sur les autres profils. */
+var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS_PUB = 90 * 1000;
 /** Dernières photos Sanctuaire par user_id (session) — complète le cache localStorage. */
 var spiritSanctuaryItemsSessionRows = Object.create(null);
 var SPIRIT_PUBLIC_ANNONCES_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -10949,8 +10966,8 @@ async function spiritSanctuaryLoadSocialCache(ownerId, itemIds, viewerId) {
     return spiritSanctuarySocialCache;
 }
 async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
-    ownerId = String(ownerId || '').trim().toLowerCase();
-    fromUid = String(fromUid || '').trim().toLowerCase();
+    ownerId = spiritNormUid(ownerId);
+    fromUid = spiritNormUid(fromUid);
     if (!ownerId || !fromUid || ownerId === fromUid || !spiritSanSocialCanUseSupabase()) return;
     if (spiritSanNotifsTableMissing) return;
     try {
@@ -11182,7 +11199,9 @@ function spiritSanctuaryRefreshMessagesDot() {
             } catch (eFeed) { /* ignore */ }
             spiritSetNotifDotVisible(dot, c > 0);
             if (c > 0 && c > Number(spiritSanctuaryLastUnreadMsgCount || 0) && typeof spiritSanctuaryShowToast === 'function') {
-                spiritSanctuaryShowToast('Sanctuaire', c + ' nouvelle(s) alerte(s) likes/commentaires.');
+                var _tTit = (typeof spiritT === 'function') ? spiritT('msg_toast_san_title') : 'Sanctuaire';
+                var _tBody = (typeof spiritT === 'function') ? String(spiritT('msg_toast_san_body')).replace(/\{n\}/g, String(c)) : (String(c) + ' nouvelle(s) alerte(s) likes/commentaires.');
+                spiritSanctuaryShowToast(_tTit, _tBody);
             }
             spiritSanctuaryLastUnreadMsgCount = c;
         } finally {
@@ -11203,9 +11222,9 @@ function spiritSanctuaryComments(itemId) {
     return Array.isArray(arr) ? arr : [];
 }
 async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
-    ownerId = String(ownerId || '').trim().toLowerCase();
+    ownerId = spiritNormUid(ownerId);
     itemId = String(itemId || '').trim();
-    actorUid = String(actorUid || '').trim().toLowerCase();
+    actorUid = spiritNormUid(actorUid);
     if (!itemId || !actorUid || !spiritSanSocialCanUseSupabase()) return false;
     var was = !!spiritSanctuarySocialCache.myLikes[itemId];
     try {
@@ -11235,9 +11254,9 @@ async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
     return !was;
 }
 async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
-    ownerId = String(ownerId || '').trim().toLowerCase();
+    ownerId = spiritNormUid(ownerId);
     itemId = String(itemId || '').trim();
-    actorUid = String(actorUid || '').trim().toLowerCase();
+    actorUid = spiritNormUid(actorUid);
     text = String(text || '').trim();
     if (!itemId || !actorUid || !text || !spiritSanSocialCanUseSupabase()) return false;
     try {
@@ -11540,7 +11559,6 @@ function spiritLoadMessagesTab() {
     var me = '';
     try { me = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : (typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim()); } catch (e) {}
     var meN = spiritNormUid(me);
-    var ownerCandidates = [String(me || '').trim(), meN].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
     if (!meN) {
         box.innerHTML = '<div style="font-size:0.68rem;color:#666;">' + String(mT('msg_login')).replace(/</g, '&lt;') + '</div>';
         return;
@@ -11551,6 +11569,24 @@ function spiritLoadMessagesTab() {
     }
     box.innerHTML = '<div style="font-size:0.68rem;color:#666;">' + String(mT('msg_loading')).replace(/</g, '&lt;') + '</div>';
     void (async function () {
+        var ownerCandidates = [String(me || '').trim(), meN].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+        try {
+            var rawSession = '';
+            try { rawSession = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : ''); } catch (eRs) {}
+            if (rawSession && ownerCandidates.indexOf(rawSession) < 0) ownerCandidates.push(rawSession);
+            if (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) {
+                var mtId = spiritNormUid(MY_TEST_ID);
+                if (mtId && ownerCandidates.indexOf(mtId) < 0) ownerCandidates.push(mtId);
+            }
+            if (typeof spiritResolveUserIdForFakeTestId === 'function') {
+                var srcRes = rawSession || meN || (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null ? spiritNormUid(MY_TEST_ID) : '');
+                if (srcRes) {
+                    var resolved = await spiritResolveUserIdForFakeTestId(srcRes);
+                    var rN = spiritNormUid(resolved || '');
+                    if (rN && ownerCandidates.indexOf(rN) < 0) ownerCandidates.push(rN);
+                }
+            }
+        } catch (eCand) {}
         var rows = [];
         var dbOk = true;
         if (!spiritSanNotifsTableMissing) {
@@ -11615,11 +11651,26 @@ function spiritLoadMessagesTab() {
                 var from = fromMap[uidFrom] || spiritSanctuaryFallbackLabel(uidFrom);
                 var dt = n.created_at ? new Date(n.created_at).toLocaleString() : '—';
                 var txt;
-                if (n.synthetic && String(n.type) === 'like') {
+                var nTypeDb = String(n.type || '');
+                if (n.synthetic && nTypeDb === 'like') {
                     txt = mT('msg_syn_liked_photo');
-                } else if (n.synthetic && String(n.type) === 'comment') {
+                } else if (n.synthetic && nTypeDb === 'comment') {
                     var sn = String(n.syn_comment_snippet != null ? n.syn_comment_snippet : '').trim();
                     txt = mT('msg_syn_commented_prefix') + (sn ? ' ' + sn : '');
+                } else if (nTypeDb === 'like') {
+                    txt = mT('msg_syn_liked_photo');
+                } else if (nTypeDb === 'comment') {
+                    var rawC = String(n.text || '').trim();
+                    var stripC = rawC.replace(/^a commenté ta photo\s*:?\s*/i, '').replace(/^commented on your photo\s*:?\s*/i, '').trim();
+                    txt = (stripC && stripC !== rawC) ? (mT('msg_syn_commented_prefix') + ' ' + stripC) : mT('msg_notif_commented_photo_generic');
+                } else if (nTypeDb === 'listing_new') {
+                    var rawL = String(n.text || '').trim();
+                    var frPref = 'a publié une nouvelle annonce :';
+                    if (rawL.indexOf(frPref) === 0) {
+                        txt = mT('msg_notif_new_listing_prefix') + ' ' + rawL.slice(frPref.length).trim();
+                    } else {
+                        txt = (viewL !== 'FR' && rawL && textTrMap[rawL]) ? textTrMap[rawL] : (rawL || mT('msg_new_activity'));
+                    }
                 } else {
                     var rawT = String(n.text || '').trim();
                     txt = (viewL !== 'FR' && rawT && textTrMap[rawT]) ? textTrMap[rawT] : (rawT || mT('msg_new_activity'));
@@ -11627,7 +11678,7 @@ function spiritLoadMessagesTab() {
                 var synTag = n.synthetic ? '<span style="font-size:0.55rem;color:#666;margin-left:6px;">' + String(mT('msg_activity')).replace(/</g, '&lt;') + '</span>' : '';
                 var nid = Number(n.id);
                 var idStr = Number.isFinite(nid) && nid > 0 ? String(nid) : '0';
-                var nType = String(n.type || '');
+                var nType = nTypeDb;
                 var itemIdRaw = String(n.item_id || '').trim().replace(/[^a-zA-Z0-9-]/g, '');
                 var itemIdEsc = itemIdRaw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                 var fromUidEsc = uidFrom.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -12922,7 +12973,8 @@ async function spiritSanctuaryFetchItems(uid, viewerIsOwner) {
         return spiritSanctuaryItemsSessionRows[sKey].slice();
     }
     var cKey = viewerIsOwner ? spiritSanctuaryItemsCacheKeyOwn(uid) : spiritSanctuaryItemsCacheKeyPub(uid);
-    var cached = spiritLsCacheRead(cKey, SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS);
+    var ttlMs = viewerIsOwner ? SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS : SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS_PUB;
+    var cached = spiritLsCacheRead(cKey, ttlMs);
     if (Array.isArray(cached)) {
         spiritSanctuaryItemsSessionRows[sKey] = cached;
         return cached;
@@ -12982,6 +13034,14 @@ async function spiritSanctuaryTabEnter() {
     var uid = spiritSanctuaryUid('public');
     if (!uid) return;
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    try {
+        var uNorm = spiritNormUid(uid);
+        var meNorm = spiritNormUid(me);
+        if (!meNorm || meNorm !== uNorm) {
+            try { delete spiritSanctuaryItemsSessionRows[spiritSanctuarySessionCacheKey(uid, false)]; } catch (eS) {}
+            try { localStorage.removeItem(spiritSanctuaryItemsCacheKeyPub(uid)); } catch (eL) {}
+        }
+    } catch (eInv) {}
     if (me === String(uid)) await spiritSanctuaryMarkReadForOwner(uid);
     await spiritSanctuaryRender('public');
     await spiritSanctuaryRenderChat('public');
