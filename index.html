@@ -6584,6 +6584,19 @@ function spiritLocalSoldMark(productRow) {
     if (t && own) o['to:' + t + '::' + own] = 1;
     spiritLocalSoldHintsWrite(o);
 }
+/** Retire les hints « vendu » navigateur (ex. après republication ou si Supabase dit disponible). */
+function spiritLocalSoldUnmark(productRow) {
+    if (!productRow) return;
+    var o = spiritLocalSoldHintsRead();
+    var pid = spiritFavoriteProductId(productRow);
+    var uuid = String(productRow.uuid || '').trim();
+    var t = String((productRow.title || productRow.name || '')).trim().toLowerCase();
+    var own = spiritNormUid(productRow.owner_id || productRow.owner || '');
+    if (pid != null) delete o['id:' + String(pid)];
+    if (uuid) delete o['uuid:' + uuid];
+    if (t && own) delete o['to:' + t + '::' + own];
+    spiritLocalSoldHintsWrite(o);
+}
 function spiritLocalSoldMatches(row) {
     var o = spiritLocalSoldHintsRead();
     var pid = spiritFavoriteProductId(row);
@@ -7414,7 +7427,7 @@ async function publierAnnonce() {
 
         if (typeof editingId !== 'undefined' && editingId != null && String(editingId).trim() !== '') {
             var eid = editingId;
-            var selExisting = await _spirit.from('products_live').select('id,price,old_price,currency').eq('id', eid).maybeSingle();
+            var selExisting = await _spirit.from('products_live').select('id,price,old_price,currency,uuid').eq('id', eid).maybeSingle();
             if (selExisting.error) throw selExisting.error;
             if (!selExisting.data) {
                 alert('ANNONCE INTROUVABLE (édition).');
@@ -7432,6 +7445,7 @@ async function publierAnnonce() {
                 cat: normalizedCat,
                 brand: brand || 'Spirit Infinity',
                 ship_size: shipSize,
+                status: 'available',
                 currency: saleCurrency,
                 is_native: fromHardwarePanneau,
                 is_smoke_free: isSmokeFree,
@@ -7449,6 +7463,16 @@ async function publierAnnonce() {
             }
             var upRes = await _spirit.from('products_live').update(updateRow).eq('id', eid);
             if (upRes.error) throw upRes.error;
+            try {
+                if (typeof spiritLocalSoldUnmark === 'function') {
+                    spiritLocalSoldUnmark({
+                        id: eid,
+                        uuid: (ex && ex.uuid) ? String(ex.uuid).trim() : '',
+                        title: title,
+                        owner_id: ownerIdPub
+                    });
+                }
+            } catch (eUn) {}
             editingId = null;
             alert('ANNONCE MISE À JOUR !');
             try { closeModals(); } catch (e) {}
@@ -7468,6 +7492,9 @@ async function publierAnnonce() {
 
         try {
             var newId = insRows && insRows[0] && insRows[0].id != null ? insRows[0].id : null;
+            if (typeof spiritLocalSoldUnmark === 'function') {
+                spiritLocalSoldUnmark(Object.assign({}, newItem, { id: newId, owner_id: ownerIdPub }));
+            }
             var pubUid = typeof spiritNormUid === 'function' ? spiritNormUid(MY_TEST_ID) : String(MY_TEST_ID || '').trim().toLowerCase();
             try {
                 if (_spirit && _spirit.auth && typeof _spirit.auth.getSession === 'function') {
@@ -14242,7 +14269,14 @@ async function fetchMarketplaceFromSupabase(opts) {
         var cached = spiritMarketCacheRead(key);
         if (cached && Array.isArray(cached.rows)) {
             b.rows = cached.rows;
-            try { b.rows.forEach(function (r) { if (spiritLocalSoldMatches(r)) r.status = 'sold'; }); } catch (eSoldCached) {}
+            try {
+                b.rows.forEach(function (r) {
+                    if (!r) return;
+                    var st = String(r.status || '').trim().toLowerCase();
+                    if (st === 'sold' || st === 'vendu') return;
+                    if (typeof spiritLocalSoldUnmark === 'function') spiritLocalSoldUnmark(r);
+                });
+            } catch (eSoldCached) {}
             b.hasMore = !!cached.hasMore;
             b.loading = false;
             if (spiritBucketKeyFromMode() === key) marketData = b.rows.slice();
@@ -14319,9 +14353,15 @@ async function fetchMarketplaceFromSupabase(opts) {
     }
 
     var chunk = Array.isArray(data) ? data : [];
-    // IMPORTANT: ne pas marquer "sold" via vendeur+titre (risque de croisement entre annonces similaires).
+    /* Source de vérité = Supabase. Ne pas forcer « vendu » depuis localStorage (sinon une annonce
+       republiée avec le même titre reste grisée après suppression des transactions). On nettoie les hints obsolètes. */
     try {
-        chunk.forEach(function (r) { if (spiritLocalSoldMatches(r)) r.status = 'sold'; });
+        chunk.forEach(function (r) {
+            if (!r) return;
+            var st = String(r.status || '').trim().toLowerCase();
+            if (st === 'sold' || st === 'vendu') return;
+            if (typeof spiritLocalSoldUnmark === 'function') spiritLocalSoldUnmark(r);
+        });
     } catch (eSoldHint) {}
     if (opts.staleRefresh && prevSigStale !== null) {
         if (spiritMarketRowsSig(chunk) === prevSigStale && (chunk.length === ps) === prevHasMoreStale) {
