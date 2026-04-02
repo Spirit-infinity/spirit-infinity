@@ -3260,9 +3260,9 @@
                         <div id="spiritSellerOfferAlertText" style="font-size:0.72rem; color:#bbb;"></div>
                     </div>
                     <div id="spiritListingQaAlert" style="display:none; margin-top:14px; padding:12px 14px; border:1px solid rgba(255,200,100,0.35); background:rgba(40,30,10,0.22);">
-                        <div style="font-size:0.75rem; color:#fa0; font-weight:900; letter-spacing:1px; margin-bottom:6px;">MESSAGES SUR LES ANNONCES</div>
+                        <div data-key="dashboard_listing_qa_title" style="font-size:0.75rem; color:#fa0; font-weight:900; letter-spacing:1px; margin-bottom:6px;">MESSAGES SUR LES ANNONCES</div>
                         <div id="spiritListingQaAlertText" style="font-size:0.72rem; color:#bbb;"></div>
-                        <button type="button" class="btn-action" style="font-size:0.58rem;margin-top:8px;" onclick="spiritAckListingQaBannerRead()">MARQUER COMME LU</button>
+                        <button type="button" class="btn-action" style="font-size:0.58rem;margin-top:8px;" data-key="dashboard_listing_qa_mark_read" onclick="spiritAckListingQaBannerRead()">MARQUER COMME LU</button>
                     </div>
                     <div style="margin-top:16px;padding:14px;border:1px solid rgba(0,200,120,0.35);background:#0a1010;">
                         <p style="margin:0 0 8px;font-size:0.7rem;color:#6d8;font-weight:800;letter-spacing:1px;">MES OFFRES ENVOYÉES (FAVORIS)</p>
@@ -3360,7 +3360,10 @@
     <h3>ÉVALUATIONS</h3>
     <p style="font-size:0.68rem;color:#777;margin-top:0;line-height:1.4;">Avis reçus sur ton profil public. Tu peux répondre à chaque commentaire ; la réponse est visible par tous.</p>
     <p style="font-size:0.62rem;color:#666;margin-top:6px;">Pour laisser une note à quelqu’un, utilise le flux après une transaction (fenêtre d’évaluation ou notification).</p>
-    <div id="evalMyList" style="display:flex;flex-direction:column;gap:10px;margin-top:14px;"></div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px;">
+        <button type="button" class="btn-action" style="font-size:0.55rem;padding:6px 12px;background:#241010;border:1px solid #633;color:#e88;" onclick="void spiritDeleteAllMyReceivedEvaluations()">TOUT EFFACER LE FIL</button>
+    </div>
+    <div id="evalMyList" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;"></div>
 </div>
 
 <div id="tab-liste-envie" class="account-page">
@@ -3843,7 +3846,11 @@
             'reg_err_country': 'Choisis ton pays ou ta région : la langue et la devise du site s’alignent dessus.',
             'account_locale_block_title': 'Langue du site & devise', 'account_locale_hint': 'Choisis ton pays : l’interface et les prix du marché suivent (comptes déjà créés inclus).',
             'account_save_locale_btn': 'Appliquer langue & devise', 'account_locale_saved': 'Langue et devise enregistrées sur ton compte.',
-            'auth_err_email_exists': 'Un compte existe déjà avec cet e-mail. Vérifie ton mot de passe (le pays n’est requis qu’à la création du compte — tu peux le régler dans Paramètres).'
+            'auth_err_email_exists': 'Un compte existe déjà avec cet e-mail. Vérifie ton mot de passe (le pays n’est requis qu’à la création du compte — tu peux le régler dans Paramètres).',
+            'dashboard_listing_qa_title': 'MESSAGES SUR LES ANNONCES', 'dashboard_listing_qa_mark_read': 'MARQUER COMME LU',
+            'notif_tag_question': 'Question', 'notif_tag_reply': 'Réponse', 'notif_tag_offer_accepted': 'Offre acceptée',
+            'notif_tag_offer_rejected': 'Offre refusée', 'notif_tag_evaluation': 'Évaluation', 'notif_tag_purchase': 'Achat',
+            'listing_chat_tr_hint': 'Traduction auto · survol pour l’original'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -3888,7 +3895,11 @@
             'reg_err_country': 'Choose your country or region: the site language and currency will match.',
             'account_locale_block_title': 'Site language & currency', 'account_locale_hint': 'Pick your country: the UI and marketplace prices follow (existing accounts too).',
             'account_save_locale_btn': 'Apply language & currency', 'account_locale_saved': 'Language and currency saved to your account.',
-            'auth_err_email_exists': 'An account already exists for this email. Check your password (country is only required when signing up — set it under Settings).'
+            'auth_err_email_exists': 'An account already exists for this email. Check your password (country is only required when signing up — set it under Settings).',
+            'dashboard_listing_qa_title': 'LISTING MESSAGES', 'dashboard_listing_qa_mark_read': 'MARK AS READ',
+            'notif_tag_question': 'Question', 'notif_tag_reply': 'Reply', 'notif_tag_offer_accepted': 'Offer accepted',
+            'notif_tag_offer_rejected': 'Offer declined', 'notif_tag_evaluation': 'Review', 'notif_tag_purchase': 'Purchase',
+            'listing_chat_tr_hint': 'Auto translation · hover for original'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -3933,7 +3944,11 @@
             'reg_err_country': 'Elige tu país o región: el idioma y la divisa del sitio se ajustarán.',
             'account_locale_block_title': 'Idioma del sitio y divisa', 'account_locale_hint': 'Elige tu país: la interfaz y los precios del mercado se adaptan (también cuentas antiguas).',
             'account_save_locale_btn': 'Aplicar idioma y divisa', 'account_locale_saved': 'Idioma y divisa guardados en tu cuenta.',
-            'auth_err_email_exists': 'Ya existe una cuenta con este correo. Revisa la contraseña (el país solo hace falta al registrarse — configúralo en Ajustes).'
+            'auth_err_email_exists': 'Ya existe una cuenta con este correo. Revisa la contraseña (el país solo hace falta al registrarse — configúralo en Ajustes).',
+            'dashboard_listing_qa_title': 'MENSAJES EN ANUNCIOS', 'dashboard_listing_qa_mark_read': 'MARCAR COMO LEÍDO',
+            'notif_tag_question': 'Pregunta', 'notif_tag_reply': 'Respuesta', 'notif_tag_offer_accepted': 'Oferta aceptada',
+            'notif_tag_offer_rejected': 'Oferta rechazada', 'notif_tag_evaluation': 'Evaluación', 'notif_tag_purchase': 'Compra',
+            'listing_chat_tr_hint': 'Traducción auto · pasa el cursor para el original'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -3978,13 +3993,24 @@
             'reg_err_country': '请选择国家或地区：网站语言与货币将据此设置。',
             'account_locale_block_title': '网站语言与货币', 'account_locale_hint': '选择国家：界面与市场价格会随之切换（老账号也可在此设置）。',
             'account_save_locale_btn': '应用语言与货币', 'account_locale_saved': '语言与货币已保存到账户。',
-            'auth_err_email_exists': '该邮箱已有账户，请检查密码（国家仅在注册时需要，也可在「设置」中修改）。'
+            'auth_err_email_exists': '该邮箱已有账户，请检查密码（国家仅在注册时需要，也可在「设置」中修改）。',
+            'dashboard_listing_qa_title': '商品留言', 'dashboard_listing_qa_mark_read': '标为已读',
+            'notif_tag_question': '提问', 'notif_tag_reply': '回复', 'notif_tag_offer_accepted': '出价已接受',
+            'notif_tag_offer_rejected': '出价已拒绝', 'notif_tag_evaluation': '评价', 'notif_tag_purchase': '购买',
+            'listing_chat_tr_hint': '自动翻译 · 悬停查看原文'
         }
     };
 
     function spiritUiLang() {
-        var sel = document.querySelector('.lang-selector');
-        var raw = (sel && sel.value) ? String(sel.value).toUpperCase() : 'FR';
+        var raw = 'FR';
+        try {
+            var sel = document.querySelector('.lang-selector');
+            if (sel && sel.value) raw = String(sel.value).toUpperCase();
+            else {
+                var ls = localStorage.getItem('spirit_ui_lang');
+                if (ls) raw = String(ls).toUpperCase();
+            }
+        } catch (e) {}
         if (raw === 'CN') raw = 'ZH';
         return ['FR', 'EN', 'ES', 'ZH'].indexOf(raw) >= 0 ? raw : 'FR';
     }
@@ -4246,6 +4272,14 @@ async function loadUserPurchases() {
             if (typeof renderMarket === 'function' && Array.isArray(marketData) && marketData.length) renderMarket();
         } catch (e) { /* ignore */ }
         try { if (typeof applyFilters === 'function') applyFilters(); } catch (eF) {}
+        try {
+            void (async function () {
+                if (typeof spiritApplyListingChatTranslations !== 'function') return;
+                if (typeof selectedProduct === 'undefined' || !selectedProduct || !selectedProduct.chat || !selectedProduct.chat.length) return;
+                await spiritApplyListingChatTranslations();
+                if (typeof renderChatMessages === 'function') renderChatMessages();
+            })();
+        } catch (eChatLang) {}
     }
     function changeLang(lang) { switchLanguage(lang); }
 
@@ -5563,16 +5597,26 @@ async function spiritCheckListingQaDashboardBanner() {
         if (q.error || !q.data || !q.data.length) return;
         var lines = q.data.map(function (r) {
             var tp = String(r.type || '');
-            var tag = (tp === 'listing_question') ? 'Question'
-                : (tp === 'listing_reply') ? 'Réponse'
-                : (tp === 'offer_accepted') ? 'Offre acceptée'
-                : (tp === 'offer_rejected') ? 'Offre refusée'
-                : (tp === 'evaluation_pending') ? 'Évaluation'
-                : 'Achat';
+            var tag = (tp === 'listing_question') ? (typeof spiritT === 'function' ? spiritT('notif_tag_question') : 'Question')
+                : (tp === 'listing_reply') ? (typeof spiritT === 'function' ? spiritT('notif_tag_reply') : 'Réponse')
+                : (tp === 'offer_accepted') ? (typeof spiritT === 'function' ? spiritT('notif_tag_offer_accepted') : 'Offre acceptée')
+                : (tp === 'offer_rejected') ? (typeof spiritT === 'function' ? spiritT('notif_tag_offer_rejected') : 'Offre refusée')
+                : (tp === 'evaluation_pending') ? (typeof spiritT === 'function' ? spiritT('notif_tag_evaluation') : 'Évaluation')
+                : (typeof spiritT === 'function' ? spiritT('notif_tag_purchase') : 'Achat');
             return tag + ' : ' + String(r.text || '').slice(0, 96);
         });
         textEl.textContent = lines.join(' · ');
         banner.style.display = 'block';
+        try {
+            var Lb = typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR';
+            var setB = translations[Lb] || translations['FR'];
+            banner.querySelectorAll('[data-key]').forEach(function (el) {
+                var k = el.getAttribute('data-key');
+                if (!k || !setB || !setB[k]) return;
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = setB[k];
+                else el.textContent = setB[k];
+            });
+        } catch (eI18nBanner) {}
     } catch (e) {}
 }
 
@@ -7970,18 +8014,16 @@ function spiritListingChatLangToMyMemory(code) {
     if (c === 'ES') return 'es';
     return 'fr';
 }
+/** Langue cible pour traduire les messages d’annonce = langue d’interface (sélecteur / spirit_ui_lang), pas le pays du profil. */
 async function spiritListingChatViewerLang() {
-    var fallback = typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR';
-    var uid = spiritOwnerId(spiritGetCurrentUserId());
-    if (!uid || !_spirit) return spiritListingChatLangNormalize(fallback);
     try {
-        var out = await _spirit.from('user_profiles').select('country').eq('id', uid).maybeSingle();
-        if (!out.error && out.data) {
-            var fromCo = spiritCountryToListingChatLang(out.data.country);
-            if (fromCo) return spiritListingChatLangNormalize(fromCo);
+        var ls = localStorage.getItem('spirit_ui_lang');
+        if (ls) {
+            var u = spiritListingChatLangNormalize(String(ls).toUpperCase());
+            if (['FR', 'EN', 'ES', 'ZH'].indexOf(u) >= 0) return u;
         }
     } catch (e) {}
-    return spiritListingChatLangNormalize(fallback);
+    return spiritListingChatLangNormalize(typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR');
 }
 /** Traduction gratuite (quota limité). Si échec CORS/quota, le texte original s’affiche. */
 async function spiritTranslateListingMessage(text, fromLang, toLang) {
@@ -8195,8 +8237,9 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 var orig = m.body_orig != null ? m.body_orig : m.text;
                 var u = spiritChatEscapeHtml(m.user);
                 var t = spiritChatEscapeHtml(show);
+                var trHint = (typeof spiritT === 'function') ? spiritT('listing_chat_tr_hint') : 'Traduction auto · survol pour l’original';
                 var hint = m._translated
-                    ? '<span class="spirit-listing-chat-tr" style="font-size:0.58rem;color:#777;display:block;margin-top:3px;" title="' + spiritChatEscapeAttr(orig) + '">Traduction auto · survol pour l’original</span>'
+                    ? '<span class="spirit-listing-chat-tr" style="font-size:0.58rem;color:#777;display:block;margin-top:3px;" title="' + spiritChatEscapeAttr(orig) + '">' + spiritChatEscapeHtml(trHint) + '</span>'
                     : '';
                 box.innerHTML += '<div class="msg-line"><span class="msg-user">' + u + ':</span><span class="msg-text">' + t + '</span>' + hint + '</div>';
             });
@@ -11876,6 +11919,7 @@ async function spiritReplyToEvaluation(evalId) {
     try {
         var up = await _spirit.from(SPIRIT_EVAL_TABLE).update({ target_reply: String(txt).slice(0, 800) }).eq('id', evalId);
         if (up.error) throw up.error;
+        alert('Ta réponse a bien été enregistrée.');
         var modal = document.getElementById('spiritBadgeCommentsModal');
         var open = false;
         try { open = modal && window.getComputedStyle(modal).display !== 'none'; } catch (eM) {}
@@ -14215,6 +14259,53 @@ async function spiritRefreshPublicLitigeBlink() {
     var has = await spiritHasOpenLitigeForUser(spiritPublicViewUserId);
     wrap.classList.toggle('spirit-litige-blink', !!has);
 }
+async function spiritEvalRefreshBadgesIfViewingSelf() {
+    try {
+        var me = spiritNormUid(MY_TEST_ID || '');
+        if (!me || !spiritPublicViewUserId) return;
+        if (spiritNormUid(spiritPublicViewUserId) !== me) return;
+        await spiritPublicApplyBadgesFromRow(null);
+    } catch (eR) {}
+}
+async function spiritDeleteMyEvaluation(evalId) {
+    evalId = String(evalId != null ? evalId : '').trim();
+    if (!evalId) return;
+    var me = spiritNormUid(MY_TEST_ID || '');
+    if (!me || !_spirit || spiritEvalTableMissing) return;
+    if (!window.confirm('Supprimer définitivement cet avis ? Il disparaîtra de ton profil public.')) return;
+    try {
+        var del = await _spirit.from(SPIRIT_EVAL_TABLE).delete().eq('id', evalId).eq('target_user_id', me);
+        if (del.error) { spiritEvalMarkMissingIf404(del.error); throw del.error; }
+        alert('Avis supprimé.');
+        await spiritLoadMyEvaluations();
+        await spiritEvalRefreshBadgesIfViewingSelf();
+        var modal = document.getElementById('spiritBadgeCommentsModal');
+        var open = false;
+        try { open = modal && window.getComputedStyle(modal).display !== 'none'; } catch (eM) {}
+        if (open) await spiritOpenBadgeComments(spiritEvalCurrentModalCategory || 'achat');
+    } catch (e) {
+        alert('Erreur suppression : ' + (e && e.message ? e.message : e));
+    }
+}
+async function spiritDeleteAllMyReceivedEvaluations() {
+    var me = spiritNormUid(MY_TEST_ID || '');
+    if (!me || !_spirit || spiritEvalTableMissing) return;
+    if (!window.confirm('Supprimer TOUS les avis reçus sur ton profil ? Action irréversible.')) return;
+    if (!window.confirm('Confirmer : tout le fil d’évaluations reçues sera effacé.')) return;
+    try {
+        var del = await _spirit.from(SPIRIT_EVAL_TABLE).delete().eq('target_user_id', me);
+        if (del.error) { spiritEvalMarkMissingIf404(del.error); throw del.error; }
+        alert('Tous les avis reçus ont été supprimés.');
+        await spiritLoadMyEvaluations();
+        await spiritEvalRefreshBadgesIfViewingSelf();
+        var modal = document.getElementById('spiritBadgeCommentsModal');
+        var open = false;
+        try { open = modal && window.getComputedStyle(modal).display !== 'none'; } catch (eM2) {}
+        if (open) await spiritOpenBadgeComments(spiritEvalCurrentModalCategory || 'achat');
+    } catch (e) {
+        alert('Erreur suppression : ' + (e && e.message ? e.message : e));
+    }
+}
 async function spiritLoadMyEvaluations() {
     var box = document.getElementById('evalMyList');
     if (!box) return;
@@ -14235,7 +14326,8 @@ async function spiritLoadMyEvaluations() {
         var idJson = JSON.stringify(String(r.id || ''));
         var dt = (r && r.created_at) ? new Date(r.created_at) : null;
         var dtTxt = (dt && !isNaN(dt.getTime())) ? dt.toLocaleString() : '';
-        return '<div style="border:1px solid #2a2a2a;background:#0a0a0a;padding:12px;border-radius:4px;">'
+        return '<div style="position:relative;border:1px solid #2a2a2a;background:#0a0a0a;padding:12px 40px 12px 12px;border-radius:4px;">'
+            + '<button type="button" title="Supprimer cet avis" aria-label="Supprimer" style="position:absolute;top:8px;right:8px;width:30px;height:30px;padding:0;border:1px solid #522;background:#180808;color:#e66;cursor:pointer;border-radius:4px;font-size:1rem;line-height:1;font-weight:bold;" onclick=\'void spiritDeleteMyEvaluation(' + idJson + ')\'>✕</button>'
             + '<div style="font-size:0.6rem;color:#666;">' + (dtTxt ? dtTxt + ' · ' : '') + cat.toUpperCase() + '</div>'
             + '<div style="font-size:0.64rem;color:#aaa;margin-top:4px;">' + p + ' · ' + '★'.repeat(stars) + '</div>'
             + '<div style="font-size:0.72rem;color:#e8e8e8;margin-top:8px;line-height:1.45;">' + (cm || '—') + '</div>'
