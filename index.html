@@ -2708,14 +2708,14 @@
         <div class="spirit-mob-acc-panel" id="spiritMobPanelNav">
             <nav class="spirit-mob-acc-navlist" aria-label="Navigation">
                 <p class="spirit-mob-acc-panel-tagline">SPIRIT INFINITY</p>
-                <button type="button" class="spirit-mob-nav-btn" onclick="showMarketplace()">MARKETPLACE</button>
-                <button type="button" class="spirit-mob-nav-btn" onclick="showLedgerModal()">PANNEAU DE CONTROLE</button>
-                <button type="button" class="spirit-mob-nav-btn" onclick="showForum()">FORUM</button>
-                <button type="button" class="spirit-mob-nav-btn" id="spirit-mob-nav-account" onclick="showMonCompte()">MON COMPTE</button>
-                <button type="button" class="spirit-mob-nav-btn" onclick="showSecurite()">SÉCURITÉ</button>
-                <button type="button" class="spirit-mob-nav-btn" id="spirit-mob-nav-preorders" onclick="showPrecommandesHotToys()">PRÉCOMMANDES HOT TOYS</button>
-                <button type="button" class="spirit-mob-nav-btn" onclick="showSupport()">SUPPORT SPIRIT</button>
-                <label class="spirit-mob-lang-label">Langue
+                <button type="button" class="spirit-mob-nav-btn" onclick="showMarketplace()"><span data-key="nav_market">MARKETPLACE</span></button>
+                <button type="button" class="spirit-mob-nav-btn" onclick="showLedgerModal()"><span data-key="nav_ledger">PANNEAU DE CONTROLE</span></button>
+                <button type="button" class="spirit-mob-nav-btn" onclick="showForum()"><span data-key="nav_forum">FORUM</span></button>
+                <button type="button" class="spirit-mob-nav-btn" id="spirit-mob-nav-account" onclick="showMonCompte()"><span data-key="nav_account">MON COMPTE</span></button>
+                <button type="button" class="spirit-mob-nav-btn" onclick="showSecurite()"><span data-key="nav_security">SÉCURITÉ</span></button>
+                <button type="button" class="spirit-mob-nav-btn" id="spirit-mob-nav-preorders" onclick="showPrecommandesHotToys()"><span data-key="nav_preorders">PRÉCOMMANDES HOT TOYS</span></button>
+                <button type="button" class="spirit-mob-nav-btn" onclick="showSupport()"><span data-key="nav_support">SUPPORT SPIRIT</span></button>
+                <label class="spirit-mob-lang-label"><span data-key="mob_lang_label">Langue</span>
                     <select class="lang-selector spirit-mob-lang-select" onchange="switchLanguage(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px; margin-top:4px; width:100%; box-sizing:border-box;">
                         <option value="FR">FR 🇫🇷</option>
                         <option value="EN">EN 🇺🇸</option>
@@ -2736,9 +2736,9 @@
     </div>
     <div class="menu-center">
         <button id="nav-market" class="active" onclick="showMarketplace()" data-key="nav_market">MARKETPLACE</button>
-        <button id="nav-ledger" class="nav-item" onclick="showLedgerModal()" data-key="nav_ledger"> <i class="fas fa-microchip"></i>PANNEAU DE CONTROLE</button>
+        <button id="nav-ledger" class="nav-item" onclick="showLedgerModal()"><i class="fas fa-microchip"></i><span data-key="nav_ledger">PANNEAU DE CONTROLE</span></button>
         <button id="nav-forum" onclick="showForum()" data-key="nav_forum">FORUM</button>
-        <button id="nav-account" type="button" onclick="showMonCompte()" data-key="nav_account"><span class="spirit-nav-account-label">MON COMPTE</span><span id="nav-account-notif-pill" class="spirit-nav-account-notif-pill" aria-hidden="true"></span><span id="nav-account-sanctuary-dot" aria-hidden="true"></span></button>
+        <button id="nav-account" type="button" onclick="showMonCompte()"><span class="spirit-nav-account-label" data-key="nav_account">MON COMPTE</span><span id="nav-account-notif-pill" class="spirit-nav-account-notif-pill" aria-hidden="true"></span><span id="nav-account-sanctuary-dot" aria-hidden="true"></span></button>
         <button id="nav-func" onclick="showSecurite()" data-key="nav_security">SÉCURITÉ</button>
         <button id="nav-preorders" onclick="showPrecommandesHotToys()" data-key="nav_preorders">PRÉCOMMANDES HOT TOYS</button>
         <button id="nav-sav" onclick="showSupport()" data-key="nav_support">SUPPORT SPIRIT</button>
@@ -3238,17 +3238,17 @@
         <button onclick="closeSpiritMenu()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
         <div class="dash-container">
             <div class="dash-nav spirit-account-acc-root" role="tablist" aria-label="Sections du compte">
-                <button type="button" id="btn-dashboard" role="tab" aria-expanded="false" aria-controls="tab-dashboard" onclick="showAccountTab('dashboard')">DASHBOARD<span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
-                <button type="button" id="btn-messages" role="tab" aria-expanded="false" aria-controls="tab-messages" onclick="showAccountTab('messages')">MESSAGES<span id="messages-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
-                <button type="button" id="btn-achats" role="tab" aria-expanded="false" aria-controls="tab-achats" onclick="showAccountTab('achats')">MES ACHATS</button>
-                <button type="button" id="btn-ventes" role="tab" aria-expanded="false" aria-controls="tab-ventes" onclick="showAccountTab('ventes')">MES VENTES</button>
-                <button type="button" id="btn-portefeuille" role="tab" aria-expanded="false" aria-controls="tab-portefeuille" onclick="showAccountTab('portefeuille')">PORTEFEUILLE</button>
-                <button type="button" id="btn-annonces" role="tab" aria-expanded="false" aria-controls="tab-annonces" onclick="showAccountTab('annonces')">MES ANNONCES</button>
-                <button type="button" id="btn-evaluations" role="tab" aria-expanded="false" aria-controls="tab-evaluations" onclick="showAccountTab('evaluations')">ÉVALUATIONS</button>
+                <button type="button" id="btn-dashboard" role="tab" aria-expanded="false" aria-controls="tab-dashboard" onclick="showAccountTab('dashboard')"><span data-key="account_tab_dashboard">DASHBOARD</span><span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button type="button" id="btn-messages" role="tab" aria-expanded="false" aria-controls="tab-messages" onclick="showAccountTab('messages')"><span data-key="account_tab_messages">MESSAGES</span><span id="messages-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button type="button" id="btn-achats" role="tab" aria-expanded="false" aria-controls="tab-achats" onclick="showAccountTab('achats')"><span data-key="account_tab_purchases">MES ACHATS</span></button>
+                <button type="button" id="btn-ventes" role="tab" aria-expanded="false" aria-controls="tab-ventes" onclick="showAccountTab('ventes')"><span data-key="account_tab_sales">MES VENTES</span></button>
+                <button type="button" id="btn-portefeuille" role="tab" aria-expanded="false" aria-controls="tab-portefeuille" onclick="showAccountTab('portefeuille')"><span data-key="account_tab_wallet">PORTEFEUILLE</span></button>
+                <button type="button" id="btn-annonces" role="tab" aria-expanded="false" aria-controls="tab-annonces" onclick="showAccountTab('annonces')"><span data-key="account_tab_listings">MES ANNONCES</span></button>
+                <button type="button" id="btn-evaluations" role="tab" aria-expanded="false" aria-controls="tab-evaluations" onclick="showAccountTab('evaluations')"><span data-key="account_tab_reviews">ÉVALUATIONS</span></button>
                 <button type="button" id="btn-liste-envie" role="tab" aria-expanded="false" aria-controls="tab-liste-envie" onclick="showAccountTab('liste-envie')"><span data-key="account_wishlist_menu">LISTE D’ENVIE</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-favoris-recus" role="tab" aria-expanded="false" aria-controls="tab-favoris-recus" onclick="showAccountTab('favoris-recus')"><span data-key="account_seller_fav_menu">FAVORIS</span><span id="seller-received-fav-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
-                <button type="button" id="btn-sanctuary" role="tab" aria-expanded="false" aria-controls="tab-sanctuary" onclick="showAccountTab('sanctuary')">SANCTUAIRE</button>
-                <button type="button" id="btn-params" role="tab" aria-expanded="false" aria-controls="tab-params" onclick="showAccountTab('params')">PARAMÈTRES</button>
+                <button type="button" id="btn-sanctuary" role="tab" aria-expanded="false" aria-controls="tab-sanctuary" onclick="showAccountTab('sanctuary')"><span data-key="account_tab_sanctuary">SANCTUAIRE</span></button>
+                <button type="button" id="btn-params" role="tab" aria-expanded="false" aria-controls="tab-params" onclick="showAccountTab('params')"><span data-key="account_tab_settings">PARAMÈTRES</span></button>
             </div>
             
             <div class="dash-content">
@@ -3850,7 +3850,11 @@
             'dashboard_listing_qa_title': 'MESSAGES SUR LES ANNONCES', 'dashboard_listing_qa_mark_read': 'MARQUER COMME LU',
             'notif_tag_question': 'Question', 'notif_tag_reply': 'Réponse', 'notif_tag_offer_accepted': 'Offre acceptée',
             'notif_tag_offer_rejected': 'Offre refusée', 'notif_tag_evaluation': 'Évaluation', 'notif_tag_purchase': 'Achat',
-            'listing_chat_tr_hint': 'Traduction auto · survol pour l’original'
+            'listing_chat_tr_hint': 'Traduction auto · survol pour l’original',
+            'mob_lang_label': 'Langue',
+            'account_tab_dashboard': 'DASHBOARD', 'account_tab_messages': 'MESSAGES', 'account_tab_purchases': 'MES ACHATS',
+            'account_tab_sales': 'MES VENTES', 'account_tab_wallet': 'PORTEFEUILLE', 'account_tab_listings': 'MES ANNONCES',
+            'account_tab_reviews': 'ÉVALUATIONS', 'account_tab_sanctuary': 'SANCTUAIRE', 'account_tab_settings': 'PARAMÈTRES'
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
@@ -3899,7 +3903,11 @@
             'dashboard_listing_qa_title': 'LISTING MESSAGES', 'dashboard_listing_qa_mark_read': 'MARK AS READ',
             'notif_tag_question': 'Question', 'notif_tag_reply': 'Reply', 'notif_tag_offer_accepted': 'Offer accepted',
             'notif_tag_offer_rejected': 'Offer declined', 'notif_tag_evaluation': 'Review', 'notif_tag_purchase': 'Purchase',
-            'listing_chat_tr_hint': 'Auto translation · hover for original'
+            'listing_chat_tr_hint': 'Auto translation · hover for original',
+            'mob_lang_label': 'Language',
+            'account_tab_dashboard': 'DASHBOARD', 'account_tab_messages': 'MESSAGES', 'account_tab_purchases': 'MY PURCHASES',
+            'account_tab_sales': 'MY SALES', 'account_tab_wallet': 'WALLET', 'account_tab_listings': 'MY LISTINGS',
+            'account_tab_reviews': 'REVIEWS', 'account_tab_sanctuary': 'SANCTUARY', 'account_tab_settings': 'SETTINGS'
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
@@ -3948,7 +3956,11 @@
             'dashboard_listing_qa_title': 'MENSAJES EN ANUNCIOS', 'dashboard_listing_qa_mark_read': 'MARCAR COMO LEÍDO',
             'notif_tag_question': 'Pregunta', 'notif_tag_reply': 'Respuesta', 'notif_tag_offer_accepted': 'Oferta aceptada',
             'notif_tag_offer_rejected': 'Oferta rechazada', 'notif_tag_evaluation': 'Evaluación', 'notif_tag_purchase': 'Compra',
-            'listing_chat_tr_hint': 'Traducción auto · pasa el cursor para el original'
+            'listing_chat_tr_hint': 'Traducción auto · pasa el cursor para el original',
+            'mob_lang_label': 'Idioma',
+            'account_tab_dashboard': 'PANEL', 'account_tab_messages': 'MENSAJES', 'account_tab_purchases': 'MIS COMPRAS',
+            'account_tab_sales': 'MIS VENTAS', 'account_tab_wallet': 'CARTERA', 'account_tab_listings': 'MIS ANUNCIOS',
+            'account_tab_reviews': 'VALORACIONES', 'account_tab_sanctuary': 'SANTUARIO', 'account_tab_settings': 'AJUSTES'
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
@@ -3997,7 +4009,11 @@
             'dashboard_listing_qa_title': '商品留言', 'dashboard_listing_qa_mark_read': '标为已读',
             'notif_tag_question': '提问', 'notif_tag_reply': '回复', 'notif_tag_offer_accepted': '出价已接受',
             'notif_tag_offer_rejected': '出价已拒绝', 'notif_tag_evaluation': '评价', 'notif_tag_purchase': '购买',
-            'listing_chat_tr_hint': '自动翻译 · 悬停查看原文'
+            'listing_chat_tr_hint': '自动翻译 · 悬停查看原文',
+            'mob_lang_label': '语言',
+            'account_tab_dashboard': '概览', 'account_tab_messages': '消息', 'account_tab_purchases': '我的购买',
+            'account_tab_sales': '我的销售', 'account_tab_wallet': '钱包', 'account_tab_listings': '我的上架',
+            'account_tab_reviews': '评价', 'account_tab_sanctuary': '圣地', 'account_tab_settings': '设置'
         }
     };
 
@@ -4299,14 +4315,13 @@ async function loadUserPurchases() {
         try {
             if (!user || !user.user_metadata) return;
             var m = user.user_metadata;
-            var lang = String(m.spirit_locale || '').toUpperCase();
-            var cur = String(m.spirit_currency || '').toUpperCase();
-            if (!lang || !cur) {
-                var mapped = spiritCountryToLocaleAndCurrency(m.spirit_country);
-                if (mapped) {
-                    lang = mapped.lang;
-                    cur = mapped.currency;
-                }
+            var lang = String(m.spirit_locale || '').trim().toUpperCase();
+            var cur = String(m.spirit_currency || '').trim().toUpperCase();
+            var mapped = typeof spiritCountryToLocaleAndCurrency === 'function'
+                ? spiritCountryToLocaleAndCurrency(String(m.spirit_country || '').trim()) : null;
+            if (mapped) {
+                if (!lang || ['FR', 'EN', 'ES', 'ZH'].indexOf(lang) < 0) lang = mapped.lang;
+                if (!cur || ['EUR', 'USD', 'CNY'].indexOf(cur) < 0) cur = mapped.currency;
             }
             if (['FR', 'EN', 'ES', 'ZH'].indexOf(lang) < 0) return;
             if (['EUR', 'USD', 'CNY'].indexOf(cur) < 0) return;
@@ -8831,8 +8846,23 @@ async function spiritLoadListingMessagesForProduct(productId) {
             });
             var upd = await _spirit.auth.updateUser({ data: meta });
             if (upd && upd.error) throw upd.error;
-            var refreshed = upd && upd.data && upd.data.user ? upd.data.user : user;
+            var refreshed = user;
+            try {
+                var guFresh = await _spirit.auth.getUser();
+                if (guFresh && guFresh.data && guFresh.data.user) refreshed = guFresh.data.user;
+                else if (upd && upd.data && upd.data.user) refreshed = upd.data.user;
+            } catch (eG) {
+                if (upd && upd.data && upd.data.user) refreshed = upd.data.user;
+            }
+            try {
+                await _spirit.from('user_profiles').upsert([{ id: user.id, country: countryRaw }], { onConflict: 'id' });
+            } catch (eProf) {}
             try { spiritApplyAuthUser(refreshed, currentUser); } catch (eA) {}
+            try { localStorage.setItem('spirit_ui_lang', prefs.lang); } catch (eLs) {}
+            try {
+                if (typeof switchLanguage === 'function') switchLanguage(prefs.lang);
+                if (typeof setMarketCurrency === 'function') setMarketCurrency(prefs.currency);
+            } catch (eUi) {}
             alert(typeof spiritT === 'function' ? spiritT('account_locale_saved') : 'Enregistré.');
         } catch (err) {
             alert('Erreur : ' + (err && err.message ? err.message : err));
