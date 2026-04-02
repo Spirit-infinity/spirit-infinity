@@ -4276,7 +4276,9 @@ async function loadUserPurchases() {
             void (async function () {
                 if (typeof spiritApplyListingChatTranslations !== 'function') return;
                 if (typeof selectedProduct === 'undefined' || !selectedProduct || !selectedProduct.chat || !selectedProduct.chat.length) return;
-                await spiritApplyListingChatTranslations();
+                await spiritApplyListingChatTranslations(function () {
+                    if (typeof renderChatMessages === 'function') renderChatMessages();
+                });
                 if (typeof renderChatMessages === 'function') renderChatMessages();
             })();
         } catch (eChatLang) {}
@@ -5595,16 +5597,33 @@ async function spiritCheckListingQaDashboardBanner() {
             .order('created_at', { ascending: false })
             .range(0, 8);
         if (q.error || !q.data || !q.data.length) return;
-        var lines = q.data.map(function (r) {
-            var tp = String(r.type || '');
-            var tag = (tp === 'listing_question') ? (typeof spiritT === 'function' ? spiritT('notif_tag_question') : 'Question')
+        var viewL = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+        var rowsRaw = q.data.slice();
+        var lines = [];
+        var nN = 2;
+        function notifTag(tp) {
+            return (tp === 'listing_question') ? (typeof spiritT === 'function' ? spiritT('notif_tag_question') : 'Question')
                 : (tp === 'listing_reply') ? (typeof spiritT === 'function' ? spiritT('notif_tag_reply') : 'Réponse')
                 : (tp === 'offer_accepted') ? (typeof spiritT === 'function' ? spiritT('notif_tag_offer_accepted') : 'Offre acceptée')
                 : (tp === 'offer_rejected') ? (typeof spiritT === 'function' ? spiritT('notif_tag_offer_rejected') : 'Offre refusée')
                 : (tp === 'evaluation_pending') ? (typeof spiritT === 'function' ? spiritT('notif_tag_evaluation') : 'Évaluation')
                 : (typeof spiritT === 'function' ? spiritT('notif_tag_purchase') : 'Achat');
-            return tag + ' : ' + String(r.text || '').slice(0, 96);
-        });
+        }
+        for (var ni = 0; ni < rowsRaw.length; ni += nN) {
+            var ch = rowsRaw.slice(ni, ni + nN);
+            var part = await Promise.all(ch.map(async function (r) {
+                var tp = String(r.type || '');
+                var tag = notifTag(tp);
+                var rawBody = String(r.text || '').slice(0, 120);
+                var bodyOut = rawBody;
+                if (viewL !== 'FR' && rawBody.trim() && typeof spiritTranslateListingMessage === 'function') {
+                    var trb = await spiritTranslateListingMessage(rawBody, 'FR', viewL);
+                    if (trb) bodyOut = trb.slice(0, 120);
+                }
+                return tag + ' : ' + bodyOut;
+            }));
+            for (var pi = 0; pi < part.length; pi++) lines.push(part[pi]);
+        }
         textEl.textContent = lines.join(' · ');
         banner.style.display = 'block';
         try {
@@ -8014,8 +8033,8 @@ function spiritListingChatLangToMyMemory(code) {
     if (c === 'ES') return 'es';
     return 'fr';
 }
-/** Langue cible pour traduire les messages d’annonce = langue d’interface (sélecteur / spirit_ui_lang), pas le pays du profil. */
-async function spiritListingChatViewerLang() {
+/** Langue d’interface pour les messages d’annonce (sync, sans requête). */
+function spiritListingChatViewerLangSync() {
     try {
         var ls = localStorage.getItem('spirit_ui_lang');
         if (ls) {
@@ -8025,6 +8044,11 @@ async function spiritListingChatViewerLang() {
     } catch (e) {}
     return spiritListingChatLangNormalize(typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR');
 }
+/** Langue cible pour traduire les messages d’annonce = langue d’interface (sélecteur / spirit_ui_lang). */
+async function spiritListingChatViewerLang() {
+    return spiritListingChatViewerLangSync();
+}
+var SPIRIT_MM_TRANSLATE_CONCURRENCY = 3;
 /** Traduction gratuite (quota limité). Si échec CORS/quota, le texte original s’affiche. */
 async function spiritTranslateListingMessage(text, fromLang, toLang) {
     var raw = String(text || '').trim();
@@ -8038,7 +8062,7 @@ async function spiritTranslateListingMessage(text, fromLang, toLang) {
     var url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(raw.slice(0, 480)) + '&langpair=' + encodeURIComponent(fromM + '|' + toM);
     try {
         var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        var to = ac ? setTimeout(function () { try { ac.abort(); } catch (eA) {} }, 14000) : null;
+        var to = ac ? setTimeout(function () { try { ac.abort(); } catch (eA) {} }, 7000) : null;
         var res = await fetch(url, ac ? { signal: ac.signal } : {});
         if (to) clearTimeout(to);
         if (!res.ok) return '';
@@ -8050,35 +8074,53 @@ async function spiritTranslateListingMessage(text, fromLang, toLang) {
         return '';
     }
 }
-async function spiritApplyListingChatTranslations() {
+function spiritPrimeListingChatForTranslate() {
     if (!selectedProduct || !selectedProduct.chat || !selectedProduct.chat.length) return;
-    var viewLang = await spiritListingChatViewerLang();
-    var vNorm = spiritListingChatLangNormalize(viewLang);
+    var vNorm = spiritListingChatLangNormalize(spiritListingChatViewerLangSync());
     var meN = spiritNormUid(spiritGetCurrentUserId());
-    var list = selectedProduct.chat;
-    for (var idx = 0; idx < list.length; idx++) {
-        var m = list[idx];
+    selectedProduct.chat.forEach(function (m) {
         m.body_orig = m.text;
         if (meN && spiritNormUid(m.sender_id) === meN) {
             m.display_text = m.text;
             m._translated = false;
-            continue;
+            return;
         }
         var aLang = spiritListingChatLangNormalize(m.author_lang || 'FR');
-        if (aLang === vNorm || !String(m.text || '').trim()) {
-            m.display_text = m.text;
-            m._translated = false;
-            continue;
-        }
-        var tr = await spiritTranslateListingMessage(m.text, aLang, vNorm);
-        if (tr && tr !== m.text) {
-            m.display_text = tr;
-            m._translated = true;
-        } else {
-            m.display_text = m.text;
-            m._translated = false;
-        }
+        m.display_text = m.text;
+        m._translated = false;
+        if (aLang === vNorm || !String(m.text || '').trim()) return;
+    });
+}
+async function spiritApplyListingChatTranslationsFetchOnly(onProgress) {
+    if (!selectedProduct || !selectedProduct.chat || !selectedProduct.chat.length) return;
+    var vNorm = spiritListingChatLangNormalize(spiritListingChatViewerLangSync());
+    var meN = spiritNormUid(spiritGetCurrentUserId());
+    var jobs = [];
+    selectedProduct.chat.forEach(function (m) {
+        if (meN && spiritNormUid(m.sender_id) === meN) return;
+        var aLang = spiritListingChatLangNormalize(m.author_lang || 'FR');
+        if (aLang === vNorm || !String(m.text || '').trim()) return;
+        jobs.push({ m: m, from: aLang, to: vNorm });
+    });
+    var conc = SPIRIT_MM_TRANSLATE_CONCURRENCY;
+    for (var j = 0; j < jobs.length; j += conc) {
+        var slice = jobs.slice(j, j + conc);
+        await Promise.all(slice.map(function (job) {
+            return spiritTranslateListingMessage(job.m.text, job.from, job.to).then(function (tr) {
+                if (tr && tr !== job.m.text) {
+                    job.m.display_text = tr;
+                    job.m._translated = true;
+                }
+            });
+        }));
+        if (typeof onProgress === 'function') try { onProgress(); } catch (eP) {}
     }
+}
+async function spiritApplyListingChatTranslations(onProgress) {
+    if (!selectedProduct || !selectedProduct.chat || !selectedProduct.chat.length) return;
+    spiritPrimeListingChatForTranslate();
+    if (typeof onProgress === 'function') try { onProgress(); } catch (e0) {}
+    await spiritApplyListingChatTranslationsFetchOnly(onProgress);
 }
 function spiritRefreshListingChatSellerUi() {
     try {
@@ -8150,11 +8192,17 @@ async function spiritLoadListingMessagesForProduct(productId) {
             var al = String(r.author_lang || 'FR').trim().toUpperCase() || 'FR';
             selectedProduct.chat.push({ user: uname, text: String(r.body || ''), sender_id: sid, author_lang: al });
         });
-        try { await spiritApplyListingChatTranslations(); } catch (eTr) {}
+        spiritPrimeListingChatForTranslate();
+        if (typeof renderChatMessages === 'function') renderChatMessages();
+        void spiritApplyListingChatTranslationsFetchOnly(function () {
+            if (typeof renderChatMessages === 'function') renderChatMessages();
+        }).then(function () {
+            if (typeof renderChatMessages === 'function') renderChatMessages();
+        }).catch(function () {});
     } catch (e) {
         spiritListingMsgMarkMissingIf404(e);
+        if (typeof renderChatMessages === 'function') renderChatMessages();
     }
-    if (typeof renderChatMessages === 'function') renderChatMessages();
 }
 
 // --- FIN DU SYSTÈME ---
@@ -8189,6 +8237,20 @@ async function spiritLoadListingMessagesForProduct(productId) {
         }
         var sellerIdNorm = typeof spiritNormUid === 'function' ? spiritNormUid(sellerId) : String(sellerId).trim().toLowerCase();
         var meNorm = typeof spiritNormUid === 'function' ? spiritNormUid(me) : String(me).trim().toLowerCase();
+        input.value = '';
+        if (!selectedProduct.chat) selectedProduct.chat = [];
+        var optimistic = {
+            user: (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : 'Moi',
+            text: text,
+            sender_id: meNorm,
+            author_lang: authorLangIns,
+            body_orig: text,
+            display_text: text,
+            _translated: false,
+            _spiritOptimistic: true
+        };
+        selectedProduct.chat.push(optimistic);
+        if (typeof renderChatMessages === 'function') renderChatMessages();
         try {
             var ins = await _spirit.from(SPIRIT_LISTING_MSG_TABLE).insert({
                 product_id: pid,
@@ -8199,30 +8261,22 @@ async function spiritLoadListingMessagesForProduct(productId) {
             });
             if (ins && ins.error) {
                 spiritListingMsgMarkMissingIf404(ins.error);
+                selectedProduct.chat = selectedProduct.chat.filter(function (x) { return x !== optimistic; });
+                input.value = text;
+                if (typeof renderChatMessages === 'function') renderChatMessages();
                 alert('Envoi impossible : ' + (ins.error.message || 'erreur Supabase / RLS.'));
                 return;
             }
         } catch (e) {
             spiritListingMsgMarkMissingIf404(e);
+            selectedProduct.chat = selectedProduct.chat.filter(function (x) { return x !== optimistic; });
+            input.value = text;
+            if (typeof renderChatMessages === 'function') renderChatMessages();
             alert('Envoi impossible.');
             return;
         }
-        input.value = '';
-        try { await spiritLoadListingMessagesForProduct(pid); } catch (eRel) {}
-        if (!selectedProduct.chat || selectedProduct.chat.length === 0) {
-            if (!selectedProduct.chat) selectedProduct.chat = [];
-            selectedProduct.chat.push({
-                user: currentUser,
-                text: text,
-                sender_id: meNorm,
-                author_lang: authorLangIns,
-                body_orig: text,
-                display_text: text,
-                _translated: false
-            });
-            if (typeof renderChatMessages === 'function') renderChatMessages();
-        }
-        try { await spiritNotifyListingMessageRecipients(pid, sellerIdNorm, meNorm, text); } catch (eN) {}
+        try { delete optimistic._spiritOptimistic; } catch (eOp) {}
+        try { void spiritNotifyListingMessageRecipients(pid, sellerIdNorm, meNorm, text); } catch (eN) {}
         try { spiritSanctuaryRefreshMessagesDot(); } catch (eD) {}
         try { void spiritCheckDashboardOfferDot(); } catch (eDot) {}
     }
