@@ -3573,6 +3573,11 @@
         </div>
     </div>
     <div style="margin-top:12px; padding:10px; border:1px solid #333; background:#101010;">
+        <label data-key="params_push_h" style="display:block; font-size:0.68rem; color:#aaa; margin-bottom:6px;">Alertes quand l’application est fermée</label>
+        <p style="margin:0 0 10px; font-size:0.6rem; color:#666; line-height:1.35;" data-key="params_push_p">Active les notifications du navigateur pour être prévenu même sans l’onglet ouvert (nécessite clé VAPID + envoi côté serveur — voir SQL commenté Web Push).</p>
+        <button type="button" class="btn-action" style="font-size:0.62rem; padding:8px 12px;" onclick="spiritWebPushEnableFromSettings()" data-key="params_push_btn">Activer les notifications navigateur</button>
+    </div>
+    <div style="margin-top:12px; padding:10px; border:1px solid #333; background:#101010;">
         <label data-key="ship_addr_h" style="display:block; font-size:0.68rem; color:#aaa; margin-bottom:8px;">ADRESSE POSTALE (LIVRAISON)</label>
         <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px;">
             <input id="shipLastName" type="text" maxlength="60" data-key="ship_ph_last" placeholder="Nom" style="padding:8px; background:#111; border:1px solid #333; color:#eee; font-size:0.74rem;">
@@ -4002,7 +4007,13 @@
             'pm_no_title': 'Sans titre', 'pm_no_desc': 'Aucune description disponible.', 'pm_no_image': 'IMAGE NON DISPONIBLE DANS LE LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURINE',
             'pub_back': '← MARKETPLACE', 'pub_brand': 'Profil public — Spirit Infinity', 'pub_copy_url': 'COPIER L’URL', 'pub_chg_photo': 'CHANGER LA PHOTO', 'pub_add_san': '+ PHOTO SANCTUAIRE', 'pub_follow': 'SUIVRE', 'pub_ia': 'IA Score :', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
             'pub_country_lbl': 'Pays (visible publiquement)', 'pub_save': 'ENREGISTRER', 'pub_tab_ads': 'ANNONCES', 'pub_tab_san': 'SANCTUAIRE', 'pub_ads_note': 'Annonces publiques (products_live)', 'pub_neon_border': 'Bordure néon (nouvelle photo)', 'pub_san_chat_h': 'CHAT DU SANCTUAIRE', 'pub_san_chat_rules': 'Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.',
-            'params_pseudo_lbl': 'MODIFIER PSEUDO', 'params_pseudo_ph': 'Nouveau pseudo', 'params_pseudo_save': 'ENREGISTRER LE PSEUDO',             'cert_step_method': 'MÉTHODE', 'cert_step_photos': 'PHOTOS & INFOS', 'cert_step_ai': 'ANALYSE IA', 'cert_step_pub': 'PUBLICATION',
+            'params_pseudo_lbl': 'MODIFIER PSEUDO', 'params_pseudo_ph': 'Nouveau pseudo', 'params_pseudo_save': 'ENREGISTRER LE PSEUDO',
+            'params_push_h': 'Alertes quand l’application est fermée', 'params_push_p': 'Active les notifications du navigateur pour être prévenu (marché, messages, Sanctuaire) même sans l’onglet ouvert. Nécessite une clé VAPID dans le code + une fonction serveur Supabase qui envoie les push — voir le bloc SQL commenté « Web Push ».',
+            'params_push_btn': 'Activer les notifications navigateur', 'params_push_need_vapid': 'Notifications push : configure d’abord SPIRIT_VAPID_PUBLIC_KEY dans le projet (clé publique VAPID) et la table Supabase.',
+            'params_push_no_support': 'Ce navigateur ne prend pas en charge les notifications push.', 'params_push_denied': 'Les notifications sont bloquées. Autorise-les dans les paramètres du navigateur pour ce site.',
+            'params_push_ok': 'Notifications activées : ta souscription est enregistrée. Il reste à déployer l’envoi côté serveur (Edge Function) pour recevoir les alertes à l’extérieur du site.',
+            'params_push_save_err': 'Impossible d’enregistrer la souscription push (table ou RLS). Vérifie spirit_web_push_subscriptions dans Supabase.',
+            'cert_step_method': 'MÉTHODE', 'cert_step_photos': 'PHOTOS & INFOS', 'cert_step_ai': 'ANALYSE IA', 'cert_step_pub': 'PUBLICATION',
             'friends_modal_title': 'LISTE D\'AMIS', 'friends_modal_p': 'Clique un pseudo pour ouvrir son profil public. Utilise la croix pour supprimer.',
             'gallery_prev': '◀ Précédent', 'gallery_next': 'Suivant ▶',
             'pub_lbl_achat': 'Achat', 'pub_lbl_vente': 'Vente', 'pub_lbl_livr': 'Livraison', 'pub_lbl_lit': 'Litige', 'pub_review_suffix': 'avis',
@@ -4108,7 +4119,13 @@
             'pm_no_title': 'Untitled', 'pm_no_desc': 'No description available.', 'pm_no_image': 'IMAGE NOT AVAILABLE IN LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURE',
             'pub_back': '← MARKETPLACE', 'pub_brand': 'Public profile — Spirit Infinity', 'pub_copy_url': 'COPY URL', 'pub_chg_photo': 'CHANGE PHOTO', 'pub_add_san': '+ SANCTUARY PHOTO', 'pub_follow': 'FOLLOW', 'pub_ia': 'AI score:', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
             'pub_country_lbl': 'Country (public)', 'pub_save': 'SAVE', 'pub_tab_ads': 'LISTINGS', 'pub_tab_san': 'SANCTUARY', 'pub_ads_note': 'Public listings (products_live)', 'pub_neon_border': 'Neon border (new photo)', 'pub_san_chat_h': 'SANCTUARY CHAT', 'pub_san_chat_rules': '@, .com domains and phone numbers are blocked — Spirit marketplace only.',
-            'params_pseudo_lbl': 'CHANGE USERNAME', 'params_pseudo_ph': 'New username', 'params_pseudo_save': 'SAVE USERNAME',             'cert_step_method': 'METHOD', 'cert_step_photos': 'PHOTOS & INFO', 'cert_step_ai': 'AI ANALYSIS', 'cert_step_pub': 'PUBLICATION',
+            'params_pseudo_lbl': 'CHANGE USERNAME', 'params_pseudo_ph': 'New username', 'params_pseudo_save': 'SAVE USERNAME',
+            'params_push_h': 'Alerts when the app is closed', 'params_push_p': 'Enable browser notifications for marketplace / account alerts without keeping the tab open. Requires a VAPID public key in the code plus a Supabase Edge Function (or backend) that sends pushes — see the commented SQL block « Web Push ».',
+            'params_push_btn': 'Enable browser notifications', 'params_push_need_vapid': 'Push is not configured yet: set SPIRIT_VAPID_PUBLIC_KEY (VAPID public key) and create the Supabase table.',
+            'params_push_no_support': 'This browser does not support web push.', 'params_push_denied': 'Notifications are blocked. Allow them for this site in browser settings.',
+            'params_push_ok': 'Subscribed. You still need a server-side sender (Edge Function) to receive alerts when the site is closed.',
+            'params_push_save_err': 'Could not save push subscription (missing table or RLS). Check spirit_web_push_subscriptions in Supabase.',
+            'cert_step_method': 'METHOD', 'cert_step_photos': 'PHOTOS & INFO', 'cert_step_ai': 'AI ANALYSIS', 'cert_step_pub': 'PUBLICATION',
             'friends_modal_title': 'FRIENDS LIST', 'friends_modal_p': 'Click a username to open their public profile. Use ✕ to remove.',
             'gallery_prev': '◀ Previous', 'gallery_next': 'Next ▶',
             'pub_lbl_achat': 'Purchase', 'pub_lbl_vente': 'Sale', 'pub_lbl_livr': 'Shipping', 'pub_lbl_lit': 'Dispute', 'pub_review_suffix': 'reviews',
@@ -4214,7 +4231,13 @@
             'pm_no_title': 'Sin título', 'pm_no_desc': 'Sin descripción.', 'pm_no_image': 'IMAGEN NO DISPONIBLE EN LEDGER', 'typ_statue': 'ESTATUA', 'typ_figure': 'FIGURA',
             'pub_back': '← MARKETPLACE', 'pub_brand': 'Perfil público — Spirit Infinity', 'pub_copy_url': 'COPIAR URL', 'pub_chg_photo': 'CAMBIAR FOTO', 'pub_add_san': '+ FOTO SANTUARIO', 'pub_follow': 'SEGUIR', 'pub_ia': 'Puntuación IA:', 'pub_likes': 'Me gusta', 'pub_followers': 'Seguidores', 'pub_following': 'Siguiendo',
             'pub_country_lbl': 'País (visible públicamente)', 'pub_save': 'GUARDAR', 'pub_tab_ads': 'ANUNCIOS', 'pub_tab_san': 'SANTUARIO', 'pub_ads_note': 'Anuncios públicos (products_live)', 'pub_neon_border': 'Borde neón (foto nueva)', 'pub_san_chat_h': 'CHAT DEL SANTUARIO', 'pub_san_chat_rules': '@, dominios .com y teléfonos bloqueados — solo marketplace Spirit.',
-            'params_pseudo_lbl': 'CAMBIAR USUARIO', 'params_pseudo_ph': 'Nuevo usuario', 'params_pseudo_save': 'GUARDAR USUARIO',             'cert_step_method': 'MÉTODO', 'cert_step_photos': 'FOTOS E INFO', 'cert_step_ai': 'ANÁLISIS IA', 'cert_step_pub': 'PUBLICACIÓN',
+            'params_pseudo_lbl': 'CAMBIAR USUARIO', 'params_pseudo_ph': 'Nuevo usuario', 'params_pseudo_save': 'GUARDAR USUARIO',
+            'params_push_h': 'Alertas con la app cerrada', 'params_push_p': 'Activa las notificaciones del navegador para alertas del mercado o cuenta sin mantener la pestaña abierta. Requiere clave VAPID y una Edge Function en Supabase que envíe los push (ver SQL comentado « Web Push »).',
+            'params_push_btn': 'Activar notificaciones del navegador', 'params_push_need_vapid': 'Configura primero SPIRIT_VAPID_PUBLIC_KEY y la tabla en Supabase.',
+            'params_push_no_support': 'Este navegador no admite notificaciones push.', 'params_push_denied': 'Notificaciones bloqueadas. Actívalas para este sitio en ajustes del navegador.',
+            'params_push_ok': 'Suscrito. Falta desplegar el envío en servidor (Edge Function) para recibir alertas fuera del sitio.',
+            'params_push_save_err': 'No se pudo guardar la suscripción (tabla o RLS). Revisa spirit_web_push_subscriptions.',
+            'cert_step_method': 'MÉTODO', 'cert_step_photos': 'FOTOS E INFO', 'cert_step_ai': 'ANÁLISIS IA', 'cert_step_pub': 'PUBLICACIÓN',
             'friends_modal_title': 'LISTA DE AMIGOS', 'friends_modal_p': 'Pulsa un usuario para abrir su perfil público. Usa ✕ para eliminar.',
             'gallery_prev': '◀ Anterior', 'gallery_next': 'Siguiente ▶',
             'pub_lbl_achat': 'Compra', 'pub_lbl_vente': 'Venta', 'pub_lbl_livr': 'Envío', 'pub_lbl_lit': 'Disputa', 'pub_review_suffix': 'reseñas',
@@ -4320,7 +4343,13 @@
             'pm_no_title': '无标题', 'pm_no_desc': '暂无描述。', 'pm_no_image': '账本中无可用图片', 'typ_statue': '雕像', 'typ_figure': '手办',
             'pub_back': '← 市场', 'pub_brand': '公开资料 — Spirit Infinity', 'pub_copy_url': '复制链接', 'pub_chg_photo': '更换头像', 'pub_add_san': '+ 圣地照片', 'pub_follow': '关注', 'pub_ia': 'AI 评分：', 'pub_likes': '赞', 'pub_followers': '粉丝', 'pub_following': '关注',
             'pub_country_lbl': '国家（公开显示）', 'pub_save': '保存', 'pub_tab_ads': '商品', 'pub_tab_san': '圣地', 'pub_ads_note': '公开上架（products_live）', 'pub_neon_border': '霓虹边框（新照片）', 'pub_san_chat_h': '圣地聊天', 'pub_san_chat_rules': '@、.com 域名与电话已屏蔽 — 仅限 Spirit 市场。',
-            'params_pseudo_lbl': '修改用户名', 'params_pseudo_ph': '新用户名', 'params_pseudo_save': '保存用户名', 'cert_step_method': '方式', 'cert_step_photos': '照片与信息', 'cert_step_ai': 'AI 分析', 'cert_step_pub': '发布',
+            'params_pseudo_lbl': '修改用户名', 'params_pseudo_ph': '新用户名', 'params_pseudo_save': '保存用户名',
+            'params_push_h': '应用关闭时的提醒', 'params_push_p': '启用浏览器通知，在不打开标签页时接收市场/账户提醒。需在代码中配置 VAPID 公钥，并在 Supabase 部署发送推送的 Edge Function（见 SQL 注释 « Web Push »）。',
+            'params_push_btn': '启用浏览器通知', 'params_push_need_vapid': '请先在项目中设置 SPIRIT_VAPID_PUBLIC_KEY 并创建 Supabase 数据表。',
+            'params_push_no_support': '此浏览器不支持 Web Push。', 'params_push_denied': '通知已被阻止。请在浏览器设置中允许本站通知。',
+            'params_push_ok': '已订阅。仍需在服务器端部署发送逻辑（Edge Function）才能在站外收到提醒。',
+            'params_push_save_err': '无法保存推送订阅（缺表或 RLS）。请检查 spirit_web_push_subscriptions。',
+            'cert_step_method': '方式', 'cert_step_photos': '照片与信息', 'cert_step_ai': 'AI 分析', 'cert_step_pub': '发布',
             'friends_modal_title': '好友列表', 'friends_modal_p': '点击用户名打开公开资料。使用 ✕ 删除。',
             'gallery_prev': '◀ 上一张', 'gallery_next': '下一张 ▶',
             'pub_lbl_achat': '购买', 'pub_lbl_vente': '销售', 'pub_lbl_livr': '物流', 'pub_lbl_lit': '纠纷', 'pub_review_suffix': '条评价',
@@ -9038,6 +9067,11 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 spiritApplyAuthUser(session.user);
                 await spiritUpsertUserProfileFromAuth(session.user, 'VISITEUR');
                 spiritRefreshUserScopedUi();
+                setTimeout(function () {
+                    try {
+                        if (typeof window.spiritWebPushTrySubscribe === 'function') void window.spiritWebPushTrySubscribe({});
+                    } catch (ePushS) {}
+                }, 2000);
             }
         } catch (e) {
             console.warn('[SPIRIT AUTH] session refresh error', e);
@@ -9129,6 +9163,11 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 spiritApplyAuthUser(signIn.data.user, u);
                 await spiritUpsertUserProfileFromAuth(signIn.data.user, u);
                 spiritRefreshUserScopedUi();
+                setTimeout(function () {
+                    try {
+                        if (typeof window.spiritWebPushTrySubscribe === 'function') void window.spiritWebPushTrySubscribe({});
+                    } catch (ePushIn) {}
+                }, 2000);
                 alert("Connexion réussie.");
                 closeModals();
                 updateUserAnnonces();
@@ -9209,6 +9248,9 @@ async function spiritLoadListingMessagesForProduct(productId) {
 
     async function spiritLogout() {
         if (!confirm("Voulez-vous vous déconnecter ?")) return;
+        try {
+            if (typeof window.spiritWebPushUnregister === 'function') await window.spiritWebPushUnregister();
+        } catch (ePushLo) {}
         try {
             if (_spirit && _spirit.auth && typeof _spirit.auth.signOut === 'function') {
                 var out = await _spirit.auth.signOut();
@@ -10081,6 +10123,11 @@ async function spiritLoadListingMessagesForProduct(productId) {
                     spiritApplyAuthUser(session.user);
                     try { void spiritUpsertUserProfileFromAuth(session.user, 'VISITEUR'); } catch (eUp) {}
                     spiritRefreshUserScopedUi();
+                    setTimeout(function () {
+                        try {
+                            if (typeof window.spiritWebPushTrySubscribe === 'function') void window.spiritWebPushTrySubscribe({});
+                        } catch (ePushA) {}
+                    }, 2000);
                 }
                 try { spiritUpdateRegisterModalAuthUi(); } catch (eRegA) {}
             });
@@ -10801,6 +10848,21 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
    -- create policy "san_notif_delete_own" on public.spirit_sanctuary_notifications for delete using (auth.uid()::text = owner_id);
    -- drop policy if exists "san_notif_update_own" on public.spirit_sanctuary_notifications;
    -- create policy "san_notif_update_own" on public.spirit_sanctuary_notifications for update using (auth.uid()::text = owner_id);
+   -- Web Push (alertes quand l’onglet / la PWA est fermée) :
+   -- create table if not exists public.spirit_web_push_subscriptions (
+   --   id bigint generated always as identity primary key,
+   --   user_id text not null,
+   --   endpoint text not null unique,
+   --   p256dh text not null,
+   --   auth text not null,
+   --   created_at timestamptz default now(),
+   --   updated_at timestamptz default now()
+   -- );
+   -- create index if not exists idx_spirit_push_user on public.spirit_web_push_subscriptions(user_id);
+   -- RLS : authenticated insert/update/delete where user_id = auth.uid()::text ; lecture réservée au service_role pour l’Edge Function d’envoi.
+   -- Côté app : renseigner SPIRIT_VAPID_PUBLIC_KEY (clé publique VAPID) dans base17.txt après npx web-push generate-vapid-keys.
+   -- Côté serveur : Edge Function (ou cron) déclenchée par Database Webhook sur INSERT dans spirit_sanctuary_notifications (ou products_live…)
+   -- qui lit les lignes spirit_web_push_subscriptions pour owner_id et envoie webpush.sendNotification (npm web-push, clé privée VAPID en secret).
    -- Fil de discussion par annonce (modal produit) : types de notifs listing_question / listing_reply dans spirit_sanctuary_notifications.
    create table if not exists public.spirit_listing_messages (
      id bigint generated by default as identity primary key,
@@ -11304,6 +11366,121 @@ function spiritMessagingOwnerUid() {
         return raw || '';
     } catch (e2) { return ''; }
 }
+
+/** Table Supabase : souscriptions Web Push (endpoint + clés). RLS : insert/update/delete où user_id = auth.uid()::text. */
+var SPIRIT_WEB_PUSH_TABLE = 'spirit_web_push_subscriptions';
+/**
+ * Clé publique VAPID (base64 URL-safe, une ligne). Génération : npx web-push generate-vapid-keys
+ * Coller la clé publique ici. Tant que vide, le bouton « notifications » explique qu’il faut la configurer côté projet.
+ * L’envoi réel quand l’app est fermée exige en plus une Edge Function (ou job) qui appelle web-push avec la clé privée.
+ */
+var SPIRIT_VAPID_PUBLIC_KEY = '';
+
+function spiritWebPushUrlBase64ToUint8Array(base64String) {
+    var padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    var raw = atob(base64);
+    var out = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
+    return out;
+}
+
+function spiritWebPushT(k) {
+    if (typeof spiritT === 'function') return spiritT(k);
+    if (typeof window !== 'undefined' && typeof window.spiritT === 'function') return window.spiritT(k);
+    return k;
+}
+
+/**
+ * Enregistre la souscription push en base (pour envoi serveur ultérieur).
+ * opts.fromUser : true = demander la permission navigateur si besoin ; false = seulement si déjà accordée (resync silencieux).
+ */
+async function spiritWebPushTrySubscribe(opts) {
+    opts = opts || {};
+    var vapid = String(SPIRIT_VAPID_PUBLIC_KEY || '').trim();
+    if (!vapid) {
+        if (opts.fromUser) alert(spiritWebPushT('params_push_need_vapid'));
+        return false;
+    }
+    if (typeof _spirit === 'undefined' || !_spirit || !_spirit.from) return false;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        if (opts.fromUser) alert(spiritWebPushT('params_push_no_support'));
+        return false;
+    }
+    var uid = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '');
+    if (!spiritIsUuid(uid)) return false;
+    try {
+        var perm = Notification.permission;
+        if (perm === 'denied') {
+            if (opts.fromUser) alert(spiritWebPushT('params_push_denied'));
+            return false;
+        }
+        if (perm === 'default') {
+            if (!opts.fromUser) return false;
+            perm = await Notification.requestPermission();
+            if (perm !== 'granted') return false;
+        }
+        var reg = await navigator.serviceWorker.ready;
+        var sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+            sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: spiritWebPushUrlBase64ToUint8Array(vapid)
+            });
+        }
+        var j = sub.toJSON();
+        var keys = j.keys || {};
+        var p256 = keys.p256dh || '';
+        var auth = keys.auth || '';
+        if (!j.endpoint || !p256 || !auth) return false;
+        var row = {
+            user_id: uid,
+            endpoint: j.endpoint,
+            p256dh: p256,
+            auth: auth
+        };
+        var ins = await _spirit.from(SPIRIT_WEB_PUSH_TABLE).upsert(row, { onConflict: 'endpoint' });
+        if (ins && ins.error) {
+            console.warn('[SPIRIT PUSH] upsert subscription', ins.error.message || ins.error);
+            if (opts.fromUser) alert(spiritWebPushT('params_push_save_err'));
+            return false;
+        }
+        if (opts.fromUser) alert(spiritWebPushT('params_push_ok'));
+        return true;
+    } catch (e) {
+        console.warn('[SPIRIT PUSH]', e);
+        if (opts.fromUser) alert(spiritWebPushT('params_push_save_err'));
+        return false;
+    }
+}
+
+function spiritWebPushEnableFromSettings() {
+    void spiritWebPushTrySubscribe({ fromUser: true });
+}
+
+/** À appeler avant déconnexion : retire la souscription locale et la ligne en base (best-effort). */
+async function spiritWebPushUnregister() {
+    if (typeof _spirit === 'undefined' || !_spirit || !_spirit.from) return;
+    var uid = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '');
+    if (!spiritIsUuid(uid)) return;
+    try {
+        var reg = await navigator.serviceWorker.ready;
+        var sub = await reg.pushManager.getSubscription();
+        if (!sub) return;
+        var ep = sub.endpoint;
+        try {
+            await _spirit.from(SPIRIT_WEB_PUSH_TABLE).delete().eq('endpoint', ep).eq('user_id', uid);
+        } catch (eDel) {}
+        await sub.unsubscribe();
+    } catch (e) {}
+}
+
+try {
+    window.spiritWebPushTrySubscribe = spiritWebPushTrySubscribe;
+    window.spiritWebPushEnableFromSettings = spiritWebPushEnableFromSettings;
+    window.spiritWebPushUnregister = spiritWebPushUnregister;
+} catch (eWPush) {}
+
 var SPIRIT_SAN_LAST_SEEN_LS = 'spirit_san_msg_activity_last_seen_ts';
 function spiritSanctuaryGetActivityLastSeenTs() {
     try {
