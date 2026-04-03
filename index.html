@@ -654,6 +654,25 @@
         }
 
         .btn-action { background: var(--neon-orange); color: black; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 2px; text-transform: uppercase; font-size: 0.75rem; }
+        #spiritHotToysAdminOverlay .spirit-ht-admin-tab {
+            text-transform: none;
+            font-weight: 700;
+            border: 1px solid #9a8570 !important;
+            background: #4f483e !important;
+            color: #f5f0e8 !important;
+            border-radius: 4px;
+        }
+        #spiritHotToysAdminOverlay .spirit-ht-admin-tab:hover {
+            background: #5c5448 !important;
+            border-color: #b8926a !important;
+            color: #fff !important;
+        }
+        #spiritHotToysAdminOverlay .spirit-ht-admin-tab.active {
+            border-color: #ff9933 !important;
+            background: #6a4428 !important;
+            color: #fff !important;
+            box-shadow: 0 0 0 1px rgba(255, 153, 51, 0.35), 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
         /* LAYOUT */
         .container {
             display: flex;
@@ -3842,9 +3861,9 @@
         </div>
         <div id="spiritHotToysAdminMain" style="display:none;padding:0 16px 20px;">
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;border-bottom:1px solid #222;padding-bottom:10px;">
-                <button type="button" class="btn-action spirit-ht-admin-tab active" data-htab="preco" onclick="spiritHotToysAdminSetTab('preco')" style="font-size:0.62rem;padding:8px 12px;background:#1a1208;">Précommandes (contenu)</button>
-                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="bourse" onclick="spiritHotToysAdminSetTab('bourse')" style="font-size:0.62rem;padding:8px 12px;background:#111;">Bourse (ventes)</button>
-                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="litiges" onclick="spiritHotToysAdminSetTab('litiges')" style="font-size:0.62rem;padding:8px 12px;background:#111;">Litiges</button>
+                <button type="button" class="btn-action spirit-ht-admin-tab active" data-htab="preco" onclick="spiritHotToysAdminSetTab('preco')" style="font-size:0.62rem;padding:8px 12px;">Précommandes (contenu)</button>
+                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="bourse" onclick="spiritHotToysAdminSetTab('bourse')" style="font-size:0.62rem;padding:8px 12px;">Bourse (ventes)</button>
+                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="litiges" onclick="spiritHotToysAdminSetTab('litiges')" style="font-size:0.62rem;padding:8px 12px;">Litiges</button>
             </div>
             <div id="spiritHotToysAdminTabPreco">
                 <p style="font-size:0.65rem;color:#888;margin:0 0 10px;">Modifie les textes et URLs d’images ; enregistrement local (navigateur). Puis ouvre la page précommandes pour vérifier.</p>
@@ -10594,10 +10613,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             var tabBtn = document.querySelector('.spirit-ht-admin-tab[data-htab="' + w + '"]');
             var show = w === which;
             if (pane) pane.style.display = show ? 'block' : 'none';
-            if (tabBtn) {
-                tabBtn.classList.toggle('active', show);
-                tabBtn.style.background = show ? '#1a1208' : '#111';
-            }
+            if (tabBtn) tabBtn.classList.toggle('active', show);
         });
     }
 
