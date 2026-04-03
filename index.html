@@ -9322,6 +9322,15 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 closeModals();
                 return;
             }
+            if (signIn && signIn.error) {
+                var msgIn = String((signIn.error && (signIn.error.message || signIn.error.msg)) || signIn.error || '').trim();
+                if (!msgIn) msgIn = 'Erreur serveur (ex. 400).';
+                if (!countryRaw) {
+                    alert('Connexion impossible : ' + msgIn + '\n\nChoisis ton pays si tu crées un compte. Si tu as déjà un compte, vérifie email + mot de passe puis réessaie avec un pays sélectionné.');
+                    return;
+                }
+                /* Pays renseigné : on tente une inscription (nouveau compte) ; si l’email existe déjà, le message « compte existant » s’affichera. */
+            }
 
             if (!countryRaw) {
                 alert(typeof spiritT === 'function' ? spiritT('reg_err_country') : 'Choisis ton pays ou ta région.');
