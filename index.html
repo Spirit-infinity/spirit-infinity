@@ -695,6 +695,25 @@
             max-width: 11rem;
             word-break: break-word;
         }
+        #spiritHotToysAdminBourseStats,
+        #spiritHotToysAdminBourseLitigesOut {
+            font-size: 0.72rem !important;
+        }
+        #spiritHotToysAdminBourseStats table.spirit-ht-bourse-stats-table,
+        #spiritHotToysAdminBourseStats table.spirit-ht-bourse-brand-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+        }
+        #spiritHotToysAdminBourseStats table.spirit-ht-bourse-stats-table th,
+        #spiritHotToysAdminBourseStats table.spirit-ht-bourse-stats-table td,
+        #spiritHotToysAdminBourseStats table.spirit-ht-bourse-brand-table th,
+        #spiritHotToysAdminBourseStats table.spirit-ht-bourse-brand-table td {
+            border: 1px solid #333;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
         /* LAYOUT */
         .container {
             display: flex;
@@ -3911,8 +3930,7 @@
         <div id="spiritHotToysAdminMain" style="display:none;padding:0 16px 20px;">
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;border-bottom:1px solid #222;padding-bottom:10px;">
                 <button type="button" class="btn-action spirit-ht-admin-tab active" data-htab="preco" onclick="spiritHotToysAdminSetTab('preco')" style="font-size:0.62rem;padding:8px 12px;">Précommandes (contenu)</button>
-                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="bourse" onclick="spiritHotToysAdminSetTab('bourse')" style="font-size:0.62rem;padding:8px 12px;">Bourse (ventes)</button>
-                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="litiges" onclick="spiritHotToysAdminSetTab('litiges')" style="font-size:0.62rem;padding:8px 12px;">Litiges</button>
+                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="bourse" onclick="spiritHotToysAdminSetTab('bourse')" style="font-size:0.62rem;padding:8px 12px;">Bourse (ventes & litiges)</button>
             </div>
             <div id="spiritHotToysAdminTabPreco">
                 <p style="font-size:0.65rem;color:#888;margin:0 0 10px;">Modifie les textes et URLs d’images ; enregistrement local (navigateur). Puis ouvre la page précommandes pour vérifier.</p>
@@ -3924,13 +3942,14 @@
                 </div>
             </div>
             <div id="spiritHotToysAdminTabBourse" style="display:none;">
-                <p style="font-size:0.62rem;color:#888;margin:0 0 8px;line-height:1.45;"><b>Marque</b> et <b>format / taille</b> : enregistrés sur la transaction à l’achat (si colonnes Supabase présentes) ; pour les anciennes lignes, repli sur l’annonce <code>products_live</code> via <code>product_id</code>.</p>
-                <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;margin-bottom:10px;" onclick="spiritHotToysAdminLoadBourse()">Charger / rafraîchir les ventes (ledger)</button>
-                <div id="spiritHotToysAdminBourseOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(62vh,680px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#060606;"></div>
-            </div>
-            <div id="spiritHotToysAdminTabLitiges" style="display:none;">
-                <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;margin-bottom:10px;" onclick="spiritHotToysAdminLoadLitiges()">Charger / rafraîchir les litiges</button>
-                <div id="spiritHotToysAdminLitigesOut" style="font-size:0.65rem;color:#ccc;overflow:auto;max-height:52vh;"></div>
+                <p style="font-size:0.62rem;color:#888;margin:0 0 8px;line-height:1.45;"><b>Marque</b> et <b>format / taille</b> : enregistrés sur la transaction à l’achat (si colonnes Supabase présentes) ; pour les anciennes lignes, repli sur l’annonce <code>products_live</code> via <code>product_id</code>. Un seul chargement met à jour la <b>synthèse du mois</b>, la liste <b>litiges</b> et le <b>ledger</b>.</p>
+                <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;margin-bottom:10px;" onclick="spiritHotToysAdminLoadBourse()">Charger / rafraîchir (synthèse + litiges + ledger)</button>
+                <h4 style="font-size:0.7rem;color:#9fdfbf;margin:14px 0 6px;font-weight:700;">Synthèse du mois calendaire (ventes hors annulation et hors litige ouvert)</h4>
+                <div id="spiritHotToysAdminBourseStats" style="color:#ccc;overflow-x:auto;width:100%;border:1px solid #2a2a2a;border-radius:4px;padding:10px;box-sizing:border-box;background:#080808;margin-bottom:14px;"></div>
+                <h4 style="font-size:0.7rem;color:#ff8888;margin:0 0 6px;font-weight:700;">Litiges (tous statuts)</h4>
+                <div id="spiritHotToysAdminBourseLitigesOut" style="font-size:0.65rem;color:#ccc;overflow:auto;max-height:42vh;border:1px solid #332222;border-radius:4px;padding:10px;box-sizing:border-box;background:#0a0808;margin-bottom:14px;"></div>
+                <h4 style="font-size:0.7rem;color:#9ab;margin:0 0 6px;font-weight:700;">Journal des transactions</h4>
+                <div id="spiritHotToysAdminBourseOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(52vh,560px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#060606;"></div>
             </div>
         </div>
     </div>
@@ -5013,6 +5032,18 @@ function spiritProductsLivePriceEUR(row) {
     var conv = typeof spiritConvertCurrency === 'function' ? spiritConvertCurrency : (typeof window !== 'undefined' ? window.spiritConvertCurrency : null);
     if (typeof conv === 'function') return conv(raw, cur, 'EUR');
     return raw;
+}
+
+/** Montant d’une ligne `transactions` converti en EUR (même logique que les annonces). */
+function spiritTransactionAmountEUR(tx) {
+    if (!tx) return 0;
+    var x = Number(tx.amount);
+    if (!Number.isFinite(x)) return 0;
+    var cur = String(tx.currency || 'EUR').toUpperCase();
+    if (cur !== 'USD' && cur !== 'CNY' && cur !== 'EUR') cur = 'EUR';
+    var conv = typeof spiritConvertCurrency === 'function' ? spiritConvertCurrency : (typeof window !== 'undefined' ? window.spiritConvertCurrency : null);
+    if (typeof conv === 'function') return conv(x, cur, 'EUR');
+    return x;
 }
 
 function normalizeSpiritScale(rawScale) {
@@ -10835,7 +10866,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
     }
     function spiritHotToysAdminSetTab(which) {
         which = String(which || 'preco');
-        var map = { preco: 'spiritHotToysAdminTabPreco', bourse: 'spiritHotToysAdminTabBourse', litiges: 'spiritHotToysAdminTabLitiges' };
+        if (which === 'litiges') which = 'bourse';
+        var map = { preco: 'spiritHotToysAdminTabPreco', bourse: 'spiritHotToysAdminTabBourse' };
         Object.keys(map).forEach(function (w) {
             var pane = document.getElementById(map[w]);
             var tabBtn = document.querySelector('.spirit-ht-admin-tab[data-htab="' + w + '"]');
@@ -11025,14 +11057,70 @@ async function spiritLoadListingMessagesForProduct(productId) {
         return map;
     }
 
+    function spiritHotToysAdminRowBrandScale(r, prodMap) {
+        var pidRow = spiritParseFavoriteProductId(r && r.product_id);
+        var prow = (pidRow != null) ? prodMap[String(pidRow)] : null;
+        var brandRaw = r.brand || r.marque || r.product_brand || r.manufacturer || (prow && prow.brand) || '';
+        var brand = String(brandRaw).trim() || '—';
+        var fromProdScale = prow ? [prow.category, prow.ship_size, prow.cat].filter(function (x) { return x != null && String(x).trim() !== ''; }).map(function (x) { return String(x).trim(); }).join(' · ') : '';
+        var scaleRaw = r.scale || r.product_kind || r.format || r.taille || r.size || r.category || fromProdScale || '';
+        var scale = String(scaleRaw).trim() || '—';
+        return { brand: brand, scale: scale };
+    }
+
+    function spiritHotToysAdminTxInMonthForStats(r, t0, t1) {
+        var ts = new Date(r && r.created_at || 0).getTime();
+        if (!Number.isFinite(ts) || ts < t0 || ts > t1) return false;
+        var s = String(r && r.status || '').toLowerCase();
+        if (/annul|cancel|refus|abandon|rembour/.test(s)) return false;
+        if (typeof spiritTransactionLitigeIsOpenStatus === 'function' && spiritTransactionLitigeIsOpenStatus(r && r.status)) return false;
+        return Number.isFinite(Number(r.amount));
+    }
+
+    function spiritHotToysAdminRenderLitigesInto(litBox, rows, pmap, esc) {
+        if (!litBox) return;
+        var litRows = (rows || []).filter(function (r) { return /litige/i.test(String(r && r.status || '')); });
+        if (!litRows.length) {
+            litBox.innerHTML = '<p style="color:#888;">Aucune transaction avec « litige » dans le statut (ou RLS masque les lignes).</p>';
+            return;
+        }
+        litBox.innerHTML = litRows.map(function (r) {
+            var buyer = pmap[String(r.buyer_id || '').trim()] || String(r.buyer_id || '—');
+            var seller = pmap[String(r.seller_id || '').trim()] || String(r.seller_id || '—');
+            var desc = r.dispute_note || r.litige_description || r.dispute_text || r.dispute_reason || '';
+            var img = String(r.image_url || r.img1 || '').trim();
+            var openTag = (typeof spiritTransactionLitigeIsOpenStatus === 'function' && spiritTransactionLitigeIsOpenStatus(r && r.status))
+                ? '<span style="color:#f66;font-weight:700;"> [ouvert]</span>' : '<span style="color:#6a8;font-weight:700;"> [clos / résolu]</span>';
+            var imgBlock = img ? '<div style="margin:8px 0;"><img src="' + esc(img) + '" alt="" style="max-width:220px;max-height:160px;border:1px solid #444;" loading="lazy" /></div>' : '<p style="color:#555;font-size:0.6rem;">Pas d’image dans le ledger pour ce litige (champs optionnels).</p>';
+            return '<div style="border:1px solid #333;padding:12px;margin-bottom:12px;border-radius:4px;background:#0c0c0c;">' +
+                '<div style="color:#f66;font-size:0.68rem;">TX #' + esc(r.id) + ' · ' + esc(r.status) + openTag + '</div>' +
+                '<div style="margin-top:6px;font-size:0.65rem;color:#ccc;"><b>Produit :</b> ' + esc(r.figurine_name || '—') + ' · <b>Montant :</b> ' + esc(String(r.amount != null ? r.amount : '—')) + '</div>' +
+                '<div style="margin-top:6px;font-size:0.65rem;color:#aaa;"><b>Acheteur :</b> ' + esc(buyer) + ' <span style="color:#555;">(' + esc(String(r.buyer_id || '')) + ')</span></div>' +
+                '<div style="margin-top:4px;font-size:0.65rem;color:#aaa;"><b>Vendeur :</b> ' + esc(seller) + ' <span style="color:#555;">(' + esc(String(r.seller_id || '')) + ')</span></div>' +
+                '<div style="margin-top:8px;font-size:0.65rem;color:#ddd;"><b>Description / notes :</b> ' + esc(desc || '—') + '</div>' +
+                imgBlock + '</div>';
+        }).join('');
+    }
+
     async function spiritHotToysAdminLoadBourse() {
         var box = document.getElementById('spiritHotToysAdminBourseOut');
+        var statsBox = document.getElementById('spiritHotToysAdminBourseStats');
+        var litBox = document.getElementById('spiritHotToysAdminBourseLitigesOut');
         if (!box) return;
         function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); }
-        box.innerHTML = 'Chargement…';
-        if (typeof _spirit === 'undefined' || !_spirit) { box.textContent = 'Supabase indisponible.'; return; }
+        var loading = 'Chargement…';
+        box.innerHTML = loading;
+        if (statsBox) statsBox.innerHTML = loading;
+        if (litBox) litBox.innerHTML = loading;
+        if (typeof _spirit === 'undefined' || !_spirit) {
+            var na = 'Supabase indisponible.';
+            box.textContent = na;
+            if (statsBox) statsBox.textContent = na;
+            if (litBox) litBox.textContent = na;
+            return;
+        }
         try {
-            var q = await _spirit.from('transactions').select('*').order('created_at', { ascending: false }).limit(400);
+            var q = await _spirit.from('transactions').select('*').order('created_at', { ascending: false }).limit(900);
             if (q.error) throw q.error;
             var rows = Array.isArray(q.data) ? q.data : [];
             var pmap = await spiritHotToysAdminResolvePseudos(rows);
@@ -11042,6 +11130,63 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 if (pid != null) prodIds.push(pid);
             });
             var prodMap = await spiritHotToysAdminBourseProductsByIds(prodIds);
+            var now = new Date();
+            var y = now.getFullYear();
+            var mo = now.getMonth();
+            var t0 = new Date(y, mo, 1).getTime();
+            var t1 = new Date(y, mo + 1, 0, 23, 59, 59, 999).getTime();
+            var monthLabel = now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+            var groups = Object.create(null);
+            var byBrand = Object.create(null);
+            rows.forEach(function (r) {
+                if (!spiritHotToysAdminTxInMonthForStats(r, t0, t1)) return;
+                var bs = spiritHotToysAdminRowBrandScale(r, prodMap);
+                var name = String(r.figurine_name || r.title || '—').trim() || '—';
+                var gkey = bs.brand.toLowerCase() + '\n' + name.toLowerCase();
+                var eur = typeof spiritTransactionAmountEUR === 'function' ? spiritTransactionAmountEUR(r) : (Number(r.amount) || 0);
+                if (!groups[gkey]) groups[gkey] = { brand: bs.brand, name: name, count: 0, sumEur: 0 };
+                groups[gkey].count += 1;
+                groups[gkey].sumEur += eur;
+                var bk = bs.brand.toLowerCase();
+                if (!byBrand[bk]) byBrand[bk] = { brand: bs.brand, sumEur: 0, count: 0 };
+                byBrand[bk].sumEur += eur;
+                byBrand[bk].count += 1;
+            });
+            var list = Object.keys(groups).map(function (k) {
+                var g = groups[k];
+                g.avg = g.count ? g.sumEur / g.count : 0;
+                return g;
+            });
+            list.sort(function (a, b) {
+                var c = a.brand.localeCompare(b.brand, 'fr');
+                if (c) return c;
+                return a.name.localeCompare(b.name, 'fr');
+            });
+            var brandList = Object.keys(byBrand).map(function (k) { return byBrand[k]; });
+            brandList.sort(function (a, b) { return a.brand.localeCompare(b.brand, 'fr'); });
+            var totalEur = list.reduce(function (acc, g) { return acc + g.sumEur; }, 0);
+            if (statsBox) {
+                var statHtml = '<p style="margin:0 0 8px;color:#aaa;font-size:0.65rem;">Période : <b>' + esc(monthLabel) + '</b> · montants convertis en <b>EUR</b> (taux site USD/CNY).</p>';
+                statHtml += '<table class="spirit-ht-bourse-stats-table"><thead><tr style="background:#151515;"><th>Marque</th><th>Figurine</th><th>Ventes (mois)</th><th>Prix moyen</th><th>Total EUR</th></tr></thead><tbody>';
+                if (!list.length) {
+                    statHtml += '<tr><td colspan="5" style="color:#888;">Aucune vente éligible ce mois-ci dans les ' + rows.length + ' dernières lignes chargées.</td></tr>';
+                } else {
+                    list.forEach(function (g) {
+                        statHtml += '<tr><td>' + esc(g.brand) + '</td><td>' + esc(g.name) + '</td><td>' + g.count + '</td><td>' + Math.round(g.avg) + ' €</td><td>' + g.sumEur.toFixed(2) + ' €</td></tr>';
+                    });
+                }
+                statHtml += '</tbody></table>';
+                statHtml += '<h5 style="margin:14px 0 6px;color:#dba;font-size:0.68rem;">Totaux par marque (mois)</h5>';
+                statHtml += '<table class="spirit-ht-bourse-brand-table"><thead><tr style="background:#151515;"><th>Marque</th><th>Ventes</th><th>Total EUR</th></tr></thead><tbody>';
+                brandList.forEach(function (b) {
+                    statHtml += '<tr><td>' + esc(b.brand) + '</td><td>' + b.count + '</td><td>' + b.sumEur.toFixed(2) + ' €</td></tr>';
+                });
+                statHtml += '</tbody></table>';
+                statHtml += '<p style="margin-top:10px;color:#9fdfbf;font-weight:700;">Total général (mois) : ' + totalEur.toFixed(2) + ' €</p>';
+                statHtml += '<p style="margin-top:6px;color:#666;font-size:0.6rem;">Exclut annulations / remboursements et transactions avec <b>litige ouvert</b>. Basé sur les ' + rows.length + ' dernières transactions (limite 900).</p>';
+                statsBox.innerHTML = statHtml;
+            }
+            spiritHotToysAdminRenderLitigesInto(litBox, rows, pmap, esc);
             var thStyle = 'text-align:left;padding:8px 7px;border:1px solid #333;font-size:0.68rem;';
             var tdStyle = 'padding:7px;border:1px solid #222;font-size:0.68rem;';
             var head = '<table class="spirit-ht-bourse-table"><thead><tr style="background:#151515;">';
@@ -11050,13 +11195,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             });
             head += '</tr></thead><tbody>';
             var body = rows.map(function (r) {
-                var pidRow = spiritParseFavoriteProductId(r && r.product_id);
-                var prow = (pidRow != null) ? prodMap[String(pidRow)] : null;
-                var brandRaw = r.brand || r.marque || r.product_brand || r.manufacturer || (prow && prow.brand) || '';
-                var brand = String(brandRaw).trim() || '—';
-                var fromProdScale = prow ? [prow.category, prow.ship_size, prow.cat].filter(function (x) { return x != null && String(x).trim() !== ''; }).map(function (x) { return String(x).trim(); }).join(' · ') : '';
-                var scaleRaw = r.scale || r.product_kind || r.format || r.taille || r.size || r.category || fromProdScale || '';
-                var scale = String(scaleRaw).trim() || '—';
+                var bs = spiritHotToysAdminRowBrandScale(r, prodMap);
                 var dt = r.created_at ? new Date(r.created_at).toLocaleString() : '—';
                 var buyer = pmap[String(r.buyer_id || '').trim()] || String(r.buyer_id || '—');
                 var seller = pmap[String(r.seller_id || '').trim()] || String(r.seller_id || '—');
@@ -11064,8 +11203,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
                     + '<td style="' + tdStyle + 'white-space:nowrap;">' + esc(dt) + '</td>'
                     + '<td style="' + tdStyle + '">' + esc(r.figurine_name || r.title || '—') + '</td>'
                     + '<td style="' + tdStyle + '">' + esc(String(r.amount != null ? r.amount : '—')) + ' ' + esc(r.currency || 'EUR') + '</td>'
-                    + '<td class="spirit-ht-bourse-marque" style="' + tdStyle + '">' + esc(brand) + '</td>'
-                    + '<td class="spirit-ht-bourse-scale" style="' + tdStyle + '">' + esc(scale) + '</td>'
+                    + '<td class="spirit-ht-bourse-marque" style="' + tdStyle + '">' + esc(bs.brand) + '</td>'
+                    + '<td class="spirit-ht-bourse-scale" style="' + tdStyle + '">' + esc(bs.scale) + '</td>'
                     + '<td style="' + tdStyle + '">' + esc(r.status || '—') + '</td>'
                     + '<td style="' + tdStyle + '">' + esc(buyer) + '</td>'
                     + '<td style="' + tdStyle + '">' + esc(seller) + '</td>'
@@ -11073,43 +11212,15 @@ async function spiritLoadListingMessagesForProduct(productId) {
             }).join('');
             box.innerHTML = head + body + '</tbody></table><p style="margin-top:10px;color:#666;font-size:0.62rem;">' + rows.length + ' ligne(s). Colonnes <code>marque</code> / <code>brand</code> / <code>product_id</code> / <code>product_kind</code> sur <code>transactions</code> : optionnelles (ajoute-les en SQL si besoin).</p>';
         } catch (e) {
-            box.innerHTML = '<span style="color:#f66;">' + esc(String(e && e.message ? e.message : e)) + '</span><p style="color:#888;font-size:0.62rem;margin-top:8px;">Les politiques RLS de <code>transactions</code> limitent souvent la lecture aux parties prenantes. Pour un vrai back-office, prévoir un rôle <code>service_role</code> via Edge Function.</p>';
+            var errHtml = '<span style="color:#f66;">' + esc(String(e && e.message ? e.message : e)) + '</span><p style="color:#888;font-size:0.62rem;margin-top:8px;">Les politiques RLS de <code>transactions</code> limitent souvent la lecture aux parties prenantes. Pour un vrai back-office, prévoir un rôle <code>service_role</code> via Edge Function.</p>';
+            box.innerHTML = errHtml;
+            if (statsBox) statsBox.innerHTML = errHtml;
+            if (litBox) litBox.innerHTML = errHtml;
         }
     }
 
     async function spiritHotToysAdminLoadLitiges() {
-        var box = document.getElementById('spiritHotToysAdminLitigesOut');
-        if (!box) return;
-        box.innerHTML = 'Chargement…';
-        if (typeof _spirit === 'undefined' || !_spirit) { box.textContent = 'Supabase indisponible.'; return; }
-        function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); }
-        try {
-            var q = await _spirit.from('transactions').select('*').order('created_at', { ascending: false }).limit(500);
-            if (q.error) throw q.error;
-            var rows = (Array.isArray(q.data) ? q.data : []).filter(function (r) { return /litige/i.test(String(r && r.status || '')); });
-            var pmap = await spiritHotToysAdminResolvePseudos(rows);
-            if (!rows.length) {
-                box.innerHTML = '<p style="color:#888;">Aucune transaction avec statut « litige » trouvée (ou RLS masque les lignes).</p>';
-                return;
-            }
-            var html = rows.map(function (r) {
-                var buyer = pmap[String(r.buyer_id || '').trim()] || String(r.buyer_id || '—');
-                var seller = pmap[String(r.seller_id || '').trim()] || String(r.seller_id || '—');
-                var desc = r.dispute_note || r.litige_description || r.dispute_text || r.dispute_reason || '';
-                var img = String(r.image_url || r.img1 || '').trim();
-                var imgBlock = img ? '<div style="margin:8px 0;"><img src="' + esc(img) + '" alt="" style="max-width:220px;max-height:160px;border:1px solid #444;" loading="lazy" /></div>' : '<p style="color:#555;font-size:0.6rem;">Pas d’image dans le ledger pour ce litige (champs optionnels).</p>';
-                return '<div style="border:1px solid #333;padding:12px;margin-bottom:12px;border-radius:4px;background:#0c0c0c;">' +
-                    '<div style="color:#f66;font-size:0.68rem;">TX #' + esc(r.id) + ' · ' + esc(r.status) + '</div>' +
-                    '<div style="margin-top:6px;font-size:0.65rem;color:#ccc;"><b>Produit :</b> ' + esc(r.figurine_name || '—') + ' · <b>Montant :</b> ' + esc(String(r.amount != null ? r.amount : '—')) + '</div>' +
-                    '<div style="margin-top:6px;font-size:0.65rem;color:#aaa;"><b>Acheteur :</b> ' + esc(buyer) + ' <span style="color:#555;">(' + esc(String(r.buyer_id || '')) + ')</span></div>' +
-                    '<div style="margin-top:4px;font-size:0.65rem;color:#aaa;"><b>Vendeur :</b> ' + esc(seller) + ' <span style="color:#555;">(' + esc(String(r.seller_id || '')) + ')</span></div>' +
-                    '<div style="margin-top:8px;font-size:0.65rem;color:#ddd;"><b>Description / notes :</b> ' + esc(desc || '—') + '</div>' +
-                    imgBlock + '</div>';
-            }).join('');
-            box.innerHTML = html;
-        } catch (e) {
-            box.innerHTML = '<span style="color:#f66;">' + esc(String(e && e.message ? e.message : e)) + '</span>';
-        }
+        return spiritHotToysAdminLoadBourse();
     }
 
     try {
@@ -11770,7 +11881,6 @@ var SPIRIT_LISTING_MSG_TABLE = 'spirit_listing_messages';
 var spiritListingMsgTableMissing = false;
 var SPIRIT_EVAL_TABLE = 'spirit_listing_evaluations';
 var spiritEvalTableMissing = false;
-var spiritOpenLitigeByOwner = Object.create(null);
 var spiritEvalCurrentModalCategory = 'achat';
 var spiritAutoEvalCtx = null;
 var SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS = 20 * 60 * 1000;
@@ -13848,6 +13958,19 @@ async function spiritOpenBadgeComments(category) {
             + '</div>';
     }).join('');
 }
+/** True si le statut décrit un litige / dispute encore ouvert (macaron vendeur). */
+function spiritTransactionLitigeIsOpenStatus(status) {
+    var s = String(status || '').toLowerCase();
+    if (!s) return false;
+    if (/sans\s+litige|pas\s+de\s+litige|aucun\s+litige|no\s+dispute/.test(s)) return false;
+    var hit = s.indexOf('litige') >= 0 || s.indexOf('dispute') >= 0;
+    if (!hit) return false;
+    if (/résolu|resolu|resolved|réglé|regle|clôtur|clotur|cloture|clôture|fermé|ferme|terminé|termine|annul|cancel|closed|archiv|finalis/.test(s)) return false;
+    if (/\bclos\b/.test(s)) return false;
+    if (s.indexOf('closed') >= 0) return false;
+    if (s.indexOf('close') >= 0 && s.indexOf('disclose') < 0 && s.indexOf('enclose') < 0) return false;
+    return true;
+}
 async function spiritFetchOpenLitigesForUser(uid) {
     uid = spiritNormUid(uid || '');
     if (!uid || !_spirit) return [];
@@ -13860,10 +13983,7 @@ async function spiritFetchOpenLitigesForUser(uid) {
         if (out.error) throw out.error;
         var rows = Array.isArray(out.data) ? out.data : [];
         return rows.filter(function (r) {
-            var s = String((r && r.status) || '').toLowerCase();
-            var isDispute = s.indexOf('litige') >= 0 || s.indexOf('dispute') >= 0;
-            var resolved = s.indexOf('resolu') >= 0 || s.indexOf('resolved') >= 0 || s.indexOf('close') >= 0 || s.indexOf('closed') >= 0;
-            return isDispute && !resolved;
+            return spiritTransactionLitigeIsOpenStatus(r && r.status);
         });
     } catch (e) {
         return [];
@@ -16461,21 +16581,14 @@ function showLedgerModal() {
 async function spiritHasOpenLitigeForUser(uid) {
     uid = spiritNormUid(uid || '');
     if (!uid || !_spirit) return false;
-    if (spiritOpenLitigeByOwner[uid] != null) return !!spiritOpenLitigeByOwner[uid];
     try {
         var out = await _spirit.from('transactions').select('id,status,seller_id,buyer_id').or('seller_id.eq.' + uid + ',buyer_id.eq.' + uid).order('created_at', { ascending: false }).limit(200);
         if (out.error) throw out.error;
         var rows = Array.isArray(out.data) ? out.data : [];
-        var has = rows.some(function (r) {
-            var s = String((r && r.status) || '').toLowerCase();
-            var isDispute = s.indexOf('litige') >= 0 || s.indexOf('dispute') >= 0;
-            var resolved = s.indexOf('resolu') >= 0 || s.indexOf('resolved') >= 0 || s.indexOf('close') >= 0 || s.indexOf('closed') >= 0;
-            return isDispute && !resolved;
+        return rows.some(function (r) {
+            return spiritTransactionLitigeIsOpenStatus(r && r.status);
         });
-        spiritOpenLitigeByOwner[uid] = has;
-        return has;
     } catch (e) {
-        spiritOpenLitigeByOwner[uid] = false;
         return false;
     }
 }
