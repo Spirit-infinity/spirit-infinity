@@ -11492,6 +11492,9 @@ async function spiritWebPushDiagnose() {
 
 /** Évite plusieurs subscribe / upsert en parallèle (explosion de lignes FCM pour le même compte). */
 var spiritWebPushSubscribeLock = false;
+/** Chemin silencieux : évite register() à répétition (Chrome affiche « site mis à jour en arrière-plan » si le SW se met à jour souvent). */
+var spiritWebPushLastSilentSubscribeTs = 0;
+var spiritWebPushSilentSubscribeMinIntervalMs = 15 * 60 * 1000;
 
 /**
  * Enregistre la souscription push en base (pour envoi serveur ultérieur).
@@ -11530,10 +11533,18 @@ async function spiritWebPushTrySubscribe(opts) {
     spiritWebPushSubscribeLock = true;
     try {
         var swScript = spiritWebPushServiceWorkerScriptUrl();
-        try {
-            await navigator.serviceWorker.register(swScript);
-        } catch (eReg) {
-            console.warn('[SPIRIT PUSH] register', eReg);
+        if (opts.fromUser) {
+            try {
+                await navigator.serviceWorker.register(swScript);
+            } catch (eReg) {
+                console.warn('[SPIRIT PUSH] register', eReg);
+            }
+        } else {
+            var regSilent = await navigator.serviceWorker.getRegistration();
+            if (!regSilent || !regSilent.active) return false;
+            var nowSilent = Date.now();
+            if (nowSilent - spiritWebPushLastSilentSubscribeTs < spiritWebPushSilentSubscribeMinIntervalMs) return false;
+            spiritWebPushLastSilentSubscribeTs = nowSilent;
         }
         var perm = Notification.permission;
         if (perm === 'denied') {
