@@ -13093,6 +13093,8 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     if (sanAddBtn) sanAddBtn.style.display = isOwner ? 'inline-block' : 'none';
     // Visiteur: aucun contrôle de personnalisation sur le Sanctuaire public d'un autre compte.
     try {
+        var neonRowPub = document.getElementById('spiritPublicSanNeonRow');
+        if (neonRowPub) neonRowPub.style.display = isOwner ? 'flex' : 'none';
         var neonSel = document.getElementById('spiritSanctuaryNeonSelect');
         if (neonSel) {
             neonSel.disabled = !isOwner;
@@ -13614,6 +13616,7 @@ async function spiritSanctuaryRender(ctx) {
     var uidNormSan = spiritNormUid(uid);
     var meNormSan = spiritNormUid(actorIdSan);
     var isOwner = !!(uidNormSan && meNormSan && meNormSan === uidNormSan);
+    var isPublicVisitor = ctx === 'public' && !isOwner;
     var items = await spiritSanctuaryFetchItems(uid, isOwner);
     // Tableau des URLs déjà chargées (pour navigation Lightbox sans re-requête Supabase)
     var sanctuaryImageSrcs = items.map(function (x) { return x && x.src ? x.src : ''; }).filter(Boolean);
@@ -13803,62 +13806,77 @@ async function spiritSanctuaryRender(ctx) {
             var meta = document.createElement('div');
             meta.className = 'spirit-san-meta';
             var descSaved = document.createElement('div');
-            descSaved.style.cssText = 'margin-top:6px;font-size:0.65rem;color:#9ca3af;word-break:break-word;';
-            descSaved.textContent = String(it.desc || '').trim() || sanT('san_desc_none');
-            var inp = document.createElement('input');
-            inp.type = 'text';
-            inp.value = it.desc || '';
-            inp.placeholder = sanT('san_desc_ph');
-            inp.disabled = !isOwner;
-            var descSaveTmrList = null;
-            function saveSanctuaryDescList() {
-                if (!rowId || typeof _spirit === 'undefined' || !_spirit || !isOwner) return;
-                var v = String(inp.value != null ? inp.value : '');
-                void _spirit.from('sanctuary_items').update({ description: v }).eq('id', String(rowId)).then(function (res) {
-                    if (res && res.error && typeof console !== 'undefined' && console.warn) console.warn('[SPIRIT] Sanctuaire description', res.error.message || res.error);
-                });
-                try { it.desc = v; } catch (eItD) {}
-                descSaved.textContent = String(v).trim() || sanT('san_desc_none');
-                spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
+            var hasDescList = String(it.desc || '').trim().length > 0;
+            if (isPublicVisitor) {
+                if (hasDescList) {
+                    descSaved.textContent = String(it.desc || '').trim();
+                    descSaved.style.cssText = 'margin-top:10px;font-size:0.92rem;line-height:1.45;color:#ececec;word-break:break-word;font-weight:600;';
+                } else {
+                    descSaved.style.display = 'none';
+                    descSaved.textContent = '';
+                }
+            } else {
+                descSaved.style.cssText = 'margin-top:6px;font-size:0.65rem;color:#9ca3af;word-break:break-word;';
+                descSaved.textContent = String(it.desc || '').trim() || sanT('san_desc_none');
             }
-            inp.onchange = saveSanctuaryDescList;
-            inp.onblur = saveSanctuaryDescList;
-            inp.addEventListener('input', function () {
-                descSaved.textContent = String(inp.value || '').trim() || sanT('san_desc_none');
-                if (descSaveTmrList) clearTimeout(descSaveTmrList);
-                descSaveTmrList = setTimeout(saveSanctuaryDescList, 550);
-            });
-            meta.appendChild(document.createTextNode(sanT('san_work_prefix') + (idx + 1)));
-            meta.appendChild(inp);
+            if (!isPublicVisitor) {
+                meta.appendChild(document.createTextNode(sanT('san_work_prefix') + (idx + 1)));
+                var inp = document.createElement('input');
+                inp.type = 'text';
+                inp.value = it.desc || '';
+                inp.placeholder = sanT('san_desc_ph');
+                inp.disabled = !isOwner;
+                var descSaveTmrList = null;
+                function saveSanctuaryDescList() {
+                    if (!rowId || typeof _spirit === 'undefined' || !_spirit || !isOwner) return;
+                    var v = String(inp.value != null ? inp.value : '');
+                    void _spirit.from('sanctuary_items').update({ description: v }).eq('id', String(rowId)).then(function (res) {
+                        if (res && res.error && typeof console !== 'undefined' && console.warn) console.warn('[SPIRIT] Sanctuaire description', res.error.message || res.error);
+                    });
+                    try { it.desc = v; } catch (eItD) {}
+                    descSaved.textContent = String(v).trim() || sanT('san_desc_none');
+                    spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
+                }
+                inp.onchange = saveSanctuaryDescList;
+                inp.onblur = saveSanctuaryDescList;
+                inp.addEventListener('input', function () {
+                    descSaved.textContent = String(inp.value || '').trim() || sanT('san_desc_none');
+                    if (descSaveTmrList) clearTimeout(descSaveTmrList);
+                    descSaveTmrList = setTimeout(saveSanctuaryDescList, 550);
+                });
+                meta.appendChild(inp);
+            }
             meta.appendChild(descSaved);
             meta.appendChild(socialUi.overlay);
             meta.appendChild(socialUi.commentsToggle);
             meta.appendChild(socialUi.commentsPanel);
-            var styleRow = document.createElement('div');
-            styleRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
-            var stLab = document.createElement('span');
-            stLab.textContent = sanT('san_neon_lbl');
-            stLab.style.cssText = 'font-size:0.6rem;color:#666;text-transform:uppercase;letter-spacing:1px;';
-            var stSel = document.createElement('select');
-            stSel.setAttribute('aria-label', sanT('san_neon_lbl'));
-            stSel.style.cssText = 'padding:6px 8px;background:#111;border:1px solid #333;color:#eee;font-size:0.65rem;';
-            spiritSanctuaryFillNeonSelect(stSel, neon);
-            stSel.disabled = !isOwner;
-            if (isOwner) {
-                stSel.onchange = function () {
-                    if (!rowId || typeof _spirit === 'undefined' || !_spirit) return;
-                    var c = stSel.value;
-                    void (async function () {
-                        await _spirit.from('sanctuary_items').update({ neon_color: c }).eq('id', String(rowId));
-                        wrap.style.border = '3px solid ' + c;
-                        wrap.style.boxShadow = '0 0 14px ' + c + '44';
-                        spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
-                    })();
-                };
+            if (!isPublicVisitor) {
+                var styleRow = document.createElement('div');
+                styleRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
+                var stLab = document.createElement('span');
+                stLab.textContent = sanT('san_neon_lbl');
+                stLab.style.cssText = 'font-size:0.6rem;color:#666;text-transform:uppercase;letter-spacing:1px;';
+                var stSel = document.createElement('select');
+                stSel.setAttribute('aria-label', sanT('san_neon_lbl'));
+                stSel.style.cssText = 'padding:6px 8px;background:#111;border:1px solid #333;color:#eee;font-size:0.65rem;';
+                spiritSanctuaryFillNeonSelect(stSel, neon);
+                stSel.disabled = !isOwner;
+                if (isOwner) {
+                    stSel.onchange = function () {
+                        if (!rowId || typeof _spirit === 'undefined' || !_spirit) return;
+                        var c = stSel.value;
+                        void (async function () {
+                            await _spirit.from('sanctuary_items').update({ neon_color: c }).eq('id', String(rowId));
+                            wrap.style.border = '3px solid ' + c;
+                            wrap.style.boxShadow = '0 0 14px ' + c + '44';
+                            spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
+                        })();
+                    };
+                }
+                styleRow.appendChild(stLab);
+                styleRow.appendChild(stSel);
+                meta.appendChild(styleRow);
             }
-            styleRow.appendChild(stLab);
-            styleRow.appendChild(stSel);
-            meta.appendChild(styleRow);
             if (isOwner) {
                 try {
                     btnDel = document.createElement('button');
@@ -13925,28 +13943,40 @@ async function spiritSanctuaryRender(ctx) {
                     await spiritSanctuaryPersistSortOrder(ctx, grid);
                 });
             }
-            var selMini = document.createElement('select');
-            selMini.setAttribute('aria-label', sanT('san_neon_lbl'));
-            selMini.style.cssText = 'width:100%;margin-top:4px;font-size:0.55rem;padding:3px;background:#111;border:1px solid #333;color:#aaa;';
-            spiritSanctuaryFillNeonSelect(selMini, neon);
-            selMini.disabled = !isOwner;
-            if (isOwner && rowId) {
-                selMini.onchange = function () {
-                    if (typeof _spirit === 'undefined' || !_spirit) return;
-                    var c = selMini.value;
-                    void (async function () {
-                        await _spirit.from('sanctuary_items').update({ neon_color: c }).eq('id', String(rowId));
-                        wrap.style.border = '3px solid ' + c;
-                        wrap.style.boxShadow = '0 0 14px ' + c + '44';
-                        spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
-                    })();
-                };
+            if (!isPublicVisitor) {
+                var selMini = document.createElement('select');
+                selMini.setAttribute('aria-label', sanT('san_neon_lbl'));
+                selMini.style.cssText = 'width:100%;margin-top:4px;font-size:0.55rem;padding:3px;background:#111;border:1px solid #333;color:#aaa;';
+                spiritSanctuaryFillNeonSelect(selMini, neon);
+                selMini.disabled = !isOwner;
+                if (isOwner && rowId) {
+                    selMini.onchange = function () {
+                        if (typeof _spirit === 'undefined' || !_spirit) return;
+                        var c = selMini.value;
+                        void (async function () {
+                            await _spirit.from('sanctuary_items').update({ neon_color: c }).eq('id', String(rowId));
+                            wrap.style.border = '3px solid ' + c;
+                            wrap.style.boxShadow = '0 0 14px ' + c + '44';
+                            spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
+                        })();
+                    };
+                }
+                wrap.appendChild(selMini);
             }
-            wrap.appendChild(selMini);
 
             var descEl = document.createElement('div');
             descEl.className = 'spirit-san-icons-desc';
-            descEl.textContent = String(it.desc || '').trim() || sanT('san_desc_none');
+            var hasDescIcons = String(it.desc || '').trim().length > 0;
+            if (isPublicVisitor) {
+                if (hasDescIcons) {
+                    descEl.textContent = String(it.desc || '').trim();
+                    descEl.style.cssText = 'font-size:0.9rem;line-height:1.42;color:#ececec;margin-top:10px;word-break:break-word;font-weight:600;';
+                } else {
+                    descEl.style.display = 'none';
+                }
+            } else {
+                descEl.textContent = String(it.desc || '').trim() || sanT('san_desc_none');
+            }
             cell.appendChild(descEl);
             if (isOwner) {
                 var descInp = document.createElement('input');
