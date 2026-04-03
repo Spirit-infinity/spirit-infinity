@@ -3821,18 +3821,24 @@
 </div>
 </section>
 
+<!-- Accès propriétaire (non listé au menu) : ajouter #si-ht-preco-a à l’URL ou en favori -->
 <div id="spiritHotToysAdminOverlay" class="overlay" style="display:none;z-index:10060;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;">
     <div class="modal-content spirit-ht-admin-modal" style="max-width:920px;width:100%;max-height:92vh;overflow:auto;text-align:left;position:relative;background:#0a0a0a;border:1px solid rgba(255,102,0,0.45);margin-top:12px;">
         <button type="button" onclick="spiritCloseHotToysAdmin()" style="position:absolute;top:12px;right:12px;background:#111;border:1px solid #444;color:#ccc;cursor:pointer;padding:6px 12px;font-size:0.75rem;">✕</button>
         <h2 style="color:var(--neon-orange);margin:8px 40px 6px 0;font-size:0.95rem;letter-spacing:1px;">ADMIN HOT TOYS / PRÉCOMMANDES</h2>
-        <p style="font-size:0.62rem;color:#666;margin:0 40px 14px 0;line-height:1.4;">Connexion : compte Supabase avec le pseudo <b>hottoysspirit</b> (mot de passe défini à l’inscription — ne jamais le mettre dans le code). Le code PIN ci‑dessous est seulement une barrière d’interface : toute personne qui lit la page peut le trouver — pour une vraie sécurité, utilise des rôles Supabase (RLS) et une Edge Function.</p>
-        <div id="spiritHotToysAdminPinStep" style="padding:12px 16px 20px;">
-            <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:6px;">Code d’accès panneau</label>
+        <p style="font-size:0.62rem;color:#666;margin:0 40px 14px 0;line-height:1.4;"><b>Sans adresse e-mail côté formulaire.</b> Tu saisis uniquement <b>pseudo</b>, <b>mot de passe</b> et <b>code</b>. Supabase exige toutefois un identifiant e-mail en arrière-plan : il est généré automatiquement (<span style="color:#888;">pseudo@spirit-infinity.internal</span>). Désactive la confirmation e-mail pour ce domaine dans le dashboard Supabase, sinon la création de compte échouera. Le code est une barrière d’interface seule — renforce avec RLS / rôle admin.</p>
+        <div id="spiritHotToysAdminAuthStep" style="padding:12px 16px 20px;">
+            <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:4px;">Pseudo (compte admin : <b>hottoysspirit</b>)</label>
+            <input type="text" id="spiritHotToysAdminPseudoInput" autocomplete="username" placeholder="hottoysspirit" style="width:100%;max-width:320px;box-sizing:border-box;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.8rem;margin-bottom:10px;" />
+            <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:4px;">Mot de passe</label>
+            <input type="password" id="spiritHotToysAdminPassInput" autocomplete="new-password" style="width:100%;max-width:320px;box-sizing:border-box;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.8rem;margin-bottom:10px;" />
+            <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:4px;">Code d’accès</label>
+            <input type="password" id="spiritHotToysAdminCodeInput" inputmode="numeric" autocomplete="off" placeholder="••••" style="width:100%;max-width:160px;box-sizing:border-box;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.85rem;margin-bottom:12px;" />
             <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-                <input type="password" id="spiritHotToysAdminPinInput" inputmode="numeric" autocomplete="off" placeholder="••••" style="flex:0 0 120px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.85rem;" />
-                <button type="button" class="btn-action" style="font-size:0.65rem;padding:10px 16px;" onclick="spiritHotToysAdminSubmitPin()">Valider</button>
+                <button type="button" class="btn-action" style="font-size:0.65rem;padding:10px 16px;" onclick="void spiritHotToysAdminDoLogin()">Se connecter</button>
+                <button type="button" class="btn-action" style="font-size:0.65rem;padding:10px 16px;background:#1a1510;border-color:#553;color:#dba;" onclick="void spiritHotToysAdminDoRegister()">Créer le compte admin</button>
             </div>
-            <p id="spiritHotToysAdminPinErr" style="color:#f66;font-size:0.65rem;margin:10px 0 0;min-height:1.2em;"></p>
+            <p id="spiritHotToysAdminAuthErr" style="color:#f66;font-size:0.65rem;margin:10px 0 0;min-height:1.2em;"></p>
         </div>
         <div id="spiritHotToysAdminMain" style="display:none;padding:0 16px 20px;">
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;border-bottom:1px solid #222;padding-bottom:10px;">
@@ -10067,7 +10073,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
             'certifModal',
             'labelPreview',
             'lightbox',
-            'spiritPublicProfileSection'
+            'spiritPublicProfileSection',
+            'spiritHotToysAdminOverlay'
         ].forEach(function (id) {
             var el = document.getElementById(id);
             if (el) el.style.setProperty('display', 'none', 'important');
@@ -10373,6 +10380,116 @@ async function spiritLoadListingMessagesForProduct(productId) {
     var SPIRIT_HOT_TOYS_PRECO_LS_KEY = 'spirit_hottoys_preco_cards_v1';
     var SPIRIT_HT_ADMIN_PSEUDO = 'hottoysspirit';
 
+    /** E-mail technique uniquement (Supabase Auth) — jamais affiché à l’utilisateur admin. */
+    function spiritAdminAuthEmailFromPseudo(pseudo) {
+        var p = String(pseudo || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!p) p = 'admin';
+        return p + '@spirit-infinity.internal';
+    }
+    function spiritHotToysAdminExpectedCode() {
+        return String(typeof window.__SPIRIT_HT_ADMIN_PIN__ !== 'undefined' && window.__SPIRIT_HT_ADMIN_PIN__ != null ? window.__SPIRIT_HT_ADMIN_PIN__ : '5262');
+    }
+    function spiritHotToysAdminReadAuthForm() {
+        var pseudo = String(document.getElementById('spiritHotToysAdminPseudoInput') && document.getElementById('spiritHotToysAdminPseudoInput').value || '').trim();
+        var pass = String(document.getElementById('spiritHotToysAdminPassInput') && document.getElementById('spiritHotToysAdminPassInput').value || '');
+        var code = String(document.getElementById('spiritHotToysAdminCodeInput') && document.getElementById('spiritHotToysAdminCodeInput').value || '').trim();
+        return { pseudo: pseudo, pass: pass, code: code };
+    }
+    function spiritHotToysAdminValidateAuthForm(errEl) {
+        var f = spiritHotToysAdminReadAuthForm();
+        if (errEl) errEl.textContent = '';
+        if (String(f.code).trim() !== spiritHotToysAdminExpectedCode()) {
+            if (errEl) errEl.textContent = 'Code d’accès incorrect.';
+            return null;
+        }
+        if (String(f.pseudo).trim().toLowerCase() !== SPIRIT_HT_ADMIN_PSEUDO) {
+            if (errEl) errEl.textContent = 'Ce panneau est réservé au pseudo hottoysspirit.';
+            return null;
+        }
+        if (!f.pass || String(f.pass).length < 6) {
+            if (errEl) errEl.textContent = 'Mot de passe trop court (minimum 6 caractères).';
+            return null;
+        }
+        return f;
+    }
+    async function spiritHotToysAdminAfterAuthSuccess(user, pseudo) {
+        try { sessionStorage.setItem('spirit_ht_admin_ok', '1'); } catch (e) {}
+        try { spiritRememberSessionChoice(true); } catch (eR) {}
+        try { spiritApplyAuthUser(user, pseudo); } catch (eA) {}
+        try { await spiritUpsertUserProfileFromAuth(user, pseudo); } catch (eU) {}
+        try { spiritRefreshUserScopedUi(); } catch (eV) {}
+        try { spiritRefreshHotToysAdminNav(); } catch (eN) {}
+        try { spiritSyncRegButtonI18n(); } catch (eB) {}
+        try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (eAn) {}
+        var authStep = document.getElementById('spiritHotToysAdminAuthStep');
+        var main = document.getElementById('spiritHotToysAdminMain');
+        if (authStep) authStep.style.display = 'none';
+        if (main) main.style.display = 'block';
+        spiritHotToysAdminSetTab('preco');
+        spiritHotToysAdminRenderPrecoEditor();
+        setTimeout(function () {
+            try {
+                if (typeof window.spiritWebPushTrySubscribe === 'function') void window.spiritWebPushTrySubscribe({});
+            } catch (eP) {}
+        }, 2000);
+    }
+    async function spiritHotToysAdminDoLogin() {
+        var errEl = document.getElementById('spiritHotToysAdminAuthErr');
+        var f = spiritHotToysAdminValidateAuthForm(errEl);
+        if (!f || typeof _spirit === 'undefined' || !_spirit || !_spirit.auth) {
+            if (errEl && !errEl.textContent && (!f || !_spirit)) errEl.textContent = 'Supabase indisponible.';
+            return;
+        }
+        try {
+            var email = spiritAdminAuthEmailFromPseudo(f.pseudo);
+            var signIn = await _spirit.auth.signInWithPassword({ email: email, password: f.pass });
+            if (signIn.error) throw signIn.error;
+            if (!signIn.data || !signIn.data.user) throw new Error('Session introuvable.');
+            await spiritHotToysAdminAfterAuthSuccess(signIn.data.user, f.pseudo);
+        } catch (e) {
+            if (errEl) errEl.textContent = 'Connexion impossible : ' + (e && e.message ? e.message : e);
+        }
+    }
+    async function spiritHotToysAdminDoRegister() {
+        var errEl = document.getElementById('spiritHotToysAdminAuthErr');
+        var f = spiritHotToysAdminValidateAuthForm(errEl);
+        if (!f || typeof _spirit === 'undefined' || !_spirit || !_spirit.auth) {
+            if (errEl && !errEl.textContent && (!f || !_spirit)) errEl.textContent = 'Supabase indisponible.';
+            return;
+        }
+        try {
+            var email = spiritAdminAuthEmailFromPseudo(f.pseudo);
+            var countryPrefs = typeof spiritCountryToLocaleAndCurrency === 'function' ? spiritCountryToLocaleAndCurrency('FR') : { lang: 'FR', currency: 'EUR', buyerCountry: 'France' };
+            var signUp = await _spirit.auth.signUp({
+                email: email,
+                password: f.pass,
+                options: {
+                    data: {
+                        username: f.pseudo,
+                        pseudo: f.pseudo,
+                        spirit_country: 'FR',
+                        spirit_locale: countryPrefs.lang,
+                        spirit_currency: countryPrefs.currency,
+                        spirit_buyer_country: countryPrefs.buyerCountry
+                    }
+                }
+            });
+            if (signUp.error) throw signUp.error;
+            if (signUp.data && signUp.data.user && signUp.data.session) {
+                await spiritHotToysAdminAfterAuthSuccess(signUp.data.user, f.pseudo);
+                try { alert('Compte admin créé et connecté.'); } catch (a0) {}
+                return;
+            }
+            if (signUp.data && signUp.data.user) {
+                try { alert('Compte créé. Si Supabase exige une confirmation e-mail, désactive-la pour les adresses @spirit-infinity.internal ou le compte ne pourra pas se valider (pas de vraie boîte mail).'); } catch (a1) {}
+                return;
+            }
+            try { alert('Inscription terminée. Connecte-toi avec le même pseudo et mot de passe.'); } catch (a2) {}
+        } catch (e) {
+            if (errEl) errEl.textContent = 'Inscription impossible : ' + (e && e.message ? e.message : e);
+        }
+    }
+
     function spiritIsHotToysAdmin() {
         var p = String(typeof currentUser !== 'undefined' && currentUser != null ? currentUser : '').trim().toLowerCase();
         return p === SPIRIT_HT_ADMIN_PSEUDO;
@@ -10422,36 +10539,46 @@ async function spiritLoadListingMessagesForProduct(productId) {
     }
 
     function spiritRefreshHotToysAdminNav() {
-        var vis = spiritIsHotToysAdmin();
         var b1 = document.getElementById('nav-ht-admin');
         var b2 = document.getElementById('spirit-mob-nav-ht-admin');
-        if (b1) b1.style.display = vis ? 'inline-block' : 'none';
-        if (b2) b2.style.display = vis ? 'inline-block' : 'none';
+        if (b1) b1.style.setProperty('display', 'none', 'important');
+        if (b2) b2.style.setProperty('display', 'none', 'important');
+    }
+
+    /** Ouvre l’admin préco si l’URL contient le hash secret (puis retire le hash). À utiliser en signet : …#si-ht-preco-a */
+    function spiritConsumeHotToysAdminHash() {
+        try {
+            var h = (location.hash || '').replace(/^#/, '').trim().toLowerCase();
+            if (h !== 'si-ht-preco-a') return;
+            try { history.replaceState(null, '', location.pathname + location.search); } catch (eR) {}
+            spiritOpenHotToysAdmin();
+        } catch (e) {}
     }
 
     function spiritOpenHotToysAdmin() {
-        if (!spiritIsHotToysAdmin()) {
-            alert('Réservé au compte avec le pseudo hottoysspirit (connexion Supabase habituelle).');
-            return;
-        }
         var ov = document.getElementById('spiritHotToysAdminOverlay');
         if (!ov) return;
         ov.style.setProperty('display', 'flex', 'important');
-        var pinStep = document.getElementById('spiritHotToysAdminPinStep');
+        var authStep = document.getElementById('spiritHotToysAdminAuthStep');
         var main = document.getElementById('spiritHotToysAdminMain');
-        var pinIn = document.getElementById('spiritHotToysAdminPinInput');
-        var pinErr = document.getElementById('spiritHotToysAdminPinErr');
-        if (pinErr) pinErr.textContent = '';
-        if (pinIn) pinIn.value = '';
+        var errEl = document.getElementById('spiritHotToysAdminAuthErr');
+        var pIn = document.getElementById('spiritHotToysAdminPseudoInput');
+        var passIn = document.getElementById('spiritHotToysAdminPassInput');
+        var codeIn = document.getElementById('spiritHotToysAdminCodeInput');
+        if (errEl) errEl.textContent = '';
+        if (passIn) passIn.value = '';
+        if (codeIn) codeIn.value = '';
+        if (pIn && !spiritIsHotToysAdmin()) pIn.value = SPIRIT_HT_ADMIN_PSEUDO;
+        if (pIn && spiritIsHotToysAdmin()) pIn.value = String(typeof currentUser !== 'undefined' && currentUser != null ? currentUser : '').trim() || SPIRIT_HT_ADMIN_PSEUDO;
         var ok = false;
         try { ok = sessionStorage.getItem('spirit_ht_admin_ok') === '1'; } catch (e) {}
-        if (ok && pinStep && main) {
-            pinStep.style.display = 'none';
+        if (spiritIsHotToysAdmin() && ok && authStep && main) {
+            authStep.style.display = 'none';
             main.style.display = 'block';
             spiritHotToysAdminSetTab('preco');
             spiritHotToysAdminRenderPrecoEditor();
-        } else if (pinStep && main) {
-            pinStep.style.display = 'block';
+        } else if (authStep && main) {
+            authStep.style.display = 'block';
             main.style.display = 'none';
         }
     }
@@ -10459,25 +10586,6 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var ov = document.getElementById('spiritHotToysAdminOverlay');
         if (ov) ov.style.setProperty('display', 'none', 'important');
     }
-    function spiritHotToysAdminSubmitPin() {
-        var pinIn = document.getElementById('spiritHotToysAdminPinInput');
-        var pinErr = document.getElementById('spiritHotToysAdminPinErr');
-        var expected = String(typeof window.__SPIRIT_HT_ADMIN_PIN__ !== 'undefined' && window.__SPIRIT_HT_ADMIN_PIN__ != null ? window.__SPIRIT_HT_ADMIN_PIN__ : '5262');
-        var got = String(pinIn && pinIn.value != null ? pinIn.value : '').trim();
-        if (got !== expected) {
-            if (pinErr) pinErr.textContent = 'Code incorrect.';
-            return;
-        }
-        try { sessionStorage.setItem('spirit_ht_admin_ok', '1'); } catch (e) {}
-        var pinStep = document.getElementById('spiritHotToysAdminPinStep');
-        var main = document.getElementById('spiritHotToysAdminMain');
-        if (pinErr) pinErr.textContent = '';
-        if (pinStep) pinStep.style.display = 'none';
-        if (main) main.style.display = 'block';
-        spiritHotToysAdminSetTab('preco');
-        spiritHotToysAdminRenderPrecoEditor();
-    }
-
     function spiritHotToysAdminSetTab(which) {
         which = String(which || 'preco');
         var map = { preco: 'spiritHotToysAdminTabPreco', bourse: 'spiritHotToysAdminTabBourse', litiges: 'spiritHotToysAdminTabLitiges' };
@@ -10506,11 +10614,92 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 '<label style="display:block;font-size:0.62rem;color:#888;margin-bottom:4px;">Sous-titre / sortie</label>' +
                 '<input type="text" id="spirit_ht_p_release_' + i + '" value="' + spiritHotToysPrecoEscapeAttr(c.release || '') + '" style="width:100%;box-sizing:border-box;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;margin-bottom:8px;" />' +
                 '<label style="display:block;font-size:0.62rem;color:#888;margin-bottom:4px;">Image principale (URL ou chemin)</label>' +
-                '<input type="text" id="spirit_ht_p_main_' + i + '" value="' + spiritHotToysPrecoEscapeAttr(c.main || '') + '" style="width:100%;box-sizing:border-box;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.68rem;margin-bottom:8px;" />' +
+                '<input type="text" id="spirit_ht_p_main_' + i + '" value="' + spiritHotToysPrecoEscapeAttr(c.main || '') + '" style="width:100%;box-sizing:border-box;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.68rem;margin-bottom:6px;" />' +
+                '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;">' +
+                '<input type="file" accept="image/*,.webp,.heic,.heif" id="spirit_ht_p_main_up_' + i + '" style="display:none" />' +
+                '<button type="button" id="spirit_ht_p_main_up_btn_' + i + '" style="padding:6px 10px;font-size:0.62rem;background:#1a1208;border:1px solid #ff6600;color:#ff9900;border-radius:4px;cursor:pointer;">Remplacer l’image (upload)</button>' +
+                '</div>' +
                 '<label style="display:block;font-size:0.62rem;color:#888;margin-bottom:4px;">Vignettes (1 URL par ligne)</label>' +
                 '<textarea id="spirit_ht_p_thumbs_' + i + '" rows="5" style="width:100%;box-sizing:border-box;padding:8px;background:#111;border:1px solid #333;color:#ccc;font-size:0.65rem;">' + spiritHotToysPrecoEscapeHtml(thumbsStr) + '</textarea>' +
+                '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px;">' +
+                '<input type="file" accept="image/*,.webp,.heic,.heif" id="spirit_ht_p_thumb_up_' + i + '" style="display:none" />' +
+                '<button type="button" id="spirit_ht_p_thumb_up_btn_' + i + '" style="padding:6px 10px;font-size:0.62rem;background:#1a1208;border:1px solid #ff6600;color:#ff9900;border-radius:4px;cursor:pointer;">Ajouter une vignette (upload)</button>' +
+                '</div>' +
                 '</div>';
         }).join('');
+        spiritHotToysAdminBindPrecoUploads();
+    }
+
+    function spiritHotToysAdminPrecoStorageBucket() {
+        return (typeof SPIRIT_BUCKET_LISTINGS !== 'undefined' && SPIRIT_BUCKET_LISTINGS) ? String(SPIRIT_BUCKET_LISTINGS) : 'sanctuary';
+    }
+    async function spiritHotToysAdminPrecoUploadMain(blockIndex, file) {
+        if (typeof _spirit === 'undefined' || !_spirit || typeof spiritStorageUploadPublic !== 'function') {
+            try { alert('Supabase indisponible : impossible d’uploader.'); } catch (eA) {}
+            return;
+        }
+        var mEl = document.getElementById('spirit_ht_p_main_' + blockIndex);
+        if (!mEl) return;
+        var cards = spiritHotToysPrecoGetCards();
+        var c = cards[blockIndex] || {};
+        var blockId = String(c.id || ('b' + blockIndex)).replace(/[^a-zA-Z0-9\-._]/g, '_').slice(0, 48);
+        try {
+            var path = 'preco_ht/' + blockId + '/main_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.jpg';
+            var url = await spiritStorageUploadPublic(spiritHotToysAdminPrecoStorageBucket(), path, file);
+            mEl.value = url;
+        } catch (err) {
+            try { alert('Upload image principale impossible : ' + (err && err.message ? err.message : err)); } catch (eA2) {}
+        }
+    }
+    async function spiritHotToysAdminPrecoUploadThumb(blockIndex, file) {
+        if (typeof _spirit === 'undefined' || !_spirit || typeof spiritStorageUploadPublic !== 'function') {
+            try { alert('Supabase indisponible : impossible d’uploader.'); } catch (eA) {}
+            return;
+        }
+        var thEl = document.getElementById('spirit_ht_p_thumbs_' + blockIndex);
+        if (!thEl) return;
+        var cards = spiritHotToysPrecoGetCards();
+        var c = cards[blockIndex] || {};
+        var blockId = String(c.id || ('b' + blockIndex)).replace(/[^a-zA-Z0-9\-._]/g, '_').slice(0, 48);
+        try {
+            var path = 'preco_ht/' + blockId + '/thumb_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.jpg';
+            var url = await spiritStorageUploadPublic(spiritHotToysAdminPrecoStorageBucket(), path, file);
+            var cur = String(thEl.value || '').replace(/\s+$/, '');
+            thEl.value = cur ? (cur + '\n' + url) : url;
+        } catch (err) {
+            try { alert('Upload vignette impossible : ' + (err && err.message ? err.message : err)); } catch (eA2) {}
+        }
+    }
+    function spiritHotToysAdminBindPrecoUploads() {
+        var box = document.getElementById('spiritHotToysAdminPrecoFields');
+        if (!box) return;
+        var cards = spiritHotToysPrecoGetCards();
+        for (var i = 0; i < cards.length; i++) {
+            (function (idx) {
+                var mainBtn = document.getElementById('spirit_ht_p_main_up_btn_' + idx);
+                var mainFile = document.getElementById('spirit_ht_p_main_up_' + idx);
+                var thumbBtn = document.getElementById('spirit_ht_p_thumb_up_btn_' + idx);
+                var thumbFile = document.getElementById('spirit_ht_p_thumb_up_' + idx);
+                if (mainBtn && mainFile) {
+                    mainBtn.onclick = function () { mainFile.click(); };
+                    mainFile.onchange = function () {
+                        var f = mainFile.files && mainFile.files[0];
+                        mainFile.value = '';
+                        if (!f) return;
+                        void spiritHotToysAdminPrecoUploadMain(idx, f);
+                    };
+                }
+                if (thumbBtn && thumbFile) {
+                    thumbBtn.onclick = function () { thumbFile.click(); };
+                    thumbFile.onchange = function () {
+                        var f = thumbFile.files && thumbFile.files[0];
+                        thumbFile.value = '';
+                        if (!f) return;
+                        void spiritHotToysAdminPrecoUploadThumb(idx, f);
+                    };
+                }
+            })(i);
+        }
     }
 
     function spiritHotToysAdminSavePreco() {
@@ -10632,13 +10821,15 @@ async function spiritLoadListingMessagesForProduct(productId) {
     try {
         window.spiritOpenHotToysAdmin = spiritOpenHotToysAdmin;
         window.spiritCloseHotToysAdmin = spiritCloseHotToysAdmin;
-        window.spiritHotToysAdminSubmitPin = spiritHotToysAdminSubmitPin;
+        window.spiritHotToysAdminDoLogin = spiritHotToysAdminDoLogin;
+        window.spiritHotToysAdminDoRegister = spiritHotToysAdminDoRegister;
         window.spiritHotToysAdminSetTab = spiritHotToysAdminSetTab;
         window.spiritHotToysAdminSavePreco = spiritHotToysAdminSavePreco;
         window.spiritHotToysAdminResetPreco = spiritHotToysAdminResetPreco;
         window.spiritHotToysAdminLoadBourse = spiritHotToysAdminLoadBourse;
         window.spiritHotToysAdminLoadLitiges = spiritHotToysAdminLoadLitiges;
         window.spiritRefreshHotToysAdminNav = spiritRefreshHotToysAdminNav;
+        window.spiritConsumeHotToysAdminHash = spiritConsumeHotToysAdminHash;
     } catch (eWHT) {}
 
     function showPrecommandesHotToys() {
@@ -15072,7 +15263,8 @@ function spiritShowHeroHome() {
     [
         'ledgerModal', 'forumModal', 'accountModal', 'securityModal',
         'precommandes-hot-toys', 'supportModal', 'registerModal',
-        'productModal', 'paymentModal', 'certifModal', 'labelPreview', 'lightbox', 'spiritPublicProfileSection'
+        'productModal', 'paymentModal', 'certifModal', 'labelPreview', 'lightbox', 'spiritPublicProfileSection',
+        'spiritHotToysAdminOverlay'
     ].forEach(function (id) {
         var n = document.getElementById(id);
         if (n) n.style.setProperty('display', 'none', 'important');
@@ -15856,9 +16048,16 @@ document.addEventListener('DOMContentLoaded', () => {
         try { if (typeof spiritMarketAutoSyncStart === 'function') spiritMarketAutoSyncStart(); } catch (eAuto) {}
         try { spiritMarketInitScrollObserver(); } catch (e) {}
         try { spiritInitFavoriteClickDelegation(); } catch (e) {}
-        try { window.addEventListener('hashchange', function () { spiritApplyPublicHashRoute(); }); } catch (e) {}
+        try {
+            window.addEventListener('hashchange', function () {
+                try { spiritApplyPublicHashRoute(); } catch (eH) {}
+                try { if (typeof spiritConsumeHotToysAdminHash === 'function') spiritConsumeHotToysAdminHash(); } catch (eHa) {}
+            });
+        } catch (e) {}
         try { spiritApplyPublicHashRoute(); } catch (e) {}
+        try { if (typeof spiritConsumeHotToysAdminHash === 'function') spiritConsumeHotToysAdminHash(); } catch (eHtHash) {}
         try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e) {}
+        try { if (typeof spiritRefreshHotToysAdminNav === 'function') spiritRefreshHotToysAdminNav(); } catch (eHtNavBoot) {}
         try { spiritUpdateNavSanctuaryDot(); } catch (e) {}
         try { spiritRefreshDashboardPublicUrl(); } catch (e) {}
         try { spiritSanctuaryStartPoll(); } catch (e) {}
