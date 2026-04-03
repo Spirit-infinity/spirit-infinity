@@ -2820,6 +2820,7 @@
                 <button type="button" class="spirit-mob-nav-btn" id="spirit-mob-nav-account" onclick="showMonCompte()"><span data-key="nav_account">MON COMPTE</span></button>
                 <button type="button" class="spirit-mob-nav-btn" onclick="showSecurite()"><span data-key="nav_security">SÉCURITÉ</span></button>
                 <button type="button" class="spirit-mob-nav-btn" id="spirit-mob-nav-preorders" onclick="showPrecommandesHotToys()"><span data-key="nav_preorders">PRÉCOMMANDES HOT TOYS</span></button>
+                <button type="button" class="spirit-mob-nav-btn" id="spirit-mob-nav-ht-admin" onclick="spiritOpenHotToysAdmin()" style="display:none;font-size:0.58rem;" data-key="nav_ht_admin">ADMIN PRÉCO</button>
                 <button type="button" class="spirit-mob-nav-btn" onclick="showSupport()"><span data-key="nav_support">SUPPORT SPIRIT</span></button>
                 <label class="spirit-mob-lang-label"><span data-key="mob_lang_label">Langue</span>
                     <select class="lang-selector spirit-mob-lang-select" onchange="switchLanguage(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px; margin-top:4px; width:100%; box-sizing:border-box;">
@@ -2847,6 +2848,7 @@
         <button id="nav-account" type="button" onclick="showMonCompte()"><span class="spirit-nav-account-label" data-key="nav_account">MON COMPTE</span><span id="nav-account-notif-pill" class="spirit-nav-account-notif-pill" aria-hidden="true"></span><span id="nav-account-sanctuary-dot" aria-hidden="true"></span></button>
         <button id="nav-func" onclick="showSecurite()" data-key="nav_security">SÉCURITÉ</button>
         <button id="nav-preorders" onclick="showPrecommandesHotToys()" data-key="nav_preorders">PRÉCOMMANDES HOT TOYS</button>
+        <button type="button" id="nav-ht-admin" onclick="spiritOpenHotToysAdmin()" style="display:none;font-size:0.62rem;padding:6px 10px;letter-spacing:0.5px;" data-key="nav_ht_admin">ADMIN PRÉCO</button>
         <button id="nav-sav" onclick="showSupport()" data-key="nav_support">SUPPORT SPIRIT</button>
         <select class="lang-selector" onchange="switchLanguage(this.value)" style="background:#000; color:var(--neon-orange); border:1px solid var(--neon-orange); font-size:0.7rem; padding:5px;">
             <option value="FR">FR 🇫🇷</option>
@@ -3819,6 +3821,46 @@
 </div>
 </section>
 
+<div id="spiritHotToysAdminOverlay" class="overlay" style="display:none;z-index:10060;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;">
+    <div class="modal-content spirit-ht-admin-modal" style="max-width:920px;width:100%;max-height:92vh;overflow:auto;text-align:left;position:relative;background:#0a0a0a;border:1px solid rgba(255,102,0,0.45);margin-top:12px;">
+        <button type="button" onclick="spiritCloseHotToysAdmin()" style="position:absolute;top:12px;right:12px;background:#111;border:1px solid #444;color:#ccc;cursor:pointer;padding:6px 12px;font-size:0.75rem;">✕</button>
+        <h2 style="color:var(--neon-orange);margin:8px 40px 6px 0;font-size:0.95rem;letter-spacing:1px;">ADMIN HOT TOYS / PRÉCOMMANDES</h2>
+        <p style="font-size:0.62rem;color:#666;margin:0 40px 14px 0;line-height:1.4;">Connexion : compte Supabase avec le pseudo <b>hottoysspirit</b> (mot de passe défini à l’inscription — ne jamais le mettre dans le code). Le code PIN ci‑dessous est seulement une barrière d’interface : toute personne qui lit la page peut le trouver — pour une vraie sécurité, utilise des rôles Supabase (RLS) et une Edge Function.</p>
+        <div id="spiritHotToysAdminPinStep" style="padding:12px 16px 20px;">
+            <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:6px;">Code d’accès panneau</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+                <input type="password" id="spiritHotToysAdminPinInput" inputmode="numeric" autocomplete="off" placeholder="••••" style="flex:0 0 120px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.85rem;" />
+                <button type="button" class="btn-action" style="font-size:0.65rem;padding:10px 16px;" onclick="spiritHotToysAdminSubmitPin()">Valider</button>
+            </div>
+            <p id="spiritHotToysAdminPinErr" style="color:#f66;font-size:0.65rem;margin:10px 0 0;min-height:1.2em;"></p>
+        </div>
+        <div id="spiritHotToysAdminMain" style="display:none;padding:0 16px 20px;">
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;border-bottom:1px solid #222;padding-bottom:10px;">
+                <button type="button" class="btn-action spirit-ht-admin-tab active" data-htab="preco" onclick="spiritHotToysAdminSetTab('preco')" style="font-size:0.62rem;padding:8px 12px;background:#1a1208;">Précommandes (contenu)</button>
+                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="bourse" onclick="spiritHotToysAdminSetTab('bourse')" style="font-size:0.62rem;padding:8px 12px;background:#111;">Bourse (ventes)</button>
+                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="litiges" onclick="spiritHotToysAdminSetTab('litiges')" style="font-size:0.62rem;padding:8px 12px;background:#111;">Litiges</button>
+            </div>
+            <div id="spiritHotToysAdminTabPreco">
+                <p style="font-size:0.65rem;color:#888;margin:0 0 10px;">Modifie les textes et URLs d’images ; enregistrement local (navigateur). Puis ouvre la page précommandes pour vérifier.</p>
+                <div id="spiritHotToysAdminPrecoFields"></div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;">
+                    <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;" onclick="spiritHotToysAdminSavePreco()">Enregistrer préco</button>
+                    <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;background:#222;" onclick="spiritHotToysAdminResetPreco()">Réinitialiser défaut</button>
+                    <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;background:#13261a;border-color:#2a6a4a;color:#9fdfbf;" onclick="showPrecommandesHotToys();spiritCloseHotToysAdmin();">Voir la page précommandes</button>
+                </div>
+            </div>
+            <div id="spiritHotToysAdminTabBourse" style="display:none;">
+                <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;margin-bottom:10px;" onclick="spiritHotToysAdminLoadBourse()">Charger / rafraîchir les ventes (ledger)</button>
+                <div id="spiritHotToysAdminBourseOut" style="font-size:0.65rem;color:#ccc;overflow:auto;max-height:52vh;"></div>
+            </div>
+            <div id="spiritHotToysAdminTabLitiges" style="display:none;">
+                <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;margin-bottom:10px;" onclick="spiritHotToysAdminLoadLitiges()">Charger / rafraîchir les litiges</button>
+                <div id="spiritHotToysAdminLitigesOut" style="font-size:0.65rem;color:#ccc;overflow:auto;max-height:52vh;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="securityModal" class="overlay">
     <div class="modal-content spirit-security-modal" style="max-width:800px;text-align:left;">
         <button onclick="closeSpiritMenu()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
@@ -3937,7 +3979,7 @@
     const translations = {
         'FR': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANNEAU DE CONTROLE', 'nav_forum': 'FORUM', 'nav_account': 'MON COMPTE',
-            'nav_support': 'SUPPORT SPIRIT', 'nav_security': 'SÉCURITÉ', 'nav_preorders': 'PRÉCOMMANDES HOT TOYS', 'btn_reg': 'INSCRIPTION', 'btn_sell': 'VENDRE & CERTIFIER',
+            'nav_support': 'SUPPORT SPIRIT', 'nav_security': 'SÉCURITÉ', 'nav_preorders': 'PRÉCOMMANDES HOT TOYS', 'nav_ht_admin': 'ADMIN PRÉCO', 'btn_reg': 'INSCRIPTION', 'btn_sell': 'VENDRE & CERTIFIER',
             'filter_title': 'FILTRES DE RECHERCHE', 'lbl_price_range': 'Tranche de Prix (€)', 'opt_all_prices': 'Tous les prix',
             'lbl_zone': "Zone d'expédition", 'opt_all_zones': 'Toutes les zones', 'lbl_brand': 'Marque', 'opt_all_brands': 'Toutes les marques',
             'lbl_cat': 'Échelle / Format', 'opt_all_formats': 'Tous les formats', 'lbl_cond': "État de l'objet", 'opt_all_conds': 'Tous les états',
@@ -4057,7 +4099,7 @@
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
-            'nav_support': 'SPIRIT SUPPORT', 'nav_security': 'SECURITY', 'nav_preorders': 'HOT TOYS PREORDERS', 'btn_reg': 'REGISTER', 'btn_sell': 'SELL & CERTIFY',
+            'nav_support': 'SPIRIT SUPPORT', 'nav_security': 'SECURITY', 'nav_preorders': 'HOT TOYS PREORDERS', 'nav_ht_admin': 'ADMIN PREORDERS', 'btn_reg': 'REGISTER', 'btn_sell': 'SELL & CERTIFY',
             'filter_title': 'SEARCH FILTERS', 'lbl_price_range': 'Price Range (€)', 'opt_all_prices': 'All prices',
             'lbl_zone': 'Shipping Zone', 'opt_all_zones': 'All zones', 'lbl_brand': 'Brand', 'opt_all_brands': 'All brands',
             'lbl_cat': 'Scale / Format', 'opt_all_formats': 'All formats', 'lbl_cond': 'Item condition', 'opt_all_conds': 'All conditions',
@@ -4176,7 +4218,7 @@
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
-            'nav_support': 'SOPORTE SPIRIT', 'nav_security': 'SEGURIDAD', 'nav_preorders': 'PREVENTAS HOT TOYS', 'btn_reg': 'REGISTRO', 'btn_sell': 'VENDER Y CERTIFICAR',
+            'nav_support': 'SOPORTE SPIRIT', 'nav_security': 'SEGURIDAD', 'nav_preorders': 'PREVENTAS HOT TOYS', 'nav_ht_admin': 'ADMIN PREVENTAS', 'btn_reg': 'REGISTRO', 'btn_sell': 'VENDER Y CERTIFICAR',
             'filter_title': 'FILTROS DE BUSQUEDA', 'lbl_price_range': 'Rango de precio (€)', 'opt_all_prices': 'Todos los precios',
             'lbl_zone': 'Zona de envio', 'opt_all_zones': 'Todas las zonas', 'lbl_brand': 'Marca', 'opt_all_brands': 'Todas las marcas',
             'lbl_cat': 'Escala / Formato', 'opt_all_formats': 'Todos los formatos', 'lbl_cond': 'Estado del producto', 'opt_all_conds': 'Todos los estados',
@@ -4295,7 +4337,7 @@
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
-            'nav_support': 'SPIRIT 支持', 'nav_security': '安全', 'nav_preorders': 'HOT TOYS 预购', 'btn_reg': '注册', 'btn_sell': '发布并认证',
+            'nav_support': 'SPIRIT 支持', 'nav_security': '安全', 'nav_preorders': 'HOT TOYS 预购', 'nav_ht_admin': '预购管理', 'btn_reg': '注册', 'btn_sell': '发布并认证',
             'filter_title': '筛选', 'lbl_price_range': '价格区间 (€)', 'opt_all_prices': '全部价格',
             'lbl_zone': '发货区域', 'opt_all_zones': '全部区域', 'lbl_brand': '品牌', 'opt_all_brands': '全部品牌',
             'lbl_cat': '比例 / 类型', 'opt_all_formats': '全部类型', 'lbl_cond': '成色', 'opt_all_conds': '全部成色',
@@ -9096,6 +9138,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var finalName = String(profileName || fallbackName || (mail ? mail.split('@')[0] : 'VISITEUR')).trim();
         if (!finalName) finalName = 'VISITEUR';
         currentUser = finalName;
+        try { if (typeof spiritRefreshHotToysAdminNav === 'function') spiritRefreshHotToysAdminNav(); } catch (eHtNav) {}
         try { spiritSyncRegButtonI18n(); } catch (eBtnA) {}
         var nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
         if (nameEl) nameEl.innerText = finalName.toUpperCase();
@@ -9131,6 +9174,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             var session = sess && sess.data ? sess.data.session : null;
             if (session && session.user) {
                 spiritApplyAuthUser(session.user);
+                try { if (typeof spiritRefreshHotToysAdminNav === 'function') spiritRefreshHotToysAdminNav(); } catch (eHtS) {}
                 await spiritUpsertUserProfileFromAuth(session.user, 'VISITEUR');
                 spiritRefreshUserScopedUi();
                 setTimeout(function () {
@@ -9331,6 +9375,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
         try { window.MY_TEST_ID = ''; } catch (e) {}
         try { window.__spiritLastAuthUid = ''; } catch (eUid2) {}
         currentUser = 'VISITEUR';
+        try { sessionStorage.removeItem('spirit_ht_admin_ok'); } catch (eHtLo) {}
+        try { if (typeof spiritRefreshHotToysAdminNav === 'function') spiritRefreshHotToysAdminNav(); } catch (eHtNavL) {}
         try { spiritSyncRegButtonI18n(); } catch (eBtnL) {}
         var nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
         if (nameEl) nameEl.innerText = 'VISITEUR';
@@ -9378,6 +9424,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (pRes && pRes.error) throw pRes.error;
 
             currentUser = nextPseudo;
+            try { if (typeof spiritRefreshHotToysAdminNav === 'function') spiritRefreshHotToysAdminNav(); } catch (eHtNavP) {}
             try { spiritSyncRegButtonI18n(); } catch (eBtnP) {}
             var nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
             if (nameEl) nameEl.innerText = nextPseudo.toUpperCase();
@@ -10323,58 +10370,293 @@ async function spiritLoadListingMessagesForProduct(productId) {
     }
     window.openHotToysLightbox = openHotToysLightbox;
 
+    var SPIRIT_HOT_TOYS_PRECO_LS_KEY = 'spirit_hottoys_preco_cards_v1';
+    var SPIRIT_HT_ADMIN_PSEUDO = 'hottoysspirit';
+
+    function spiritIsHotToysAdmin() {
+        var p = String(typeof currentUser !== 'undefined' && currentUser != null ? currentUser : '').trim().toLowerCase();
+        return p === SPIRIT_HT_ADMIN_PSEUDO;
+    }
+
+    function spiritHotToysPrecoDefaultCards() {
+        return [
+            { id: 'neo', title: 'Neo (The Matrix Reloaded)', release: 'Sortie : 1er Trimestre 2027', main: 'HotToys/1.jpeg', thumbs: ['HotToys/2.jpeg', 'HotToys/3.jpeg', 'HotToys/4.jpeg', 'HotToys/5.jpeg', 'HotToys/6.jpeg', 'HotToys/7.jpeg', 'HotToys/8.jpeg'] },
+            { id: 'jack', title: 'Jack Sparrow (Artisan Edition)', release: 'Sortie : 2ème Trimestre 2027', main: 'HotToys/9.jpeg', thumbs: ['HotToys/10.jpeg', 'HotToys/11.jpeg', 'HotToys/12.jpeg', 'HotToys/13.jpeg', 'HotToys/14.jpeg', 'HotToys/15.jpeg'] }
+        ];
+    }
+    function spiritHotToysPrecoGetCards() {
+        try {
+            var raw = localStorage.getItem(SPIRIT_HOT_TOYS_PRECO_LS_KEY);
+            if (raw) {
+                var j = JSON.parse(raw);
+                if (Array.isArray(j) && j.length) return j;
+            }
+        } catch (e) {}
+        return spiritHotToysPrecoDefaultCards();
+    }
+    function spiritHotToysPrecoSetCards(arr) {
+        try { localStorage.setItem(SPIRIT_HOT_TOYS_PRECO_LS_KEY, JSON.stringify(arr)); } catch (e) {}
+    }
+    function spiritHotToysPrecoEscapeAttr(s) {
+        return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+    function spiritHotToysPrecoEscapeHtml(s) {
+        return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function spiritHotToysPrecoBuildGridHtml(cards) {
+        if (!Array.isArray(cards) || !cards.length) return '<p style="color:#666;text-align:center;padding:20px;">Aucun bloc précommande.</p>';
+        return cards.map(function (card) {
+            var main = spiritHotToysPrecoEscapeAttr(card.main || '');
+            var title = spiritHotToysPrecoEscapeHtml(card.title || '');
+            var release = spiritHotToysPrecoEscapeHtml(card.release || '');
+            var thumbs = Array.isArray(card.thumbs) ? card.thumbs : [];
+            var thumbsHtml = thumbs.map(function (t) {
+                return '<div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="' + spiritHotToysPrecoEscapeAttr(t) + '" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>';
+            }).join('');
+            return '<div class="hottoys-card"><div class="hottoys-main-wrap"><img loading="lazy" decoding="async" src="' + main + '" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)"></div><h3 style="color:#fff; margin-top:12px;">' + title + '</h3><p style="color:#ff6600; font-weight:bold; margin:8px 0 12px 0;">' + release + '</p><div class="hottoys-thumbs-grid">' + thumbsHtml + '</div></div>';
+        }).join('');
+    }
+    function spiritHotToysPrecoFullSectionInner() {
+        var grid = spiritHotToysPrecoBuildGridHtml(spiritHotToysPrecoGetCards());
+        return '<button type="button" onclick="closeSpiritMenu()" style="position:fixed;top:20px;right:20px;z-index:10050;background:#111;border:1px solid #ff6600;color:#ff6600;cursor:pointer;font-weight:bold;padding:10px 16px;font-size:0.7rem;">✕ ACCUEIL</button>\n<div style="padding:clamp(14px,4vw,24px); background:#050505; color:white; min-height:100dvh; box-sizing:border-box; width:100%;">\n    <p style="text-align:center; color:#444; margin:0 0 18px 0;">(c) 2026 Spirit Infinity - Tous droits réservés</p>\n    <h1 style="color:#ff6600; text-align:center;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1>\n    <div class="hottoys-grid">' + grid + '</div>\n</div>';
+    }
+
+    function spiritRefreshHotToysAdminNav() {
+        var vis = spiritIsHotToysAdmin();
+        var b1 = document.getElementById('nav-ht-admin');
+        var b2 = document.getElementById('spirit-mob-nav-ht-admin');
+        if (b1) b1.style.display = vis ? 'inline-block' : 'none';
+        if (b2) b2.style.display = vis ? 'inline-block' : 'none';
+    }
+
+    function spiritOpenHotToysAdmin() {
+        if (!spiritIsHotToysAdmin()) {
+            alert('Réservé au compte avec le pseudo hottoysspirit (connexion Supabase habituelle).');
+            return;
+        }
+        var ov = document.getElementById('spiritHotToysAdminOverlay');
+        if (!ov) return;
+        ov.style.setProperty('display', 'flex', 'important');
+        var pinStep = document.getElementById('spiritHotToysAdminPinStep');
+        var main = document.getElementById('spiritHotToysAdminMain');
+        var pinIn = document.getElementById('spiritHotToysAdminPinInput');
+        var pinErr = document.getElementById('spiritHotToysAdminPinErr');
+        if (pinErr) pinErr.textContent = '';
+        if (pinIn) pinIn.value = '';
+        var ok = false;
+        try { ok = sessionStorage.getItem('spirit_ht_admin_ok') === '1'; } catch (e) {}
+        if (ok && pinStep && main) {
+            pinStep.style.display = 'none';
+            main.style.display = 'block';
+            spiritHotToysAdminSetTab('preco');
+            spiritHotToysAdminRenderPrecoEditor();
+        } else if (pinStep && main) {
+            pinStep.style.display = 'block';
+            main.style.display = 'none';
+        }
+    }
+    function spiritCloseHotToysAdmin() {
+        var ov = document.getElementById('spiritHotToysAdminOverlay');
+        if (ov) ov.style.setProperty('display', 'none', 'important');
+    }
+    function spiritHotToysAdminSubmitPin() {
+        var pinIn = document.getElementById('spiritHotToysAdminPinInput');
+        var pinErr = document.getElementById('spiritHotToysAdminPinErr');
+        var expected = String(typeof window.__SPIRIT_HT_ADMIN_PIN__ !== 'undefined' && window.__SPIRIT_HT_ADMIN_PIN__ != null ? window.__SPIRIT_HT_ADMIN_PIN__ : '5262');
+        var got = String(pinIn && pinIn.value != null ? pinIn.value : '').trim();
+        if (got !== expected) {
+            if (pinErr) pinErr.textContent = 'Code incorrect.';
+            return;
+        }
+        try { sessionStorage.setItem('spirit_ht_admin_ok', '1'); } catch (e) {}
+        var pinStep = document.getElementById('spiritHotToysAdminPinStep');
+        var main = document.getElementById('spiritHotToysAdminMain');
+        if (pinErr) pinErr.textContent = '';
+        if (pinStep) pinStep.style.display = 'none';
+        if (main) main.style.display = 'block';
+        spiritHotToysAdminSetTab('preco');
+        spiritHotToysAdminRenderPrecoEditor();
+    }
+
+    function spiritHotToysAdminSetTab(which) {
+        which = String(which || 'preco');
+        var map = { preco: 'spiritHotToysAdminTabPreco', bourse: 'spiritHotToysAdminTabBourse', litiges: 'spiritHotToysAdminTabLitiges' };
+        Object.keys(map).forEach(function (w) {
+            var pane = document.getElementById(map[w]);
+            var tabBtn = document.querySelector('.spirit-ht-admin-tab[data-htab="' + w + '"]');
+            var show = w === which;
+            if (pane) pane.style.display = show ? 'block' : 'none';
+            if (tabBtn) {
+                tabBtn.classList.toggle('active', show);
+                tabBtn.style.background = show ? '#1a1208' : '#111';
+            }
+        });
+    }
+
+    function spiritHotToysAdminRenderPrecoEditor() {
+        var box = document.getElementById('spiritHotToysAdminPrecoFields');
+        if (!box) return;
+        var cards = spiritHotToysPrecoGetCards();
+        box.innerHTML = cards.map(function (c, i) {
+            var thumbsStr = Array.isArray(c.thumbs) ? c.thumbs.join('\n') : '';
+            return '<div style="border:1px solid #2a2a2a;padding:12px;margin-bottom:12px;border-radius:4px;background:#0f0f0f;">' +
+                '<div style="font-size:0.7rem;color:#ff6600;margin-bottom:8px;">Bloc ' + (i + 1) + '</div>' +
+                '<label style="display:block;font-size:0.62rem;color:#888;margin-bottom:4px;">Titre</label>' +
+                '<input type="text" id="spirit_ht_p_title_' + i + '" value="' + spiritHotToysPrecoEscapeAttr(c.title || '') + '" style="width:100%;box-sizing:border-box;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;margin-bottom:8px;" />' +
+                '<label style="display:block;font-size:0.62rem;color:#888;margin-bottom:4px;">Sous-titre / sortie</label>' +
+                '<input type="text" id="spirit_ht_p_release_' + i + '" value="' + spiritHotToysPrecoEscapeAttr(c.release || '') + '" style="width:100%;box-sizing:border-box;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;margin-bottom:8px;" />' +
+                '<label style="display:block;font-size:0.62rem;color:#888;margin-bottom:4px;">Image principale (URL ou chemin)</label>' +
+                '<input type="text" id="spirit_ht_p_main_' + i + '" value="' + spiritHotToysPrecoEscapeAttr(c.main || '') + '" style="width:100%;box-sizing:border-box;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.68rem;margin-bottom:8px;" />' +
+                '<label style="display:block;font-size:0.62rem;color:#888;margin-bottom:4px;">Vignettes (1 URL par ligne)</label>' +
+                '<textarea id="spirit_ht_p_thumbs_' + i + '" rows="5" style="width:100%;box-sizing:border-box;padding:8px;background:#111;border:1px solid #333;color:#ccc;font-size:0.65rem;">' + spiritHotToysPrecoEscapeHtml(thumbsStr) + '</textarea>' +
+                '</div>';
+        }).join('');
+    }
+
+    function spiritHotToysAdminSavePreco() {
+        var cards = spiritHotToysPrecoGetCards();
+        var out = [];
+        for (var i = 0; i < cards.length; i++) {
+            var tEl = document.getElementById('spirit_ht_p_title_' + i);
+            var rEl = document.getElementById('spirit_ht_p_release_' + i);
+            var mEl = document.getElementById('spirit_ht_p_main_' + i);
+            var thEl = document.getElementById('spirit_ht_p_thumbs_' + i);
+            if (!tEl || !rEl || !mEl || !thEl) continue;
+            var thumbs = String(thEl.value || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+            out.push({
+                id: cards[i].id || ('b' + i),
+                title: String(tEl.value || ''),
+                release: String(rEl.value || ''),
+                main: String(mEl.value || ''),
+                thumbs: thumbs
+            });
+        }
+        spiritHotToysPrecoSetCards(out);
+        alert('Précommandes enregistrées (stockage local du navigateur).');
+    }
+    function spiritHotToysAdminResetPreco() {
+        if (!confirm('Réinitialiser les précommandes aux valeurs d’origine ?')) return;
+        try { localStorage.removeItem(SPIRIT_HOT_TOYS_PRECO_LS_KEY); } catch (e) {}
+        spiritHotToysAdminRenderPrecoEditor();
+        alert('Valeurs par défaut restaurées.');
+    }
+
+    async function spiritHotToysAdminResolvePseudos(rows) {
+        var map = Object.create(null);
+        var ids = [];
+        (rows || []).forEach(function (r) {
+            ['buyer_id', 'seller_id'].forEach(function (k) {
+                var u = String(r[k] || '').trim();
+                if (u && ids.indexOf(u) < 0) ids.push(u);
+            });
+        });
+        if (!ids.length || typeof _spirit === 'undefined' || !_spirit) return map;
+        var chunk = 60;
+        for (var i = 0; i < ids.length; i += chunk) {
+            var part = ids.slice(i, i + chunk);
+            try {
+                var pr = await _spirit.from('user_profiles').select('id,pseudo').in('id', part);
+                if (!pr.error && Array.isArray(pr.data)) {
+                    pr.data.forEach(function (p) { map[String(p.id)] = String(p.pseudo || '').trim() || '—'; });
+                }
+            } catch (e) {}
+        }
+        return map;
+    }
+
+    async function spiritHotToysAdminLoadBourse() {
+        var box = document.getElementById('spiritHotToysAdminBourseOut');
+        if (!box) return;
+        function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); }
+        box.innerHTML = 'Chargement…';
+        if (typeof _spirit === 'undefined' || !_spirit) { box.textContent = 'Supabase indisponible.'; return; }
+        try {
+            var q = await _spirit.from('transactions').select('*').order('created_at', { ascending: false }).limit(400);
+            if (q.error) throw q.error;
+            var rows = Array.isArray(q.data) ? q.data : [];
+            var pmap = await spiritHotToysAdminResolvePseudos(rows);
+            var head = '<table style="width:100%;border-collapse:collapse;font-size:0.62rem;"><thead><tr style="background:#151515;">';
+            ['Date', 'Produit', 'Montant', 'Marque', 'Échelle / type', 'Statut', 'Acheteur', 'Vendeur'].forEach(function (h) {
+                head += '<th style="text-align:left;padding:6px;border:1px solid #333;">' + esc(h) + '</th>';
+            });
+            head += '</tr></thead><tbody>';
+            var body = rows.map(function (r) {
+                var brand = r.brand || r.marque || r.product_brand || r.manufacturer || '—';
+                var scale = r.scale || r.product_kind || r.format || r.taille || r.size || r.category || '—';
+                var dt = r.created_at ? new Date(r.created_at).toLocaleString() : '—';
+                var buyer = pmap[String(r.buyer_id || '').trim()] || String(r.buyer_id || '—');
+                var seller = pmap[String(r.seller_id || '').trim()] || String(r.seller_id || '—');
+                return '<tr><td style="padding:6px;border:1px solid #222;white-space:nowrap;">' + esc(dt) + '</td><td style="padding:6px;border:1px solid #222;">' + esc(r.figurine_name || r.title || '—') + '</td><td style="padding:6px;border:1px solid #222;">' + esc(String(r.amount != null ? r.amount : '—')) + ' ' + esc(r.currency || 'EUR') + '</td><td style="padding:6px;border:1px solid #222;">' + esc(brand) + '</td><td style="padding:6px;border:1px solid #222;">' + esc(scale) + '</td><td style="padding:6px;border:1px solid #222;">' + esc(r.status || '—') + '</td><td style="padding:6px;border:1px solid #222;">' + esc(buyer) + '</td><td style="padding:6px;border:1px solid #222;">' + esc(seller) + '</td></tr>';
+            }).join('');
+            box.innerHTML = head + body + '</tbody></table><p style="margin-top:10px;color:#666;font-size:0.6rem;">' + rows.length + ' ligne(s). Si la liste est vide ou erreur RLS, ajoute une policy admin côté Supabase.</p>';
+        } catch (e) {
+            box.innerHTML = '<span style="color:#f66;">' + esc(String(e && e.message ? e.message : e)) + '</span><p style="color:#888;font-size:0.62rem;margin-top:8px;">Les politiques RLS de <code>transactions</code> limitent souvent la lecture aux parties prenantes. Pour un vrai back-office, prévoir un rôle <code>service_role</code> via Edge Function.</p>';
+        }
+    }
+
+    async function spiritHotToysAdminLoadLitiges() {
+        var box = document.getElementById('spiritHotToysAdminLitigesOut');
+        if (!box) return;
+        box.innerHTML = 'Chargement…';
+        if (typeof _spirit === 'undefined' || !_spirit) { box.textContent = 'Supabase indisponible.'; return; }
+        function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); }
+        try {
+            var q = await _spirit.from('transactions').select('*').order('created_at', { ascending: false }).limit(500);
+            if (q.error) throw q.error;
+            var rows = (Array.isArray(q.data) ? q.data : []).filter(function (r) { return /litige/i.test(String(r && r.status || '')); });
+            var pmap = await spiritHotToysAdminResolvePseudos(rows);
+            if (!rows.length) {
+                box.innerHTML = '<p style="color:#888;">Aucune transaction avec statut « litige » trouvée (ou RLS masque les lignes).</p>';
+                return;
+            }
+            var html = rows.map(function (r) {
+                var buyer = pmap[String(r.buyer_id || '').trim()] || String(r.buyer_id || '—');
+                var seller = pmap[String(r.seller_id || '').trim()] || String(r.seller_id || '—');
+                var desc = r.dispute_note || r.litige_description || r.dispute_text || r.dispute_reason || '';
+                var img = String(r.image_url || r.img1 || '').trim();
+                var imgBlock = img ? '<div style="margin:8px 0;"><img src="' + esc(img) + '" alt="" style="max-width:220px;max-height:160px;border:1px solid #444;" loading="lazy" /></div>' : '<p style="color:#555;font-size:0.6rem;">Pas d’image dans le ledger pour ce litige (champs optionnels).</p>';
+                return '<div style="border:1px solid #333;padding:12px;margin-bottom:12px;border-radius:4px;background:#0c0c0c;">' +
+                    '<div style="color:#f66;font-size:0.68rem;">TX #' + esc(r.id) + ' · ' + esc(r.status) + '</div>' +
+                    '<div style="margin-top:6px;font-size:0.65rem;color:#ccc;"><b>Produit :</b> ' + esc(r.figurine_name || '—') + ' · <b>Montant :</b> ' + esc(String(r.amount != null ? r.amount : '—')) + '</div>' +
+                    '<div style="margin-top:6px;font-size:0.65rem;color:#aaa;"><b>Acheteur :</b> ' + esc(buyer) + ' <span style="color:#555;">(' + esc(String(r.buyer_id || '')) + ')</span></div>' +
+                    '<div style="margin-top:4px;font-size:0.65rem;color:#aaa;"><b>Vendeur :</b> ' + esc(seller) + ' <span style="color:#555;">(' + esc(String(r.seller_id || '')) + ')</span></div>' +
+                    '<div style="margin-top:8px;font-size:0.65rem;color:#ddd;"><b>Description / notes :</b> ' + esc(desc || '—') + '</div>' +
+                    imgBlock + '</div>';
+            }).join('');
+            box.innerHTML = html;
+        } catch (e) {
+            box.innerHTML = '<span style="color:#f66;">' + esc(String(e && e.message ? e.message : e)) + '</span>';
+        }
+    }
+
+    try {
+        window.spiritOpenHotToysAdmin = spiritOpenHotToysAdmin;
+        window.spiritCloseHotToysAdmin = spiritCloseHotToysAdmin;
+        window.spiritHotToysAdminSubmitPin = spiritHotToysAdminSubmitPin;
+        window.spiritHotToysAdminSetTab = spiritHotToysAdminSetTab;
+        window.spiritHotToysAdminSavePreco = spiritHotToysAdminSavePreco;
+        window.spiritHotToysAdminResetPreco = spiritHotToysAdminResetPreco;
+        window.spiritHotToysAdminLoadBourse = spiritHotToysAdminLoadBourse;
+        window.spiritHotToysAdminLoadLitiges = spiritHotToysAdminLoadLitiges;
+        window.spiritRefreshHotToysAdminNav = spiritRefreshHotToysAdminNav;
+    } catch (eWHT) {}
+
     function showPrecommandesHotToys() {
         hideAllSections();
-        const precoSection = document.getElementById('precommandes-hot-toys');
+        var precoSection = document.getElementById('precommandes-hot-toys');
+        if (!precoSection) return;
         precoSection.style.setProperty('display', 'block', 'important');
-        precoSection.innerHTML = `
-<button type="button" onclick="closeSpiritMenu()" style="position:fixed;top:20px;right:20px;z-index:10050;background:#111;border:1px solid #ff6600;color:#ff6600;cursor:pointer;font-weight:bold;padding:10px 16px;font-size:0.7rem;">✕ ACCUEIL</button>
-<div style="padding:clamp(14px,4vw,24px); background:#050505; color:white; min-height:100dvh; box-sizing:border-box; width:100%;">
-    <p style="text-align:center; color:#444; margin:0 0 18px 0;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
-    <h1 style="color:#ff6600; text-align:center;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1>
-    <div class="hottoys-grid">
-        <div class="hottoys-card">
-            <div class="hottoys-main-wrap">
-                <img loading="lazy" decoding="async" src="HotToys/1.jpeg" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)">
-            </div>
-            <h3 style="color:#fff; margin-top:12px;">Neo (The Matrix Reloaded)</h3>
-            <p style="color:#ff6600; font-weight:bold; margin:8px 0 12px 0;">Sortie : 1er Trimestre 2027</p>
-            <div class="hottoys-thumbs-grid">
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/2.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/3.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/4.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/5.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/6.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/7.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/8.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-            </div>
-        </div>
-        <div class="hottoys-card">
-            <div class="hottoys-main-wrap">
-                <img loading="lazy" decoding="async" src="HotToys/9.jpeg" data-main-image class="hottoys-main-image" onclick="openHotToysLightbox(this)">
-            </div>
-            <h3 style="color:#fff; margin-top:12px;">Jack Sparrow (Artisan Edition)</h3>
-            <p style="color:#ff6600; font-weight:bold; margin:8px 0 12px 0;">Sortie : 2ème Trimestre 2027</p>
-            <div class="hottoys-thumbs-grid">
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/10.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/11.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/12.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/13.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/14.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-                <div class="hottoys-thumb-wrap"><img loading="lazy" decoding="async" src="HotToys/15.jpeg" onclick="setHotToysMainImage(this)" class="hottoys-thumb"></div>
-            </div>
-        </div>
-    </div>
-</div>`;
+        precoSection.innerHTML = spiritHotToysPrecoFullSectionInner();
     }
     window.showPrecommandesHotToys = showPrecommandesHotToys;
     // Alias demandé: showPrecommandes()
     function showPrecommandes() {
       hideAllSections();
-      const sect = document.getElementById('precommandes-hot-toys');
+      var sect = document.getElementById('precommandes-hot-toys');
+      if (!sect) return;
       sect.style.setProperty('display', 'block', 'important');
-      window.scrollTo(0,0);
-      console.log('Affichage Section Hot Toys Forcé');
+      sect.innerHTML = spiritHotToysPrecoFullSectionInner();
+      window.scrollTo(0, 0);
     }
     window.showPrecommandes = showPrecommandes;
     window.showSupport = function () { navigateTo('support'); };
