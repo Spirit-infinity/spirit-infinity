@@ -3853,8 +3853,8 @@
             <input type="text" id="spiritHotToysAdminPseudoInput" autocomplete="username" placeholder="hottoysspirit" style="width:100%;max-width:320px;box-sizing:border-box;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.8rem;margin-bottom:10px;" />
             <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:4px;">Mot de passe</label>
             <input type="password" id="spiritHotToysAdminPassInput" autocomplete="new-password" style="width:100%;max-width:320px;box-sizing:border-box;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.8rem;margin-bottom:10px;" />
-            <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:4px;">Code d’accès</label>
-            <input type="password" id="spiritHotToysAdminCodeInput" inputmode="numeric" autocomplete="off" placeholder="••••" style="width:100%;max-width:160px;box-sizing:border-box;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.85rem;margin-bottom:12px;" />
+            <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:4px;">Code d’accès (défaut : 5262)</label>
+            <input type="text" id="spiritHotToysAdminCodeInput" inputmode="numeric" pattern="[0-9]*" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="5262" style="width:100%;max-width:160px;box-sizing:border-box;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.85rem;margin-bottom:12px;" />
             <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
                 <button type="button" class="btn-action" style="font-size:0.65rem;padding:10px 16px;" onclick="void spiritHotToysAdminDoLogin()">Se connecter</button>
                 <button type="button" class="btn-action" style="font-size:0.65rem;padding:10px 16px;background:#1a1510;border-color:#553;color:#dba;" onclick="void spiritHotToysAdminDoRegister()">Créer le compte admin</button>
@@ -10413,20 +10413,36 @@ async function spiritLoadListingMessagesForProduct(productId) {
         if (!p) p = 'admin';
         return p + '@spirit-infinity.internal';
     }
+    /** Normalise le PIN (espaces, chiffres « pleine chaqueur » ０-９ → 0-9). */
+    function spiritHotToysAdminNormalizeAccessCode(s) {
+        var t = String(s || '').replace(/[\s\u00a0\u200b-\u200d\ufeff]+/g, '');
+        var out = '';
+        for (var i = 0; i < t.length; i++) {
+            var c = t.charCodeAt(i);
+            if (c >= 0xff10 && c <= 0xff19) out += String.fromCharCode(c - 0xff10 + 0x30);
+            else out += t.charAt(i);
+        }
+        return out;
+    }
     function spiritHotToysAdminExpectedCode() {
-        return String(typeof window.__SPIRIT_HT_ADMIN_PIN__ !== 'undefined' && window.__SPIRIT_HT_ADMIN_PIN__ != null ? window.__SPIRIT_HT_ADMIN_PIN__ : '5262');
+        var raw = typeof window.__SPIRIT_HT_ADMIN_PIN__;
+        if (raw !== 'undefined' && window.__SPIRIT_HT_ADMIN_PIN__ != null) {
+            var cfg = spiritHotToysAdminNormalizeAccessCode(window.__SPIRIT_HT_ADMIN_PIN__);
+            if (cfg) return cfg;
+        }
+        return '5262';
     }
     function spiritHotToysAdminReadAuthForm() {
         var pseudo = String(document.getElementById('spiritHotToysAdminPseudoInput') && document.getElementById('spiritHotToysAdminPseudoInput').value || '').trim();
         var pass = String(document.getElementById('spiritHotToysAdminPassInput') && document.getElementById('spiritHotToysAdminPassInput').value || '');
-        var code = String(document.getElementById('spiritHotToysAdminCodeInput') && document.getElementById('spiritHotToysAdminCodeInput').value || '').trim();
+        var code = String(document.getElementById('spiritHotToysAdminCodeInput') && document.getElementById('spiritHotToysAdminCodeInput').value || '');
         return { pseudo: pseudo, pass: pass, code: code };
     }
     function spiritHotToysAdminValidateAuthForm(errEl) {
         var f = spiritHotToysAdminReadAuthForm();
         if (errEl) errEl.textContent = '';
-        if (String(f.code).trim() !== spiritHotToysAdminExpectedCode()) {
-            if (errEl) errEl.textContent = 'Code d’accès incorrect.';
+        if (spiritHotToysAdminNormalizeAccessCode(f.code) !== spiritHotToysAdminExpectedCode()) {
+            if (errEl) errEl.textContent = 'Code d’accès incorrect. Saisis uniquement des chiffres, sans espace (défaut : 5262).';
             return null;
         }
         if (String(f.pseudo).trim().toLowerCase() !== SPIRIT_HT_ADMIN_PSEUDO) {
@@ -10474,7 +10490,13 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (!signIn.data || !signIn.data.user) throw new Error('Session introuvable.');
             await spiritHotToysAdminAfterAuthSuccess(signIn.data.user, f.pseudo);
         } catch (e) {
-            if (errEl) errEl.textContent = 'Connexion impossible : ' + (e && e.message ? e.message : e);
+            var em = '';
+            try {
+                em = e && (e.message || e.msg || (e.error && (e.error.message || e.error.msg))) ? String(e.message || e.msg || e.error.message || e.error.msg) : String(e || '');
+            } catch (e2) { em = String(e || ''); }
+            if (errEl) {
+                errEl.textContent = 'Connexion Supabase impossible : ' + em + (em.toLowerCase().indexOf('invalid') >= 0 || em.indexOf('400') >= 0 ? ' — vérifie le mot de passe du compte hottoysspirit et que l’e-mail technique n’est pas bloqué (dashboard Supabase).' : '');
+            }
         }
     }
     async function spiritHotToysAdminDoRegister() {
@@ -10513,7 +10535,17 @@ async function spiritLoadListingMessagesForProduct(productId) {
             }
             try { alert('Inscription terminée. Connecte-toi avec le même pseudo et mot de passe.'); } catch (a2) {}
         } catch (e) {
-            if (errEl) errEl.textContent = 'Inscription impossible : ' + (e && e.message ? e.message : e);
+            var emR = '';
+            try {
+                emR = e && (e.message || e.msg || (e.error && (e.error.message || e.error.msg))) ? String(e.message || e.msg || e.error.message || e.error.msg) : String(e || '');
+            } catch (e3) { emR = String(e || ''); }
+            var hint = '';
+            if (emR.toLowerCase().indexOf('already') >= 0 || emR.toLowerCase().indexOf('registered') >= 0 || emR.toLowerCase().indexOf('exists') >= 0) {
+                hint = ' Le compte existe déjà : utilise « Se connecter » avec le même mot de passe.';
+            } else if (emR.toLowerCase().indexOf('email') >= 0 || emR.indexOf('400') >= 0) {
+                hint = ' Vérifie dans Supabase : confirmation e-mail désactivée pour @spirit-infinity.internal, mot de passe ≥ 6 caractères.';
+            }
+            if (errEl) errEl.textContent = 'Inscription impossible : ' + emR + hint;
         }
     }
 
