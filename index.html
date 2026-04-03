@@ -855,6 +855,7 @@
         #btn-favoris-recus { position: relative; }
         #btn-dashboard { position: relative; }
         #btn-messages { position: relative; }
+        #btn-evaluations { position: relative; }
         #btn-sanctuary { position: relative; }
         .spirit-tab-notif {
             display: none;
@@ -3386,7 +3387,7 @@
                 <button type="button" id="btn-ventes" role="tab" aria-expanded="false" aria-controls="tab-ventes" onclick="showAccountTab('ventes')"><span data-key="account_tab_sales">MES VENTES</span></button>
                 <button type="button" id="btn-portefeuille" role="tab" aria-expanded="false" aria-controls="tab-portefeuille" onclick="showAccountTab('portefeuille')"><span data-key="account_tab_wallet">PORTEFEUILLE</span></button>
                 <button type="button" id="btn-annonces" role="tab" aria-expanded="false" aria-controls="tab-annonces" onclick="showAccountTab('annonces')"><span data-key="account_tab_listings">MES ANNONCES</span></button>
-                <button type="button" id="btn-evaluations" role="tab" aria-expanded="false" aria-controls="tab-evaluations" onclick="showAccountTab('evaluations')"><span data-key="account_tab_reviews">ÉVALUATIONS</span></button>
+                <button type="button" id="btn-evaluations" role="tab" aria-expanded="false" aria-controls="tab-evaluations" onclick="showAccountTab('evaluations')"><span data-key="account_tab_reviews">ÉVALUATIONS</span><span id="evaluations-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-liste-envie" role="tab" aria-expanded="false" aria-controls="tab-liste-envie" onclick="showAccountTab('liste-envie')"><span data-key="account_wishlist_menu">LISTE D’ENVIE</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-favoris-recus" role="tab" aria-expanded="false" aria-controls="tab-favoris-recus" onclick="showAccountTab('favoris-recus')"><span data-key="account_seller_fav_menu">FAVORIS</span><span id="seller-received-fav-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-sanctuary" role="tab" aria-expanded="false" aria-controls="tab-sanctuary" onclick="showAccountTab('sanctuary')"><span data-key="account_tab_sanctuary">SANCTUAIRE</span></button>
@@ -3503,6 +3504,7 @@
 
 <div id="tab-evaluations" class="account-page">
     <h3 data-key="eval_page_h">ÉVALUATIONS</h3>
+    <div id="evalPendingList" style="margin-top:10px;margin-bottom:14px;"></div>
     <p data-key="eval_page_p1" style="font-size:0.68rem;color:#777;margin-top:0;line-height:1.4;">Avis reçus sur ton profil public. Tu peux répondre à chaque commentaire ; la réponse est visible par tous.</p>
     <p data-key="eval_page_p2" style="font-size:0.62rem;color:#666;margin-top:6px;">Pour laisser une note à quelqu’un, utilise le flux après une transaction (fenêtre d’évaluation ou notification).</p>
     <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px;">
@@ -5282,6 +5284,7 @@ function spiritSyncAccountNotificationPulse() {
     var pairs = [
         ['dashboard-tab-dot', 'btn-dashboard'],
         ['messages-tab-dot', 'btn-messages'],
+        ['evaluations-tab-dot', 'btn-evaluations'],
         ['favorites-tab-dot', 'btn-liste-envie'],
         ['seller-received-fav-tab-dot', 'btn-favoris-recus']
     ];
@@ -9177,6 +9180,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
         if (nameEl) nameEl.innerText = finalName.toUpperCase();
         try { spiritApplyUserLocaleFromMetadata(user); } catch (eLoc) {}
+        try { if (typeof spiritEvalOnSessionReady === 'function') void spiritEvalOnSessionReady(); } catch (eEvSr) {}
     }
 
     async function spiritUpsertUserProfileFromAuth(user, pseudoFallback) {
@@ -9420,6 +9424,13 @@ async function spiritLoadListingMessagesForProduct(productId) {
         try { window.__spiritLastAuthUid = ''; } catch (eUid2) {}
         currentUser = 'VISITEUR';
         try { sessionStorage.removeItem('spirit_ht_admin_ok'); } catch (eHtLo) {}
+        try { sessionStorage.removeItem('spirit_eval_pending_login_alert_v1'); } catch (eEvLo) {}
+        try {
+            if (window.__spiritEvalPendingHourly) {
+                clearInterval(window.__spiritEvalPendingHourly);
+                window.__spiritEvalPendingHourly = null;
+            }
+        } catch (eIv) {}
         try { if (typeof spiritRefreshHotToysAdminNav === 'function') spiritRefreshHotToysAdminNav(); } catch (eHtNavL) {}
         try { spiritSyncRegButtonI18n(); } catch (eBtnL) {}
         var nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
@@ -11712,6 +11723,25 @@ async function spiritSanctuaryPushNotif(ownerId, type, itemId, fromUid, text) {
     } catch (e) {
         spiritSanNotifsMarkMissingIf404(e);
         if (!spiritSanNotifsTableMissing) spiritSanSocialHandleSupabaseError(e);
+    }
+}
+
+/** Message type alerte pour l’utilisateur connecté (ex. évaluation auto 48h). Contourne la garde owner!==from du push classique : from_uid = owner_id = auth.uid(). */
+async function spiritSanctuarySystemNotifToSelf(ownerId, type, itemId, text) {
+    ownerId = spiritNormUid(ownerId);
+    if (!ownerId || !_spirit || spiritSanNotifsTableMissing) return;
+    try {
+        var ins = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).insert({
+            owner_id: ownerId,
+            type: String(type || ''),
+            item_id: String(itemId || ''),
+            from_uid: ownerId,
+            text: String(text || ''),
+            is_read: false
+        });
+        if (ins && ins.error) spiritSanNotifsMarkMissingIf404(ins.error);
+    } catch (e) {
+        spiritSanNotifsMarkMissingIf404(e);
     }
 }
 
@@ -16343,6 +16373,8 @@ async function spiritDeleteAllMyReceivedEvaluations() {
 async function spiritLoadMyEvaluations() {
     var box = document.getElementById('evalMyList');
     if (!box) return;
+    try { await spiritEvalProcessExpiredPending(); } catch (eEx) {}
+    try { spiritEvalRenderPendingInAccountSync(); } catch (eP) {}
     function eT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
     var me = spiritNormUid(MY_TEST_ID || '');
     if (!me) { box.innerHTML = '<div style="font-size:0.68rem;color:#777;">' + String(eT('eval_login')).replace(/</g, '&lt;') + '</div>'; return; }
@@ -16352,6 +16384,7 @@ async function spiritLoadMyEvaluations() {
     rows = rows.filter(function (r) { return hideSet.indexOf(String(r && r.id != null ? r.id : '')) < 0; });
     if (!rows.length) {
         box.innerHTML = '<div style="font-size:0.68rem;color:#777;">' + String(eT('eval_none_list')).replace(/</g, '&lt;') + '</div>';
+        try { spiritEvalRefreshPendingDotAndPulse(); } catch (eDot0) {}
         return;
     }
     var hideTitle = String(eT('eval_hide_btn_title')).replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -16376,6 +16409,7 @@ async function spiritLoadMyEvaluations() {
             + '<button type="button" class="btn-action" style="margin-top:10px;font-size:0.56rem;padding:6px 12px;" onclick=\'void spiritReplyToEvaluation(' + idJson + ')\'>' + (rr ? replyEditBtn : replyBtn) + '</button>'
             + '</div>';
     }).join('');
+    try { spiritEvalRefreshPendingDotAndPulse(); } catch (eDot1) {}
 }
 function spiritAutoEvalPromptKey(role, txId) {
     return 'spirit_auto_eval_done_v1:' + String(role || '') + ':' + String(txId || '');
@@ -16386,6 +16420,197 @@ function spiritAutoEvalMarkDone(role, txId) {
 function spiritAutoEvalIsDone(role, txId) {
     try { return localStorage.getItem(spiritAutoEvalPromptKey(role, txId)) === '1'; } catch (e) { return false; }
 }
+var SPIRIT_EVAL_PENDING_LS = 'spirit_eval_pending_queue_v1';
+function spiritEvalPendingKey(x) {
+    if (!x) return '';
+    return spiritNormUid(x.authorUid) + '|' + String(x.role || '') + '|' + String(x.txId || '').trim().toLowerCase();
+}
+function spiritEvalPendingReadRaw() {
+    try {
+        var j = localStorage.getItem(SPIRIT_EVAL_PENDING_LS);
+        var a = j ? JSON.parse(j) : [];
+        return Array.isArray(a) ? a : [];
+    } catch (e) { return []; }
+}
+function spiritEvalPendingWrite(arr) {
+    try { localStorage.setItem(SPIRIT_EVAL_PENDING_LS, JSON.stringify(arr || [])); } catch (e) {}
+}
+function spiritEvalPendingForUser(me) {
+    me = spiritNormUid(me || '');
+    if (!me) return [];
+    return spiritEvalPendingReadRaw().filter(function (p) { return spiritNormUid(p && p.authorUid) === me; });
+}
+function spiritEvalRefreshPendingDotAndPulse() {
+    try {
+        var me = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID || '');
+        var n = me ? spiritEvalPendingForUser(me).length : 0;
+        spiritSetNotifDotVisible(document.getElementById('evaluations-tab-dot'), n > 0);
+    } catch (e) {}
+    try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (e2) {}
+}
+function spiritEvalPendingAdd(ctxPlain) {
+    if (!ctxPlain || !ctxPlain.txId || !ctxPlain.authorUid) return;
+    var arr = spiritEvalPendingReadRaw();
+    var k = spiritEvalPendingKey(ctxPlain);
+    var ix = arr.findIndex(function (x) { return spiritEvalPendingKey(x) === k; });
+    if (ix >= 0) {
+        arr[ix].targetPseudo = String(ctxPlain.targetPseudo || arr[ix].targetPseudo || '');
+        arr[ix].authorPseudo = String(ctxPlain.authorPseudo || arr[ix].authorPseudo || '');
+        arr[ix].category = String(ctxPlain.category || arr[ix].category || 'achat');
+        arr[ix].targetUid = spiritNormUid(ctxPlain.targetUid || arr[ix].targetUid);
+        spiritEvalPendingWrite(arr);
+    } else {
+        arr.push({
+            txId: String(ctxPlain.txId || '').trim().toLowerCase(),
+            role: String(ctxPlain.role || ''),
+            authorUid: spiritNormUid(ctxPlain.authorUid),
+            targetUid: spiritNormUid(ctxPlain.targetUid),
+            targetPseudo: String(ctxPlain.targetPseudo || ''),
+            authorPseudo: String(ctxPlain.authorPseudo || ''),
+            category: String(ctxPlain.category || 'achat'),
+            queuedAt: Date.now()
+        });
+        spiritEvalPendingWrite(arr);
+    }
+    try { spiritEvalRefreshPendingDotAndPulse(); } catch (eR) {}
+}
+function spiritEvalPendingRemoveByCtx(ctx) {
+    if (!ctx) return;
+    var k = spiritEvalPendingKey(ctx);
+    var arr = spiritEvalPendingReadRaw();
+    var filtered = arr.filter(function (x) { return spiritEvalPendingKey(x) !== k; });
+    if (filtered.length !== arr.length) spiritEvalPendingWrite(filtered);
+    try { spiritEvalRefreshPendingDotAndPulse(); } catch (e) {}
+}
+function spiritAutoEvalDismissWithoutSubmitSync() {
+    try {
+        var evM = document.getElementById('spiritAutoEvalModal');
+        if (!evM || !spiritAutoEvalCtx) return;
+        var inline = String(evM.style && evM.style.display || '').trim().toLowerCase();
+        var vis = false;
+        try { vis = window.getComputedStyle(evM).display !== 'none'; } catch (eC) {}
+        if (!vis && inline !== 'block' && inline.indexOf('flex') < 0) return;
+        spiritEvalPendingAdd(JSON.parse(JSON.stringify(spiritAutoEvalCtx)));
+        spiritAutoEvalCtx = null;
+        evM.style.setProperty('display', 'none', 'important');
+    } catch (e) {}
+}
+async function spiritEvalResumePending(txId, role) {
+    var me = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID || '');
+    if (!me || !_spirit) return;
+    txId = String(txId || '').trim().toLowerCase();
+    role = String(role || '');
+    var list = spiritEvalPendingForUser(me);
+    var p = list.find(function (x) { return String(x.txId || '').trim().toLowerCase() === txId && String(x.role || '') === role; });
+    if (!p) return;
+    if (await spiritEvalExistsByAuthor(txId, me)) {
+        spiritAutoEvalMarkDone(role, txId);
+        spiritEvalPendingRemoveByCtx(p);
+        try { spiritEvalRenderPendingInAccountSync(); } catch (e) {}
+        try { await spiritLoadMyEvaluations(); } catch (e2) {}
+        return;
+    }
+    await spiritAutoEvalOpen({
+        txId: p.txId,
+        role: p.role,
+        authorUid: p.authorUid,
+        targetUid: p.targetUid,
+        targetPseudo: p.targetPseudo,
+        authorPseudo: p.authorPseudo,
+        category: p.category
+    });
+}
+function spiritEvalRenderPendingInAccountSync() {
+    var wrap = document.getElementById('evalPendingList');
+    if (!wrap) return;
+    var me = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID || '');
+    if (!me) { wrap.innerHTML = ''; return; }
+    var pend = spiritEvalPendingForUser(me);
+    if (!pend.length) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = '<div style="font-size:0.62rem;color:#f6b16a;margin-bottom:8px;border:1px solid #4a3520;background:#120e08;padding:10px 12px;border-radius:4px;line-height:1.45;">'
+        + '<b>À compléter</b> — tu as fermé le formulaire d’évaluation sans envoyer. Tu peux le reprendre ici (sinon 5★ automatiques après 48 h).</div>'
+        + pend.map(function (p) {
+            var txEsc = String(p.txId || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            var roleEsc = String(p.role || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            var pseudoT = String(p.targetPseudo || '—').replace(/</g, '&lt;');
+            var roleLbl = String(p.role || '') === 'buyer' ? 'Acheteur' : 'Vendeur';
+            return '<div style="border:1px solid #333;background:#0a0a0a;padding:10px 12px;border-radius:4px;margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;">'
+                + '<div style="font-size:0.65rem;color:#ccc;">' + roleLbl + ' · transaction <span style="color:#888;">' + String(p.txId || '').slice(0, 8) + '…</span><br/>Évaluer : <b style="color:var(--neon-orange);">' + pseudoT + '</b></div>'
+                + '<button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;" onclick="void spiritEvalResumePending(\'' + txEsc + '\',\'' + roleEsc + '\')">Compléter</button>'
+                + '</div>';
+        }).join('');
+}
+async function spiritEvalProcessExpiredPending() {
+    var me = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID || '');
+    if (!me || !_spirit) return;
+    var arr = spiritEvalPendingReadRaw();
+    var TWO_DAYS = 48 * 3600000;
+    var now = Date.now();
+    var next = [];
+    for (var i = 0; i < arr.length; i++) {
+        var p = arr[i];
+        if (spiritNormUid(p && p.authorUid) !== me) { next.push(p); continue; }
+        var qAt = Number(p.queuedAt) || 0;
+        if (now - qAt < TWO_DAYS) { next.push(p); continue; }
+        var txId = String(p.txId || '').trim().toLowerCase();
+        if (await spiritEvalExistsByAuthor(txId, me)) {
+            spiritAutoEvalMarkDone(String(p.role || ''), txId);
+            continue;
+        }
+        spiritAutoEvalCtx = {
+            txId: p.txId,
+            role: p.role,
+            authorUid: p.authorUid,
+            targetUid: p.targetUid,
+            targetPseudo: p.targetPseudo,
+            authorPseudo: p.authorPseudo,
+            category: p.category
+        };
+        var cat = spiritEvalCategoryNorm(p.category || 'achat');
+        var mainCm = 'Évaluation envoyée automatiquement (5★) : formulaire non complété sous 48 h.';
+        var delF = (String(p.role || '') === 'buyer' && cat !== 'livraison') ? 5 : null;
+        var livF = delF != null ? 'Livraison : note automatique 5★ (délai 48 h).' : '';
+        var ok = await spiritAutoEvalInsert(5, mainCm, p.category, delF, livF);
+        spiritAutoEvalCtx = null;
+        if (ok) {
+            try { await spiritSanctuarySystemNotifToSelf(me, 'evaluation_auto', txId, 'Une évaluation (5★) a été enregistrée automatiquement (48 h sans réponse). Réf. transaction : ' + txId + '.'); } catch (eN) {}
+        } else {
+            next.push(p);
+        }
+    }
+    spiritEvalPendingWrite(next);
+    try { spiritEvalRefreshPendingDotAndPulse(); } catch (eP) {}
+}
+async function spiritEvalOnSessionReady() {
+    try {
+        var me = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID || '');
+        if (!me || !_spirit) return;
+        await spiritEvalProcessExpiredPending();
+        spiritEvalRefreshPendingDotAndPulse();
+        spiritEvalRenderPendingInAccountSync();
+        var pend = spiritEvalPendingForUser(me);
+        if (pend.length) {
+            try {
+                if (!sessionStorage.getItem('spirit_eval_pending_login_alert_v1')) {
+                    sessionStorage.setItem('spirit_eval_pending_login_alert_v1', '1');
+                    setTimeout(function () {
+                        try {
+                            alert('Tu as ' + pend.length + ' évaluation(s) à compléter. Ouvre Mon compte → Évaluations.');
+                        } catch (eA) {}
+                    }, 800);
+                }
+            } catch (eS) {}
+        }
+        try {
+            if (!window.__spiritEvalPendingHourly) {
+                window.__spiritEvalPendingHourly = setInterval(function () {
+                    try { void spiritEvalProcessExpiredPending(); } catch (eH) {}
+                }, 3600000);
+            }
+        } catch (eInt) {}
+    } catch (e) {}
+}
+try { window.spiritEvalResumePending = spiritEvalResumePending; } catch (eWEv) {}
 async function spiritEvalExistsByAuthor(txId, authorUid) {
     if (!_spirit || spiritEvalTableMissing) return false;
     txId = String(txId || '').trim().toLowerCase();
@@ -16402,10 +16627,13 @@ async function spiritEvalExistsByAuthor(txId, authorUid) {
 }
 function spiritAutoEvalSyncDeliveryBlock() {
     var cat = document.getElementById('spiritAutoEvalCategory');
+    var wrap = document.getElementById('spiritAutoEvalBuyerLivraisonWrap');
     var block = document.getElementById('spiritAutoEvalDeliveryStarsBlock');
-    if (!block) return;
     var c = spiritEvalCategoryNorm(cat && cat.value || '');
-    block.style.display = (c === 'livraison') ? 'none' : '';
+    var isBuyer = spiritAutoEvalCtx && String(spiritAutoEvalCtx.role || '') === 'buyer';
+    var showLiv = isBuyer && c !== 'livraison';
+    if (wrap) wrap.style.display = showLiv ? '' : 'none';
+    if (block && !wrap) block.style.display = (c === 'livraison') ? 'none' : '';
 }
 function spiritAutoEvalResetUi() {
     var st = document.getElementById('spiritAutoEvalStatus');
@@ -16420,6 +16648,8 @@ function spiritAutoEvalResetUi() {
     try { spiritAutoEvalSetDeliveryStars(5); } catch (eD) {}
     var ds = document.getElementById('spiritAutoEvalDeliverySafe');
     if (ds) ds.value = 'oui';
+    var dc = document.getElementById('spiritAutoEvalDeliveryComment');
+    if (dc) dc.value = '';
 }
 function spiritAutoEvalSetStars(n) {
     n = Math.max(1, Math.min(5, Number(n) || 5));
@@ -16496,7 +16726,12 @@ async function spiritAutoEvalOpen(ctx) {
     var cat = document.getElementById('spiritAutoEvalCategory');
     var tx = document.getElementById('spiritAutoEvalTx');
     if (pseudo) pseudo.value = String(ctx.targetPseudo || 'Membre');
-    if (cat) cat.value = String(ctx.category || 'achat');
+    var ap = document.getElementById('spiritAutoEvalAuthorPseudo');
+    if (ap) ap.value = String(ctx.authorPseudo || 'Membre');
+    if (cat) {
+        cat.value = String(ctx.category || 'achat');
+        try { cat.disabled = true; } catch (eD) {}
+    }
     if (tx) tx.value = String(ctx.txId || '');
     try { spiritAutoEvalSyncDeliveryBlock(); } catch (eB) {}
     root.style.setProperty('display', 'block', 'important');
@@ -16529,7 +16764,7 @@ async function spiritAutoEvalInsert(stars, mainComment, categoryOverride, delive
         });
         var ins = await _spirit.from(SPIRIT_EVAL_TABLE).insert([payloadMain]);
         if (ins.error) { spiritEvalMarkMissingIf404(ins.error); throw ins.error; }
-        var doLiv = deliveryStars != null && category !== 'livraison';
+        var doLiv = deliveryStars != null && category !== 'livraison' && String(ctx.role || '') === 'buyer';
         if (doLiv) {
             var livComment = String(deliveryComment || '').trim() || 'Évaluation livraison.';
             var payloadLiv = Object.assign({}, basePayload, {
@@ -16550,8 +16785,10 @@ async function spiritAutoEvalInsert(stars, mainComment, categoryOverride, delive
                     .eq('item_id', txIdTxt);
             }
         } catch (eDelEval) {}
+        try { spiritEvalPendingRemoveByCtx(ctx); } catch (ePend) {}
         try { if (typeof spiritLoadMessagesTab === 'function') spiritLoadMessagesTab(); } catch (eRMsg) {}
         try { if (typeof spiritSanctuaryRefreshMessagesDot === 'function') spiritSanctuaryRefreshMessagesDot(); } catch (eRDot) {}
+        try { spiritEvalRenderPendingInAccountSync(); } catch (eRL) {}
         return true;
     } catch (e) {
         var st = document.getElementById('spiritAutoEvalStatus');
@@ -16569,8 +16806,12 @@ async function spiritAutoEvalSubmit() {
     var catNorm = spiritEvalCategoryNorm(cat && cat.value || '');
     var userTxt = String(c && c.value || '').trim();
     var mainComment = (catNorm === 'livraison') ? (safeTxt + userTxt) : userTxt;
-    var deliveryStars = (catNorm === 'livraison') ? null : Math.max(1, Math.min(5, Number(dStarsEl && dStarsEl.value) || 5));
-    var livComment = deliveryStars != null ? safeTxt : '';
+    var deliveryStars = null;
+    if (catNorm !== 'livraison' && spiritAutoEvalCtx && String(spiritAutoEvalCtx.role || '') === 'buyer') {
+        deliveryStars = Math.max(1, Math.min(5, Number(dStarsEl && dStarsEl.value) || 5));
+    }
+    var livExtra = String((document.getElementById('spiritAutoEvalDeliveryComment') && document.getElementById('spiritAutoEvalDeliveryComment').value) || '').trim();
+    var livComment = deliveryStars != null ? String(safeTxt + (livExtra ? ' ' + livExtra : '')).trim() : '';
     var ok = await spiritAutoEvalInsert(Number(s && s.value), mainComment, cat && cat.value, deliveryStars, livComment);
     if (!ok) return;
     var root = document.getElementById('spiritAutoEvalModal');
@@ -16578,23 +16819,18 @@ async function spiritAutoEvalSubmit() {
     var st = document.getElementById('spiritAutoEvalStatus');
     if (st) st.textContent = '';
     spiritAutoEvalCtx = null;
+    try { spiritEvalRenderPendingInAccountSync(); } catch (eRP) {}
 }
-async function spiritAutoEvalClose(applyFallback) {
+function spiritAutoEvalClose() {
     var root = document.getElementById('spiritAutoEvalModal');
     if (!root) return;
-    if (applyFallback && spiritAutoEvalCtx) {
-        var cm = 'Note automatique 5 étoiles (fenêtre fermée sans évaluation manuelle).';
-        var catF = spiritEvalCategoryNorm(spiritAutoEvalCtx.category || 'achat');
-        var delF = (catF === 'livraison') ? null : 5;
-        var livF = delF != null ? 'Livraison: protégée. Note automatique 5★.' : '';
-        await spiritAutoEvalInsert(5, cm, spiritAutoEvalCtx.category, delF, livF);
-    }
+    if (spiritAutoEvalCtx) spiritEvalPendingAdd(JSON.parse(JSON.stringify(spiritAutoEvalCtx)));
     root.style.setProperty('display', 'none', 'important');
     spiritAutoEvalCtx = null;
 }
 function spiritAutoEvalOnOverlayClick(ev) {
     if (!ev || ev.target !== ev.currentTarget) return;
-    void spiritAutoEvalClose(true);
+    spiritAutoEvalClose();
 }
 async function spiritMaybePromptAutoEvaluationByTx(txId, roleHint) {
     if (!txId || !_spirit) return;
@@ -16651,6 +16887,7 @@ async function spiritMaybePromptSellerEvaluations(rows) {
 }
 
 function closeModals() {
+    try { if (typeof spiritAutoEvalDismissWithoutSubmitSync === 'function') spiritAutoEvalDismissWithoutSubmitSync(); } catch (eEv) {}
     try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
     document.querySelectorAll('.overlay').forEach(function (m) {
         if (m.id === 'spiritPurchaseSuccessModal' || m.id === 'spiritSellerPrepModal') return;
@@ -16689,26 +16926,30 @@ function closeModals() {
 </div>
 <div id="spiritAutoEvalModal" class="overlay" style="display:none;z-index:100350 !important;" onclick="spiritAutoEvalOnOverlayClick(event)">
     <div class="modal-content" style="max-width:620px;text-align:left;">
-        <button type="button" onclick="spiritAutoEvalClose(true)" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
+        <button type="button" onclick="spiritAutoEvalClose()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
         <h3 style="margin-top:0;color:var(--neon-orange);">Évaluation transaction</h3>
         <p style="font-size:0.66rem;color:#f3bf89;border-left:2px solid var(--neon-orange);padding-left:8px;">
-            Si tu fermes cette fenêtre sans envoyer ton avis, une note automatique de 5 étoiles sera enregistrée.
+            Acheteur : note la vente (transaction) et la livraison. Vendeur : note l’achat. Si tu fermes sans envoyer, l’évaluation sera rappelée dans Mon compte → Évaluations ; au-delà de 48 h sans réponse, 5★ seront enregistrées automatiquement et un message t’en informera.
         </p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Ton pseudo</label>
+                <input id="spiritAutoEvalAuthorPseudo" type="text" readonly />
+            </div>
             <div>
                 <label style="font-size:0.62rem;color:#888;">Pseudo à évaluer</label>
                 <input id="spiritAutoEvalPseudo" type="text" readonly />
             </div>
-            <div>
-                <label style="font-size:0.62rem;color:#888;">Catégorie</label>
+            <div style="grid-column:1/-1;">
+                <label style="font-size:0.62rem;color:#888;">Type d’évaluation (fixé selon ton rôle)</label>
                 <select id="spiritAutoEvalCategory" onchange="spiritAutoEvalSyncDeliveryBlock()">
-                    <option value="achat">Achat</option>
-                    <option value="vente">Vente</option>
+                    <option value="achat">Achat (vue acheteur)</option>
+                    <option value="vente">Vente (vue vendeur)</option>
                     <option value="livraison">Livraison</option>
                 </select>
             </div>
             <div>
-                <label style="font-size:0.62rem;color:#888;">Note /5</label>
+                <label style="font-size:0.62rem;color:#888;">Note vente / achat /5</label>
                 <div id="spiritAutoEvalStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
                     <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetStars(1)">☆</button>
                     <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetStars(2)">☆</button>
@@ -16723,28 +16964,33 @@ function closeModals() {
                 <input id="spiritAutoEvalTx" type="text" readonly />
             </div>
         </div>
-        <div id="spiritAutoEvalDeliveryStarsBlock" style="margin-top:10px;padding-top:10px;border-top:1px solid #222;">
-            <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:6px;">Livraison — note sur 5</label>
-            <div id="spiritAutoEvalDeliveryStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetDeliveryStars(1)">☆</button>
-                <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetDeliveryStars(2)">☆</button>
-                <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetDeliveryStars(3)">☆</button>
-                <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetDeliveryStars(4)">☆</button>
-                <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetDeliveryStars(5)">☆</button>
+        <label style="font-size:0.62rem;color:#888;display:block;margin-top:10px;">Commentaire (vente ou achat)</label>
+        <textarea id="spiritAutoEvalComment" placeholder="Ton commentaire sur la transaction (optionnel)…"></textarea>
+        <div id="spiritAutoEvalBuyerLivraisonWrap" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #222;">
+            <div id="spiritAutoEvalDeliveryStarsBlock">
+                <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:6px;">Livraison — note /5</label>
+                <div id="spiritAutoEvalDeliveryStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetDeliveryStars(1)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetDeliveryStars(2)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetDeliveryStars(3)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetDeliveryStars(4)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetDeliveryStars(5)">☆</button>
+                </div>
+                <input id="spiritAutoEvalDeliveryStars" type="hidden" value="5" />
             </div>
-            <input id="spiritAutoEvalDeliveryStars" type="hidden" value="5" />
+            <div style="margin-top:8px;">
+                <label style="font-size:0.62rem;color:#888;">Colis bien protégé ?</label>
+                <select id="spiritAutoEvalDeliverySafe">
+                    <option value="oui">Oui</option>
+                    <option value="non">Non</option>
+                </select>
+            </div>
+            <label style="font-size:0.62rem;color:#888;display:block;margin-top:8px;">Commentaire livraison</label>
+            <textarea id="spiritAutoEvalDeliveryComment" placeholder="Ton commentaire sur la livraison (optionnel)…" style="min-height:52px;"></textarea>
         </div>
-        <div style="margin-top:8px;">
-            <label style="font-size:0.62rem;color:#888;">Livraison bien protégée ?</label>
-            <select id="spiritAutoEvalDeliverySafe">
-                <option value="oui">Oui</option>
-                <option value="non">Non</option>
-            </select>
-        </div>
-        <textarea id="spiritAutoEvalComment" placeholder="Ton commentaire (optionnel)..."></textarea>
         <div style="display:flex;gap:8px;margin-top:8px;">
             <button type="button" class="btn-action" style="font-size:0.6rem;" onclick="spiritAutoEvalSubmit()">ENVOYER L'ÉVALUATION</button>
-            <button type="button" class="btn-action" style="font-size:0.6rem;background:#222;border:1px solid #444;color:#bbb;" onclick="spiritAutoEvalClose(true)">FERMER</button>
+            <button type="button" class="btn-action" style="font-size:0.6rem;background:#222;border:1px solid #444;color:#bbb;" onclick="spiritAutoEvalClose()">FERMER</button>
         </div>
         <div id="spiritAutoEvalStatus" style="font-size:0.64rem;color:#888;margin-top:8px;"></div>
     </div>
