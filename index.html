@@ -10713,6 +10713,7 @@ function spiritRefreshUserScopedUi() {
     if (currentScopedUid && currentScopedUid !== spiritScopedUiLastUserId) {
         if(document.getElementById('my-sales-list')) document.getElementById('my-sales-list').innerHTML = '';
         if(document.getElementById('my-purchases-list')) document.getElementById('my-purchases-list').innerHTML = '';
+        if(document.getElementById('list-achats')) document.getElementById('list-achats').innerHTML = '';
         if(document.getElementById('user-annonces-list')) document.getElementById('user-annonces-list').innerHTML = '';
         if(document.getElementById('user-favorites-list')) document.getElementById('user-favorites-list').innerHTML = '';
         if(document.getElementById('spirit-seller-received-favorites-list')) document.getElementById('spirit-seller-received-favorites-list').innerHTML = '';
@@ -14793,8 +14794,8 @@ async function loadMyPurchases() {
         var buyQ = _spirit.from('transactions').select('*');
         if (buyerCandidates.length > 1) buyQ = buyQ.in('buyer_id', buyerCandidates);
         else buyQ = buyQ.eq('buyer_id', buyerCandidates[0] || buyerBase);
+        try { buyQ = buyQ.order('created_at', { ascending: false }); } catch (eOrd) {}
         const { data, error } = await buyQ;
-            // .order('created_at', { ascending: false });
 
         // Correction : Vérification que data existe avant le rendu pour éviter "data is not defined"
         if (error) throw error;
@@ -14802,6 +14803,10 @@ async function loadMyPurchases() {
     } catch (err) {
         console.error(err);
         listBody.innerHTML = "Erreur de connexion au Ledger.";
+        try {
+            var tbErr = document.getElementById('list-achats');
+            if (tbErr) tbErr.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:#c66;">Erreur de connexion au Ledger.</td></tr>';
+        } catch (eTb) {}
     }
 }
 
@@ -14841,14 +14846,24 @@ async function generateSpiritLabel(id) {
 
 // --- FONCTION COMMUNE POUR LE RENDU (Pour éviter de répéter le code) ---
 function renderTransactionList(container, data, error, type) {
-    if (error) { container.innerHTML = "Erreur sync."; return; }
+    var tbody = document.getElementById('list-achats');
+    function purchasesTableHtml(html) {
+        if (tbody && type === 'ACHATS') tbody.innerHTML = html;
+    }
+    if (error) {
+        container.innerHTML = "Erreur sync.";
+        purchasesTableHtml('<tr><td colspan="5" style="text-align:center;padding:16px;color:#c66;">Erreur de synchronisation.</td></tr>');
+        return;
+    }
     if (!data || data.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (${type})</div>`;
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#555;">AUCUNE TRANSACTION (' + String(type) + ')</div>';
+        purchasesTableHtml('<tr><td colspan="5" style="text-align:center;padding:20px;color:#555;">Aucun achat enregistré.</td></tr>');
         return;
     }
 
+    var fnEsc = function (s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); };
+    var rowFragments = [];
     container.innerHTML = data.map(function (tr) {
-        var fnEsc = function (s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); };
         var idStr = String(tr.id || '').replace(/'/g, '&#39;');
         var actionBtn = '';
         if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
@@ -14862,18 +14877,50 @@ function renderTransactionList(container, data, error, type) {
             actionBtn = '<div class="spirit-purchase-actions spirit-purchase-actions--status" style="margin-top:10px; font-size:0.68rem; color:#888; text-align:center; border-top:1px solid #222; padding-top:8px;">' + fnEsc(tr.status) + '</div>';
         }
         var dateStr = '';
-        try { dateStr = tr.created_at ? new Date(tr.created_at).toLocaleDateString() : ''; } catch (eD) {}
+        try { dateStr = tr.created_at ? new Date(tr.created_at).toLocaleString() : ''; } catch (eD) {}
+        var productTitle = tr.figurine_name || tr.listing_title || tr.title || 'Produit Spirit';
+        var buyerTotal = Number(tr && tr.buyer_total);
+        var fallbackTotal = Number(tr && tr.amount);
+        var numAmt = (Number.isFinite(buyerTotal) && buyerTotal > 0) ? buyerTotal : (Number.isFinite(fallbackTotal) ? fallbackTotal : 0);
+        var amountStr = '';
+        try {
+            if (typeof spiritFormatMoney === 'function') {
+                amountStr = spiritFormatMoney(numAmt, String(tr.currency || 'EUR').toUpperCase());
+            } else {
+                amountStr = numAmt.toFixed(2) + ' €';
+            }
+        } catch (eM) { amountStr = numAmt.toFixed(2) + ' €'; }
+        var stRaw = String((tr && tr.status) || '');
+        var stUpper = stRaw.toUpperCase();
+        var statusColor = /SÉQUESTRE|SEQUESTRE|ESCROW/i.test(stRaw) ? '#fa0' : (/LITIGE/i.test(stRaw) ? '#f66' : 'var(--spirit-green)');
+        if (type === 'ACHATS') {
+            var actionsCell = '';
+            if (tr.status === 'SÉQUESTRE ACTIF') {
+                actionsCell = '<button type="button" class="btn-action" style="font-size:0.62rem;padding:6px 8px;margin:2px;" onclick="confirmReception(\'' + idStr + '\')">✅ REÇU</button>' +
+                    '<button type="button" class="btn-action" style="font-size:0.62rem;padding:6px 8px;margin:2px;background:#1a1010;border-color:#633;color:#f88;" onclick="openDispute(\'' + idStr + '\')">⚠️ LITIGE</button>';
+            } else {
+                actionsCell = '<span style="font-size:0.65rem;color:#777;">—</span>';
+            }
+            rowFragments.push(
+                '<tr><td style="font-size:0.72rem;color:#bbb;white-space:nowrap;">' + fnEsc(dateStr) + '</td>' +
+                '<td style="font-size:0.75rem;"><b style="color:var(--neon-orange);">' + fnEsc(productTitle) + '</b><div style="font-size:0.58rem;color:#555;margin-top:2px;">ID ' + fnEsc(tr.id) + '</div></td>' +
+                '<td style="font-size:0.75rem;color:var(--neon-orange);font-weight:bold;">' + fnEsc(amountStr) + '</td>' +
+                '<td style="font-size:0.72rem;"><span style="color:' + statusColor + ';">' + fnEsc(stUpper || '—') + '</span></td>' +
+                '<td style="text-align:center;">' + actionsCell + '</td></tr>'
+            );
+        }
         return '<div class="spirit-purchase-card" style="background:#0d0d0d; border:1px solid #222; padding:14px; margin-bottom:12px; border-radius:8px;">' +
             '<div class="spirit-purchase-card__row" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">' +
             '<div class="spirit-purchase-card__main" style="min-width:0; flex:1;">' +
-            '<div style="color:white; font-weight:bold; font-size:0.88rem;">' + fnEsc(tr.figurine_name || 'Produit Spirit') + '</div>' +
+            '<div style="color:white; font-weight:bold; font-size:0.88rem;">' + fnEsc(productTitle) + '</div>' +
             '<div style="font-size:0.6rem; color:#555; margin-top:4px;">ID: ' + fnEsc(tr.id) + '</div>' +
             '</div>' +
             '<div class="spirit-purchase-card__price" style="text-align:right; flex-shrink:0;">' +
-            '<div style="color:var(--neon-orange); font-weight:bold;">' + fnEsc(tr.amount) + '€</div>' +
+            '<div style="color:var(--neon-orange); font-weight:bold;">' + fnEsc(amountStr) + '</div>' +
             '<div style="font-size:0.6rem; color:#888;">' + fnEsc(dateStr) + '</div>' +
             '</div></div>' + actionBtn + '</div>';
     }).join('');
+    purchasesTableHtml(rowFragments.join(''));
 }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
@@ -14950,6 +14997,7 @@ async function confirmReception(transactionId) {
         alert("Erreur de validation : " + err.message);
     }
 }
+try { window.confirmReceipt = confirmReception; } catch (eCRcp) {}
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 
