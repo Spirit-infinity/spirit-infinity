@@ -3410,6 +3410,9 @@
 <div id="tab-messages" class="account-page">
     <h2 data-key="tab_sanctuary_msgs_h">📩 MESSAGES SANCTUAIRE</h2>
     <p data-key="tab_sanctuary_msgs_p" style="font-size:0.72rem;color:#888;">Alertes likes et commentaires sur tes photos du sanctuaire.</p>
+    <div style="margin:8px 0 12px;">
+        <button type="button" class="btn-action" style="font-size:0.62rem;padding:6px 12px;background:#2a1810;border:1px solid #844;color:#daa;" data-key="msg_clear_feed_btn" onclick="spiritSanctuaryClearAllMessagesFeed()">Tout effacer le fil</button>
+    </div>
     <div id="spiritMessagesList" style="display:flex;flex-direction:column;gap:10px;"></div>
 </div>
 
@@ -4036,7 +4039,8 @@
             'msg_syn_liked_photo': 'a aimé ta photo', 'msg_syn_commented_prefix': 'a commenté :',
             'msg_notif_commented_photo_generic': 'a commenté ta photo', 'msg_notif_new_listing_prefix': 'Nouvelle annonce :',
             'msg_toast_san_title': 'Sanctuaire', 'msg_toast_san_body': '{n} nouvelle(s) alerte(s) (likes / commentaires).',
-            'msg_activity': '(activité)', 'msg_del_btn': 'Supprimer', 'msg_see_ad': 'Voir l’annonce', 'msg_rate_now': 'Noter maintenant', 'msg_open_discussion': 'Ouvrir la discussion',
+            'msg_activity': '(activité)', 'msg_del_btn': 'Supprimer', 'msg_clear_feed_btn': 'Tout effacer le fil', 'msg_clear_feed_confirm': 'Supprimer toutes les alertes de ce fil ? Les entrées enregistrées seront effacées ; les anciens likes et commentaires ne réapparaîtront pas ici tant qu’il n’y a pas de nouvelle activité.', 'msg_clear_feed_err': 'Impossible de vider le fil : ',
+            'msg_see_ad': 'Voir l’annonce', 'msg_rate_now': 'Noter maintenant', 'msg_open_discussion': 'Ouvrir la discussion',
             'my_ad_edit': 'MODIFIER', 'my_ad_delete': 'SUPPRIMER', 'my_ad_none_online': 'Aucune annonce en ligne.', 'my_ad_no_img': 'Sans image',
             'my_ad_online': 'EN LIGNE',
             'my_ad_del_confirm': 'Voulez-vous vraiment supprimer cette annonce du Ledger Spirit ?',
@@ -4154,7 +4158,8 @@
             'msg_syn_liked_photo': 'liked your photo', 'msg_syn_commented_prefix': 'commented:',
             'msg_notif_commented_photo_generic': 'commented on your photo', 'msg_notif_new_listing_prefix': 'New listing:',
             'msg_toast_san_title': 'Sanctuary', 'msg_toast_san_body': '{n} new like/comment alert(s).',
-            'msg_activity': '(activity)', 'msg_del_btn': 'Delete', 'msg_see_ad': 'View listing', 'msg_rate_now': 'Rate now', 'msg_open_discussion': 'Open thread',
+            'msg_activity': '(activity)', 'msg_del_btn': 'Delete', 'msg_clear_feed_btn': 'Clear entire feed', 'msg_clear_feed_confirm': 'Delete all alerts in this feed? Saved entries will be removed; older likes and comments will stay hidden here until there is new activity.', 'msg_clear_feed_err': 'Could not clear the feed: ',
+            'msg_see_ad': 'View listing', 'msg_rate_now': 'Rate now', 'msg_open_discussion': 'Open thread',
             'my_ad_edit': 'EDIT', 'my_ad_delete': 'DELETE', 'my_ad_none_online': 'No listings online.', 'my_ad_no_img': 'No image',
             'my_ad_online': 'LIVE',
             'my_ad_del_confirm': 'Delete this listing from Spirit Ledger?',
@@ -4272,7 +4277,8 @@
             'msg_syn_liked_photo': 'le gustó tu foto', 'msg_syn_commented_prefix': 'comentó:',
             'msg_notif_commented_photo_generic': 'comentó tu foto', 'msg_notif_new_listing_prefix': 'Nuevo anuncio:',
             'msg_toast_san_title': 'Santuario', 'msg_toast_san_body': '{n} alerta(s) nueva(s) (me gusta / comentarios).',
-            'msg_activity': '(actividad)', 'msg_del_btn': 'Eliminar', 'msg_see_ad': 'Ver anuncio', 'msg_rate_now': 'Valorar ahora', 'msg_open_discussion': 'Abrir conversación',
+            'msg_activity': '(actividad)', 'msg_del_btn': 'Eliminar', 'msg_clear_feed_btn': 'Vaciar todo el fil', 'msg_clear_feed_confirm': '¿Eliminar todas las alertas de este fil? Se borrarán las guardadas; los «me gusta» y comentarios antiguos no volverán a mostrarse hasta que haya actividad nueva.', 'msg_clear_feed_err': 'No se pudo vaciar el fil: ',
+            'msg_see_ad': 'Ver anuncio', 'msg_rate_now': 'Valorar ahora', 'msg_open_discussion': 'Abrir conversación',
             'my_ad_edit': 'EDITAR', 'my_ad_delete': 'ELIMINAR', 'my_ad_none_online': 'No hay anuncios en línea.', 'my_ad_no_img': 'Sin imagen',
             'my_ad_online': 'EN LÍNEA',
             'my_ad_del_confirm': '¿Eliminar este anuncio del ledger Spirit?',
@@ -4390,7 +4396,8 @@
             'msg_syn_liked_photo': '赞了你的照片', 'msg_syn_commented_prefix': '评论：',
             'msg_notif_commented_photo_generic': '评论了你的照片', 'msg_notif_new_listing_prefix': '新上架：',
             'msg_toast_san_title': '圣地', 'msg_toast_san_body': '{n} 条新的点赞/评论提醒。',
-            'msg_activity': '（动态）', 'msg_del_btn': '删除', 'msg_see_ad': '查看商品', 'msg_rate_now': '立即评价', 'msg_open_discussion': '打开对话',
+            'msg_activity': '（动态）', 'msg_del_btn': '删除', 'msg_clear_feed_btn': '清空全部提醒', 'msg_clear_feed_confirm': '要删除此列表中的全部提醒吗？已保存的记录将被清除；旧点赞与评论在有新互动前不会再次显示。', 'msg_clear_feed_err': '无法清空：',
+            'msg_see_ad': '查看商品', 'msg_rate_now': '立即评价', 'msg_open_discussion': '打开对话',
             'my_ad_edit': '编辑', 'my_ad_delete': '删除', 'my_ad_none_online': '暂无在线商品。', 'my_ad_no_img': '无图',
             'my_ad_online': '在售',
             'my_ad_del_confirm': '确定要从 Spirit 账本中删除此商品吗？',
@@ -11313,6 +11320,14 @@ function spiritSanctuaryRefreshMessagesDot() {
             }
             try {
                 var feed = await spiritSanctuaryFetchSocialActivityFeed(uidN);
+                var fcTsDot = spiritSanctuaryGetFeedClearedTs();
+                if (fcTsDot > 0 && Array.isArray(feed)) {
+                    feed = feed.filter(function (r) {
+                        if (!r) return false;
+                        var tt = new Date(r.created_at || 0).getTime();
+                        return Number.isFinite(tt) && tt > fcTsDot;
+                    });
+                }
                 var since = spiritSanctuaryGetActivityLastSeenTs();
                 var aUn = spiritSanctuaryActivityUnreadSince(feed, since);
                 if (notifErr || spiritSanNotifsTableMissing) c = aUn;
@@ -11732,6 +11747,16 @@ try {
 } catch (eWPush) {}
 
 var SPIRIT_SAN_LAST_SEEN_LS = 'spirit_san_msg_activity_last_seen_ts';
+var SPIRIT_SAN_FEED_CLEARED_LS = 'spirit_san_msg_feed_cleared_ts';
+function spiritSanctuaryGetFeedClearedTs() {
+    try {
+        var t = parseInt(localStorage.getItem(SPIRIT_SAN_FEED_CLEARED_LS) || '0', 10);
+        return Number.isFinite(t) && t > 0 ? t : 0;
+    } catch (e) { return 0; }
+}
+function spiritSanctuarySetFeedClearedNow() {
+    try { localStorage.setItem(SPIRIT_SAN_FEED_CLEARED_LS, String(Date.now())); } catch (e) {}
+}
 function spiritSanctuaryGetActivityLastSeenTs() {
     try {
         var t = parseInt(localStorage.getItem(SPIRIT_SAN_LAST_SEEN_LS) || '0', 10);
@@ -11979,6 +12004,58 @@ async function spiritSanctuaryDeleteNotification(notifId) {
 }
 try { window.spiritSanctuaryDeleteNotification = spiritSanctuaryDeleteNotification; } catch (eW) {}
 
+async function spiritSanctuaryClearAllMessagesFeed() {
+    function mT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
+    if (!confirm(String(mT('msg_clear_feed_confirm')))) return;
+    if (typeof _spirit === 'undefined' || !_spirit || !spiritSanSocialCanUseSupabase()) {
+        try { alert(String(mT('msg_supabase'))); } catch (a0) {}
+        return;
+    }
+    var me = '';
+    try { me = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : (typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim()); } catch (eMe) {}
+    var meN = spiritNormUid(me);
+    if (!meN) {
+        try { alert(String(mT('msg_login'))); } catch (a1) {}
+        return;
+    }
+    var ownerCandidates = [String(me || '').trim(), meN].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+    try {
+        var rawSession = '';
+        try { rawSession = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : ''); } catch (eRs) {}
+        if (rawSession && ownerCandidates.indexOf(rawSession) < 0) ownerCandidates.push(rawSession);
+        if (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) {
+            var mtId = spiritNormUid(MY_TEST_ID);
+            if (mtId && ownerCandidates.indexOf(mtId) < 0) ownerCandidates.push(mtId);
+        }
+        if (typeof spiritResolveUserIdForFakeTestId === 'function') {
+            var srcRes = rawSession || meN || (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null ? spiritNormUid(MY_TEST_ID) : '');
+            if (srcRes) {
+                var resolved = await spiritResolveUserIdForFakeTestId(srcRes);
+                var rN = spiritNormUid(resolved || '');
+                if (rN && ownerCandidates.indexOf(rN) < 0) ownerCandidates.push(rN);
+            }
+        }
+    } catch (eCand) {}
+    try {
+        if (!spiritSanNotifsTableMissing) {
+            var del = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).delete().in('owner_id', ownerCandidates);
+            if (del && del.error) {
+                spiritSanNotifsMarkMissingIf404(del.error);
+                try { alert(String(mT('msg_clear_feed_err')) + (del.error.message || del.error)); } catch (a2) {}
+                return;
+            }
+        }
+    } catch (eDel) {
+        try { alert(String(mT('msg_clear_feed_err')) + (eDel && eDel.message ? eDel.message : eDel)); } catch (a3) {}
+        return;
+    }
+    try { spiritSanctuarySetFeedClearedNow(); } catch (eFc) {}
+    try { spiritSanctuarySetActivityLastSeenNow(); } catch (eLs) {}
+    try { spiritLoadMessagesTab(); } catch (eL) {}
+    try { spiritSanctuaryRefreshMessagesDot(); } catch (eD) {}
+}
+try { window.spiritSanctuaryClearAllMessagesFeed = spiritSanctuaryClearAllMessagesFeed; } catch (eWClr) {}
+
 function spiritLoadMessagesTab() {
     var box = document.getElementById('spiritMessagesList');
     if (!box) return;
@@ -12039,6 +12116,15 @@ function spiritLoadMessagesTab() {
         var syn = [];
         try { syn = await spiritSanctuaryFetchSocialActivityFeed(meN); } catch (eSyn) {}
         var merged = spiritSanctuaryMergeNotifRows(rows, syn);
+        var fcTs = spiritSanctuaryGetFeedClearedTs();
+        if (fcTs > 0 && merged.length) {
+            merged = merged.filter(function (n) {
+                if (!n) return false;
+                if (!n.synthetic) return true;
+                var t0 = new Date(n.created_at || 0).getTime();
+                return Number.isFinite(t0) && t0 > fcTs;
+            });
+        }
         var viewL = typeof spiritUiLang === 'function' ? spiritUiLang() : 'FR';
         var textTrMap = Object.create(null);
         if (viewL !== 'FR' && typeof spiritTranslateListingMessage === 'function') {
