@@ -1516,7 +1516,9 @@
             align-items: center;
             flex-direction: column;
         }
-        .overlay[style*="flex"] {
+        /* Ne pas utiliser [style*="flex"] : « align-items:flex-start » déclenchait l’affichage permanent de certains overlays (ex. admin Hot Toys). */
+        .overlay[style*="display: flex"],
+        .overlay[style*="display:flex"] {
             display: flex !important;
         }
         /* Panneau : au-dessus des précommandes (z-index 9999) */
@@ -9163,6 +9165,11 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var finalName = String(profileName || fallbackName || (mail ? mail.split('@')[0] : 'VISITEUR')).trim();
         if (!finalName) finalName = 'VISITEUR';
         currentUser = finalName;
+        try {
+            if (typeof spiritIsHotToysAdmin === 'function' && !spiritIsHotToysAdmin()) {
+                sessionStorage.removeItem('spirit_ht_admin_ok');
+            }
+        } catch (eHtSess) {}
         try { if (typeof spiritRefreshHotToysAdminNav === 'function') spiritRefreshHotToysAdminNav(); } catch (eHtNav) {}
         try { spiritSyncRegButtonI18n(); } catch (eBtnA) {}
         var nameEl = document.getElementById('display-user-name') || document.getElementById('user-display');
@@ -9289,6 +9296,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
                     MY_TEST_ID = '';
                     try { window.__spiritLastAuthUid = ''; } catch (eLa0) {}
                     currentUser = 'VISITEUR';
+                    try { sessionStorage.removeItem('spirit_ht_admin_ok'); } catch (eHtSw) {}
                     spiritRefreshUserScopedUi();
                 }
             } catch (eSess) {}
@@ -10577,7 +10585,6 @@ async function spiritLoadListingMessagesForProduct(productId) {
     function spiritOpenHotToysAdmin() {
         var ov = document.getElementById('spiritHotToysAdminOverlay');
         if (!ov) return;
-        ov.style.setProperty('display', 'flex', 'important');
         var authStep = document.getElementById('spiritHotToysAdminAuthStep');
         var main = document.getElementById('spiritHotToysAdminMain');
         var errEl = document.getElementById('spiritHotToysAdminAuthErr');
@@ -10591,6 +10598,13 @@ async function spiritLoadListingMessagesForProduct(productId) {
         if (pIn && spiritIsHotToysAdmin()) pIn.value = String(typeof currentUser !== 'undefined' && currentUser != null ? currentUser : '').trim() || SPIRIT_HT_ADMIN_PSEUDO;
         var ok = false;
         try { ok = sessionStorage.getItem('spirit_ht_admin_ok') === '1'; } catch (e) {}
+        if (ok && !spiritIsHotToysAdmin()) {
+            try { sessionStorage.removeItem('spirit_ht_admin_ok'); } catch (eOk) {}
+            ok = false;
+            if (authStep) authStep.style.display = 'block';
+            if (main) main.style.display = 'none';
+        }
+        ov.style.setProperty('display', 'flex', 'important');
         if (spiritIsHotToysAdmin() && ok && authStep && main) {
             authStep.style.display = 'none';
             main.style.display = 'block';
