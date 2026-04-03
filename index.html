@@ -3847,10 +3847,12 @@
     <div class="modal-content spirit-ht-admin-modal" style="max-width:920px;width:100%;max-height:92vh;overflow:auto;text-align:left;position:relative;background:#0a0a0a;border:1px solid rgba(255,102,0,0.45);margin-top:12px;">
         <button type="button" onclick="spiritCloseHotToysAdmin()" style="position:absolute;top:12px;right:12px;background:#111;border:1px solid #444;color:#ccc;cursor:pointer;padding:6px 12px;font-size:0.75rem;">✕</button>
         <h2 style="color:var(--neon-orange);margin:8px 40px 6px 0;font-size:0.95rem;letter-spacing:1px;">ADMIN HOT TOYS / PRÉCOMMANDES</h2>
-        <p style="font-size:0.62rem;color:#666;margin:0 40px 14px 0;line-height:1.4;"><b>Sans adresse e-mail côté formulaire.</b> Tu saisis uniquement <b>pseudo</b>, <b>mot de passe</b> et <b>code</b>. Supabase exige toutefois un identifiant e-mail en arrière-plan : il est généré automatiquement (<span style="color:#888;">pseudo@spirit-infinity.internal</span>). Désactive la confirmation e-mail pour ce domaine dans le dashboard Supabase, sinon la création de compte échouera. Le code est une barrière d’interface seule — renforce avec RLS / rôle admin.</p>
+        <p style="font-size:0.62rem;color:#666;margin:0 40px 14px 0;line-height:1.4;">Le <b>pseudo</b> reste <b>hottoysspirit</b> (droits menu admin). Pour <b>Supabase Auth</b>, indique l’<b>e-mail réel</b> de ton compte (ex. Gmail confirmé) ; s’il est vide, l’adresse technique <span style="color:#888;">hottoysspirit@spirit-infinity.internal</span> est utilisée. Code d’accès + mot de passe comme avant.</p>
         <div id="spiritHotToysAdminAuthStep" style="padding:12px 16px 20px;">
             <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:4px;">Pseudo (compte admin : <b>hottoysspirit</b>)</label>
             <input type="text" id="spiritHotToysAdminPseudoInput" autocomplete="username" placeholder="hottoysspirit" style="width:100%;max-width:320px;box-sizing:border-box;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.8rem;margin-bottom:10px;" />
+            <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:4px;">E-mail Supabase <span style="color:#666;">(Gmail, etc. — optionnel)</span></label>
+            <input type="email" id="spiritHotToysAdminEmailInput" autocomplete="email" inputmode="email" placeholder="ton.admin@gmail.com" style="width:100%;max-width:320px;box-sizing:border-box;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.8rem;margin-bottom:10px;" />
             <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:4px;">Mot de passe</label>
             <input type="password" id="spiritHotToysAdminPassInput" autocomplete="new-password" style="width:100%;max-width:320px;box-sizing:border-box;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.8rem;margin-bottom:10px;" />
             <label style="font-size:0.68rem;color:#999;display:block;margin-bottom:4px;">Code d’accès (défaut : 5262)</label>
@@ -10415,12 +10417,19 @@ async function spiritLoadListingMessagesForProduct(productId) {
 
     var SPIRIT_HOT_TOYS_PRECO_LS_KEY = 'spirit_hottoys_preco_cards_v1';
     var SPIRIT_HT_ADMIN_PSEUDO = 'hottoysspirit';
+    var SPIRIT_HT_ADMIN_AUTH_EMAIL_LS = 'spirit_ht_admin_auth_email_v1';
 
-    /** E-mail technique uniquement (Supabase Auth) — jamais affiché à l’utilisateur admin. */
+    /** E-mail technique si pas d’e-mail réel saisi dans le panneau admin. */
     function spiritAdminAuthEmailFromPseudo(pseudo) {
         var p = String(pseudo || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
         if (!p) p = 'admin';
         return p + '@spirit-infinity.internal';
+    }
+    /** E-mail utilisé pour signIn / signUp : Gmail confirmé si renseigné, sinon adresse technique. */
+    function spiritHotToysAdminResolveAuthEmail(f) {
+        var raw = String(f && f.authEmail != null ? f.authEmail : '').trim().toLowerCase();
+        if (raw && raw.indexOf('@') > 0 && raw.length > 4) return raw;
+        return spiritAdminAuthEmailFromPseudo(f && f.pseudo ? f.pseudo : SPIRIT_HT_ADMIN_PSEUDO);
     }
     /** Normalise le PIN (espaces, chiffres « pleine chaqueur » ０-９ → 0-9). */
     function spiritHotToysAdminNormalizeAccessCode(s) {
@@ -10443,9 +10452,10 @@ async function spiritLoadListingMessagesForProduct(productId) {
     }
     function spiritHotToysAdminReadAuthForm() {
         var pseudo = String(document.getElementById('spiritHotToysAdminPseudoInput') && document.getElementById('spiritHotToysAdminPseudoInput').value || '').trim();
+        var authEmail = String(document.getElementById('spiritHotToysAdminEmailInput') && document.getElementById('spiritHotToysAdminEmailInput').value || '').trim();
         var pass = String(document.getElementById('spiritHotToysAdminPassInput') && document.getElementById('spiritHotToysAdminPassInput').value || '');
         var code = String(document.getElementById('spiritHotToysAdminCodeInput') && document.getElementById('spiritHotToysAdminCodeInput').value || '');
-        return { pseudo: pseudo, pass: pass, code: code };
+        return { pseudo: pseudo, authEmail: authEmail, pass: pass, code: code };
     }
     function spiritHotToysAdminValidateAuthForm(errEl) {
         var f = spiritHotToysAdminReadAuthForm();
@@ -10458,6 +10468,13 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (errEl) errEl.textContent = 'Ce panneau est réservé au pseudo hottoysspirit.';
             return null;
         }
+        if (f.authEmail && String(f.authEmail).trim()) {
+            var em = String(f.authEmail).trim().toLowerCase();
+            if (em.indexOf('@') < 1 || em.length < 5) {
+                if (errEl) errEl.textContent = 'E-mail Supabase invalide (ou laisse le champ vide pour l’adresse technique @spirit-infinity.internal).';
+                return null;
+            }
+        }
         if (!f.pass || String(f.pass).length < 6) {
             if (errEl) errEl.textContent = 'Mot de passe trop court (minimum 6 caractères).';
             return null;
@@ -10465,9 +10482,19 @@ async function spiritLoadListingMessagesForProduct(productId) {
         return f;
     }
     async function spiritHotToysAdminAfterAuthSuccess(user, pseudo) {
+        try {
+            var ein = document.getElementById('spiritHotToysAdminEmailInput');
+            var ev = ein && String(ein.value || '').trim();
+            if (ev) localStorage.setItem(SPIRIT_HT_ADMIN_AUTH_EMAIL_LS, ev.toLowerCase());
+        } catch (eLs) {}
         try { sessionStorage.setItem('spirit_ht_admin_ok', '1'); } catch (e) {}
         try { spiritRememberSessionChoice(true); } catch (eR) {}
         try { spiritApplyAuthUser(user, pseudo); } catch (eA) {}
+        try {
+            currentUser = String(pseudo || SPIRIT_HT_ADMIN_PSEUDO).trim() || SPIRIT_HT_ADMIN_PSEUDO;
+            var nameElAd = document.getElementById('display-user-name') || document.getElementById('user-display');
+            if (nameElAd) nameElAd.innerText = String(currentUser).toUpperCase();
+        } catch (eDisp) {}
         try { await spiritUpsertUserProfileFromAuth(user, pseudo); } catch (eU) {}
         try { spiritRefreshUserScopedUi(); } catch (eV) {}
         try { spiritRefreshHotToysAdminNav(); } catch (eN) {}
@@ -10492,20 +10519,30 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (errEl && !errEl.textContent && (!f || !_spirit)) errEl.textContent = 'Supabase indisponible.';
             return;
         }
+        var adminEmail = spiritHotToysAdminResolveAuthEmail(f);
         try {
-            var email = spiritAdminAuthEmailFromPseudo(f.pseudo);
-            var signIn = await _spirit.auth.signInWithPassword({ email: email, password: f.pass });
+            var signIn = await _spirit.auth.signInWithPassword({ email: adminEmail, password: f.pass });
             if (signIn.error) throw signIn.error;
             if (!signIn.data || !signIn.data.user) throw new Error('Session introuvable.');
             await spiritHotToysAdminAfterAuthSuccess(signIn.data.user, f.pseudo);
         } catch (e) {
             var em = '';
             try {
-                em = e && (e.message || e.msg || (e.error && (e.error.message || e.error.msg))) ? String(e.message || e.msg || e.error.message || e.error.msg) : String(e || '');
-            } catch (e2) { em = String(e || ''); }
-            if (errEl) {
-                errEl.textContent = 'Connexion Supabase impossible : ' + em + (em.toLowerCase().indexOf('invalid') >= 0 || em.indexOf('400') >= 0 ? ' — vérifie le mot de passe du compte hottoysspirit et que l’e-mail technique n’est pas bloqué (dashboard Supabase).' : '');
+                if (e && typeof e === 'object') {
+                    em = String(e.message || e.msg || e.error_description || (e.error && (e.error.message || e.error.msg)) || '').trim();
+                }
+                if (!em) em = String(e || '').trim();
+            } catch (e2) { em = 'Erreur inconnue'; }
+            if (!em) em = 'Réponse 400 (identifiants refusés par Supabase).';
+            var low = em.toLowerCase();
+            var hint = '';
+            if (low.indexOf('invalid') >= 0 || low.indexOf('credential') >= 0 || low.indexOf('wrong') >= 0) {
+                hint = ' Vérifie l’e-mail Supabase (ex. ton Gmail) dans le champ dédié si ton compte n’est pas sur @spirit-infinity.internal. Sinon mot de passe incorrect ou compte inexistant — essaie « Créer le compte admin ».';
             }
+            if (low.indexOf('confirm') >= 0 || low.indexOf('verified') >= 0 || low.indexOf('not confirmed') >= 0) {
+                hint += ' Dans Supabase : Authentication → désactive la confirmation e-mail pour les tests, ou confirme l’utilisateur à la main.';
+            }
+            if (errEl) errEl.textContent = 'Compte Auth : ' + adminEmail + ' — ' + em + hint;
         }
     }
     async function spiritHotToysAdminDoRegister() {
@@ -10516,7 +10553,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             return;
         }
         try {
-            var email = spiritAdminAuthEmailFromPseudo(f.pseudo);
+            var email = spiritHotToysAdminResolveAuthEmail(f);
             var countryPrefs = typeof spiritCountryToLocaleAndCurrency === 'function' ? spiritCountryToLocaleAndCurrency('FR') : { lang: 'FR', currency: 'EUR', buyerCountry: 'France' };
             var signUp = await _spirit.auth.signUp({
                 email: email,
@@ -10633,9 +10670,16 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var pIn = document.getElementById('spiritHotToysAdminPseudoInput');
         var passIn = document.getElementById('spiritHotToysAdminPassInput');
         var codeIn = document.getElementById('spiritHotToysAdminCodeInput');
+        var emailIn = document.getElementById('spiritHotToysAdminEmailInput');
         if (errEl) errEl.textContent = '';
         if (passIn) passIn.value = '';
         if (codeIn) codeIn.value = '';
+        if (emailIn && !String(emailIn.value || '').trim()) {
+            try {
+                var savedEm = localStorage.getItem(SPIRIT_HT_ADMIN_AUTH_EMAIL_LS);
+                if (savedEm) emailIn.value = savedEm;
+            } catch (eEm) {}
+        }
         if (pIn && !spiritIsHotToysAdmin()) pIn.value = SPIRIT_HT_ADMIN_PSEUDO;
         if (pIn && spiritIsHotToysAdmin()) pIn.value = String(typeof currentUser !== 'undefined' && currentUser != null ? currentUser : '').trim() || SPIRIT_HT_ADMIN_PSEUDO;
         var ok = false;
@@ -16613,7 +16657,6 @@ function closeModals() {
         m.style.setProperty('display', 'none', 'important');
     });
     try { if (typeof hideTopicEditor === 'function') hideTopicEditor(); } catch (e) {}
-    console.log("[SPIRIT] Fermeture des modales.");
 }
 // (c) 2026 Spirit Infinity - Tous droits réservés
 /* Panneau : transferToSale() → certif modal uniquement ; succès annonce = publierAnnonce() après validation */
