@@ -673,6 +673,28 @@
             color: #fff !important;
             box-shadow: 0 0 0 1px rgba(255, 153, 51, 0.35), 0 4px 14px rgba(0, 0, 0, 0.35);
         }
+        #spiritHotToysAdminOverlay .spirit-ht-admin-modal {
+            max-width: min(96vw, 1120px) !important;
+        }
+        #spiritHotToysAdminBourseOut {
+            font-size: 0.72rem !important;
+        }
+        #spiritHotToysAdminBourseOut table.spirit-ht-bourse-table {
+            width: 100%;
+            min-width: 900px;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+        #spiritHotToysAdminBourseOut table.spirit-ht-bourse-table th,
+        #spiritHotToysAdminBourseOut table.spirit-ht-bourse-table td {
+            vertical-align: top;
+        }
+        #spiritHotToysAdminBourseOut .spirit-ht-bourse-marque,
+        #spiritHotToysAdminBourseOut .spirit-ht-bourse-scale {
+            min-width: 7.5rem;
+            max-width: 11rem;
+            word-break: break-word;
+        }
         /* LAYOUT */
         .container {
             display: flex;
@@ -3846,7 +3868,7 @@
 
 <!-- Accès propriétaire (non listé au menu) : ajouter #si-ht-preco-a à l’URL ou en favori -->
 <div id="spiritHotToysAdminOverlay" class="overlay" style="display:none;z-index:10060;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;">
-    <div class="modal-content spirit-ht-admin-modal" style="max-width:920px;width:100%;max-height:92vh;overflow:auto;text-align:left;position:relative;background:#0a0a0a;border:1px solid rgba(255,102,0,0.45);margin-top:12px;">
+    <div class="modal-content spirit-ht-admin-modal" style="max-width:min(96vw,1120px);width:100%;max-height:92vh;overflow:auto;text-align:left;position:relative;background:#0a0a0a;border:1px solid rgba(255,102,0,0.45);margin-top:12px;">
         <button type="button" onclick="spiritCloseHotToysAdmin()" style="position:absolute;top:12px;right:12px;background:#111;border:1px solid #444;color:#ccc;cursor:pointer;padding:6px 12px;font-size:0.75rem;">✕</button>
         <h2 style="color:var(--neon-orange);margin:8px 40px 6px 0;font-size:0.95rem;letter-spacing:1px;">ADMIN HOT TOYS / PRÉCOMMANDES</h2>
         <p style="font-size:0.62rem;color:#666;margin:0 40px 14px 0;line-height:1.4;">Le <b>pseudo</b> reste <b>hottoysspirit</b> (droits menu admin). Pour <b>Supabase Auth</b>, indique l’<b>e-mail réel</b> de ton compte (ex. Gmail confirmé) ; s’il est vide, l’adresse technique <span style="color:#888;">hottoysspirit@spirit-infinity.internal</span> est utilisée. Code d’accès + mot de passe comme avant.</p>
@@ -3881,8 +3903,9 @@
                 </div>
             </div>
             <div id="spiritHotToysAdminTabBourse" style="display:none;">
+                <p style="font-size:0.62rem;color:#888;margin:0 0 8px;line-height:1.45;"><b>Marque</b> et <b>format / taille</b> : enregistrés sur la transaction à l’achat (si colonnes Supabase présentes) ; pour les anciennes lignes, repli sur l’annonce <code>products_live</code> via <code>product_id</code>.</p>
                 <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;margin-bottom:10px;" onclick="spiritHotToysAdminLoadBourse()">Charger / rafraîchir les ventes (ledger)</button>
-                <div id="spiritHotToysAdminBourseOut" style="font-size:0.65rem;color:#ccc;overflow:auto;max-height:52vh;"></div>
+                <div id="spiritHotToysAdminBourseOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(62vh,680px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#060606;"></div>
             </div>
             <div id="spiritHotToysAdminTabLitiges" style="display:none;">
                 <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;margin-bottom:10px;" onclick="spiritHotToysAdminLoadLitiges()">Charger / rafraîchir les litiges</button>
@@ -8410,6 +8433,25 @@ function spiritDrainSellerPrepNotices() {
     } catch (e) {}
 }
 
+/** Champs optionnels ledger (marque, id annonce, format) — fusionnés seulement sur les inserts « riches » pour garder un fallback minimal si colonnes absentes. */
+function spiritTxMetaFromSelectedProduct(sp) {
+    if (!sp) return {};
+    var out = {};
+    var b = String(sp.brand || sp.marque || '').trim();
+    if (b) {
+        out.brand = b;
+        out.marque = b;
+    }
+    var pid = spiritParseFavoriteProductId(sp.id != null ? sp.id : sp.product_id);
+    if (pid != null) out.product_id = pid;
+    var fmt = String(sp.category || '').trim();
+    var ship = String(sp.ship_size || '').trim();
+    var catk = String(sp.cat || '').trim();
+    var scaleBits = [fmt, ship, catk].filter(function (x) { return !!x; });
+    if (scaleBits.length) out.product_kind = scaleBits.join(' · ');
+    return out;
+}
+
 /**
  * Paiement validé : insert transactions (split 3% / 3% / 2%) + maj products_lives vendu.
  */
@@ -8447,6 +8489,7 @@ async function enregistrerVente(method) {
         console.log("[SPIRIT LEDGER] Écriture dans les colonnes Supabase...");
         
         // Règle business vendeur: amount = prix annonce (hors protection et hors livraison).
+        var txMetaLedger = spiritTxMetaFromSelectedProduct(selectedProduct);
         var txBase = {
             amount: Number(prixFigurine),
             buyer_id: buyerIdTxt || String(MY_TEST_ID || '').trim() || '12345',
@@ -8459,7 +8502,7 @@ async function enregistrerVente(method) {
             currency: 'EUR'
         };
         // Colonnes optionnelles (à créer côté Supabase): shipping_amount, protection_fee, buyer_total.
-        var txRich = Object.assign({}, txBase, {
+        var txRich = Object.assign({}, txBase, txMetaLedger, {
             shipping_amount: Number(fraisLivraison),
             protection_fee: Number(protectionTotale),
             buyer_total: Number(totalAcheteur),
@@ -8474,7 +8517,7 @@ async function enregistrerVente(method) {
         var ins = await _spirit.from('transactions').insert([txRich]);
         if (ins && ins.error) {
             // Compatibilité schéma: tentative avec colonnes financières optionnelles uniquement.
-            var txSemiRich = Object.assign({}, txBase, {
+            var txSemiRich = Object.assign({}, txBase, txMetaLedger, {
                 shipping_amount: Number(fraisLivraison),
                 protection_fee: Number(protectionTotale),
                 buyer_total: Number(totalAcheteur)
@@ -10880,6 +10923,34 @@ async function spiritLoadListingMessagesForProduct(productId) {
         return map;
     }
 
+    async function spiritHotToysAdminBourseProductsByIds(ids) {
+        var map = Object.create(null);
+        if (!_spirit || !Array.isArray(ids) || !ids.length) return map;
+        var seen = Object.create(null);
+        var clean = [];
+        ids.forEach(function (id) {
+            var n = Number(id);
+            if (!Number.isFinite(n) || n <= 0) return;
+            var k = String(n);
+            if (seen[k]) return;
+            seen[k] = true;
+            clean.push(n);
+        });
+        var chunk = 40;
+        for (var i = 0; i < clean.length; i += chunk) {
+            var part = clean.slice(i, i + chunk);
+            try {
+                var pq = await _spirit.from('products_live').select('id,brand,category,ship_size,cat').in('id', part);
+                if (!pq.error && Array.isArray(pq.data)) {
+                    pq.data.forEach(function (row) {
+                        if (row && row.id != null) map[String(row.id)] = row;
+                    });
+                }
+            } catch (eP) {}
+        }
+        return map;
+    }
+
     async function spiritHotToysAdminLoadBourse() {
         var box = document.getElementById('spiritHotToysAdminBourseOut');
         if (!box) return;
@@ -10891,20 +10962,42 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (q.error) throw q.error;
             var rows = Array.isArray(q.data) ? q.data : [];
             var pmap = await spiritHotToysAdminResolvePseudos(rows);
-            var head = '<table style="width:100%;border-collapse:collapse;font-size:0.62rem;"><thead><tr style="background:#151515;">';
-            ['Date', 'Produit', 'Montant', 'Marque', 'Échelle / type', 'Statut', 'Acheteur', 'Vendeur'].forEach(function (h) {
-                head += '<th style="text-align:left;padding:6px;border:1px solid #333;">' + esc(h) + '</th>';
+            var prodIds = [];
+            rows.forEach(function (r) {
+                var pid = spiritParseFavoriteProductId(r && r.product_id);
+                if (pid != null) prodIds.push(pid);
+            });
+            var prodMap = await spiritHotToysAdminBourseProductsByIds(prodIds);
+            var thStyle = 'text-align:left;padding:8px 7px;border:1px solid #333;font-size:0.68rem;';
+            var tdStyle = 'padding:7px;border:1px solid #222;font-size:0.68rem;';
+            var head = '<table class="spirit-ht-bourse-table"><thead><tr style="background:#151515;">';
+            [['Date', ''], ['Produit', ''], ['Montant', ''], ['Marque', 'spirit-ht-bourse-marque'], ['Échelle / type', 'spirit-ht-bourse-scale'], ['Statut', ''], ['Acheteur', ''], ['Vendeur', '']].forEach(function (hc) {
+                head += '<th class="' + esc(hc[1]) + '" style="' + thStyle + '">' + esc(hc[0]) + '</th>';
             });
             head += '</tr></thead><tbody>';
             var body = rows.map(function (r) {
-                var brand = r.brand || r.marque || r.product_brand || r.manufacturer || '—';
-                var scale = r.scale || r.product_kind || r.format || r.taille || r.size || r.category || '—';
+                var pidRow = spiritParseFavoriteProductId(r && r.product_id);
+                var prow = (pidRow != null) ? prodMap[String(pidRow)] : null;
+                var brandRaw = r.brand || r.marque || r.product_brand || r.manufacturer || (prow && prow.brand) || '';
+                var brand = String(brandRaw).trim() || '—';
+                var fromProdScale = prow ? [prow.category, prow.ship_size, prow.cat].filter(function (x) { return x != null && String(x).trim() !== ''; }).map(function (x) { return String(x).trim(); }).join(' · ') : '';
+                var scaleRaw = r.scale || r.product_kind || r.format || r.taille || r.size || r.category || fromProdScale || '';
+                var scale = String(scaleRaw).trim() || '—';
                 var dt = r.created_at ? new Date(r.created_at).toLocaleString() : '—';
                 var buyer = pmap[String(r.buyer_id || '').trim()] || String(r.buyer_id || '—');
                 var seller = pmap[String(r.seller_id || '').trim()] || String(r.seller_id || '—');
-                return '<tr><td style="padding:6px;border:1px solid #222;white-space:nowrap;">' + esc(dt) + '</td><td style="padding:6px;border:1px solid #222;">' + esc(r.figurine_name || r.title || '—') + '</td><td style="padding:6px;border:1px solid #222;">' + esc(String(r.amount != null ? r.amount : '—')) + ' ' + esc(r.currency || 'EUR') + '</td><td style="padding:6px;border:1px solid #222;">' + esc(brand) + '</td><td style="padding:6px;border:1px solid #222;">' + esc(scale) + '</td><td style="padding:6px;border:1px solid #222;">' + esc(r.status || '—') + '</td><td style="padding:6px;border:1px solid #222;">' + esc(buyer) + '</td><td style="padding:6px;border:1px solid #222;">' + esc(seller) + '</td></tr>';
+                return '<tr>'
+                    + '<td style="' + tdStyle + 'white-space:nowrap;">' + esc(dt) + '</td>'
+                    + '<td style="' + tdStyle + '">' + esc(r.figurine_name || r.title || '—') + '</td>'
+                    + '<td style="' + tdStyle + '">' + esc(String(r.amount != null ? r.amount : '—')) + ' ' + esc(r.currency || 'EUR') + '</td>'
+                    + '<td class="spirit-ht-bourse-marque" style="' + tdStyle + '">' + esc(brand) + '</td>'
+                    + '<td class="spirit-ht-bourse-scale" style="' + tdStyle + '">' + esc(scale) + '</td>'
+                    + '<td style="' + tdStyle + '">' + esc(r.status || '—') + '</td>'
+                    + '<td style="' + tdStyle + '">' + esc(buyer) + '</td>'
+                    + '<td style="' + tdStyle + '">' + esc(seller) + '</td>'
+                    + '</tr>';
             }).join('');
-            box.innerHTML = head + body + '</tbody></table><p style="margin-top:10px;color:#666;font-size:0.6rem;">' + rows.length + ' ligne(s). Si la liste est vide ou erreur RLS, ajoute une policy admin côté Supabase.</p>';
+            box.innerHTML = head + body + '</tbody></table><p style="margin-top:10px;color:#666;font-size:0.62rem;">' + rows.length + ' ligne(s). Colonnes <code>marque</code> / <code>brand</code> / <code>product_id</code> / <code>product_kind</code> sur <code>transactions</code> : optionnelles (ajoute-les en SQL si besoin).</p>';
         } catch (e) {
             box.innerHTML = '<span style="color:#f66;">' + esc(String(e && e.message ? e.message : e)) + '</span><p style="color:#888;font-size:0.62rem;margin-top:8px;">Les politiques RLS de <code>transactions</code> limitent souvent la lecture aux parties prenantes. Pour un vrai back-office, prévoir un rôle <code>service_role</code> via Edge Function.</p>';
         }
