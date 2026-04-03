@@ -1715,10 +1715,27 @@
             animation: spiritBadgeLitBlink 0.9s ease-in-out infinite;
             border-color: #f33;
         }
-        .spirit-market-litige-chip {
-            position: absolute; top: 8px; left: 8px; z-index: 12; font-size: 0.58rem; font-weight: 900;
-            padding: 4px 8px; background: rgba(120,0,0,0.82); border: 1px solid #f44; color: #ffd7d7;
-            animation: spiritBadgeLitBlink 1s ease-in-out infinite;
+        .spirit-market-litige-macaron {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 28%, #ff6b6b, #b00000 55%, #4a0000);
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.45), 0 2px 10px rgba(255,0,0,0.55);
+            z-index: 28;
+            pointer-events: none;
+            display: none;
+            animation: spiritLitigeMacaronPulse 1.15s ease-in-out infinite;
+        }
+        .spirit-market-litige-macaron.spirit-litige-macaron-on {
+            display: block;
+        }
+        @keyframes spiritLitigeMacaronPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 1px rgba(0,0,0,0.45), 0 2px 10px rgba(255,0,0,0.45); }
+            50% { transform: scale(1.08); box-shadow: 0 0 0 1px rgba(0,0,0,0.45), 0 0 16px rgba(255,50,50,0.95); }
         }
         @keyframes spiritBadgeLitBlink { 0%,100% { box-shadow:0 0 0 rgba(255,0,0,0.1);} 50% { box-shadow:0 0 18px rgba(255,0,0,0.65);} }
         #spiritPublicProfileSection .spirit-pub-badge b { display: block; color: var(--neon-orange); font-size: 1.1rem; margin-top: 4px; }
@@ -2964,8 +2981,6 @@
             <option value="1/6" data-key="fig_scale_1_6">1/6 Action Figure</option>
             <option value="1/12" data-key="fig_scale_1_12">1/12</option>
             <option value="1/4" data-key="fig_scale_1_4_mix">Statue / Figure 1/4</option>
-            <option value="Resine" data-key="fig_format_resine">Statue Résine</option>
-            <option value="PVC" data-key="fig_format_pvc">Statue PVC</option>
             <option value="1/8" data-key="fig_scale_1_8">1/8</option>
             <option value="1/9" data-key="fig_scale_1_9">1/9</option>
             <option value="1/1" data-key="fig_scale_1_1">Échelle réelle (1/1)</option>
@@ -4061,7 +4076,7 @@
             'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Buste', 'scale_1_8_statue': '1/8',
             'lbl_coa_switch': "Certificat d'Authenticité (COA)", 'coa_no': 'Non', 'coa_yes': 'Oui',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFIED', 'badge_with_coa': 'AVEC CERTIFICAT',
-            'fig_scale_1_6': '1/6 Action Figure', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': 'Statue / Figure 1/4', 'fig_format_resine': 'Statue Résine', 'fig_format_pvc': 'Statue PVC', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Échelle réelle (1/1)',
+            'fig_scale_1_6': '1/6 Action Figure', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': 'Statue / Figure 1/4', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Échelle réelle (1/1)',
             'btn_load_more': 'Charger plus',
             'account_wishlist_menu': 'LISTE D’ENVIE', 'account_wishlist_title': 'MA LISTE D’ENVIE',
             'account_wishlist_hint': 'Tout ce que tu ajoutes avec le cœur sur le marché apparaît ici. Alerte si le prix baisse ou si l’annonce est vendue.',
@@ -4180,7 +4195,7 @@
             'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Bust', 'scale_1_8_statue': '1/8',
             'lbl_coa_switch': 'Certificate of Authenticity (COA)', 'coa_no': 'No', 'coa_yes': 'Yes',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI CERTIFIED', 'badge_with_coa': 'WITH COA',
-            'fig_scale_1_6': '1/6 Scale Figure', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': 'Statue / Figure 1/4', 'fig_format_resine': 'Resin statue', 'fig_format_pvc': 'PVC statue', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Life-size (1/1)',
+            'fig_scale_1_6': '1/6 Scale Figure', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': 'Statue / Figure 1/4', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Life-size (1/1)',
             'btn_load_more': 'Load more',
             'account_wishlist_menu': 'WISHLIST', 'account_wishlist_title': 'MY WISHLIST',
             'account_wishlist_hint': 'Anything you heart on the market appears here. Alerts if the price drops or the listing is sold.',
@@ -4299,7 +4314,7 @@
             'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Busto', 'scale_1_8_statue': '1/8',
             'lbl_coa_switch': 'Certificado de autenticidad (COA)', 'coa_no': 'No', 'coa_yes': 'Sí',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFICADO', 'badge_with_coa': 'CON COA',
-            'fig_scale_1_6': 'Figura 1/6', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': 'Estatua / figura 1/4', 'fig_format_resine': 'Estatua resina', 'fig_format_pvc': 'Estatua PVC', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Escala real (1/1)',
+            'fig_scale_1_6': 'Figura 1/6', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': 'Estatua / figura 1/4', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Escala real (1/1)',
             'btn_load_more': 'Cargar más',
             'account_wishlist_menu': 'LISTA DE DESEOS', 'account_wishlist_title': 'MI LISTA DE DESEOS',
             'account_wishlist_hint': 'Lo que marques con el corazón en el mercado aparece aquí. Aviso si baja el precio o se vende.',
@@ -4418,7 +4433,7 @@
             'scale_1_2': '1/2', 'scale_life_size': '等身（1/1）', 'scale_bust': '胸像', 'scale_1_8_statue': '1/8',
             'lbl_coa_switch': '真伪证书（COA）', 'coa_no': '否', 'coa_yes': '是',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI 认证', 'badge_with_coa': '含 COA',
-            'fig_scale_1_6': '1/6 可动人偶', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': '雕像 / 人偶 1/4', 'fig_format_resine': '树脂雕像', 'fig_format_pvc': 'PVC 雕像', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': '等身比例（1/1）',
+            'fig_scale_1_6': '1/6 可动人偶', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': '雕像 / 人偶 1/4', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': '等身比例（1/1）',
             'btn_load_more': '加载更多',
             'account_wishlist_menu': '心愿单', 'account_wishlist_title': '我的心愿单',
             'account_wishlist_hint': '在市场上点红心的商品会显示在这里；降价或售出时会提醒。',
@@ -5051,8 +5066,6 @@ function spiritFigurineScaleMatches(item, fCat) {
     if (want === '1/9' && /\b1\/9\b/.test(low)) return true;
     if (want === '1/1' && (/\b1\/1\b/.test(low) || /réelle|reelle|life/i.test(low))) return true;
     if (want === '1/4' && /\b1\/4\b/.test(low)) return true;
-    if (want === 'Resine' && (low === 'resine' || low.indexOf('résine') >= 0 || low.indexOf('resine') >= 0)) return true;
-    if (want === 'PVC' && low === 'pvc') return true;
     return false;
 }
 try { window.spiritItemConditionLabel = spiritItemConditionLabel; } catch (eSIL) {}
@@ -7227,9 +7240,13 @@ function renderMarket(filteredData = null) {
             const badgeClass = isNative ? 'native' : 'legacy';
             const badgeText = isNative ? spiritT('badge_native') : spiritT('badge_legacy');
             const hasCoa = item.has_coa === true || item.has_coa === 'true' || item.has_coa === 1 || String(item.has_coa).toLowerCase() === 't';
-            
+            const oid = spiritOwnerId(item.owner_id);
+            const oidNormLit = oid && typeof spiritNormUid === 'function' ? spiritNormUid(oid) : String(oid || '').trim();
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
-            const litigeBadge = '<div class="spirit-market-litige-chip" style="display:none;">LITIGE EN COURS</div>';
+            const oidLitEsc = oidNormLit ? String(oidNormLit).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '') : '';
+            const litigeBadge = oidNormLit
+                ? '<div class="spirit-market-litige-macaron" data-seller-litige="' + oidLitEsc + '" title="Litige en cours impliquant ce vendeur" role="img" aria-label="Litige en cours"></div>'
+                : '';
             const favNum = spiritFavoriteProductId(item);
             const favKey = favNum != null ? String(favNum) : '';
             var fc = (favKey && spiritFavoriteCountMap[favKey] != null) ? spiritFavoriteCountMap[favKey] : 0;
@@ -7260,9 +7277,7 @@ function renderMarket(filteredData = null) {
             const totalArrival = safePrice + customs + shipping + protection;
             const extraRate = safePrice > 0 ? ((customs + shipping + protection) / safePrice) : 0;
 
-            // AJOUT / CORRECTION : owner_id est stocké en texte (Image 2). 
-            // AJOUT : .trim() pour éviter les échecs de comparaison dus à des espaces invisibles.
-            const oid = spiritOwnerId(item.owner_id);
+            // owner_id : déjà résolu dans `oid` (plus haut).
             const isMine = oid !== '' && oid === String(MY_TEST_ID).trim();
             const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.5); color:#0f0; font-size:10px; padding:2px 6px; border:1px solid #0f0; border-radius:2px; z-index:10; font-weight:bold;">MES ANNONCES</div>` : '';
             const sellerLabelText = isMine && typeof currentUser !== 'undefined' && String(currentUser).trim()
@@ -7316,11 +7331,12 @@ function renderMarket(filteredData = null) {
             if (oid) {
                 (async function () {
                     try {
-                        var lb = card.querySelector('.spirit-market-litige-chip');
-                        if (lb) {
-                            var hasLit = await spiritHasOpenLitigeForUser(oid);
-                            lb.style.display = hasLit ? 'block' : 'none';
-                        }
+                        var oidN = typeof spiritNormUid === 'function' ? spiritNormUid(oid) : String(oid || '').trim().toLowerCase();
+                        var hasLit = await spiritHasOpenLitigeForUser(oid);
+                        document.querySelectorAll('.spirit-market-litige-macaron').forEach(function (el) {
+                            var a = typeof spiritNormUid === 'function' ? spiritNormUid(el.getAttribute('data-seller-litige') || '') : String(el.getAttribute('data-seller-litige') || '').trim().toLowerCase();
+                            if (a === oidN) el.classList.toggle('spirit-litige-macaron-on', !!hasLit);
+                        });
                     } catch (eL) {}
                     var btn = card.querySelector('.btn-action[data-seller-uid="' + oid + '"]');
                     if (!btn) return;
