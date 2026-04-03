@@ -3970,6 +3970,7 @@
             'account_favorites_hint': 'Tout ce que tu ajoutes avec le cœur sur le marché apparaît ici.',
             'account_favorites_seller_note': 'Le vendeur est notifié dans Mon compte → Favoris.',
             'account_favorites_empty': 'Ta liste d’envie est vide.', 'fav_price_drop': 'PRIX EN BAISSE', 'fav_price_drop_badge': 'BAISSE DE PRIX', 'fav_sold': 'VENDU', 'fav_open': 'Voir',
+            'listing_sold_no_view': 'Cette annonce est vendue et n’est plus consultable.',
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Félicitations ! Votre achat est confirmé. L\'annonce a été retirée du marché. Montant en séquestre Spirit : {amount} €.',
             'lbl_reg_country': 'Pays / région', 'reg_country_placeholder': '— Choisir un pays —',
             'reg_country_fr': 'France', 'reg_country_usa': 'États-Unis', 'reg_country_cn': 'Chine', 'reg_country_es': 'Espagne',
@@ -4087,6 +4088,7 @@
             'account_favorites_hint': 'Anything you heart on the market appears here.',
             'account_favorites_seller_note': 'The seller is notified under My Account → Favorites.',
             'account_favorites_empty': 'Your wishlist is empty.', 'fav_price_drop': 'PRICE DROP', 'fav_price_drop_badge': 'PRICE DROP', 'fav_sold': 'SOLD', 'fav_open': 'View',
+            'listing_sold_no_view': 'This listing has been sold and is no longer available.',
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': 'Congratulations! Your purchase is confirmed. The listing has been removed from the market. Escrow amount: {amount} €.',
             'lbl_reg_country': 'Country / region', 'reg_country_placeholder': '— Choose a country —',
             'reg_country_fr': 'France', 'reg_country_usa': 'United States', 'reg_country_cn': 'China', 'reg_country_es': 'Spain',
@@ -4204,6 +4206,7 @@
             'account_favorites_hint': 'Lo que marques con el corazón aparece aquí.',
             'account_favorites_seller_note': 'El vendedor recibe aviso en Mi cuenta → Favoritos.',
             'account_favorites_empty': 'Tu lista de deseos está vacía.', 'fav_price_drop': 'PRECIO A LA BAJA', 'fav_price_drop_badge': 'BAJA DE PRECIO', 'fav_sold': 'VENDIDO', 'fav_open': 'Ver',
+            'listing_sold_no_view': 'Este anuncio está vendido y ya no está disponible.',
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '¡Enhorabuena! Tu compra está confirmada. El anuncio se ha retirado del mercado. Importe en depósito: {amount} €.',
             'lbl_reg_country': 'País / región', 'reg_country_placeholder': '— Elige un país —',
             'reg_country_fr': 'Francia', 'reg_country_usa': 'Estados Unidos', 'reg_country_cn': 'China', 'reg_country_es': 'España',
@@ -4321,6 +4324,7 @@
             'account_favorites_hint': '你点红心的商品会显示在这里。',
             'account_favorites_seller_note': '卖家在「我的账户 → 收藏」会收到通知。',
             'account_favorites_empty': '心愿单还是空的。', 'fav_price_drop': '降价', 'fav_price_drop_badge': '降价促销', 'fav_sold': '已售', 'fav_open': '查看',
+            'listing_sold_no_view': '该商品已售出，无法查看。',
             'purchase_success_title': 'SPIRIT SECURE', 'purchase_success_msg': '恭喜！购买已确认。该商品已从市场下架。托管金额：{amount} 欧元。',
             'lbl_reg_country': '国家 / 地区', 'reg_country_placeholder': '— 请选择国家 —',
             'reg_country_fr': '法国', 'reg_country_usa': '美国', 'reg_country_cn': '中国', 'reg_country_es': '西班牙',
@@ -5090,6 +5094,13 @@ function spiritFindProductRowById(pid) {
     return scan(typeof marketData !== 'undefined' ? marketData : null);
 }
 var spiritShowProductDetailsLast = { id: null, t: 0 };
+/** Statut annonce vendue (products_live.status) — bloque l’ouverture du modal pour les non-vendeurs. */
+function spiritIsListingStatusSold(row) {
+    if (!row) return false;
+    var st = row.status != null && String(row.status).trim() !== '' ? String(row.status).trim().toLowerCase() : '';
+    return st === 'sold' || st === 'vendu';
+}
+try { window.spiritIsListingStatusSold = spiritIsListingStatusSold; } catch (eSoldF) {}
 /**
  * Détail annonce par products_live.id (= product_id dans favorites).
  * Template Statue / Figurine via openProduct ; anti-doublon clic.
@@ -8877,6 +8888,15 @@ async function spiritLoadListingMessagesForProduct(productId) {
 
  async function openProduct(item) {
         item = Object.assign({}, item);
+        if (typeof spiritIsListingStatusSold === 'function' && spiritIsListingStatusSold(item)) {
+            var meOpen = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : (typeof MY_TEST_ID !== 'undefined' ? MY_TEST_ID : '')) || '');
+            var oidOpen = typeof spiritOwnerId === 'function' ? spiritOwnerId(item.owner_id) : String(item.owner_id || '').trim().toLowerCase();
+            if (!meOpen || oidOpen !== meOpen) {
+                var soldMsg = (typeof spiritT === 'function') ? spiritT('listing_sold_no_view') : 'Cette annonce est vendue et n’est plus consultable.';
+                alert(soldMsg);
+                return;
+            }
+        }
         var keepNegotiated = item._spiritDisplayPrice != null;
         if (!keepNegotiated) {
             delete item._spiritDisplayPrice;
@@ -10820,12 +10840,13 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      created_at timestamptz default now()
    );
    create index if not exists idx_sanctuary_items_user on public.sanctuary_items(user_id);
-   -- Profil public : les visiteurs doivent pouvoir SELECT (au moins image_url, description, neon_color, sort_order) pour user_id = profil consulté.
-   -- Si la description est vide côté public alors qu’elle s’affiche pour le propriétaire, la colonne description est souvent masquée par RLS (policy SELECT trop restrictive).
-   -- Exemple (à adapter) : lecture publique des pièces d’un profil pour tout utilisateur authentifié :
+   -- Profil public : les visiteurs doivent pouvoir SELECT les MÊMES colonnes que le propriétaire (image_url, description, neon_color, sort_order…).
+   -- Si la description apparaît chez toi mais pas sur un autre compte : la policy SELECT ne renvoie souvent les lignes que pour user_id = auth.uid(), donc le client filtre .eq('user_id', autre_uuid) → lignes vides ou PostgREST masque des champs selon les grants.
+   -- Correction typique (tout compte authentifié peut lire toutes les lignes Sanctuaire — affinage possible avec USING (true) ou lecture anon si besoin) :
    -- alter table public.sanctuary_items enable row level security;
-   -- create policy "san_items_select_public_rows" on public.sanctuary_items for select to authenticated using (true);
-   -- ou : using (user_id = auth.uid()::text or true) selon ton modèle ; l’important est que les lecteurs voient la même ligne que le propriétaire (y compris description).
+   -- drop policy if exists "san_items_select_own" on public.sanctuary_items;
+   -- create policy "san_items_select_authenticated" on public.sanctuary_items for select to authenticated using (true);
+   -- L’INSERT/UPDATE/DELETE restent réservés au propriétaire (policies séparées avec user_id = auth.uid()::text).
    create table if not exists public.sanctuary_chat (
      id bigint primary key generated always as identity,
      recipient_id text not null,
@@ -12482,10 +12503,10 @@ function spiritSanctuarySessionCacheKey(uid, viewerIsOwner) {
     return String(uid || '').trim() + '::' + (viewerIsOwner ? 'own' : 'pub');
 }
 function spiritSanctuaryItemsCacheKeyOwn(uid) {
-    return 'spirit_san_items_own_v1__' + String(uid || '');
+    return 'spirit_san_items_own_v2__' + String(uid || '');
 }
 function spiritSanctuaryItemsCacheKeyPub(uid) {
-    return 'spirit_san_items_pub_v1__' + String(uid || '');
+    return 'spirit_san_items_pub_v2__' + String(uid || '');
 }
 function spiritPublicAnnoncesCacheKey(uid) {
     return 'spirit_pub_ann_v1__' + String(uid || '');
@@ -12518,6 +12539,8 @@ function spiritSanctuaryItemsCacheInvalidate(uid) {
     uid = String(uid || '').trim();
     try { localStorage.removeItem(spiritSanctuaryItemsCacheKeyOwn(uid)); } catch (e) {}
     try { localStorage.removeItem(spiritSanctuaryItemsCacheKeyPub(uid)); } catch (e1) {}
+    try { localStorage.removeItem('spirit_san_items_own_v1__' + uid); } catch (eV1o) {}
+    try { localStorage.removeItem('spirit_san_items_pub_v1__' + uid); } catch (eV1p) {}
     try { localStorage.removeItem('spirit_san_items_v1__' + uid); } catch (eLeg) {}
     try { delete spiritSanctuaryItemsSessionRows[spiritSanctuarySessionCacheKey(uid, true)]; } catch (e2) {}
     try { delete spiritSanctuaryItemsSessionRows[spiritSanctuarySessionCacheKey(uid, false)]; } catch (e3) {}
@@ -13028,6 +13051,12 @@ async function spiritReplyToEvaluation(evalId) {
 async function spiritOpenPublicProfileUI(userId, opts) {
     opts = opts || {};
     spiritPublicViewUserId = String(userId).trim();
+    try {
+        var meOpenPub = typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : '';
+        var pvNorm = spiritNormUid(spiritPublicViewUserId);
+        var meNormOpen = spiritNormUid(meOpenPub);
+        if (!meNormOpen || meNormOpen !== pvNorm) spiritSanctuaryItemsCacheInvalidate(spiritPublicViewUserId);
+    } catch (ePubSanInv) {}
     try { spiritSanSocialSupabaseEnabled = true; } catch (eRe) {}
     if (typeof window.hideAllSections === 'function') window.hideAllSections();
     document.body.classList.add('spirit-public-active');
@@ -13375,7 +13404,7 @@ async function spiritSanctuaryFetchItems(uid, viewerIsOwner) {
     if (!uid) return [];
     viewerIsOwner = !!viewerIsOwner;
     var sKey = spiritSanctuarySessionCacheKey(uid, viewerIsOwner);
-    if (spiritSanctuaryItemsSessionRows[sKey] && Array.isArray(spiritSanctuaryItemsSessionRows[sKey])) {
+    if (viewerIsOwner && spiritSanctuaryItemsSessionRows[sKey] && Array.isArray(spiritSanctuaryItemsSessionRows[sKey])) {
         return spiritSanctuaryItemsSessionRows[sKey].slice();
     }
     var cKey = viewerIsOwner ? spiritSanctuaryItemsCacheKeyOwn(uid) : spiritSanctuaryItemsCacheKeyPub(uid);
@@ -13393,11 +13422,13 @@ async function spiritSanctuaryFetchItems(uid, viewerIsOwner) {
         if (out.error || !out.data) return [];
         var rows = out.data.map(function (r) {
             var so = r[SPIRIT_SANCTUARY_SORT_KEY];
+            var rawDesc = r.description;
+            if (rawDesc == null && r.desc != null) rawDesc = r.desc;
             return {
                 id: r.id,
                 src: r.image_url,
                 neon: r.neon_color || '#ff6600',
-                desc: r.description || '',
+                desc: rawDesc != null ? String(rawDesc) : '',
                 sort_order: (so != null && so !== '') ? Number(so) : 0
             };
         });
