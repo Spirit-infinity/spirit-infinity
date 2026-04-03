@@ -2963,6 +2963,9 @@
             <option value="all" data-key="opt_all_formats">Tous les formats</option>
             <option value="1/6" data-key="fig_scale_1_6">1/6 Action Figure</option>
             <option value="1/12" data-key="fig_scale_1_12">1/12</option>
+            <option value="1/4" data-key="fig_scale_1_4_mix">Statue / Figure 1/4</option>
+            <option value="Resine" data-key="fig_format_resine">Statue Résine</option>
+            <option value="PVC" data-key="fig_format_pvc">Statue PVC</option>
             <option value="1/8" data-key="fig_scale_1_8">1/8</option>
             <option value="1/9" data-key="fig_scale_1_9">1/9</option>
             <option value="1/1" data-key="fig_scale_1_1">Échelle réelle (1/1)</option>
@@ -3080,6 +3083,7 @@
                     <select id="sScale" onchange="applyStatuesFilters()">
                         <option value="all" data-i18n="opt_all_formats">Tous les formats</option>
                         <option value="1/6-resine" data-i18n="scale_1_6_resine">1/6 (Resine)</option>
+                        <option value="1/8" data-i18n="scale_1_8_statue">1/8</option>
                         <option value="1/4" data-i18n="scale_1_4">1/4</option>
                         <option value="1/3" data-i18n="scale_1_3">1/3</option>
                         <option value="1/2" data-i18n="scale_1_2">1/2</option>
@@ -3089,9 +3093,11 @@
                     <label data-i18n="statues_condition">ÉTAT DE L'OBJET</label>
                     <select id="sCond" onchange="applyStatuesFilters()">
                         <option value="all" data-i18n="opt_all_conds">Tous les états</option>
-                        <option value="Neuf" data-i18n="cond_new_short">Neuf</option>
-                        <option value="Occasion" data-i18n="cond_used">Occasion</option>
-                        <option value="Scellé" data-i18n="cond_sealed">Scellé</option>
+                        <option value="Neuf" data-i18n="cond_new">Neuf (Scellé)</option>
+                        <option value="Très bon état" data-i18n="cond_vgood">Très bon état</option>
+                        <option value="Bon état" data-i18n="cond_good">Bon état</option>
+                        <option value="Moyen" data-i18n="cond_mid">Moyen</option>
+                        <option value="Satisfaisant" data-i18n="cond_ok">Satisfaisant</option>
                     </select>
                     </div>
                 </div>
@@ -4052,10 +4058,10 @@
             'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
             'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
             'scale_1_6_resine': '1/6 (Resine)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
-            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Buste',
+            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Buste', 'scale_1_8_statue': '1/8',
             'lbl_coa_switch': "Certificat d'Authenticité (COA)", 'coa_no': 'Non', 'coa_yes': 'Oui',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFIED', 'badge_with_coa': 'AVEC CERTIFICAT',
-            'fig_scale_1_6': '1/6 Action Figure', 'fig_scale_1_12': '1/12', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Échelle réelle (1/1)',
+            'fig_scale_1_6': '1/6 Action Figure', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': 'Statue / Figure 1/4', 'fig_format_resine': 'Statue Résine', 'fig_format_pvc': 'Statue PVC', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Échelle réelle (1/1)',
             'btn_load_more': 'Charger plus',
             'account_wishlist_menu': 'LISTE D’ENVIE', 'account_wishlist_title': 'MA LISTE D’ENVIE',
             'account_wishlist_hint': 'Tout ce que tu ajoutes avec le cœur sur le marché apparaît ici. Alerte si le prix baisse ou si l’annonce est vendue.',
@@ -4171,10 +4177,10 @@
             'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
             'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
             'scale_1_6_resine': '1/6 (Resin)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
-            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Bust',
+            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Bust', 'scale_1_8_statue': '1/8',
             'lbl_coa_switch': 'Certificate of Authenticity (COA)', 'coa_no': 'No', 'coa_yes': 'Yes',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI CERTIFIED', 'badge_with_coa': 'WITH COA',
-            'fig_scale_1_6': '1/6 Scale Figure', 'fig_scale_1_12': '1/12', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Life-size (1/1)',
+            'fig_scale_1_6': '1/6 Scale Figure', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': 'Statue / Figure 1/4', 'fig_format_resine': 'Resin statue', 'fig_format_pvc': 'PVC statue', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Life-size (1/1)',
             'btn_load_more': 'Load more',
             'account_wishlist_menu': 'WISHLIST', 'account_wishlist_title': 'MY WISHLIST',
             'account_wishlist_hint': 'Anything you heart on the market appears here. Alerts if the price drops or the listing is sold.',
@@ -4290,10 +4296,10 @@
             'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
             'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
             'scale_1_6_resine': '1/6 (Resina)', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
-            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Busto',
+            'scale_1_2': '1/2', 'scale_life_size': 'Life-Size (1/1)', 'scale_bust': 'Busto', 'scale_1_8_statue': '1/8',
             'lbl_coa_switch': 'Certificado de autenticidad (COA)', 'coa_no': 'No', 'coa_yes': 'Sí',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'IA CERTIFICADO', 'badge_with_coa': 'CON COA',
-            'fig_scale_1_6': 'Figura 1/6', 'fig_scale_1_12': '1/12', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Escala real (1/1)',
+            'fig_scale_1_6': 'Figura 1/6', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': 'Estatua / figura 1/4', 'fig_format_resine': 'Estatua resina', 'fig_format_pvc': 'Estatua PVC', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': 'Escala real (1/1)',
             'btn_load_more': 'Cargar más',
             'account_wishlist_menu': 'LISTA DE DESEOS', 'account_wishlist_title': 'MI LISTA DE DESEOS',
             'account_wishlist_hint': 'Lo que marques con el corazón en el mercado aparece aquí. Aviso si baja el precio o se vende.',
@@ -4409,10 +4415,10 @@
             'brand_tsume_art': 'Tsume Art', 'brand_oniri': 'Oniri Creations', 'brand_purearts': 'PureArts',
             'brand_iron_studios': 'Iron Studios', 'brand_jnd_studios': 'JND Studios', 'brand_blitzway': 'Blitzway',
             'scale_1_6_resine': '1/6（树脂）', 'scale_1_4': '1/4', 'scale_1_3': '1/3',
-            'scale_1_2': '1/2', 'scale_life_size': '等身（1/1）', 'scale_bust': '胸像',
+            'scale_1_2': '1/2', 'scale_life_size': '等身（1/1）', 'scale_bust': '胸像', 'scale_1_8_statue': '1/8',
             'lbl_coa_switch': '真伪证书（COA）', 'coa_no': '否', 'coa_yes': '是',
             'badge_native': 'SPIRIT NATIVE', 'badge_legacy': 'AI 认证', 'badge_with_coa': '含 COA',
-            'fig_scale_1_6': '1/6 可动人偶', 'fig_scale_1_12': '1/12', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': '等身比例（1/1）',
+            'fig_scale_1_6': '1/6 可动人偶', 'fig_scale_1_12': '1/12', 'fig_scale_1_4_mix': '雕像 / 人偶 1/4', 'fig_format_resine': '树脂雕像', 'fig_format_pvc': 'PVC 雕像', 'fig_scale_1_8': '1/8', 'fig_scale_1_9': '1/9', 'fig_scale_1_1': '等身比例（1/1）',
             'btn_load_more': '加载更多',
             'account_wishlist_menu': '心愿单', 'account_wishlist_title': '我的心愿单',
             'account_wishlist_hint': '在市场上点红心的商品会显示在这里；降价或售出时会提醒。',
@@ -4997,14 +5003,59 @@ function spiritProductsLivePriceEUR(row) {
 function normalizeSpiritScale(rawScale) {
     const s = String(rawScale || '').toLowerCase().trim();
     if (!s) return '';
-    if (s.includes('1/6') && (s.includes('resine') || s.includes('résine') || s.includes('resin'))) return '1/6-resine';
-    if (s.includes('1/4')) return '1/4';
-    if (s.includes('1/3')) return '1/3';
-    if (s.includes('1/2')) return '1/2';
+    if (s.includes('buste') || s.includes('bust') || s.includes('statue-autre')) return 'buste';
     if (s.includes('life-size') || s.includes('1/1') || s.includes('life size')) return 'life-size';
-    if (s.includes('buste') || s.includes('bust')) return 'buste';
+    var st = s.match(/statue-1\/(\d+)/);
+    if (st) {
+        var n = st[1];
+        if (n === '6') return '1/6-resine';
+        if (n === '8') return '1/8';
+        if (n === '4') return '1/4';
+        if (n === '3') return '1/3';
+        if (n === '2') return '1/2';
+    }
+    if (s.includes('1/2')) return '1/2';
+    if (s.includes('1/3')) return '1/3';
+    if (s.includes('1/4')) return '1/4';
+    if (s.includes('1/8')) return '1/8';
+    if (s.includes('1/6')) {
+        if (s.includes('resine') || s.includes('résine') || s.includes('resin')) return '1/6-resine';
+        return '1/6-resine';
+    }
     return s;
 }
+
+/** État affiché / filtre : colonne optionnelle ou ligne « ÉTAT : … » en tête de description (publication). */
+function spiritItemConditionLabel(item) {
+    if (!item) return '';
+    var direct = item.condition || item.cond || item.item_condition || item.sale_condition;
+    if (direct != null && String(direct).trim() !== '') return String(direct).trim();
+    var d = String(item.description || item.desc || '');
+    var m = d.match(/ÉTAT\s*:\s*([^\n\r]+)/i);
+    if (m) return String(m[1] || '').trim();
+    m = d.match(/STATE\s*:\s*([^\n\r]+)/i);
+    if (m) return String(m[1] || '').trim();
+    return '';
+}
+
+/** Filtre échelle figurines : comparer au champ `category` (format), pas à `cat` (figurine|statue). */
+function spiritFigurineScaleMatches(item, fCat) {
+    if (fCat === 'all' || !fCat) return true;
+    var want = String(fCat).trim();
+    var ic = String(item && item.category != null ? item.category : '').trim();
+    if (ic === want) return true;
+    var low = ic.toLowerCase();
+    if (want === '1/6' && /\b1\/6\b/.test(low) && !/\b1\/60\b/.test(low)) return true;
+    if (want === '1/12' && /\b1\/12\b/.test(low)) return true;
+    if (want === '1/8' && /\b1\/8\b/.test(low)) return true;
+    if (want === '1/9' && /\b1\/9\b/.test(low)) return true;
+    if (want === '1/1' && (/\b1\/1\b/.test(low) || /réelle|reelle|life/i.test(low))) return true;
+    if (want === '1/4' && /\b1\/4\b/.test(low)) return true;
+    if (want === 'Resine' && (low === 'resine' || low.indexOf('résine') >= 0 || low.indexOf('resine') >= 0)) return true;
+    if (want === 'PVC' && low === 'pvc') return true;
+    return false;
+}
+try { window.spiritItemConditionLabel = spiritItemConditionLabel; } catch (eSIL) {}
 
 function setSpiritMarketLoading(on) {
     var el = document.getElementById('spiritMarketLoader');
@@ -7221,6 +7272,10 @@ function renderMarket(filteredData = null) {
             const smokeTxt = item.is_smoke_free ? 'Non-fumeur' : 'Fumeur?';
             const lightTxt = item.is_light_protect ? 'Lumiere protegee' : 'Lumiere exposee';
             const firstTxt = item.is_first_hand ? '1ere main' : 'Multi-mains';
+            const displayBrand = String(item.brand || item.marque || '').trim();
+            const brandLine = displayBrand
+                ? `<div class="spirit-card-brand" style="font-size:0.62rem;color:#c9a77a;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">${displayBrand.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')}</div>`
+                : '';
             card.innerHTML = `
                 ${soldBadge}
                 ${litigeBadge}
@@ -7231,6 +7286,7 @@ function renderMarket(filteredData = null) {
                     <div class="market-badges-row">
                         <span class="badge ${badgeClass}">${badgeText}</span>${hasCoa ? `<span class="badge badge-coa">${spiritT('badge_with_coa')}</span>` : ''}
                     </div>
+                    ${brandLine}
                     <div class="price">${safePrice.toFixed(2)} ${marketCurrencyMode}</div>
                     ${isImport ? `<div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}">Estimation Import : ${customs.toFixed(2)} ${marketCurrencyMode} | Total estimé à l'arrivée : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>` : ''}
                     <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
@@ -9629,7 +9685,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         if (!q) return true;
         var blob = [
             item.title, item.name, item.description, item.desc,
-            item.brand, item.category, item.cat
+            item.brand, item.category, item.cat, spiritItemConditionLabel(item)
         ].map(function (x) { return String(x == null ? '' : x).toLowerCase(); }).join(' ');
         return blob.indexOf(q) >= 0;
     }
@@ -9656,9 +9712,11 @@ async function spiritLoadListingMessagesForProduct(productId) {
             }
             var itemCountry = String(item.origin_country || item.country || '').trim().toLowerCase();
             var filterCountry = String(country || '').trim().toLowerCase();
+            var itemCondFig = spiritItemConditionLabel(item);
             return spiritMarketSearchMatches(item) && matchPrice && (country === 'all' || itemCountry === filterCountry) &&
-                   (brand === 'all' || item.brand === brand) && (cat === 'all' || (item.cat || item.category) === cat) &&
-                   (cond === 'all' || item.cond === cond);
+                   (brand === 'all' || String(item.brand || '') === brand) &&
+                   spiritFigurineScaleMatches(item, cat) &&
+                   (cond === 'all' || itemCondFig === cond);
         });
         renderMarket(filtered);
     }
@@ -9684,12 +9742,12 @@ async function spiritLoadListingMessagesForProduct(productId) {
             }
             const itemCountry = String(item.origin_country || item.country || '').trim().toLowerCase();
             const itemScale = normalizeSpiritScale(item.scale || item.format || item.category || '');
-            const itemCond = item.cond || item.condition || '';
+            const itemCondSta = spiritItemConditionLabel(item);
             return spiritMarketSearchMatches(item) && matchPrice &&
                 (brand === 'all' || String(item.brand || '') === brand) &&
                 (country === 'all' || String(itemCountry) === String(country || '').trim().toLowerCase()) &&
                 (scale === 'all' || String(itemScale) === String(scale)) &&
-                (cond === 'all' || String(itemCond) === cond);
+                (cond === 'all' || itemCondSta === cond);
         });
         renderMarket(filtered);
     }
