@@ -10566,10 +10566,11 @@ async function spiritLoadListingMessagesForProduct(productId) {
     }
 
     function spiritRefreshHotToysAdminNav() {
+        var vis = typeof spiritIsHotToysAdmin === 'function' && spiritIsHotToysAdmin();
         var b1 = document.getElementById('nav-ht-admin');
         var b2 = document.getElementById('spirit-mob-nav-ht-admin');
-        if (b1) b1.style.setProperty('display', 'none', 'important');
-        if (b2) b2.style.setProperty('display', 'none', 'important');
+        if (b1) b1.style.setProperty('display', vis ? 'inline-block' : 'none', 'important');
+        if (b2) b2.style.setProperty('display', vis ? 'block' : 'none', 'important');
     }
 
     /** Ouvre l’admin préco si l’URL contient le hash secret (puis retire le hash). À utiliser en signet : …#si-ht-preco-a */
