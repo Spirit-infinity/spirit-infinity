@@ -11490,6 +11490,9 @@ async function spiritWebPushDiagnose() {
     return lines.join('\n');
 }
 
+/** Évite plusieurs subscribe / upsert en parallèle (explosion de lignes FCM pour le même compte). */
+var spiritWebPushSubscribeLock = false;
+
 /**
  * Enregistre la souscription push en base (pour envoi serveur ultérieur).
  * opts.fromUser : true = demander la permission navigateur si besoin ; false = seulement si déjà accordée (resync silencieux).
@@ -11520,6 +11523,11 @@ async function spiritWebPushTrySubscribe(opts) {
             alert(spiritWebPushT('params_push_ios_pwa'));
         } catch (eIos) {}
     }
+    if (spiritWebPushSubscribeLock) {
+        if (opts.fromUser) console.warn('[SPIRIT PUSH] abonnement déjà en cours — attends la fin ou évite les double-clics.');
+        return false;
+    }
+    spiritWebPushSubscribeLock = true;
     try {
         var swScript = spiritWebPushServiceWorkerScriptUrl();
         try {
@@ -11568,12 +11576,23 @@ async function spiritWebPushTrySubscribe(opts) {
             if (opts.fromUser) alert(spiritWebPushT('params_push_save_err'));
             return false;
         }
+        if (opts.fromUser) {
+            try {
+                var epKeep = String(j.endpoint || '');
+                if (epKeep) {
+                    var pr = await _spirit.from(SPIRIT_WEB_PUSH_TABLE).delete().eq('user_id', uid).neq('endpoint', epKeep);
+                    if (pr && pr.error) console.warn('[SPIRIT PUSH] prune anciens endpoints', pr.error.message || pr.error);
+                }
+            } catch (ePrune) {}
+        }
         if (opts.fromUser) alert(spiritWebPushT('params_push_ok'));
         return true;
     } catch (e) {
         console.warn('[SPIRIT PUSH]', e);
         if (opts.fromUser) alert(spiritWebPushT('params_push_save_err'));
         return false;
+    } finally {
+        spiritWebPushSubscribeLock = false;
     }
 }
 
