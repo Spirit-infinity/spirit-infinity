@@ -1,13 +1,12 @@
 // Copyright (c) 2026 Spirit Infinity - Tous droits réservés
 const SPIRIT_SW_CACHE = 'spirit-sw-v3';
 
-self.addEventListener('install', function () {
-  // skipWaiting à chaque mise à jour → Chrome/Android affiche souvent « site mis à jour en arrière-plan ».
-  // Première installation seulement : activer tout de suite. Mises à jour : le nouveau SW prend le relais
-  // après fermeture des onglets (ou rechargement complet), sans spam de notification système.
-  if (!self.registration.active) {
-    self.skipWaiting();
-  }
+self.addEventListener('install', function (event) {
+  event.waitUntil(
+    Promise.resolve().then(function () {
+      if (!self.registration.active) return self.skipWaiting();
+    })
+  );
 });
 
 self.addEventListener('activate', function (event) {
