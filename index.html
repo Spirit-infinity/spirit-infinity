@@ -3979,7 +3979,8 @@
             'auth_err_email_exists': 'Un compte existe déjà avec cet e-mail. Vérifie ton mot de passe (le pays n’est requis qu’à la création du compte — tu peux le régler dans Paramètres).',
             'dashboard_listing_qa_title': 'MESSAGES SUR LES ANNONCES', 'dashboard_listing_qa_mark_read': 'MARQUER COMME LU',
             'notif_tag_question': 'Question', 'notif_tag_reply': 'Réponse', 'notif_tag_offer_accepted': 'Offre acceptée',
-            'notif_tag_offer_rejected': 'Offre refusée', 'notif_tag_evaluation': 'Évaluation', 'notif_tag_purchase': 'Achat',
+            'notif_tag_offer_rejected': 'Offre refusée', 'notif_tag_offer_pending': 'Nouvelle offre', 'notif_tag_listing_favorite': 'Favori',
+            'notif_tag_evaluation': 'Évaluation', 'notif_tag_purchase': 'Achat',
             'listing_chat_tr_hint': 'Traduction auto · survol pour l’original',
             'mob_lang_label': 'Langue',
             'reg_modal_connected': 'Tu es connecté(e).',
@@ -4095,7 +4096,8 @@
             'auth_err_email_exists': 'An account already exists for this email. Check your password (country is only required when signing up — set it under Settings).',
             'dashboard_listing_qa_title': 'LISTING MESSAGES', 'dashboard_listing_qa_mark_read': 'MARK AS READ',
             'notif_tag_question': 'Question', 'notif_tag_reply': 'Reply', 'notif_tag_offer_accepted': 'Offer accepted',
-            'notif_tag_offer_rejected': 'Offer declined', 'notif_tag_evaluation': 'Review', 'notif_tag_purchase': 'Purchase',
+            'notif_tag_offer_rejected': 'Offer declined', 'notif_tag_offer_pending': 'New offer', 'notif_tag_listing_favorite': 'Favorite',
+            'notif_tag_evaluation': 'Review', 'notif_tag_purchase': 'Purchase',
             'listing_chat_tr_hint': 'Auto translation · hover for original',
             'mob_lang_label': 'Language',
             'reg_modal_connected': 'You are signed in.',
@@ -4211,7 +4213,8 @@
             'auth_err_email_exists': 'Ya existe una cuenta con este correo. Revisa la contraseña (el país solo hace falta al registrarse — configúralo en Ajustes).',
             'dashboard_listing_qa_title': 'MENSAJES EN ANUNCIOS', 'dashboard_listing_qa_mark_read': 'MARCAR COMO LEÍDO',
             'notif_tag_question': 'Pregunta', 'notif_tag_reply': 'Respuesta', 'notif_tag_offer_accepted': 'Oferta aceptada',
-            'notif_tag_offer_rejected': 'Oferta rechazada', 'notif_tag_evaluation': 'Evaluación', 'notif_tag_purchase': 'Compra',
+            'notif_tag_offer_rejected': 'Oferta rechazada', 'notif_tag_offer_pending': 'Nueva oferta', 'notif_tag_listing_favorite': 'Favorito',
+            'notif_tag_evaluation': 'Evaluación', 'notif_tag_purchase': 'Compra',
             'listing_chat_tr_hint': 'Traducción auto · pasa el cursor para el original',
             'mob_lang_label': 'Idioma',
             'reg_modal_connected': 'Has iniciado sesión.',
@@ -4327,7 +4330,8 @@
             'auth_err_email_exists': '该邮箱已有账户，请检查密码（国家仅在注册时需要，也可在「设置」中修改）。',
             'dashboard_listing_qa_title': '商品留言', 'dashboard_listing_qa_mark_read': '标为已读',
             'notif_tag_question': '提问', 'notif_tag_reply': '回复', 'notif_tag_offer_accepted': '出价已接受',
-            'notif_tag_offer_rejected': '出价已拒绝', 'notif_tag_evaluation': '评价', 'notif_tag_purchase': '购买',
+            'notif_tag_offer_rejected': '出价已拒绝', 'notif_tag_offer_pending': '新出价', 'notif_tag_listing_favorite': '收藏',
+            'notif_tag_evaluation': '评价', 'notif_tag_purchase': '购买',
             'listing_chat_tr_hint': '自动翻译 · 悬停查看原文',
             'mob_lang_label': '语言',
             'reg_modal_connected': '你已登录。',
@@ -5431,6 +5435,22 @@ async function spiritToggleFavorite(productId, ev, favBtn) {
                         spiritSanctuaryShowToast('Liste d’envie', _wl);
                     }
                 } catch (eToastWl) {}
+                try {
+                    var plN = await _spirit.from('products_live').select('owner_id,title').eq('id', pid).maybeSingle();
+                    var ownRaw = plN && plN.data ? plN.data.owner_id : null;
+                    var sellN = typeof spiritOwnerId === 'function' ? spiritOwnerId(ownRaw) : String(ownRaw || '').trim().toLowerCase();
+                    if (sellN && sellN !== uidN && typeof spiritSanctuaryPushNotif === 'function') {
+                        var ptitle = plN && plN.data && plN.data.title ? String(plN.data.title).trim() : '';
+                        if (ptitle.length > 100) ptitle = ptitle.slice(0, 97) + '…';
+                        var buyerLbl = uidN;
+                        try {
+                            if (typeof spiritEvalResolveDisplayPseudo === 'function')
+                                buyerLbl = await spiritEvalResolveDisplayPseudo(uidN, 'Un membre');
+                        } catch (eB) {}
+                        var favMsg = buyerLbl + ' a mis ton annonce en favori' + (ptitle ? ' : ' + ptitle : '.');
+                        await spiritSanctuaryPushNotif(sellN, 'listing_favorite', String(pid), uidN, favMsg);
+                    }
+                } catch (eFavN) {}
             }
         }
     } catch (err) {
@@ -5713,7 +5733,7 @@ async function spiritCheckDashboardOfferDot() {
             if (!spiritSanNotifsTableMissing && typeof SPIRIT_SAN_NOTIFS_TABLE !== 'undefined') {
                 var nq = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true })
                     .eq('owner_id', uid).eq('is_read', false)
-                    .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'evaluation_pending']);
+                    .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'offer_pending', 'listing_favorite', 'evaluation_pending']);
                 if (nq && !nq.error && Number((nq && nq.count) || 0) > 0) anyListingQa = true;
             }
         } catch (eQa) {}
@@ -6044,7 +6064,7 @@ async function spiritCheckListingQaDashboardBanner() {
         var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE)
             .select('id,text,type,created_at,item_id')
             .eq('owner_id', uid).eq('is_read', false)
-            .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'purchase_done', 'evaluation_pending'])
+            .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'offer_pending', 'listing_favorite', 'purchase_done', 'evaluation_pending'])
             .order('created_at', { ascending: false })
             .range(0, 8);
         if (q.error || !q.data || !q.data.length) return;
@@ -6057,6 +6077,8 @@ async function spiritCheckListingQaDashboardBanner() {
                 : (tp === 'listing_reply') ? (typeof spiritT === 'function' ? spiritT('notif_tag_reply') : 'Réponse')
                 : (tp === 'offer_accepted') ? (typeof spiritT === 'function' ? spiritT('notif_tag_offer_accepted') : 'Offre acceptée')
                 : (tp === 'offer_rejected') ? (typeof spiritT === 'function' ? spiritT('notif_tag_offer_rejected') : 'Offre refusée')
+                : (tp === 'offer_pending') ? (typeof spiritT === 'function' ? spiritT('notif_tag_offer_pending') : 'Nouvelle offre')
+                : (tp === 'listing_favorite') ? (typeof spiritT === 'function' ? spiritT('notif_tag_listing_favorite') : 'Favori')
                 : (tp === 'evaluation_pending') ? (typeof spiritT === 'function' ? spiritT('notif_tag_evaluation') : 'Évaluation')
                 : (typeof spiritT === 'function' ? spiritT('notif_tag_purchase') : 'Achat');
         }
@@ -6096,7 +6118,7 @@ async function spiritAckListingQaBannerRead() {
     try {
         await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).update({ is_read: true })
             .eq('owner_id', uid).eq('is_read', false)
-            .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'purchase_done', 'evaluation_pending']);
+            .in('type', ['listing_question', 'listing_reply', 'offer_accepted', 'offer_rejected', 'offer_pending', 'listing_favorite', 'purchase_done', 'evaluation_pending']);
     } catch (e) {}
     var banner = document.getElementById('spiritListingQaAlert');
     if (banner) banner.style.display = 'none';
@@ -6152,6 +6174,22 @@ async function spiritSubmitProductOffer(productId, sellerId, offerAmount, origin
             return false;
         }
         alert('Offre envoyée au vendeur.');
+        try {
+            var titleHint = '';
+            try {
+                var prN = await _spirit.from('products_live').select('title').eq('id', pid).maybeSingle();
+                if (prN && prN.data && prN.data.title) titleHint = String(prN.data.title).trim();
+            } catch (eTN) {}
+            if (titleHint.length > 80) titleHint = titleHint.slice(0, 77) + '…';
+            var bLbl = buyerId;
+            try {
+                if (typeof spiritEvalResolveDisplayPseudo === 'function')
+                    bLbl = await spiritEvalResolveDisplayPseudo(buyerId, 'Un membre');
+            } catch (eBL) {}
+            var offMsg = bLbl + ' t\'a proposé une offre de ' + amt.toFixed(2) + ' ' + cur + (titleHint ? ' sur : ' + titleHint : '.');
+            if (typeof spiritSanctuaryPushNotif === 'function')
+                await spiritSanctuaryPushNotif(sid, 'offer_pending', String(pid), buyerId, offMsg);
+        } catch (eOffN) {}
         try { if (typeof spiritLoadBuyerOffersSent === 'function') void spiritLoadBuyerOffersSent(); } catch (e3) {}
         return true;
     } catch (err) {
@@ -12054,7 +12092,7 @@ function spiritLoadMessagesTab() {
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1a3a2a;border:1px solid #2a8a5a;color:#9f9;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">' + String(mT('msg_see_ad')).replace(/</g, '&lt;') + '</button></div>'
                     : (nType === 'evaluation_pending' && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#1f2a12;border:1px solid #8aaa2a;color:#efe28a;" onclick="try{event.preventDefault();event.stopPropagation();}catch(e){};spiritOpenEvaluationFromNotif(\'' + itemIdEsc + '\',\'' + fromUidEsc + '\')">' + String(mT('msg_rate_now')).replace(/</g, '&lt;') + '</button></div>'
-                    : ((nType === 'listing_question' || nType === 'listing_reply' || nType === 'offer_accepted' || nType === 'offer_rejected' || nType === 'purchase_done') && itemIdRaw)
+                    : ((nType === 'listing_question' || nType === 'listing_reply' || nType === 'offer_accepted' || nType === 'offer_rejected' || nType === 'offer_pending' || nType === 'listing_favorite' || nType === 'purchase_done') && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#2a2810;border:1px solid #a88a2a;color:#fc8;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">' + String(mT('msg_open_discussion')).replace(/</g, '&lt;') + '</button></div>'
                     : '';
                 var delBtn = (!n.synthetic && idStr !== '0')
@@ -15824,41 +15862,3 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     }
   });
 }
-</script>
-
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
