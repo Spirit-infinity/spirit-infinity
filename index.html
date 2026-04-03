@@ -3668,9 +3668,9 @@
                 <h1 id="spiritSanctuaryPseudoBanner">—</h1>
             </div>
             <div class="spirit-sanctuary-toolbar">
-                <!-- Profil public : ligne néon masquée (réglage par tuile / compte). Le select reste dans le DOM pour l’upload. -->
+                <!-- Profil public : une seule case néon pour toute la galerie (propriétaire). -->
                 <div id="spiritPublicSanNeonRow" style="display:none;align-items:center;gap:8px;">
-                <span data-key="pub_neon_border" style="font-size:0.65rem;color:#888;">Bordure néon (nouvelle photo)</span>
+                <span data-key="pub_neon_border" style="font-size:0.65rem;color:#888;">Bordure néon (galerie)</span>
                 <select id="spiritSanctuaryNeonSelect" aria-label="Couleur néon">
                     <option value="#ff6600">Orange Spirit</option>
                     <option value="#00ff88">Vert</option>
@@ -4014,7 +4014,7 @@
             'prep_ship_h': 'PRÉPARER L\'EXPÉDITION', 'prep_ship_p': 'Un acheteur a validé le paiement — merci de préparer l\'envoi.', 'prep_ok': 'COMPRIS', 'btn_ok_short': 'OK',
             'pm_no_title': 'Sans titre', 'pm_no_desc': 'Aucune description disponible.', 'pm_no_image': 'IMAGE NON DISPONIBLE DANS LE LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURINE',
             'pub_back': '← MARKETPLACE', 'pub_brand': 'Profil public — Spirit Infinity', 'pub_copy_url': 'COPIER L’URL', 'pub_chg_photo': 'CHANGER LA PHOTO', 'pub_add_san': '+ PHOTO SANCTUAIRE', 'pub_follow': 'SUIVRE', 'pub_ia': 'IA Score :', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
-            'pub_country_lbl': 'Pays (visible publiquement)', 'pub_save': 'ENREGISTRER', 'pub_tab_ads': 'ANNONCES', 'pub_tab_san': 'SANCTUAIRE', 'pub_ads_note': 'Annonces publiques (products_live)', 'pub_neon_border': 'Bordure néon (nouvelle photo)', 'pub_san_chat_h': 'CHAT DU SANCTUAIRE', 'pub_san_chat_rules': 'Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.',
+            'pub_country_lbl': 'Pays (visible publiquement)', 'pub_save': 'ENREGISTRER', 'pub_tab_ads': 'ANNONCES', 'pub_tab_san': 'SANCTUAIRE', 'pub_ads_note': 'Annonces publiques (products_live)', 'pub_neon_border': 'Bordure néon (toute la galerie)', 'pub_san_chat_h': 'CHAT DU SANCTUAIRE', 'pub_san_chat_rules': 'Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.',
             'params_pseudo_lbl': 'MODIFIER PSEUDO', 'params_pseudo_ph': 'Nouveau pseudo', 'params_pseudo_save': 'ENREGISTRER LE PSEUDO',
             'params_push_h': 'Alertes quand l’application est fermée', 'params_push_p': 'Active les notifications du navigateur pour être prévenu (marché, messages, Sanctuaire) même sans l’onglet ouvert. Nécessite une clé VAPID dans le code + une fonction serveur Supabase qui envoie les push — voir le bloc SQL commenté « Web Push ».',
             'params_push_btn': 'Activer les notifications navigateur', 'params_push_need_vapid': 'Notifications push : configure d’abord SPIRIT_VAPID_PUBLIC_KEY dans le projet (clé publique VAPID) et la table Supabase.',
@@ -4133,7 +4133,7 @@
             'prep_ship_h': 'PREPARE SHIPMENT', 'prep_ship_p': 'A buyer has paid — please prepare the shipment.', 'prep_ok': 'GOT IT', 'btn_ok_short': 'OK',
             'pm_no_title': 'Untitled', 'pm_no_desc': 'No description available.', 'pm_no_image': 'IMAGE NOT AVAILABLE IN LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURE',
             'pub_back': '← MARKETPLACE', 'pub_brand': 'Public profile — Spirit Infinity', 'pub_copy_url': 'COPY URL', 'pub_chg_photo': 'CHANGE PHOTO', 'pub_add_san': '+ SANCTUARY PHOTO', 'pub_follow': 'FOLLOW', 'pub_ia': 'AI score:', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
-            'pub_country_lbl': 'Country (public)', 'pub_save': 'SAVE', 'pub_tab_ads': 'LISTINGS', 'pub_tab_san': 'SANCTUARY', 'pub_ads_note': 'Public listings (products_live)', 'pub_neon_border': 'Neon border (new photo)', 'pub_san_chat_h': 'SANCTUARY CHAT', 'pub_san_chat_rules': '@, .com domains and phone numbers are blocked — Spirit marketplace only.',
+            'pub_country_lbl': 'Country (public)', 'pub_save': 'SAVE', 'pub_tab_ads': 'LISTINGS', 'pub_tab_san': 'SANCTUARY', 'pub_ads_note': 'Public listings (products_live)', 'pub_neon_border': 'Neon border (whole gallery)', 'pub_san_chat_h': 'SANCTUARY CHAT', 'pub_san_chat_rules': '@, .com domains and phone numbers are blocked — Spirit marketplace only.',
             'params_pseudo_lbl': 'CHANGE USERNAME', 'params_pseudo_ph': 'New username', 'params_pseudo_save': 'SAVE USERNAME',
             'params_push_h': 'Alerts when the app is closed', 'params_push_p': 'Enable browser notifications for marketplace / account alerts without keeping the tab open. Requires a VAPID public key in the code plus a Supabase Edge Function (or backend) that sends pushes — see the commented SQL block « Web Push ».',
             'params_push_btn': 'Enable browser notifications', 'params_push_need_vapid': 'Push is not configured yet: set SPIRIT_VAPID_PUBLIC_KEY (VAPID public key) and create the Supabase table.',
@@ -4252,7 +4252,7 @@
             'prep_ship_h': 'PREPARAR ENVÍO', 'prep_ship_p': 'Un comprador ha pagado — prepara el envío.', 'prep_ok': 'ENTENDIDO', 'btn_ok_short': 'OK',
             'pm_no_title': 'Sin título', 'pm_no_desc': 'Sin descripción.', 'pm_no_image': 'IMAGEN NO DISPONIBLE EN LEDGER', 'typ_statue': 'ESTATUA', 'typ_figure': 'FIGURA',
             'pub_back': '← MARKETPLACE', 'pub_brand': 'Perfil público — Spirit Infinity', 'pub_copy_url': 'COPIAR URL', 'pub_chg_photo': 'CAMBIAR FOTO', 'pub_add_san': '+ FOTO SANTUARIO', 'pub_follow': 'SEGUIR', 'pub_ia': 'Puntuación IA:', 'pub_likes': 'Me gusta', 'pub_followers': 'Seguidores', 'pub_following': 'Siguiendo',
-            'pub_country_lbl': 'País (visible públicamente)', 'pub_save': 'GUARDAR', 'pub_tab_ads': 'ANUNCIOS', 'pub_tab_san': 'SANTUARIO', 'pub_ads_note': 'Anuncios públicos (products_live)', 'pub_neon_border': 'Borde neón (foto nueva)', 'pub_san_chat_h': 'CHAT DEL SANTUARIO', 'pub_san_chat_rules': '@, dominios .com y teléfonos bloqueados — solo marketplace Spirit.',
+            'pub_country_lbl': 'País (visible públicamente)', 'pub_save': 'GUARDAR', 'pub_tab_ads': 'ANUNCIOS', 'pub_tab_san': 'SANTUARIO', 'pub_ads_note': 'Anuncios públicos (products_live)', 'pub_neon_border': 'Borde neón (toda la galería)', 'pub_san_chat_h': 'CHAT DEL SANTUARIO', 'pub_san_chat_rules': '@, dominios .com y teléfonos bloqueados — solo marketplace Spirit.',
             'params_pseudo_lbl': 'CAMBIAR USUARIO', 'params_pseudo_ph': 'Nuevo usuario', 'params_pseudo_save': 'GUARDAR USUARIO',
             'params_push_h': 'Alertas con la app cerrada', 'params_push_p': 'Activa las notificaciones del navegador para alertas del mercado o cuenta sin mantener la pestaña abierta. Requiere clave VAPID y una Edge Function en Supabase que envíe los push (ver SQL comentado « Web Push »).',
             'params_push_btn': 'Activar notificaciones del navegador', 'params_push_need_vapid': 'Configura primero SPIRIT_VAPID_PUBLIC_KEY y la tabla en Supabase.',
@@ -4371,7 +4371,7 @@
             'prep_ship_h': '准备发货', 'prep_ship_p': '买家已付款 — 请准备寄送。', 'prep_ok': '知道了', 'btn_ok_short': '确定',
             'pm_no_title': '无标题', 'pm_no_desc': '暂无描述。', 'pm_no_image': '账本中无可用图片', 'typ_statue': '雕像', 'typ_figure': '手办',
             'pub_back': '← 市场', 'pub_brand': '公开资料 — Spirit Infinity', 'pub_copy_url': '复制链接', 'pub_chg_photo': '更换头像', 'pub_add_san': '+ 圣地照片', 'pub_follow': '关注', 'pub_ia': 'AI 评分：', 'pub_likes': '赞', 'pub_followers': '粉丝', 'pub_following': '关注',
-            'pub_country_lbl': '国家（公开显示）', 'pub_save': '保存', 'pub_tab_ads': '商品', 'pub_tab_san': '圣地', 'pub_ads_note': '公开上架（products_live）', 'pub_neon_border': '霓虹边框（新照片）', 'pub_san_chat_h': '圣地聊天', 'pub_san_chat_rules': '@、.com 域名与电话已屏蔽 — 仅限 Spirit 市场。',
+            'pub_country_lbl': '国家（公开显示）', 'pub_save': '保存', 'pub_tab_ads': '商品', 'pub_tab_san': '圣地', 'pub_ads_note': '公开上架（products_live）', 'pub_neon_border': '霓虹边框（整组照片）', 'pub_san_chat_h': '圣地聊天', 'pub_san_chat_rules': '@、.com 域名与电话已屏蔽 — 仅限 Spirit 市场。',
             'params_pseudo_lbl': '修改用户名', 'params_pseudo_ph': '新用户名', 'params_pseudo_save': '保存用户名',
             'params_push_h': '应用关闭时的提醒', 'params_push_p': '启用浏览器通知，在不打开标签页时接收市场/账户提醒。需在代码中配置 VAPID 公钥，并在 Supabase 部署发送推送的 Edge Function（见 SQL 注释 « Web Push »）。',
             'params_push_btn': '启用浏览器通知', 'params_push_need_vapid': '请先在项目中设置 SPIRIT_VAPID_PUBLIC_KEY 并创建 Supabase 数据表。',
@@ -13686,6 +13686,53 @@ async function spiritSanctuaryDeleteItem(ctx, itemId, imageUrl) {
         await spiritSanctuaryRender(ctx);
     } catch (e3) {}
 }
+function spiritSanctuarySyncPublicNeonToolbar(items) {
+    var sel = document.getElementById('spiritSanctuaryNeonSelect');
+    if (!sel) return;
+    var col = '#ff6600';
+    if (items && items.length) {
+        col = String((items[0] && items[0].neon) || '#ff6600').trim() || '#ff6600';
+    }
+    sel.dataset.spiritProgrammatic = '1';
+    try {
+        var hasOpt = false;
+        Array.prototype.forEach.call(sel.options || [], function (o) { if (String(o.value) === col) hasOpt = true; });
+        if (!hasOpt && col) {
+            var ox = document.createElement('option');
+            ox.value = col;
+            ox.textContent = (typeof spiritT === 'function') ? spiritT('san_neon_current') : 'Couleur actuelle';
+            sel.insertBefore(ox, sel.firstChild);
+        }
+        sel.value = col;
+    } finally {
+        try { delete sel.dataset.spiritProgrammatic; } catch (eD) {}
+    }
+}
+async function spiritSanctuaryApplyPublicGlobalNeon(hex) {
+    hex = String(hex || '').trim() || '#ff6600';
+    var uidRaw = '';
+    try { uidRaw = (typeof spiritPublicViewUserId !== 'undefined' && spiritPublicViewUserId != null) ? spiritPublicViewUserId : spiritSanctuaryUid('public'); } catch (eU) { uidRaw = ''; }
+    var uid = spiritNormUid(uidRaw) || String(uidRaw || '').trim();
+    if (!uid || typeof _spirit === 'undefined' || !_spirit) return;
+    var me = '';
+    try {
+        me = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : '';
+        if (!me && typeof spiritSocialActorUid === 'function') me = spiritSocialActorUid();
+        if (!me) me = spiritOwnerId(spiritGetCurrentUserId());
+    } catch (eM) { me = ''; }
+    if (!spiritNormUid(me) || spiritNormUid(me) !== spiritNormUid(uid)) return;
+    try {
+        var upd = await _spirit.from('sanctuary_items').update({ neon_color: hex }).eq('user_id', String(uid));
+        if (upd && upd.error) throw upd.error;
+        spiritSanctuaryItemsCacheInvalidate(uid);
+        await spiritSanctuaryRender('public');
+    } catch (err) {
+        try {
+            var msg = (typeof spiritT === 'function') ? spiritT('san_import_err') : 'Mise à jour impossible : ';
+            alert(msg + (err && err.message ? err.message : err));
+        } catch (a0) {}
+    }
+}
 async function spiritSanctuaryRender(ctx) {
     ctx = ctx === 'account' ? 'account' : 'public';
     var uid = spiritSanctuaryUid(ctx);
@@ -13704,6 +13751,7 @@ async function spiritSanctuaryRender(ctx) {
     var meNormSan = spiritNormUid(actorIdSan);
     var isOwner = !!(uidNormSan && meNormSan && meNormSan === uidNormSan);
     var isPublicVisitor = ctx === 'public' && !isOwner;
+    var sanPubOwnerGlobalNeon = (ctx === 'public' && isOwner);
     var items = await spiritSanctuaryFetchItems(uid, isOwner);
     // Tableau des URLs déjà chargées (pour navigation Lightbox sans re-requête Supabase)
     var sanctuaryImageSrcs = items.map(function (x) { return x && x.src ? x.src : ''; }).filter(Boolean);
@@ -13937,7 +13985,7 @@ async function spiritSanctuaryRender(ctx) {
             meta.appendChild(socialUi.overlay);
             meta.appendChild(socialUi.commentsToggle);
             meta.appendChild(socialUi.commentsPanel);
-            if (!isPublicVisitor) {
+            if (!isPublicVisitor && !sanPubOwnerGlobalNeon) {
                 var styleRow = document.createElement('div');
                 styleRow.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
                 var stLab = document.createElement('span');
@@ -14030,7 +14078,7 @@ async function spiritSanctuaryRender(ctx) {
                     await spiritSanctuaryPersistSortOrder(ctx, grid);
                 });
             }
-            if (!isPublicVisitor) {
+            if (!isPublicVisitor && !sanPubOwnerGlobalNeon) {
                 var selMini = document.createElement('select');
                 selMini.setAttribute('aria-label', sanT('san_neon_lbl'));
                 selMini.style.cssText = 'width:100%;margin-top:4px;font-size:0.55rem;padding:3px;background:#111;border:1px solid #333;color:#aaa;';
@@ -14098,6 +14146,9 @@ async function spiritSanctuaryRender(ctx) {
             grid.appendChild(cell);
         }
     });
+    if (sanPubOwnerGlobalNeon) {
+        try { spiritSanctuarySyncPublicNeonToolbar(items); } catch (eSynNe) {}
+    }
     try {
         if (ctx === 'public') void spiritPublicRefreshSocialStats(uid);
         spiritSanctuaryRefreshMessagesDot();
@@ -14150,6 +14201,16 @@ function spiritSanctuaryBindFileInput(ctx) {
 function spiritSanctuaryWireOnce() {
     spiritSanctuaryBindFileInput('public');
     spiritSanctuaryBindFileInput('account');
+    if (!spiritSanctuaryWireOnce._pubNeonToolbar) {
+        spiritSanctuaryWireOnce._pubNeonToolbar = true;
+        var pnSel = document.getElementById('spiritSanctuaryNeonSelect');
+        if (pnSel) {
+            pnSel.addEventListener('change', function () {
+                if (pnSel.dataset.spiritProgrammatic === '1') return;
+                void spiritSanctuaryApplyPublicGlobalNeon(pnSel.value);
+            });
+        }
+    }
     if (!spiritSanctuaryWireOnce._addBtns) {
         spiritSanctuaryWireOnce._addBtns = true;
         var b1 = document.getElementById('spiritSanctuaryAddPhotoBtn');
