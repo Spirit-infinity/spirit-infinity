@@ -13793,16 +13793,27 @@ async function spiritSanctuaryRender(ctx) {
     try { socialPseudoMap = await spiritSanctuaryResolvePseudoMap(socialUids); } catch (ePm) {}
     var listLike = vm === 'list' || vm === 'details';
     var neonOpts = [['#ff6600', 'Orange Spirit'], ['#00ff88', 'Vert'], ['#00ccff', 'Cyan'], ['#ff00aa', 'Magenta'], ['#ffffff', 'Blanc'], ['#ffcc00', 'Or']];
-    function spiritSanctuaryBuildSocialUi(itemId, ownerId, actorId, pseudoMap) {
+    function spiritSanctuaryNeonToRgba(hex, a) {
+        hex = String(hex || '#ff6600').replace(/^#/, '').trim();
+        if (hex.length === 3) hex = hex.split('').map(function (ch) { return ch + ch; }).join('');
+        var n = parseInt(hex, 16);
+        if (!Number.isFinite(n) || hex.length !== 6) return 'rgba(255,102,0,' + a + ')';
+        return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+    }
+    function spiritSanctuaryBuildSocialUi(itemId, ownerId, actorId, pseudoMap, neonHex) {
+        neonHex = String(neonHex || '#ff6600').trim() || '#ff6600';
         pseudoMap = pseudoMap || Object.create(null);
         var likes = spiritSanctuaryLikeUsers(itemId);
         var comments = spiritSanctuaryComments(itemId);
         var likedByMe = !!spiritSanctuarySocialCache.myLikes[itemId] || (actorId && likes.indexOf(String(actorId)) >= 0);
+        var neonBorder = neonHex;
+        var neonSoft = spiritSanctuaryNeonToRgba(neonHex, 0.5);
+        var neonGlow = spiritSanctuaryNeonToRgba(neonHex, 0.35);
         var overlay = document.createElement('div');
         overlay.style.cssText = 'display:flex;gap:6px;margin-top:8px;';
         var bLike = document.createElement('button');
         bLike.type = 'button';
-        bLike.style.cssText = 'flex:1;padding:5px 8px;background:rgba(0,0,0,0.6);border:1px solid ' + (likedByMe ? '#ff4d8f' : '#444') + ';color:' + (likedByMe ? '#ff86b0' : '#ddd') + ';font-size:0.62rem;cursor:pointer;';
+        bLike.style.cssText = 'flex:1;padding:5px 8px;background:rgba(0,0,0,0.6);border:1px solid ' + (likedByMe ? neonBorder : neonSoft) + ';color:' + (likedByMe ? neonBorder : '#ddd') + ';font-size:0.62rem;cursor:pointer;box-shadow:' + (likedByMe ? '0 0 10px ' + neonGlow : 'none') + ';';
         bLike.textContent = '♥ ' + likes.length;
         bLike.title = sanT('san_like_title');
         bLike.onclick = async function (e) {
@@ -13815,7 +13826,7 @@ async function spiritSanctuaryRender(ctx) {
         };
         var bCom = document.createElement('button');
         bCom.type = 'button';
-        bCom.style.cssText = 'padding:5px 8px;min-width:62px;background:rgba(0,0,0,0.6);border:1px solid #444;color:#ddd;font-size:0.62rem;cursor:pointer;';
+        bCom.style.cssText = 'padding:5px 8px;min-width:62px;background:rgba(0,0,0,0.6);border:1px solid ' + neonBorder + ';color:#ddd;font-size:0.62rem;cursor:pointer;box-shadow:0 0 8px ' + neonGlow + ';';
         bCom.textContent = '💬 ' + comments.length;
         bCom.title = sanT('san_comment_title');
         bCom.onclick = async function (e) {
@@ -13849,7 +13860,7 @@ async function spiritSanctuaryRender(ctx) {
         var commentsToggle = document.createElement('button');
         commentsToggle.type = 'button';
         commentsToggle.className = 'spirit-san-comments-toggle';
-        commentsToggle.style.cssText = 'margin-top:8px;width:100%;text-align:left;padding:8px 10px;background:#121212;border:1px solid #333;color:#ccc;font-size:0.62rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;border-radius:4px;';
+        commentsToggle.style.cssText = 'margin-top:8px;width:100%;text-align:left;padding:8px 10px;background:#121212;border:1px solid ' + neonSoft + ';color:#ccc;font-size:0.62rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;border-radius:4px;box-shadow:inset 0 0 0 1px ' + spiritSanctuaryNeonToRgba(neonHex, 0.12) + ';';
         commentsToggle.innerHTML = '<span>' + String(sanT('san_comments_toggle')).replace(/</g, '') + ' (' + comments.length + ')</span><span class="spirit-san-acc-ic">▼</span>';
         var commentsPanel = document.createElement('div');
         commentsPanel.className = 'spirit-san-comments-panel';
@@ -13902,7 +13913,7 @@ async function spiritSanctuaryRender(ctx) {
             if (it && it.src) spiritSanctuaryLightboxOpen(sanctuaryImageSrcs, idx);
         });
         wrap.appendChild(img);
-        var socialUi = spiritSanctuaryBuildSocialUi(rowId, uid, actorIdSan, socialPseudoMap);
+        var socialUi = spiritSanctuaryBuildSocialUi(rowId, uid, actorIdSan, socialPseudoMap, neon);
         
         // (Loupe supprimée) => on ouvre directement la photo en plein écran au clic.
         var btnDel = null;
