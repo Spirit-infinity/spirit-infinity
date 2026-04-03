@@ -4010,6 +4010,7 @@
             'params_pseudo_lbl': 'MODIFIER PSEUDO', 'params_pseudo_ph': 'Nouveau pseudo', 'params_pseudo_save': 'ENREGISTRER LE PSEUDO',
             'params_push_h': 'Alertes quand l’application est fermée', 'params_push_p': 'Active les notifications du navigateur pour être prévenu (marché, messages, Sanctuaire) même sans l’onglet ouvert. Nécessite une clé VAPID dans le code + une fonction serveur Supabase qui envoie les push — voir le bloc SQL commenté « Web Push ».',
             'params_push_btn': 'Activer les notifications navigateur', 'params_push_need_vapid': 'Notifications push : configure d’abord SPIRIT_VAPID_PUBLIC_KEY dans le projet (clé publique VAPID) et la table Supabase.',
+            'params_push_need_login': 'Connecte-toi sur cet appareil (même compte que sur le site), attends le chargement du profil, puis réactive les notifications. Sinon l’abonnement n’est pas lié à ton UUID.',
             'params_push_no_support': 'Ce navigateur ne prend pas en charge les notifications push.', 'params_push_denied': 'Les notifications sont bloquées. Autorise-les dans les paramètres du navigateur pour ce site.',
             'params_push_ok': 'Notifications activées : ta souscription est enregistrée. Il reste à déployer l’envoi côté serveur (Edge Function) pour recevoir les alertes à l’extérieur du site.',
             'params_push_save_err': 'Impossible d’enregistrer la souscription push (table ou RLS). Vérifie spirit_web_push_subscriptions dans Supabase.',
@@ -4122,6 +4123,7 @@
             'params_pseudo_lbl': 'CHANGE USERNAME', 'params_pseudo_ph': 'New username', 'params_pseudo_save': 'SAVE USERNAME',
             'params_push_h': 'Alerts when the app is closed', 'params_push_p': 'Enable browser notifications for marketplace / account alerts without keeping the tab open. Requires a VAPID public key in the code plus a Supabase Edge Function (or backend) that sends pushes — see the commented SQL block « Web Push ».',
             'params_push_btn': 'Enable browser notifications', 'params_push_need_vapid': 'Push is not configured yet: set SPIRIT_VAPID_PUBLIC_KEY (VAPID public key) and create the Supabase table.',
+            'params_push_need_login': 'Sign in on this device and wait for your profile to load, then enable notifications again so the subscription matches your user id.',
             'params_push_no_support': 'This browser does not support web push.', 'params_push_denied': 'Notifications are blocked. Allow them for this site in browser settings.',
             'params_push_ok': 'Subscribed. You still need a server-side sender (Edge Function) to receive alerts when the site is closed.',
             'params_push_save_err': 'Could not save push subscription (missing table or RLS). Check spirit_web_push_subscriptions in Supabase.',
@@ -4234,6 +4236,7 @@
             'params_pseudo_lbl': 'CAMBIAR USUARIO', 'params_pseudo_ph': 'Nuevo usuario', 'params_pseudo_save': 'GUARDAR USUARIO',
             'params_push_h': 'Alertas con la app cerrada', 'params_push_p': 'Activa las notificaciones del navegador para alertas del mercado o cuenta sin mantener la pestaña abierta. Requiere clave VAPID y una Edge Function en Supabase que envíe los push (ver SQL comentado « Web Push »).',
             'params_push_btn': 'Activar notificaciones del navegador', 'params_push_need_vapid': 'Configura primero SPIRIT_VAPID_PUBLIC_KEY y la tabla en Supabase.',
+            'params_push_need_login': 'Inicia sesión en este dispositivo, espera a que cargue el perfil y vuelve a activar las notificaciones.',
             'params_push_no_support': 'Este navegador no admite notificaciones push.', 'params_push_denied': 'Notificaciones bloqueadas. Actívalas para este sitio en ajustes del navegador.',
             'params_push_ok': 'Suscrito. Falta desplegar el envío en servidor (Edge Function) para recibir alertas fuera del sitio.',
             'params_push_save_err': 'No se pudo guardar la suscripción (tabla o RLS). Revisa spirit_web_push_subscriptions.',
@@ -4346,6 +4349,7 @@
             'params_pseudo_lbl': '修改用户名', 'params_pseudo_ph': '新用户名', 'params_pseudo_save': '保存用户名',
             'params_push_h': '应用关闭时的提醒', 'params_push_p': '启用浏览器通知，在不打开标签页时接收市场/账户提醒。需在代码中配置 VAPID 公钥，并在 Supabase 部署发送推送的 Edge Function（见 SQL 注释 « Web Push »）。',
             'params_push_btn': '启用浏览器通知', 'params_push_need_vapid': '请先在项目中设置 SPIRIT_VAPID_PUBLIC_KEY 并创建 Supabase 数据表。',
+            'params_push_need_login': '请在本机登录并等待个人资料加载完成后再开启通知，以便订阅与账号 UUID 一致。',
             'params_push_no_support': '此浏览器不支持 Web Push。', 'params_push_denied': '通知已被阻止。请在浏览器设置中允许本站通知。',
             'params_push_ok': '已订阅。仍需在服务器端部署发送逻辑（Edge Function）才能在站外收到提醒。',
             'params_push_save_err': '无法保存推送订阅（缺表或 RLS）。请检查 spirit_web_push_subscriptions。',
@@ -11350,7 +11354,7 @@ function spiritMessagingOwnerUid() {
 }
 
 /** Table Supabase : souscriptions Web Push (endpoint + clés). RLS : insert/update/delete où user_id = auth.uid()::text. */
-    var SPIRIT_WEB_PUSH_TABLE = 'spirit_web_push_subscriptions';
+var SPIRIT_WEB_PUSH_TABLE = 'spirit_web_push_subscriptions';
 /**
  * Clé publique VAPID (base64 URL-safe, une ligne). Génération : npx web-push generate-vapid-keys
  * Coller la clé publique ici. Tant que vide, le bouton « notifications » explique qu’il faut la configurer côté projet.
@@ -11373,6 +11377,23 @@ function spiritWebPushT(k) {
     return k;
 }
 
+/** UUID auth pour Web Push : MY_TEST_ID peut être vide au premier rendu mobile — on lit getUser() si besoin (doit matcher owner_id des notifs). */
+async function spiritWebPushResolveUserId() {
+    var u = '';
+    try {
+        u = spiritNormUid((typeof spiritFollowGetCurrentUid === 'function' ? spiritFollowGetCurrentUid() : '') || (typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '') || '');
+    } catch (e) { u = ''; }
+    if (spiritIsUuid(u)) return u;
+    if (typeof _spirit !== 'undefined' && _spirit && _spirit.auth && typeof _spirit.auth.getUser === 'function') {
+        try {
+            var gu = await _spirit.auth.getUser();
+            var id = gu && gu.data && gu.data.user && gu.data.user.id ? spiritNormUid(gu.data.user.id) : '';
+            if (spiritIsUuid(id)) return id;
+        } catch (e2) { /* ignore */ }
+    }
+    return '';
+}
+
 /**
  * Enregistre la souscription push en base (pour envoi serveur ultérieur).
  * opts.fromUser : true = demander la permission navigateur si besoin ; false = seulement si déjà accordée (resync silencieux).
@@ -11389,9 +11410,15 @@ async function spiritWebPushTrySubscribe(opts) {
         if (opts.fromUser) alert(spiritWebPushT('params_push_no_support'));
         return false;
     }
-    var uid = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '');
-    if (!spiritIsUuid(uid)) return false;
+    var uid = await spiritWebPushResolveUserId();
+    if (!spiritIsUuid(uid)) {
+        if (opts.fromUser) alert(spiritWebPushT('params_push_need_login'));
+        return false;
+    }
     try {
+        try {
+            await navigator.serviceWorker.register('sw.js');
+        } catch (eReg) { /* scope / cache : ready peut quand même suffire */ }
         var perm = Notification.permission;
         if (perm === 'denied') {
             if (opts.fromUser) alert(spiritWebPushT('params_push_denied'));
@@ -11443,7 +11470,7 @@ function spiritWebPushEnableFromSettings() {
 /** À appeler avant déconnexion : retire la souscription locale et la ligne en base (best-effort). */
 async function spiritWebPushUnregister() {
     if (typeof _spirit === 'undefined' || !_spirit || !_spirit.from) return;
-    var uid = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : '');
+    var uid = await spiritWebPushResolveUserId();
     if (!spiritIsUuid(uid)) return;
     try {
         var reg = await navigator.serviceWorker.ready;
