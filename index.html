@@ -4103,9 +4103,9 @@
         _spirit = null;
         console.warn('[SPIRIT] Supabase indisponible, UI en mode statique.', e);
     }
-    // Coupe-circuit anti-400: on neutralise sanctuary_chat côté réseau.
     // user_profiles doit rester accessible (pour afficher le pseudo sur les cartes + profils).
-    var SPIRIT_SUPABASE_BLOCK_TABLES = { user_profiles: false, sanctuary_chat: true };
+    // sanctuary_chat : laisser passer Supabase pour que les messages soient visibles chez le destinataire (sinon tout reste en mémoire locale).
+    var SPIRIT_SUPABASE_BLOCK_TABLES = { user_profiles: false, sanctuary_chat: false };
     function spiritBlockedTableResult(table) {
         return Promise.resolve({
             data: table === 'user_profiles' ? null : [],
@@ -12075,6 +12075,13 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      created_at timestamptz default now()
    );
    create index if not exists idx_sanctuary_chat_rec on public.sanctuary_chat(recipient_id);
+   create index if not exists idx_sanctuary_chat_sender on public.sanctuary_chat(sender_id);
+   -- RLS typique pour que chaque utilisateur lise/écrive sa conversation (expéditeur OU destinataire) :
+   -- alter table public.sanctuary_chat enable row level security;
+   -- create policy "san_chat_select_participant" on public.sanctuary_chat for select to authenticated
+   --   using (auth.uid()::text = sender_id or auth.uid()::text = recipient_id);
+   -- create policy "san_chat_insert_sender" on public.sanctuary_chat for insert to authenticated
+   --   with check (auth.uid()::text = sender_id);
    create table if not exists public.spirit_follows (
      follower_id text not null,
      followee_id text not null,
@@ -12196,8 +12203,8 @@ var SPIRIT_FOLLOW_TABLE = 'spirit_follows';
 var spiritFriendsCache = [];
 // Fallback local pour IDs de test (évite les 400 Supabase si non mappés côté backend).
 var spiritLocalSanctuaryChatByRecipient = Object.create(null);
-// Stabilisation: on force le chat Sanctuaire en local (plus de requêtes sanctuary_chat => plus de 400).
-var SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY = true;
+// false = persistance Supabase (sanctuary_chat) pour que l’interlocuteur voie les messages ; true = debug hors-ligne uniquement.
+var SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY = false;
 // Persist: stocke la valeur de `user_profiles.avatar_url` (path ou URL) pour recharger l'image au changement de vue.
 var spiritPublicAvatarPersist = '';
 var SPIRIT_SAN_VIEW_KEY_PUBLIC = 'spirit_san_view_public_v1';
@@ -15563,6 +15570,40 @@ function spiritSanctuaryShowToast(title, detail) {
     document.body.appendChild(el);
     try { setTimeout(function () { try { var e = document.getElementById('spiritSanctuaryToast'); if (e) e.remove(); } catch (e2) {} }, 4200); } catch (e3) {}
 }
+
+/** Charge la conversation bidirectionnelle A↔B (deux requêtes simples, fusion + tri). */
+async function spiritSanctuaryFetchThreadSupabase(meId, peerId) {
+    if (!_spirit || !meId || !peerId || String(meId) === String(peerId)) return [];
+    var m = String(meId).trim();
+    var p = String(peerId).trim();
+    try {
+        var q1 = await _spirit.from('sanctuary_chat').select('*').eq('sender_id', m).eq('recipient_id', p).order('created_at', { ascending: true }).limit(160);
+        if (q1.error) {
+            console.warn('[SPIRIT] sanctuary_chat (fil me→peer):', q1.error.message || q1.error);
+            return [];
+        }
+        var q2 = await _spirit.from('sanctuary_chat').select('*').eq('sender_id', p).eq('recipient_id', m).order('created_at', { ascending: true }).limit(160);
+        if (q2.error) {
+            console.warn('[SPIRIT] sanctuary_chat (fil peer→me):', q2.error.message || q2.error);
+            return Array.isArray(q1.data) ? q1.data.slice() : [];
+        }
+        var byId = Object.create(null);
+        (Array.isArray(q1.data) ? q1.data : []).concat(Array.isArray(q2.data) ? q2.data : []).forEach(function (row) {
+            if (!row) return;
+            var k = row.id != null ? ('id:' + row.id) : ('k:' + String(row.created_at || '') + ':' + String(row.sender_id || '') + ':' + String((row.body || '').slice(0, 24)));
+            byId[k] = row;
+        });
+        var arr = Object.keys(byId).map(function (k) { return byId[k]; });
+        arr.sort(function (a, b) {
+            return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        });
+        return arr;
+    } catch (e) {
+        console.warn('[SPIRIT] sanctuary_chat fetch thread', e);
+        return [];
+    }
+}
+
 async function spiritSanctuaryRenderChat(ctx) {
     ctx = ctx === 'account' ? 'account' : 'public';
     var uid = spiritSanctuaryUid(ctx);
@@ -15670,8 +15711,74 @@ async function spiritSanctuaryRenderChat(ctx) {
         return;
     }
     if (typeof _spirit === 'undefined' || !_spirit) return;
-    var resolvedUid = await spiritResolveUserIdForFakeTestId(uid);
-    if (!resolvedUid) {
+    var meLocal = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    var ownerRaw = spiritSanctuaryUid(ctx);
+    var peerThread = '';
+    if (ctx === 'public') {
+        if (meLocal && ownerRaw && String(meLocal) !== String(ownerRaw)) {
+            peerThread = String(ownerRaw);
+        } else {
+            peerThread = String(spiritSanctuaryGetActivePeer(ctx) || spiritSanctuaryInferLatestPeerGlobal(meLocal) || '');
+        }
+    } else {
+        peerThread = String(spiritSanctuaryGetActivePeer(ctx) || spiritSanctuaryInferPeerFromLocal(String(ownerRaw || ''), meLocal) || '');
+    }
+    var resolvedMe = meLocal ? await spiritResolveUserIdForFakeTestId(meLocal) : '';
+    var resolvedPeer = peerThread ? await spiritResolveUserIdForFakeTestId(peerThread) : '';
+    var resolvedOwner = ownerRaw != null && String(ownerRaw).trim() !== '' ? await spiritResolveUserIdForFakeTestId(String(ownerRaw)) : '';
+    var qMe = String(resolvedMe || meLocal || '').trim();
+    var qPeer = String(resolvedPeer || peerThread || '').trim();
+
+    function spiritSanBindPeerSelect(valRaw, ctxB) {
+        if (!peerSel || !valRaw) return;
+        var v = String(valRaw);
+        var lbl = (typeof spiritPublicDefaultLabel === 'function') ? spiritPublicDefaultLabel(v).replace(/</g, '&lt;') : v;
+        var eo = function (s) { return String(s || '').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
+        peerSel.innerHTML = '<option value="' + eo(v) + '">' + lbl + ' (' + eo(v) + ')</option>';
+        peerSel.value = v;
+        spiritSanctuarySetActivePeer(ctxB, v);
+        if (!peerSel.__spiritBound) {
+            peerSel.__spiritBound = true;
+            peerSel.addEventListener('change', function () {
+                spiritSanctuarySetActivePeer(ctxB, peerSel.value || '');
+                void spiritSanctuaryRenderChat(ctxB);
+            });
+        }
+    }
+
+    if (qMe && qPeer && qMe !== qPeer) {
+        var threadRows = await spiritSanctuaryFetchThreadSupabase(qMe, qPeer);
+        if (!threadRows.length) {
+            var loc1 = spiritLocalSanctuaryChatByRecipient[qMe] || [];
+            var loc2 = spiritLocalSanctuaryChatByRecipient[qPeer] || [];
+            threadRows = loc1.concat(loc2).filter(function (m) {
+                var sid = String((m && m.sender_id) || '').trim();
+                var rid = String((m && m.recipient_id) || '').trim();
+                return (sid === qMe && rid === qPeer) || (sid === qPeer && rid === qMe);
+            });
+            threadRows.sort(function (a, b) {
+                return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+            });
+        }
+        if (ctx === 'public' && meLocal && ownerRaw && String(meLocal) !== String(ownerRaw)) {
+            spiritSanBindPeerSelect(String(ownerRaw), ctx);
+        } else if (peerThread) {
+            spiritSanBindPeerSelect(peerThread, ctx);
+        } else if (peerSel) {
+            peerSel.innerHTML = '<option value="">—</option>';
+        }
+        box.innerHTML = threadRows.length
+            ? threadRows.map(function (m) {
+                var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
+                var tx = String(m.body || '').replace(/</g, '&lt;');
+                return '<div class="spirit-san-chat-line"><span class="who">' + who + '</span> — ' + tx + '</div>';
+            }).join('')
+            : '<p style="color:#555;font-size:0.65rem;">Aucun message pour l’instant.</p>';
+        box.scrollTop = box.scrollHeight;
+        return;
+    }
+
+    if (!resolvedOwner) {
         var key = String(uid);
         var arr = spiritLocalSanctuaryChatByRecipient[key] || [];
         arr = arr.slice().sort(function (a, b) {
@@ -15686,8 +15793,16 @@ async function spiritSanctuaryRenderChat(ctx) {
         box.scrollTop = box.scrollHeight;
         return;
     }
-    var out = await _spirit.from('sanctuary_chat').select('*').eq('recipient_id', String(resolvedUid)).order('created_at', { ascending: true }).limit(200);
-    if (out.error || !out.data) { box.innerHTML = '<p style="color:#555;font-size:0.65rem;">—</p>'; return; }
+    var out = await _spirit.from('sanctuary_chat').select('*').eq('recipient_id', String(resolvedOwner)).order('created_at', { ascending: true }).limit(200);
+    if (out.error) {
+        box.innerHTML = '<p style="color:#a66;font-size:0.65rem;">Chat indisponible (table <code>sanctuary_chat</code> ou policies RLS Supabase).</p>';
+        return;
+    }
+    if (!out.data || !out.data.length) {
+        box.innerHTML = '<p style="color:#555;font-size:0.65rem;">Aucun message.</p>';
+        if (peerSel) peerSel.innerHTML = '<option value="">—</option>';
+        return;
+    }
     if (peerSel) peerSel.innerHTML = '<option value="">Conversation active</option>';
     box.innerHTML = out.data.map(function (m) {
         var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
