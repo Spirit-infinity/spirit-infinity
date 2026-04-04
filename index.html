@@ -2001,6 +2001,9 @@
         .spirit-sanctuary-chat .spirit-san-chat-msgs { max-height: 200px; overflow-y: auto; margin-bottom: 10px; font-size: 0.72rem; }
         .spirit-sanctuary-chat .spirit-san-chat-line { padding: 6px 0; border-bottom: 1px solid #151515; }
         .spirit-sanctuary-chat .spirit-san-chat-line .who { color: var(--spirit-green); font-weight: 700; }
+        .spirit-sanctuary-chat .spirit-san-chat-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 8px; font-size: 0.62rem; }
+        .spirit-sanctuary-chat .spirit-san-chat-toolbar label { display: flex; align-items: center; gap: 6px; color: #aaa; cursor: pointer; }
+        .spirit-san-chat-body--pending { opacity: 0.88; }
         .spirit-san-comments-panel {
             max-height: 0;
             overflow: hidden;
@@ -3677,6 +3680,10 @@
                 <label data-key="ui_conversation" style="font-size:0.62rem;color:#888;display:block;margin-bottom:4px;">Conversation</label>
                 <select id="spiritAccountSanctuaryChatPeer" style="width:100%;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;"></select>
             </div>
+            <div class="spirit-san-chat-toolbar">
+                <label><input type="checkbox" id="spiritAccountSanctuaryChatTranslate" onchange="spiritSanctuaryOnToggleChatTranslate(this,'account')" /> <span data-key="san_chat_translate">Traduire les messages (langue du site)</span></label>
+                <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#221010;border-color:#633;color:#ecc;" onclick="void spiritSanctuaryClearThread('account')" data-key="san_chat_raz">Effacer le fil</button>
+            </div>
             <div class="spirit-san-chat-msgs" id="spiritAccountSanctuaryChatMsgs"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;">
                 <input type="text" id="spiritAccountSanctuaryChatInput" data-key="ui_msg_ph" placeholder="Message…" style="flex:1;min-width:160px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
@@ -3840,6 +3847,10 @@
                 <div style="margin:0 0 8px;">
                     <label data-key="ui_conversation" style="font-size:0.62rem;color:#888;display:block;margin-bottom:4px;">Conversation</label>
                     <select id="spiritSanctuaryChatPeer" style="width:100%;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;"></select>
+                </div>
+                <div class="spirit-san-chat-toolbar">
+                    <label><input type="checkbox" id="spiritSanctuaryChatTranslate" onchange="spiritSanctuaryOnToggleChatTranslate(this,'public')" /> <span data-key="san_chat_translate">Traduire les messages (langue du site)</span></label>
+                    <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#221010;border-color:#633;color:#ecc;" onclick="void spiritSanctuaryClearThread('public')" data-key="san_chat_raz">Effacer le fil</button>
                 </div>
                 <div class="spirit-san-chat-msgs" id="spiritSanctuaryChatMsgs"></div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -4209,7 +4220,7 @@
             'tab_my_listings_h': 'MES ANNONCES ACTIVES', 'tab_my_listings_empty': 'Aucune annonce active.',
             'eval_page_h': 'ÉVALUATIONS', 'eval_page_p1': 'Avis reçus sur ton profil public. Tu peux répondre à chaque commentaire ; la réponse est visible par tous.', 'eval_page_p2': 'Pour laisser une note à quelqu’un, utilise le flux après une transaction (fenêtre d’évaluation ou notification).', 'eval_clear_all_btn': 'TOUT EFFACER LE FIL',
             'san_acc_h': 'SANCTUAIRE', 'san_acc_p': 'Galerie noire & néon — jusqu’à 15 pièces (bucket Storage sanctuary).', 'ui_neon_new': 'Néon (nouvelle photo)', 'ui_view': 'Vue', 'ui_v_list': 'Vue Liste', 'ui_v_grid': 'Vue Grille', 'ui_v_style': 'Vue Style', 'ui_v_style2': 'Vue Style 2',
-            'san_chat_h': 'CHAT DU SANCTUAIRE', 'san_chat_rules': '@, .com et numéros de téléphone sont bloqués — marketplace Spirit.', 'ui_conversation': 'Conversation', 'ui_msg_ph': 'Message…', 'ui_send': 'ENVOYER',
+            'san_chat_h': 'CHAT DU SANCTUAIRE', 'san_chat_rules': '@, .com et numéros de téléphone sont bloqués — marketplace Spirit.', 'san_chat_translate': 'Traduire les messages (langue du site)', 'san_chat_raz': 'Effacer le fil', 'san_chat_raz_confirm': 'Supprimer tous les messages de cette conversation pour vous deux ? (Supabase + cache local)', 'san_chat_raz_nop': 'Aucune conversation sélectionnée.', 'san_chat_raz_err': 'Impossible d’effacer le fil : ', 'ui_conversation': 'Conversation', 'ui_msg_ph': 'Message…', 'ui_send': 'ENVOYER',
             'params_h': 'PARAMÈTRES DU COMPTE', 'params_rep_h': 'MA RÉPUTATION VENDEUR', 'ship_addr_h': 'ADRESSE POSTALE (LIVRAISON)', 'ship_ph_last': 'Nom', 'ship_ph_first': 'Prénom', 'ship_ph_street': 'Adresse', 'ship_ph_zip': 'Code postal', 'ship_ph_city': 'Ville', 'ship_ph_country': 'Pays',
             'ship_save_btn': 'ENREGISTRER ADRESSE', 'ship_save_hint': 'Renseignée une seule fois puis réutilisée à chaque achat.', 'btn_rib_change': 'METTRE / CHANGER UN RIB ACTIF', 'btn_logout': 'DÉCONNEXION',
             'reg_ph_user': 'Nom d\'utilisateur', 'reg_ph_email': 'Email', 'reg_ph_pass': 'Mot de passe', 'reg_remember': 'Rester connecté(e)',
@@ -4328,7 +4339,7 @@
             'tab_my_listings_h': 'MY ACTIVE LISTINGS', 'tab_my_listings_empty': 'No active listings.',
             'eval_page_h': 'REVIEWS', 'eval_page_p1': 'Reviews on your public profile. You can reply to each comment; replies are visible to everyone.', 'eval_page_p2': 'To rate someone, use the flow after a transaction (review window or notification).', 'eval_clear_all_btn': 'CLEAR ENTIRE FEED',
             'san_acc_h': 'SANCTUARY', 'san_acc_p': 'Black & neon gallery — up to 15 pieces (Storage sanctuary bucket).', 'ui_neon_new': 'Neon (new photo)', 'ui_view': 'View', 'ui_v_list': 'List view', 'ui_v_grid': 'Grid view', 'ui_v_style': 'Style view', 'ui_v_style2': 'Style view 2',
-            'san_chat_h': 'SANCTUARY CHAT', 'san_chat_rules': '@, .com and phone numbers are blocked — Spirit marketplace.', 'ui_conversation': 'Conversation', 'ui_msg_ph': 'Message…', 'ui_send': 'SEND',
+            'san_chat_h': 'SANCTUARY CHAT', 'san_chat_rules': '@, .com and phone numbers are blocked — Spirit marketplace.', 'san_chat_translate': 'Translate messages (site language)', 'san_chat_raz': 'Clear thread', 'san_chat_raz_confirm': 'Delete all messages in this conversation for both of you? (Supabase + local cache)', 'san_chat_raz_nop': 'No conversation selected.', 'san_chat_raz_err': 'Could not clear thread: ', 'ui_conversation': 'Conversation', 'ui_msg_ph': 'Message…', 'ui_send': 'SEND',
             'params_h': 'ACCOUNT SETTINGS', 'params_rep_h': 'MY SELLER REPUTATION', 'ship_addr_h': 'SHIPPING ADDRESS', 'ship_ph_last': 'Last name', 'ship_ph_first': 'First name', 'ship_ph_street': 'Address', 'ship_ph_zip': 'Postal code', 'ship_ph_city': 'City', 'ship_ph_country': 'Country',
             'ship_save_btn': 'SAVE ADDRESS', 'ship_save_hint': 'Enter once, reused on every purchase.', 'btn_rib_change': 'ADD / CHANGE ACTIVE IBAN', 'btn_logout': 'LOG OUT',
             'reg_ph_user': 'Username', 'reg_ph_email': 'Email', 'reg_ph_pass': 'Password', 'reg_remember': 'Stay signed in',
@@ -4447,7 +4458,7 @@
             'tab_my_listings_h': 'MIS ANUNCIOS ACTIVOS', 'tab_my_listings_empty': 'No hay anuncios activos.',
             'eval_page_h': 'VALORACIONES', 'eval_page_p1': 'Opiniones en tu perfil público. Puedes responder a cada comentario; la respuesta es visible para todos.', 'eval_page_p2': 'Para valorar a alguien, usa el flujo tras una transacción (ventana de valoración o notificación).', 'eval_clear_all_btn': 'BORRAR TODO EL FEED',
             'san_acc_h': 'SANTUARIO', 'san_acc_p': 'Galería neón — hasta 15 piezas (bucket Storage sanctuary).', 'ui_neon_new': 'Neón (foto nueva)', 'ui_view': 'Vista', 'ui_v_list': 'Vista lista', 'ui_v_grid': 'Vista cuadrícula', 'ui_v_style': 'Vista estilo', 'ui_v_style2': 'Vista estilo 2',
-            'san_chat_h': 'CHAT DEL SANTUARIO', 'san_chat_rules': '@, .com y teléfonos bloqueados — marketplace Spirit.', 'ui_conversation': 'Conversación', 'ui_msg_ph': 'Mensaje…', 'ui_send': 'ENVIAR',
+            'san_chat_h': 'CHAT DEL SANTUARIO', 'san_chat_rules': '@, .com y teléfonos bloqueados — marketplace Spirit.', 'san_chat_translate': 'Traducir mensajes (idioma del sitio)', 'san_chat_raz': 'Borrar hilo', 'san_chat_raz_confirm': '¿Eliminar todos los mensajes de esta conversación para ambos? (Supabase + caché local)', 'san_chat_raz_nop': 'No hay conversación seleccionada.', 'san_chat_raz_err': 'No se pudo borrar el hilo: ', 'ui_conversation': 'Conversación', 'ui_msg_ph': 'Mensaje…', 'ui_send': 'ENVIAR',
             'params_h': 'AJUSTES DE LA CUENTA', 'params_rep_h': 'MI REPUTACIÓN COMO VENDEDOR', 'ship_addr_h': 'DIRECCIÓN POSTAL (ENVÍO)', 'ship_ph_last': 'Apellido', 'ship_ph_first': 'Nombre', 'ship_ph_street': 'Dirección', 'ship_ph_zip': 'Código postal', 'ship_ph_city': 'Ciudad', 'ship_ph_country': 'País',
             'ship_save_btn': 'GUARDAR DIRECCIÓN', 'ship_save_hint': 'Una sola vez; se reutiliza en cada compra.', 'btn_rib_change': 'AÑADIR / CAMBIAR IBAN ACTIVO', 'btn_logout': 'CERRAR SESIÓN',
             'reg_ph_user': 'Usuario', 'reg_ph_email': 'Correo', 'reg_ph_pass': 'Contraseña', 'reg_remember': 'Permanecer conectado',
@@ -4566,7 +4577,7 @@
             'tab_my_listings_h': '我的在售商品', 'tab_my_listings_empty': '暂无在售商品。',
             'eval_page_h': '评价', 'eval_page_p1': '公开资料上收到的评价。你可以逐条回复；回复对所有人可见。', 'eval_page_p2': '要给他人评分，请在交易后使用评价流程（评价窗口或通知）。', 'eval_clear_all_btn': '清空全部动态',
             'san_acc_h': '圣地', 'san_acc_p': '黑底霓虹画廊 — 最多 15 件（Storage sanctuary 桶）。', 'ui_neon_new': '霓虹（新照片）', 'ui_view': '视图', 'ui_v_list': '列表视图', 'ui_v_grid': '网格视图', 'ui_v_style': '风格视图', 'ui_v_style2': '风格视图 2',
-            'san_chat_h': '圣地聊天', 'san_chat_rules': '@、.com 与电话号码已屏蔽 — Spirit 市场。', 'ui_conversation': '会话', 'ui_msg_ph': '消息…', 'ui_send': '发送',
+            'san_chat_h': '圣地聊天', 'san_chat_rules': '@、.com 与电话号码已屏蔽 — Spirit 市场。', 'san_chat_translate': '翻译消息（网站语言）', 'san_chat_raz': '清空会话', 'san_chat_raz_confirm': '删除此会话中双方的所有消息？（Supabase + 本地缓存）', 'san_chat_raz_nop': '未选择会话。', 'san_chat_raz_err': '无法清空会话：', 'ui_conversation': '会话', 'ui_msg_ph': '消息…', 'ui_send': '发送',
             'params_h': '账户设置', 'params_rep_h': '我的卖家信誉', 'ship_addr_h': '收货地址', 'ship_ph_last': '姓', 'ship_ph_first': '名', 'ship_ph_street': '地址', 'ship_ph_zip': '邮编', 'ship_ph_city': '城市', 'ship_ph_country': '国家',
             'ship_save_btn': '保存地址', 'ship_save_hint': '填写一次，每次购买复用。', 'btn_rib_change': '添加 / 更换有效 IBAN', 'btn_logout': '退出登录',
             'reg_ph_user': '用户名', 'reg_ph_email': '邮箱', 'reg_ph_pass': '密码', 'reg_remember': '保持登录',
@@ -12082,6 +12093,8 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
    --   using (auth.uid()::text = sender_id or auth.uid()::text = recipient_id);
    -- create policy "san_chat_insert_sender" on public.sanctuary_chat for insert to authenticated
    --   with check (auth.uid()::text = sender_id);
+   -- create policy "san_chat_delete_participant" on public.sanctuary_chat for delete to authenticated
+   --   using (auth.uid()::text = sender_id or auth.uid()::text = recipient_id);
    create table if not exists public.spirit_follows (
      follower_id text not null,
      followee_id text not null,
@@ -12203,6 +12216,8 @@ var SPIRIT_FOLLOW_TABLE = 'spirit_follows';
 var spiritFriendsCache = [];
 // Fallback local pour IDs de test (évite les 400 Supabase si non mappés côté backend).
 var spiritLocalSanctuaryChatByRecipient = Object.create(null);
+/** Cache traduction Sanctuaire (clé id|lang ou extrait du texte). */
+var spiritSanctuaryChatTrCache = Object.create(null);
 // false = persistance Supabase (sanctuary_chat) pour que l’interlocuteur voie les messages ; true = debug hors-ligne uniquement.
 var SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY = false;
 // Persist: stocke la valeur de `user_profiles.avatar_url` (path ou URL) pour recharger l'image au changement de vue.
@@ -15608,6 +15623,152 @@ function spiritSanctuarySanUidEq(a, b) {
     return String(a || '').trim() === String(b || '').trim();
 }
 
+function spiritSanctuaryChatTranslatePref() {
+    try { return localStorage.getItem('spirit_san_chat_translate') === '1'; } catch (e) { return false; }
+}
+function spiritSanctuaryMeCandidates(meLocal, resolvedMe) {
+    var out = [];
+    [meLocal, resolvedMe].forEach(function (x) {
+        x = String(x || '').trim();
+        if (!x) return;
+        if (out.indexOf(x) < 0) out.push(x);
+    });
+    return out;
+}
+function spiritSanctuaryChatLineHtmlRow(m, meCand) {
+    var wantTr = spiritSanctuaryChatTranslatePref();
+    var viewL = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+    var sid = String((m && m.sender_id) || '').trim();
+    var mine = false;
+    for (var i = 0; i < (meCand || []).length; i++) {
+        if (meCand[i] && spiritSanctuarySanUidEq(sid, meCand[i])) { mine = true; break; }
+    }
+    var who = String((m && m.sender_label) || sid || '?').replace(/</g, '&lt;');
+    var body = String((m && m.body) || '');
+    var bodyEsc = body.replace(/</g, '&lt;');
+    var doTr = wantTr && !mine && body.trim() && viewL !== 'FR';
+    var idAttr = (m && m.id != null) ? String(m.id).replace(/"/g, '&quot;') : '';
+    var bodyCls = 'spirit-san-chat-body' + (doTr ? ' spirit-san-chat-body--pending' : '');
+    return '<div class="spirit-san-chat-line" data-san-tr="' + (doTr ? '1' : '0') + '"' + (idAttr ? ' data-san-id="' + idAttr + '"' : '') + '><span class="who">' + who + '</span> — <span class="' + bodyCls + '">' + bodyEsc + '</span></div>';
+}
+function spiritSanctuaryChatLinesHtml(rows, meCand) {
+    if (!rows || !rows.length) return '';
+    return rows.map(function (m) { return spiritSanctuaryChatLineHtmlRow(m, meCand); }).join('');
+}
+async function spiritSanctuaryAfterChatRender(box) {
+    if (!box || !spiritSanctuaryChatTranslatePref()) return;
+    var viewL = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+    if (viewL === 'FR') return;
+    var pending = box.querySelectorAll('.spirit-san-chat-body--pending');
+    if (!pending.length) return;
+    if (typeof spiritTranslateListingMessage !== 'function') return;
+    var conc = typeof SPIRIT_MM_TRANSLATE_CONCURRENCY === 'number' ? SPIRIT_MM_TRANSLATE_CONCURRENCY : 3;
+    var nodes = Array.prototype.slice.call(pending);
+    for (var j = 0; j < nodes.length; j += conc) {
+        var slice = nodes.slice(j, j + conc);
+        await Promise.all(slice.map(function (el) {
+            var line = el.closest('.spirit-san-chat-line');
+            var id = line && line.getAttribute('data-san-id');
+            var orig = el.textContent || '';
+            var cacheKey = (id ? 'id:' + id : 't:' + orig.slice(0, 120)) + '|' + viewL;
+            var cached = spiritSanctuaryChatTrCache[cacheKey];
+            if (cached) {
+                el.textContent = cached;
+                el.classList.remove('spirit-san-chat-body--pending');
+                return Promise.resolve();
+            }
+            var trFn = (orig.length > 420 && typeof spiritTranslateLongListingText === 'function')
+                ? function () { return spiritTranslateLongListingText(orig, 'FR', viewL); }
+                : function () { return spiritTranslateListingMessage(orig, 'FR', viewL); };
+            return trFn().then(function (tr) {
+                var out = (tr && String(tr).trim()) ? tr : orig;
+                spiritSanctuaryChatTrCache[cacheKey] = out;
+                el.textContent = out;
+                el.classList.remove('spirit-san-chat-body--pending');
+            });
+        }));
+    }
+}
+function spiritSanctuaryOnToggleChatTranslate(ck, ctx) {
+    try { localStorage.setItem('spirit_san_chat_translate', ck && ck.checked ? '1' : '0'); } catch (e) {}
+    var other = ctx === 'account' ? document.getElementById('spiritSanctuaryChatTranslate') : document.getElementById('spiritAccountSanctuaryChatTranslate');
+    if (other && other !== ck) other.checked = !!(ck && ck.checked);
+    void spiritSanctuaryRenderChat(ctx);
+}
+function spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread) {
+    function isThreadMessage(sid, rid) {
+        var pairs = [[qMe, qPeer], [meLocal, peerThread]];
+        for (var p = 0; p < pairs.length; p++) {
+            var A = String(pairs[p][0] || '').trim();
+            var B = String(pairs[p][1] || '').trim();
+            if (!A || !B || A === B) continue;
+            if ((spiritSanctuarySanUidEq(sid, A) && spiritSanctuarySanUidEq(rid, B)) || (spiritSanctuarySanUidEq(sid, B) && spiritSanctuarySanUidEq(rid, A)))
+                return true;
+        }
+        return false;
+    }
+    try {
+        Object.keys(spiritLocalSanctuaryChatByRecipient || {}).forEach(function (k) {
+            var arr = spiritLocalSanctuaryChatByRecipient[k];
+            if (!Array.isArray(arr)) return;
+            spiritLocalSanctuaryChatByRecipient[k] = arr.filter(function (m) {
+                var sid = String((m && m.sender_id) || '').trim();
+                var rid = String((m && m.recipient_id) || '').trim();
+                return !isThreadMessage(sid, rid);
+            });
+        });
+    } catch (e) {}
+}
+async function spiritSanctuaryClearThread(ctx) {
+    ctx = ctx === 'account' ? 'account' : 'public';
+    var confirmMsg = (typeof spiritT === 'function') ? spiritT('san_chat_raz_confirm') : 'Supprimer tous les messages de cette conversation ?';
+    if (!confirm(confirmMsg)) return;
+    var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+    if (!me) {
+        alert((typeof spiritT === 'function') ? spiritT('eval_login') : 'Connecte-toi.');
+        return;
+    }
+    var ownerRaw = spiritSanctuaryUid(ctx);
+    var meLocal = me;
+    var peerThread = '';
+    if (ctx === 'public') {
+        if (meLocal && ownerRaw && String(meLocal) !== String(ownerRaw)) {
+            peerThread = String(ownerRaw);
+        } else {
+            peerThread = String(spiritSanctuaryGetActivePeer(ctx) || spiritSanctuaryInferLatestPeerGlobal(meLocal) || '');
+        }
+    } else {
+        peerThread = String(spiritSanctuaryGetActivePeer(ctx) || spiritSanctuaryInferPeerFromLocal(String(ownerRaw || ''), meLocal) || '');
+    }
+    var resolvedMe = '';
+    var resolvedPeer = '';
+    if (typeof _spirit !== 'undefined' && _spirit && !SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
+        try { resolvedMe = await spiritResolveUserIdForFakeTestId(meLocal); } catch (e1) {}
+        try { resolvedPeer = peerThread ? await spiritResolveUserIdForFakeTestId(peerThread) : ''; } catch (e2) {}
+    }
+    var qMe = String(resolvedMe || meLocal || '').trim();
+    var qPeer = String(resolvedPeer || peerThread || '').trim();
+    if (!qPeer || spiritSanctuarySanUidEq(qMe, qPeer)) {
+        alert((typeof spiritT === 'function') ? spiritT('san_chat_raz_nop') : 'Aucune conversation sélectionnée.');
+        return;
+    }
+    if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY || typeof _spirit === 'undefined' || !_spirit) {
+        spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread);
+        await spiritSanctuaryRenderChat(ctx);
+        return;
+    }
+    var d1 = await _spirit.from('sanctuary_chat').delete().eq('sender_id', qMe).eq('recipient_id', qPeer);
+    var d2 = await _spirit.from('sanctuary_chat').delete().eq('sender_id', qPeer).eq('recipient_id', qMe);
+    if (d1.error && d2.error) {
+        var errPre = (typeof spiritT === 'function') ? spiritT('san_chat_raz_err') : 'Erreur : ';
+        alert(errPre + (d1.error.message || d2.error.message || ''));
+        return;
+    }
+    spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread);
+    await spiritSanctuaryRenderChat(ctx);
+    void spiritUpdateNavSanctuaryDot();
+}
+
 /** Déduit l’interlocuteur à partir d’une ligne (moi = expéditeur ou destinataire). */
 function spiritSanctuaryPeerFromRow(row, meLocal, resolvedMe) {
     if (!row) return '';
@@ -15671,6 +15832,11 @@ async function spiritSanctuaryRenderChat(ctx) {
     var box = document.getElementById(d.chatMsgs);
     var peerSel = document.getElementById(d.chatPeer);
     if (!box || !uid) return;
+    var trPref = spiritSanctuaryChatTranslatePref();
+    var cbAcc = document.getElementById('spiritAccountSanctuaryChatTranslate');
+    var cbPub = document.getElementById('spiritSanctuaryChatTranslate');
+    if (cbAcc) cbAcc.checked = trPref;
+    if (cbPub) cbPub.checked = trPref;
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) {
         var keyLocal = String(uid);
         var meLocal = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
@@ -15762,12 +15928,9 @@ async function spiritSanctuaryRenderChat(ctx) {
             var rid = String(m.recipient_id || '').trim();
             return (sid === activePeer && rid === meLocal) || (sid === meLocal && rid === activePeer);
         });
-        box.innerHTML = filteredLocal.map(function (m) {
-            var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
-            var tx = String(m.body || '').replace(/</g, '&lt;');
-            return '<div class="spirit-san-chat-line"><span class="who">' + who + '</span> — ' + tx + '</div>';
-        }).join('');
+        box.innerHTML = spiritSanctuaryChatLinesHtml(filteredLocal, meLocal ? [meLocal] : []);
         box.scrollTop = box.scrollHeight;
+        void spiritSanctuaryAfterChatRender(box);
         return;
     }
     if (typeof _spirit === 'undefined' || !_spirit) return;
@@ -15817,13 +15980,10 @@ async function spiritSanctuaryRenderChat(ctx) {
             peerSel.innerHTML = '<option value="">—</option>';
         }
         box.innerHTML = threadRows.length
-            ? threadRows.map(function (m) {
-                var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
-                var tx = String(m.body || '').replace(/</g, '&lt;');
-                return '<div class="spirit-san-chat-line"><span class="who">' + who + '</span> — ' + tx + '</div>';
-            }).join('')
+            ? spiritSanctuaryChatLinesHtml(threadRows, spiritSanctuaryMeCandidates(meLocal, resolvedMe))
             : '<p style="color:#555;font-size:0.65rem;">Aucun message pour l’instant.</p>';
         box.scrollTop = box.scrollHeight;
+        void spiritSanctuaryAfterChatRender(box);
         return;
     }
 
@@ -15834,12 +15994,9 @@ async function spiritSanctuaryRenderChat(ctx) {
             return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
         });
         if (peerSel) peerSel.innerHTML = '<option value="">Conversation active</option>';
-        box.innerHTML = arr.map(function (m) {
-            var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
-            var tx = String(m.body || '').replace(/</g, '&lt;');
-            return '<div class="spirit-san-chat-line"><span class="who">' + who + '</span> — ' + tx + '</div>';
-        }).join('');
+        box.innerHTML = spiritSanctuaryChatLinesHtml(arr, spiritSanctuaryMeCandidates(meLocal, resolvedMe));
         box.scrollTop = box.scrollHeight;
+        void spiritSanctuaryAfterChatRender(box);
         return;
     }
     var out = await _spirit.from('sanctuary_chat').select('*').eq('recipient_id', String(resolvedOwner)).order('created_at', { ascending: true }).limit(200);
@@ -15853,11 +16010,7 @@ async function spiritSanctuaryRenderChat(ctx) {
         return;
     }
     if (peerSel) peerSel.innerHTML = '<option value="">Conversation active</option>';
-    box.innerHTML = out.data.map(function (m) {
-        var who = String(m.sender_label || m.sender_id || '?').replace(/</g, '&lt;');
-        var tx = String(m.body || '').replace(/</g, '&lt;');
-        return '<div class="spirit-san-chat-line"><span class="who">' + who + '</span> — ' + tx + '</div>';
-    }).join('');
+    box.innerHTML = spiritSanctuaryChatLinesHtml(out.data, spiritSanctuaryMeCandidates(meLocal, resolvedMe));
     if (out.data.length && meLocal && peerSel) {
         var sortedIn = out.data.slice().sort(function (a, b) {
             return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
@@ -15869,6 +16022,7 @@ async function spiritSanctuaryRenderChat(ctx) {
         }
     }
     box.scrollTop = box.scrollHeight;
+    void spiritSanctuaryAfterChatRender(box);
 }
 async function spiritSanctuarySendChat(ctx) {
     ctx = ctx === 'account' ? 'account' : 'public';
@@ -16136,6 +16290,8 @@ try {
     window.spiritSanctuarySendChat = spiritSanctuarySendChat;
     window.spiritAccountSanctuarySetView = spiritAccountSanctuarySetView;
     window.spiritAccountSanctuarySendChat = spiritAccountSanctuarySendChat;
+    window.spiritSanctuaryClearThread = spiritSanctuaryClearThread;
+    window.spiritSanctuaryOnToggleChatTranslate = spiritSanctuaryOnToggleChatTranslate;
     window.spiritCopyPublicProfileUrl = spiritCopyPublicProfileUrl;
     window.spiritCopyMyPublicUrl = spiritCopyMyPublicUrl;
     window.spiritOpenMyPublicProfile = spiritOpenMyPublicProfile;
