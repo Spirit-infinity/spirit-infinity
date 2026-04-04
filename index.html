@@ -826,6 +826,34 @@
         #stepInfo h2 { margin: 0 0 4px 0; font-size: 0.9rem; }
         #stepInfo input, #stepInfo select, #stepInfo textarea { margin: 4px 0; padding: 6px; font-size: 0.73rem; }
         #stepInfo textarea { min-height: 62px; }
+        #spiritSaleLogisticsCarrierHint { font-size: 0.62rem; color: #9ab; margin: 4px 0 6px; line-height: 1.4; }
+        #spiritSaleLogisticsCustomsPreview {
+            display: none;
+            margin: 8px 0 4px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 2px solid #ff6600;
+            background: rgba(255, 102, 0, 0.12);
+            color: #ffb380;
+            font-size: clamp(0.58rem, 2.8vw, 0.68rem);
+            line-height: 1.45;
+            font-weight: 700;
+        }
+        #spiritSaleLogisticsCustomsPreview.spirit-logistics-customs-visible { display: block; }
+        #spiritPmCustomsBanner {
+            display: none;
+            margin: 0 0 10px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 2px solid #ff4400;
+            background: rgba(255, 68, 0, 0.14);
+            color: #ffaa88;
+            font-size: clamp(0.58rem, 2.9vw, 0.7rem);
+            line-height: 1.45;
+            font-weight: 700;
+        }
+        #spiritPmCustomsBanner.spirit-logistics-customs-visible { display: block; }
+        #pLogisticsFlowSelect { margin: 0 0 8px; font-size: 0.68rem; width: 100%; max-width: 100%; box-sizing: border-box; }
         .market-kind-toggle { display:flex; align-items:center; border:1px solid #ff6600; border-radius:999px; overflow:hidden; box-shadow:0 0 12px rgba(255,102,0,0.22); }
         .market-kind-toggle button { border:none; background:#0a0a0a; color:#777; padding:10px 24px; font-weight:800; letter-spacing:0.8px; cursor:pointer; transition:0.2s ease; }
         .market-kind-toggle button.active { color:#000; background:#ff6600; }
@@ -3211,6 +3239,9 @@
                 <div id="pNegotiatedNote" data-key="pm_negotiated_note" style="display:none;font-size:0.62rem;color:#6cf;margin:-4px 0 10px 0;line-height:1.35;padding:6px 8px;border:1px solid rgba(0,200,255,0.35);background:rgba(0,80,120,0.12);">Prix convenu — visible uniquement entre le vendeur et l’acheteur concerné. Sur le marché, le prix public reste affiché pour les autres.</div>
                 
                 <div style="background:rgba(255,102,0,0.05); padding:15px; border:1px solid #333; margin-bottom:15px;">
+                    <label style="font-size:0.65rem; color:#ff9944; font-weight:bold; display:block; margin-bottom:4px;">LOGISTIQUE — FLUX (EXPÉDITION → DESTINATION)</label>
+                    <select id="pLogisticsFlowSelect" onchange="spiritOnCheckoutLogisticsFlowChange()" title="Ajuste le corridor ; les transporteurs et l’alerte douanes suivent."></select>
+                    <div id="spiritPmCustomsBanner" role="alert">⚠ DOUANES / TAXES : envoi intercontinental — frais et taxes d’importation possibles à votre charge (estimation indicative ci-dessous).</div>
                     <label style="font-size:0.7rem; color:var(--neon-orange); font-weight:bold; display:block; margin-bottom:5px;"><span data-key="pm_delivery_lbl">LIVRAISON (Taille:</span> <span id="pSizeLabel">---</span><span data-key="pm_delivery_end">)</span></label>
                     <select id="pCarrierSelect" onchange="updateTotalWithCarrier()" style="margin:0;">
                         <option value="0" data-key="pm_carrier_pick">-- CHOISIR UN TRANSPORTEUR --</option>
@@ -3375,6 +3406,33 @@
                 <option value="Moyen" selected>Moyen (Boite 1/6 Standard)</option>
                 <option value="Grand">Grand (Diecast / Statue / XL)</option>
             </select>
+            <label style="font-size:0.65rem; color:#8cf; font-weight:bold; display:block; margin-top:8px; margin-bottom:4px;">LOGISTIQUE GLOBALE — FLUX PRINCIPAL (EXPÉDITION → DESTINATION)</label>
+            <select id="saleLogisticsCorridor" onchange="spiritOnSaleLogisticsChange()" title="Sélectionne le corridor servi par cette annonce (mobile &amp; desktop).">
+                <option value="">-- CHOISIR UN FLUX (recommandé) --</option>
+                <optgroup label="Local (même zone)">
+                    <option value="local_FR_FR">France → France</option>
+                    <option value="local_US_US">USA → USA</option>
+                    <option value="local_CN_CN">Chine / HK → Chine / HK</option>
+                    <option value="local_EU_EU">Europe → Europe</option>
+                </optgroup>
+                <optgroup label="Union européenne (sans douane)">
+                    <option value="intra_FR_EU">France → Europe (UE)</option>
+                    <option value="intra_EU_FR">Europe → France</option>
+                </optgroup>
+                <optgroup label="Mondial (intercontinental)">
+                    <option value="intl_US_FR">USA → France</option>
+                    <option value="intl_US_EU">USA → Europe</option>
+                    <option value="intl_CN_US">Chine / HK → USA</option>
+                    <option value="intl_CN_FR">Chine / HK → France</option>
+                    <option value="intl_CN_EU">Chine / HK → Europe</option>
+                    <option value="intl_EU_US">Europe → USA</option>
+                    <option value="intl_EU_CN">Europe → Chine / HK</option>
+                    <option value="intl_FR_US">France → USA</option>
+                    <option value="intl_FR_CN">France → Chine / HK</option>
+                </optgroup>
+            </select>
+            <div id="spiritSaleLogisticsCarrierHint">Les transporteurs affichés à l’achat dépendent du flux et du pays de l’acheteur (Mondial Relay, Colissimo, USPS, SF Express, FedEx, DHL).</div>
+            <div id="spiritSaleLogisticsCustomsPreview" role="alert">⚠ Flux intercontinental : l’acheteur peut devoir régler des droits de douane, TVA d’import ou frais de dédouanement — non inclus dans le prix affiché.</div>
             <textarea id="inputDesc" placeholder="Description de votre objet..."></textarea>
             <button class="btn-action" style="width:100%;" onclick="goToScan()">VALIDER L'ANNONCE</button>
         </div>
@@ -4588,6 +4646,189 @@
         "Moyen": { "mr": 6.90, "cl": 14.90, "dh": 25.00 },
         "Grand": { "mr": 12.90, "cl": 25.00, "dh": 45.00 }
     };
+
+    const spiritLogisticsExtraRates = {
+        "Petit": { "usps": 9.20, "sf": 29.00, "fx": 17.50 },
+        "Moyen": { "usps": 15.80, "sf": 46.00, "fx": 35.00 },
+        "Grand": { "usps": 31.50, "sf": 89.00, "fx": 61.00 }
+    };
+
+    var SPIRIT_LOGISTICS_FLOW_META = {
+        local_FR_FR: { o: 'FR', d: 'FR', label: 'France → France (local)' },
+        local_US_US: { o: 'US', d: 'US', label: 'USA → USA (local)' },
+        local_CN_CN: { o: 'CN', d: 'CN', label: 'Chine / HK → Chine / HK (local)' },
+        local_EU_EU: { o: 'EU', d: 'EU', label: 'Europe → Europe (local)' },
+        intra_FR_EU: { o: 'FR', d: 'EU', label: 'France → Europe (UE)' },
+        intra_EU_FR: { o: 'EU', d: 'FR', label: 'Europe → France (UE)' },
+        intl_US_FR: { o: 'US', d: 'FR', label: 'USA → France' },
+        intl_US_EU: { o: 'US', d: 'EU', label: 'USA → Europe' },
+        intl_CN_US: { o: 'CN', d: 'US', label: 'Chine / HK → USA' },
+        intl_CN_FR: { o: 'CN', d: 'FR', label: 'Chine / HK → France' },
+        intl_CN_EU: { o: 'CN', d: 'EU', label: 'Chine / HK → Europe' },
+        intl_EU_US: { o: 'EU', d: 'US', label: 'Europe → USA' },
+        intl_EU_CN: { o: 'EU', d: 'CN', label: 'Europe → Chine / HK' },
+        intl_FR_US: { o: 'FR', d: 'US', label: 'France → USA' },
+        intl_FR_CN: { o: 'FR', d: 'CN', label: 'France → Chine / HK' }
+    };
+
+    var SPIRIT_FLOW_CARRIERS = {
+        local_FR_FR: ['mr', 'cl', 'dh'],
+        local_US_US: ['usps', 'fx', 'dh'],
+        local_CN_CN: ['sf', 'fx', 'dh'],
+        local_EU_EU: ['mr', 'fx', 'dh'],
+        intra_FR_EU: ['mr', 'dh', 'fx'],
+        intra_EU_FR: ['mr', 'dh', 'fx'],
+        intl_US_FR: ['fx', 'dh', 'usps'],
+        intl_US_EU: ['fx', 'dh', 'usps'],
+        intl_CN_US: ['sf', 'fx', 'dh'],
+        intl_CN_FR: ['sf', 'fx', 'dh'],
+        intl_CN_EU: ['sf', 'fx', 'dh'],
+        intl_EU_US: ['fx', 'dh', 'mr'],
+        intl_EU_CN: ['sf', 'fx', 'dh'],
+        intl_FR_US: ['fx', 'dh', 'cl'],
+        intl_FR_CN: ['sf', 'fx', 'dh']
+    };
+
+    var SPIRIT_CARRIER_LABELS = { mr: 'Mondial Relay', cl: 'Colissimo', dh: 'DHL Express', usps: 'USPS', sf: 'SF Express', fx: 'FedEx' };
+
+    function spiritGetShippingRate(size, carrierKey) {
+        var sz = shippingRates[size] ? size : 'Moyen';
+        var row = shippingRates[sz];
+        if (row && row[carrierKey] != null) return row[carrierKey];
+        var ex = spiritLogisticsExtraRates[sz] || spiritLogisticsExtraRates['Moyen'];
+        if (ex && ex[carrierKey] != null) return ex[carrierKey];
+        return 0;
+    }
+
+    function spiritNormalizeZoneFromCountryLabel(s) {
+        var t = String(s || '').trim().toLowerCase();
+        if (!t) return 'FR';
+        if (t === 'france') return 'FR';
+        if (t === 'usa' || t === 'us' || t === 'états-unis' || t === 'etats-unis') return 'US';
+        if (t === 'chine' || t === 'china' || t === 'cn') return 'CN';
+        if (t.indexOf('hong') >= 0) return 'HK';
+        if (t === 'europe') return 'EU';
+        return 'FR';
+    }
+
+    function spiritOriginZoneFromListing(item) {
+        var raw = (item && (item.origin_country || item.country)) ? String(item.origin_country || item.country) : 'France';
+        return spiritNormalizeZoneFromCountryLabel(raw);
+    }
+
+    function spiritFlowsForOriginZone(oz) {
+        var o = oz === 'HK' ? 'CN' : oz;
+        return Object.keys(SPIRIT_LOGISTICS_FLOW_META).filter(function (k) {
+            return SPIRIT_LOGISTICS_FLOW_META[k].o === o;
+        });
+    }
+
+    function spiritDefaultFlowKeyFromZones(oz, bz) {
+        var o = oz === 'HK' ? 'CN' : oz;
+        var b = bz === 'HK' ? 'CN' : bz;
+        if (o === b) {
+            if (o === 'FR') return 'local_FR_FR';
+            if (o === 'US') return 'local_US_US';
+            if (o === 'CN') return 'local_CN_CN';
+            if (o === 'EU') return 'local_EU_EU';
+        }
+        if ((o === 'FR' && b === 'EU') || (o === 'EU' && b === 'FR')) {
+            return o === 'FR' ? 'intra_FR_EU' : 'intra_EU_FR';
+        }
+        var k1 = 'intl_' + o + '_' + b;
+        if (SPIRIT_LOGISTICS_FLOW_META[k1]) return k1;
+        var k2 = 'intl_' + b + '_' + o;
+        if (SPIRIT_LOGISTICS_FLOW_META[k2]) return k2;
+        return 'intl_CN_US';
+    }
+
+    function spiritFlowKeyShowsCustomsDuty(flowKey) {
+        return String(flowKey || '').indexOf('intl_') === 0;
+    }
+
+    function spiritRebuildProductModalCarriers(flowKey) {
+        var sel = document.getElementById('pCarrierSelect');
+        if (!sel) return;
+        var pick = (typeof spiritT === 'function') ? spiritT('pm_carrier_pick') : '-- CHOISIR UN TRANSPORTEUR --';
+        var keys = SPIRIT_FLOW_CARRIERS[flowKey] || ['mr', 'cl', 'dh'];
+        var html = '<option value="0">' + String(pick).replace(/</g, '&lt;') + '</option>';
+        keys.forEach(function (ck) {
+            var lab = SPIRIT_CARRIER_LABELS[ck] || ck;
+            html += '<option value="' + ck + '">' + String(lab).replace(/</g, '&lt;') + '</option>';
+        });
+        sel.innerHTML = html;
+        sel.value = '0';
+    }
+
+    function spiritPopulateCheckoutLogisticsFlowSelect(item) {
+        var sel = document.getElementById('pLogisticsFlowSelect');
+        if (!sel) return;
+        var oz = spiritOriginZoneFromListing(item);
+        var bz = spiritNormalizeZoneFromCountryLabel(spiritGetBuyerCountry());
+        var keys = spiritFlowsForOriginZone(oz);
+        if (!keys.length) keys = ['local_FR_FR'];
+        var preferred = item && item.spirit_logistics_corridor ? String(item.spirit_logistics_corridor).trim() : '';
+        var def = preferred && keys.indexOf(preferred) >= 0 ? preferred : spiritDefaultFlowKeyFromZones(oz, bz);
+        if (keys.indexOf(def) < 0 && keys.length) def = keys[0];
+        var html = '';
+        keys.forEach(function (k) {
+            var meta = SPIRIT_LOGISTICS_FLOW_META[k];
+            var lab = meta ? meta.label : k;
+            html += '<option value="' + k + '">' + String(lab).replace(/</g, '&lt;') + '</option>';
+        });
+        sel.innerHTML = html;
+        sel.value = def;
+    }
+
+    function spiritInitCheckoutLogisticsOnOpenProduct(item) {
+        try {
+            spiritPopulateCheckoutLogisticsFlowSelect(item || {});
+            var fk = document.getElementById('pLogisticsFlowSelect') && document.getElementById('pLogisticsFlowSelect').value;
+            spiritRebuildProductModalCarriers(fk);
+        } catch (eInitLg) {}
+    }
+
+    function spiritOnCheckoutLogisticsFlowChange() {
+        var fk = document.getElementById('pLogisticsFlowSelect') && document.getElementById('pLogisticsFlowSelect').value;
+        spiritRebuildProductModalCarriers(fk);
+        if (typeof updateTotalWithCarrier === 'function') updateTotalWithCarrier();
+    }
+
+    function spiritRefreshCheckoutLogisticsDutyUi() {
+        var fk = document.getElementById('pLogisticsFlowSelect') && document.getElementById('pLogisticsFlowSelect').value;
+        var ban = document.getElementById('spiritPmCustomsBanner');
+        var dutyLine = document.getElementById('dutyLine');
+        var sumDuty = document.getElementById('sumDuty');
+        var show = spiritFlowKeyShowsCustomsDuty(fk);
+        if (ban) ban.classList.toggle('spirit-logistics-customs-visible', !!show);
+        if (!selectedProduct) return;
+        var basePx = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(selectedProduct) : parseFloat(selectedProduct.price || 0);
+        if (!Number.isFinite(basePx)) basePx = 0;
+        var est = Math.round(basePx * 0.12 * 100) / 100;
+        if (dutyLine) dutyLine.style.display = show ? 'flex' : 'none';
+        if (sumDuty && show) sumDuty.innerText = '~ ' + est.toFixed(2) + ' € (est.)';
+    }
+
+    function spiritOnSaleLogisticsChange() {
+        var el = document.getElementById('saleLogisticsCorridor');
+        var v = el && el.value ? String(el.value) : '';
+        var prev = document.getElementById('spiritSaleLogisticsCustomsPreview');
+        var hint = document.getElementById('spiritSaleLogisticsCarrierHint');
+        if (prev) prev.classList.toggle('spirit-logistics-customs-visible', spiritFlowKeyShowsCustomsDuty(v));
+        if (hint && v && SPIRIT_FLOW_CARRIERS[v]) {
+            var labs = SPIRIT_FLOW_CARRIERS[v].map(function (c) { return SPIRIT_CARRIER_LABELS[c] || c; }).join(', ');
+            hint.textContent = 'Transporteurs typiques pour ce flux : ' + labs + '.';
+        } else if (hint) {
+            hint.textContent = 'Les transporteurs affichés à l’achat dépendent du flux et du pays de l’acheteur (Mondial Relay, Colissimo, USPS, SF Express, FedEx, DHL).';
+        }
+    }
+
+    try {
+        window.spiritOnSaleLogisticsChange = spiritOnSaleLogisticsChange;
+        window.spiritOnCheckoutLogisticsFlowChange = spiritOnCheckoutLogisticsFlowChange;
+        window.spiritInitCheckoutLogisticsOnOpenProduct = spiritInitCheckoutLogisticsOnOpenProduct;
+        window.spiritGetShippingRate = spiritGetShippingRate;
+    } catch (eLgWin) {}
 
     let marketData = [];
     let marketViewMode = 'gallery';
@@ -7613,6 +7854,8 @@ async function loadMySales() {
         document.getElementById('saleCat').value = '';
         if (document.getElementById('saleCond')) document.getElementById('saleCond').value = 'Très bon état';
         document.getElementById('saleShip').value = 'Moyen';
+        if (document.getElementById('saleLogisticsCorridor')) document.getElementById('saleLogisticsCorridor').value = '';
+        try { if (typeof spiritOnSaleLogisticsChange === 'function') spiritOnSaleLogisticsChange(); } catch (eSlR) {}
         if (document.getElementById('saleMatiere')) document.getElementById('saleMatiere').value = '';
         var smRow = document.getElementById('statueMatiereRow');
         if (smRow) smRow.style.display = 'none';
@@ -7909,6 +8152,12 @@ async function publierAnnonce() {
         }
         desc = 'MATIÈRE : ' + matPub + '\n\n' + desc;
     }
+    try {
+        var saleLgxEl = document.getElementById('saleLogisticsCorridor');
+        var saleLgxVal = saleLgxEl && saleLgxEl.value ? String(saleLgxEl.value).trim() : '';
+        desc = String(desc || '').replace(/\n*\[\[SPIRIT_LGX:[^\]]+\]\]\s*$/, '').trim();
+        if (saleLgxVal) desc = desc + '\n\n[[SPIRIT_LGX:' + saleLgxVal + ']]';
+    } catch (eLgxPub) {}
     const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore, 10) || 0;
     const category = document.getElementById('saleCat') ? document.getElementById('saleCat').value : '';
     const normalizedCat = normalizeSpiritCat(category);
@@ -8308,7 +8557,14 @@ async function editAnnonce(id) {
     if(document.getElementById('inputPrice')) document.getElementById('inputPrice').value = Number.isFinite(pEd) ? pEd : 0;
     var rawDescEd = item.description || item.desc || '';
     var mExEd = (typeof spiritExtractMatiereFromDesc === 'function') ? spiritExtractMatiereFromDesc(rawDescEd) : { matiere: '', rest: rawDescEd };
-    if(document.getElementById('inputDesc')) document.getElementById('inputDesc').value = mExEd.rest;
+    var descForInput = String(mExEd.rest || '');
+    try {
+        var _lgxEd = descForInput.match(/\[\[SPIRIT_LGX:([^\]]+)\]\]/);
+        var _slc = document.getElementById('saleLogisticsCorridor');
+        if (_lgxEd && _slc) _slc.value = _lgxEd[1];
+        descForInput = descForInput.replace(/\n*\[\[SPIRIT_LGX:[^\]]+\]\]\s*$/, '').trim();
+    } catch (eLgxEd) {}
+    if(document.getElementById('inputDesc')) document.getElementById('inputDesc').value = descForInput;
     if(document.getElementById('saleMatiere') && mExEd.matiere) document.getElementById('saleMatiere').value = mExEd.matiere;
     if(document.getElementById('saleCat')) document.getElementById('saleCat').value = item.category || item.cat || 'figurine';
     if(document.getElementById('saleBrand')) document.getElementById('saleBrand').value = item.brand || '';
@@ -8326,6 +8582,7 @@ async function editAnnonce(id) {
     if(document.getElementById('saleFirstHand')) document.getElementById('saleFirstHand').checked = !!item.is_first_hand;
     if(document.getElementById('saleHasCoa')) document.getElementById('saleHasCoa').checked = !!(item.has_coa === true || item.has_coa === 'true' || item.has_coa === 1);
     if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize || 'medium';
+    try { if (typeof spiritOnSaleLogisticsChange === 'function') spiritOnSaleLogisticsChange(); } catch (eSlEd) {}
     try {
         var _urlsEd = typeof spiritImageUrlList === 'function' ? spiritImageUrlList(item) : [];
         previewPhotos = [null, null, null, null, null];
@@ -9127,6 +9384,14 @@ async function spiritLoadListingMessagesForProduct(productId) {
 
  async function openProduct(item) {
         item = Object.assign({}, item);
+        try {
+            var _rawLgxD = String(item.description || '');
+            var _lgxM = _rawLgxD.match(/\[\[SPIRIT_LGX:([^\]]+)\]\]/);
+            if (_lgxM) item.spirit_logistics_corridor = _lgxM[1];
+            if (_rawLgxD.indexOf('[[SPIRIT_LGX:') >= 0) {
+                item.description = _rawLgxD.replace(/\n*\[\[SPIRIT_LGX:[^\]]+\]\]\s*$/, '').trim();
+            }
+        } catch (eLgxOpen) {}
         if (typeof spiritIsListingStatusSold === 'function' && spiritIsListingStatusSold(item)) {
             var meOpen = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : (typeof MY_TEST_ID !== 'undefined' ? MY_TEST_ID : '')) || '');
             var oidOpen = typeof spiritOwnerId === 'function' ? spiritOwnerId(item.owner_id) : String(item.owner_id || '').trim().toLowerCase();
@@ -9187,7 +9452,12 @@ async function spiritLoadListingMessagesForProduct(productId) {
         // CORRECTION : Supabase utilise 'ship_size' au lieu de 'shipSize'
         document.getElementById('pSizeLabel').innerText = item.ship_size || item.shipSize || "Moyen";
         
-        document.getElementById('pCarrierSelect').value = "0";
+        try {
+            if (typeof spiritInitCheckoutLogisticsOnOpenProduct === 'function') spiritInitCheckoutLogisticsOnOpenProduct(item);
+            else document.getElementById('pCarrierSelect').value = "0";
+        } catch (ePmCar) {
+            try { document.getElementById('pCarrierSelect').value = "0"; } catch (ePmCar2) {}
+        }
         
         var gBox = document.getElementById('pGallery');
         gBox.innerHTML = '';
@@ -10247,7 +10517,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var carrierPlaceholder = (typeof spiritT === 'function') ? spiritT('pm_carrier_select') : '---';
         let carrierName = carrierPlaceholder;
         if(carrierKey !== "0") {
-            shipCost = shippingRates[size][carrierKey];
+            shipCost = (typeof spiritGetShippingRate === 'function') ? spiritGetShippingRate(size, carrierKey) : shippingRates[size][carrierKey];
             carrierName = document.getElementById('pCarrierSelect').options[document.getElementById('pCarrierSelect').selectedIndex].text;
         }
         // PROTECTION ACHETEUR STRICTE 8% (3% Moi / 3% Firme / 2% Banque)
@@ -10259,6 +10529,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         document.getElementById('sumCarrierName').innerText = carrierName;
         document.getElementById('sumProt').innerText = spiritFormatMoney(prot, 'EUR');
         document.getElementById('sumTotal').innerText = spiritFormatMoney(basePx + shipCost + prot, 'EUR');
+        try { if (typeof spiritRefreshCheckoutLogisticsDutyUi === 'function') spiritRefreshCheckoutLogisticsDutyUi(); } catch (eLgDuty) {}
     }
 
     // --- NAVIGATION SPIRIT : 1 MENU = 1 SECTION (sans reload) ---
