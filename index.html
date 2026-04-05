@@ -442,7 +442,6 @@
 
             /* Mon compte (mobile) : même colonne que portefeuille (accordéon : pas de .dash-content — sélecteurs sans .dash-content) */
             #accountModal #tab-portefeuille,
-            #accountModal #tab-achats,
             #accountModal #tab-ventes,
             #accountModal #tab-sanctuary {
                 overflow-x: hidden;
@@ -450,6 +449,21 @@
                 max-width: min(580px, 100%);
                 margin-left: auto;
                 margin-right: auto;
+                box-sizing: border-box;
+            }
+            /* Mes achats : pleine largeur écran sur mobile */
+            #accountModal #tab-achats {
+                overflow-x: hidden;
+                width: 100%;
+                max-width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                box-sizing: border-box;
+            }
+            #accountModal #tab-achats #my-purchases-list,
+            #accountModal #tab-achats .table-spirit {
+                width: 100%;
+                max-width: 100%;
                 box-sizing: border-box;
             }
             #accountModal #tab-achats > h2,
@@ -472,6 +486,28 @@
                 overflow-x: hidden;
                 max-width: 100%;
                 box-sizing: border-box;
+            }
+            /* Fil messages Sanctuaire : date + ✕ ne se chevauchent pas sur petit écran */
+            #accountModal #tab-messages .spirit-san-msg-feed-toprow {
+                flex-wrap: wrap;
+            }
+            #accountModal #tab-messages .spirit-san-msg-feed-actions {
+                margin-left: auto;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+            @media (max-width: 480px) {
+                #accountModal #tab-messages .spirit-san-msg-feed-toprow {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                #accountModal #tab-messages .spirit-san-msg-feed-actions {
+                    width: 100%;
+                    justify-content: space-between;
+                    margin-top: 6px;
+                    padding-top: 6px;
+                    border-top: 1px solid #1a1a1a;
+                }
             }
             #accountModal #my-purchases-list {
                 width: 100%;
@@ -1199,12 +1235,31 @@
                 border-right-color: rgba(255, 180, 100, 0.95);
                 border-bottom-color: rgba(255, 180, 100, 0.95);
             }
+            /* Messages / Évaluations : pas de chevron (évite chevauchement avec la pastille et l’effet « validation ») */
+            #accountModal #btn-messages::after,
+            #accountModal #btn-evaluations::after {
+                content: none !important;
+                display: none !important;
+            }
+            #accountModal #btn-messages,
+            #accountModal #btn-evaluations {
+                padding-right: 12px;
+            }
             #accountModal .dash-container {
                 max-height: min(calc(100dvh - 100px), calc(100vh - 100px));
             }
             #accountModal .spirit-account-acc-panel {
                 margin: 0 6px 12px;
                 background: rgba(8, 8, 8, 0.65);
+            }
+            #accountModal #tab-achats.spirit-account-acc-panel {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                padding-left: max(12px, env(safe-area-inset-left));
+                padding-right: max(12px, env(safe-area-inset-right));
             }
         }
         @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
@@ -2212,43 +2267,7 @@
             }
         }
 
-        /* Bureau : pas de raccourcis Style 1/2 sur la page de garde ni précommandes */
-        @media (min-width: 901px) {
-            .spirit-mobile-market-views { display: none !important; }
-        }
-        /* Mobile : raccourcis + grilles type Sanctuaire (style / style2) — inchangé au-dessus de 900px */
         @media (max-width: 900px) {
-            .spirit-mobile-market-views {
-                display: flex;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                margin-top: 18px;
-                padding-top: 16px;
-                border-top: 1px solid rgba(255, 102, 0, 0.28);
-                max-width: 420px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-            .spirit-mobile-market-views-label {
-                width: 100%;
-                text-align: center;
-                font-size: 0.62rem;
-                color: #888;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-            }
-            .spirit-market-view-btn {
-                font-size: 0.62rem !important;
-                padding: 10px 14px !important;
-            }
-            .spirit-market-view-btn.active {
-                box-shadow: 0 0 14px rgba(255, 102, 0, 0.55);
-                border: 1px solid var(--neon-orange);
-                color: var(--neon-orange);
-                background: #111 !important;
-            }
             #precommandes-hot-toys .spirit-preorder-views {
                 margin-top: 48px;
                 margin-bottom: 8px;
@@ -2979,11 +2998,6 @@
     <h1>SPIRIT INFINITY</h1>
     <p>Écosystème sécurisé — marketplace, ledger hardware &amp; protection acheteur.</p>
     <button type="button" class="btn-action" onclick="navigateTo('market')">ACCÉDER AU MARKETPLACE</button>
-    <div class="spirit-mobile-market-views" aria-label="Vues annonces mobile">
-        <span class="spirit-mobile-market-views-label">Annonces — écran vertical</span>
-        <button type="button" class="btn-action spirit-market-view-btn" data-spirit-mv="style" onclick="spiritSetMarketViewFromMobile('style')">Style 1</button>
-        <button type="button" class="btn-action spirit-market-view-btn" data-spirit-mv="style2" onclick="spiritSetMarketViewFromMobile('style2')">Style 2</button>
-    </div>
 </section>
 
 <div id="marketplaceSection" class="container">
@@ -9120,6 +9134,39 @@ async function spiritTranslateLongListingText(text, fromLang, toLang) {
     }
     return parts.join('');
 }
+/** Chat Sanctuaire : langue source inconnue → langue d’interface (évite de bloquer quand l’UI est FR). */
+async function spiritTranslateSanctuaryAutodetectToUi(text, toLang) {
+    var raw = String(text || '').trim();
+    if (!raw) return '';
+    var t = spiritListingChatLangNormalize(toLang);
+    var toM = spiritListingChatLangToMyMemory(t);
+    var url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(raw.slice(0, 480)) + '&langpair=' + encodeURIComponent('Autodetect|' + toM);
+    try {
+        var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        var to = ac ? setTimeout(function () { try { ac.abort(); } catch (eA) {} }, 7000) : null;
+        var res = await fetch(url, ac ? { signal: ac.signal } : {});
+        if (to) clearTimeout(to);
+        if (!res.ok) return '';
+        var j = await res.json();
+        if (j && (j.responseStatus === 403 || j.responseStatus === 429)) return '';
+        var out = j && j.responseData && j.responseData.translatedText ? String(j.responseData.translatedText).trim() : '';
+        return out || '';
+    } catch (e) {
+        return '';
+    }
+}
+async function spiritTranslateLongSanctuaryAutodetectToUi(text, toLang) {
+    var raw = String(text || '').trim();
+    if (!raw) return '';
+    var maxChunk = 420;
+    var parts = [];
+    for (var i = 0; i < raw.length; i += maxChunk) {
+        var chunk = raw.slice(i, i + maxChunk);
+        var tr = await spiritTranslateSanctuaryAutodetectToUi(chunk, toLang);
+        parts.push(tr && String(tr).trim() ? tr : chunk);
+    }
+    return parts.join('');
+}
 function spiritPrimeListingChatForTranslate() {
     if (!selectedProduct || !selectedProduct.chat || !selectedProduct.chat.length) return;
     var vNorm = spiritListingChatLangNormalize(spiritListingChatViewerLangSync());
@@ -13456,14 +13503,14 @@ function spiritLoadMessagesTab() {
                 var delBtn = (!n.synthetic && idStr !== '0')
                     ? '<button type="button" title="' + String(mT('msg_del_btn')).replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" style="width:26px;height:26px;border:1px solid #633;background:#1a1012;color:#f88;cursor:pointer;font-size:0.75rem;line-height:1;border-radius:3px;padding:0;" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>'
                     : '';
-                return '<div style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;border-radius:4px;">' +
-                    '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">' +
+                return '<div class="spirit-san-msg-feed-card" style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;border-radius:4px;">' +
+                    '<div class="spirit-san-msg-feed-toprow" style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">' +
                     '<div style="flex:1;min-width:0;font-size:0.7rem;color:#ddd;">' +
                     '<b style="color:#7fe7ff;">' + String(from).replace(/</g, '&lt;') + '</b> ' + String(txt).replace(/</g, '&lt;') + synTag +
                     listingBtn +
                     '</div>' +
-                    '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
-                    '<span style="font-size:0.6rem;color:#777;white-space:nowrap;">' + dt + '</span>' +
+                    '<div class="spirit-san-msg-feed-actions" style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
+                    '<span class="spirit-san-msg-feed-date" style="font-size:0.6rem;color:#777;white-space:nowrap;">' + dt + '</span>' +
                     delBtn +
                     '</div></div></div>';
             }).join('');
@@ -16392,7 +16439,13 @@ function spiritShowHeroHome() {
 
 function closeSpiritMenu() {
     try { closeModals(); } catch (e) {}
-    spiritShowHeroHome();
+    try {
+        if (typeof navigateTo === 'function') navigateTo('market');
+        else if (typeof window.navigateTo === 'function') window.navigateTo('market');
+        else spiritShowHeroHome();
+    } catch (e2) {
+        try { spiritShowHeroHome(); } catch (e3) {}
+    }
 }
 
 function showSection(name) {
@@ -17356,8 +17409,8 @@ async function spiritLoadMyEvaluations() {
         var idJson = JSON.stringify(String(r.id || ''));
         var dt = (r && r.created_at) ? new Date(r.created_at) : null;
         var dtTxt = (dt && !isNaN(dt.getTime())) ? dt.toLocaleString() : '';
-        return '<div style="position:relative;border:1px solid #2a2a2a;background:#0a0a0a;padding:12px 40px 12px 12px;border-radius:4px;">'
-            + '<button type="button" title="' + hideTitle + '" aria-label="' + hideTitle + '" style="position:absolute;top:8px;right:8px;width:30px;height:30px;padding:0;border:1px solid #522;background:#180808;color:#e66;cursor:pointer;border-radius:4px;font-size:1rem;line-height:1;font-weight:bold;" onclick=\'void spiritDeleteMyEvaluation(' + idJson + ')\'>✕</button>'
+        return '<div class="spirit-eval-account-card" style="position:relative;border:1px solid #2a2a2a;background:#0a0a0a;padding:12px 44px 12px 12px;border-radius:4px;">'
+            + '<button type="button" title="' + hideTitle + '" aria-label="' + hideTitle + '" class="spirit-eval-account-dismiss" style="position:absolute;top:8px;right:8px;width:34px;height:34px;padding:0;border:1px solid #522;background:#180808;color:#e66;cursor:pointer;border-radius:4px;font-size:1.05rem;line-height:1;font-weight:bold;z-index:2;" onclick=\'void spiritDeleteMyEvaluation(' + idJson + ')\'>✕</button>'
             + '<div style="font-size:0.6rem;color:#666;">' + (dtTxt ? dtTxt + ' · ' : '') + cat.toUpperCase() + '</div>'
             + '<div style="font-size:0.64rem;color:#aaa;margin-top:4px;">' + p + ' · ' + '★'.repeat(stars) + '</div>'
             + '<div style="font-size:0.72rem;color:#e8e8e8;margin-top:8px;line-height:1.45;">' + (cm || '—') + '</div>'
