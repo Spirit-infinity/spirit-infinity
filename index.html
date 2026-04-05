@@ -6704,7 +6704,7 @@ async function spiritCheckListingQaDashboardBanner() {
             .order('created_at', { ascending: false })
             .range(0, 8);
         if (q.error || !q.data || !q.data.length) return;
-        var viewL = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+        var viewL = typeof spiritListingChatUiLangRaw === 'function' ? spiritListingChatUiLangRaw() : 'FR';
         var rowsRaw = q.data.slice();
         var lines = [];
         var nN = 2;
@@ -9233,6 +9233,21 @@ function spiritListingChatLangToMyMemory(code) {
     if (c === 'ES') return 'es';
     return 'fr';
 }
+/** FR/EN UI : même libellé que le sélecteur (évite décalage avec localStorage seul). */
+function spiritListingChatUiLangRaw() {
+    return typeof spiritUiLang === 'function'
+        ? spiritUiLang()
+        : (typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR');
+}
+/**
+ * Titres très courts sans minuscule latine/FR (ex. « DRK VADOR », SKU) : souvent identiques traduits → on évite MyMemory (quota).
+ */
+function spiritListingTextLikelyInvariant(raw) {
+    var s = String(raw || '').trim();
+    if (!s || s.length > 64) return false;
+    if (/[a-zàâäéèêëïîôùûçœæ]/.test(s)) return false;
+    return true;
+}
 /** Langue d’interface pour les messages d’annonce (sync, sans requête). */
 function spiritListingChatViewerLangSync() {
     try {
@@ -9334,6 +9349,7 @@ async function spiritTranslateLongListingText(text, fromLang, toLang) {
     var f = spiritListingChatLangNormalize(fromLang);
     var t = spiritListingChatLangNormalize(toLang);
     if (f === t) return raw;
+    if (Date.now() < spiritMyMemoryBackoffUntil) return raw;
     var maxChunk = 420;
     var parts = [];
     for (var i = 0; i < raw.length; i += maxChunk) {
@@ -9395,7 +9411,7 @@ async function spiritTranslateLongSanctuaryAutodetectToUi(text, toLang) {
 }
 function spiritPrimeListingChatForTranslate() {
     if (!selectedProduct || !selectedProduct.chat || !selectedProduct.chat.length) return;
-    var vNorm = spiritListingChatLangNormalize(spiritListingChatViewerLangSync());
+    var vNorm = spiritListingChatLangNormalize(spiritListingChatUiLangRaw());
     var meN = spiritNormUid(spiritGetCurrentUserId());
     selectedProduct.chat.forEach(function (m) {
         m.body_orig = m.text;
@@ -9412,7 +9428,11 @@ function spiritPrimeListingChatForTranslate() {
 }
 async function spiritApplyListingChatTranslationsFetchOnly(onProgress) {
     if (!selectedProduct || !selectedProduct.chat || !selectedProduct.chat.length) return;
-    var vNorm = spiritListingChatLangNormalize(spiritListingChatViewerLangSync());
+    if (Date.now() < spiritMyMemoryBackoffUntil) {
+        if (typeof onProgress === 'function') try { onProgress(); } catch (eP0) {}
+        return;
+    }
+    var vNorm = spiritListingChatLangNormalize(spiritListingChatUiLangRaw());
     var meN = spiritNormUid(spiritGetCurrentUserId());
     var jobs = [];
     selectedProduct.chat.forEach(function (m) {
@@ -9623,8 +9643,9 @@ async function spiritLoadListingMessagesForProduct(productId) {
 
     async function spiritApplyProductModalTexts(item) {
         item = item || {};
-        var viewL = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
-        var src = 'FR';
+        var viewLR = spiritListingChatUiLangRaw();
+        var viewN = typeof spiritListingChatLangNormalize === 'function' ? spiritListingChatLangNormalize(viewLR) : String(viewLR || 'FR').toUpperCase();
+        var srcN = 'FR';
         var tEl = document.getElementById('pTitle');
         var dEl = document.getElementById('pDescBox');
         var rawTitle = String(item.title || '').trim();
@@ -9632,15 +9653,16 @@ async function spiritLoadListingMessagesForProduct(productId) {
         function T(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
         if (tEl) tEl.innerText = rawTitle || T('pm_no_title');
         if (dEl) dEl.innerText = rawDesc || T('pm_no_desc');
-        if (viewL === src || (!rawTitle && !rawDesc)) return;
+        if (viewN === srcN || (!rawTitle && !rawDesc)) return;
+        if (Date.now() < spiritMyMemoryBackoffUntil) return;
         try {
-            if (rawTitle && tEl && typeof spiritTranslateLongListingText === 'function') {
-                var tt = await spiritTranslateLongListingText(rawTitle, src, viewL);
-                if (tt) tEl.innerText = tt;
+            if (rawTitle && tEl && typeof spiritTranslateLongListingText === 'function' && !spiritListingTextLikelyInvariant(rawTitle)) {
+                var tt = await spiritTranslateLongListingText(rawTitle, srcN, viewLR);
+                if (tt && String(tt).trim()) tEl.innerText = tt;
             }
             if (rawDesc && dEl && typeof spiritTranslateLongListingText === 'function') {
-                var td = await spiritTranslateLongListingText(rawDesc, src, viewL);
-                if (td) dEl.innerText = td;
+                var td = await spiritTranslateLongListingText(rawDesc, srcN, viewLR);
+                if (td && String(td).trim()) dEl.innerText = td;
             }
         } catch (eTr) {}
     }
