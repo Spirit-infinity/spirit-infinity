@@ -17314,7 +17314,7 @@ async function spiritRefreshForumChatForLang() {
         }
         var tr = '';
         try {
-            if (typeof spiritTranslateSanctuaryAutodetectToUi === 'function') tr = await spiritTranslateSanctuaryAutodetectToUi(o, uiLangRaw);
+            if (typeof spiritTranslateListingMessage === 'function') tr = await spiritTranslateListingMessage(o, aLang, uiLangRaw);
         } catch (eTr) { tr = ''; }
         if (tr && String(tr).trim() && String(tr) !== o && !spiritMyMemoryInvalidTranslationOut(tr, o)) {
             m.display = String(tr).trim();
@@ -17341,7 +17341,7 @@ async function spiritRefreshForumChatForLang() {
                 } else {
                     var trB = '';
                     try {
-                        if (typeof spiritTranslateSanctuaryAutodetectToUi === 'function') trB = await spiritTranslateSanctuaryAutodetectToUi(oB, uiLangRaw);
+                        if (typeof spiritTranslateListingMessage === 'function') trB = await spiritTranslateListingMessage(oB, opLang, uiLangRaw);
                     } catch (eTb) { trB = ''; }
                     if (trB && String(trB).trim() && String(trB) !== oB && !spiritMyMemoryInvalidTranslationOut(trB, oB)) {
                         tpOp._displayBody = String(trB).trim();
@@ -17357,12 +17357,19 @@ async function spiritRefreshForumChatForLang() {
     spiritSaveForumChat();
     spiritRenderForumChat();
 }
+function spiritForumModalIsVisible() {
+    var mod = document.getElementById('forumModal');
+    if (!mod) return false;
+    try {
+        return window.getComputedStyle(mod).display !== 'none';
+    } catch (e) { return false; }
+}
 function spiritApplyForumModalI18n() {
     var mod = document.getElementById('forumModal');
     if (!mod) return;
     if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(mod);
     spiritRebuildForumTopicTagSelect();
-    void spiritForumSyncFromServerAndRender();
+    if (spiritForumModalIsVisible()) void spiritForumSyncFromServerAndRender();
 }
 async function spiritSendForumMsg() {
     var input = document.getElementById('forumInput');
@@ -17410,7 +17417,7 @@ async function spiritSendForumMsg() {
         }
         var tr = '';
         try {
-            if (typeof spiritTranslateSanctuaryAutodetectToUi === 'function') tr = await spiritTranslateSanctuaryAutodetectToUi(clean, uiLang);
+            if (typeof spiritTranslateListingMessage === 'function') tr = await spiritTranslateListingMessage(clean, authorLangIns, uiLang);
         } catch (eS) { tr = ''; }
         if (tr && String(tr).trim() && String(tr).trim() !== clean && !spiritMyMemoryInvalidTranslationOut(tr, clean)) {
             entry.display = String(tr).trim();
