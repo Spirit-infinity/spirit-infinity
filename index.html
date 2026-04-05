@@ -486,28 +486,13 @@
                 max-width: 100%;
                 box-sizing: border-box;
             }
-            #accountModal #my-purchases-list .spirit-purchase-card {
+            #accountModal #my-purchases-list .spirit-purchase-card,
+            #accountModal #my-purchases-list .spirit-ledger-buyer-card {
                 width: 100%;
                 max-width: 100%;
                 box-sizing: border-box;
                 margin-left: auto;
                 margin-right: auto;
-            }
-            #accountModal #my-purchases-list .spirit-purchase-card__row {
-                display: flex;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-            }
-            #accountModal #my-purchases-list .spirit-purchase-card__price {
-                text-align: left;
-                align-self: flex-start;
-            }
-            #accountModal #my-purchases-list .spirit-purchase-actions {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                width: 100%;
             }
             #accountModal #tab-liste-envie .spirit-fav-account-row,
             #accountModal #tab-favoris-recus .spirit-fav-account-row {
@@ -1221,52 +1206,12 @@
                 margin: 0 6px 12px;
                 background: rgba(8, 8, 8, 0.65);
             }
-            /* Contenu Messages / Évaluations (mobile compte ≤900px, pas seulement ≤600px) */
-            #accountModal #tab-messages .spirit-san-msg-feed-card--hasdel {
-                padding-right: 44px;
-                padding-top: 10px;
-            }
-            #accountModal #tab-messages .spirit-san-msg-feed-card {
-                position: relative;
-            }
-            #accountModal #tab-messages .spirit-san-msg-feed-del {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                width: 28px;
-                height: 28px;
-                border: 1px solid #633;
-                background: #1a1012;
-                color: #f88;
-                cursor: pointer;
-                font-size: 0.8rem;
-                line-height: 1;
-                border-radius: 4px;
-                padding: 0;
-                z-index: 2;
-            }
             #accountModal #tab-messages .spirit-san-msg-feed-meta {
                 margin-bottom: 6px;
             }
-            #accountModal #tab-evaluations .spirit-eval-account-card {
-                position: relative;
-                padding: 12px;
-                box-sizing: border-box;
-            }
-            #accountModal #tab-evaluations .spirit-eval-account-head {
-                padding-right: 42px;
-                box-sizing: border-box;
-            }
-            #accountModal #tab-evaluations .spirit-eval-account-dismiss {
-                top: 10px;
-                right: 10px;
-            }
-            #accountModal #tab-evaluations .spirit-eval-account-reply {
-                display: block;
-                width: 100%;
-                max-width: 100%;
-                box-sizing: border-box;
-                margin-top: 12px;
+            /* Mes achats mobile : masquer le tableau (même infos que les cartes) */
+            #accountModal #tab-achats .table-spirit {
+                display: none !important;
             }
             #accountModal #tab-messages,
             #accountModal #tab-evaluations {
@@ -1374,6 +1319,54 @@
             font-weight: 800;
             letter-spacing: 0.12em;
             margin: 0 0 8px 0;
+        }
+        /* Mes achats : cartes alignées sur le style « Mes ventes » (ledger) */
+        #accountModal #tab-achats .spirit-ledger-buyer-card {
+            border: 1px solid var(--neon-orange);
+            padding: 12px;
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(255, 102, 0, 0.1);
+            box-sizing: border-box;
+        }
+        #accountModal #tab-achats .spirit-ledger-buyer-actions {
+            margin-top: 10px;
+        }
+        #accountModal #tab-achats .spirit-ledger-buyer-actions button {
+            text-transform: uppercase;
+            font-size: 0.68rem;
+            padding: 8px 10px;
+        }
+        #accountModal #tab-messages .spirit-san-msg-feed-textdel {
+            margin-top: 10px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: #a85555;
+            font-size: 0.6rem;
+            text-decoration: underline;
+            cursor: pointer;
+            text-align: left;
+        }
+        #accountModal #tab-evaluations .spirit-eval-account-textdel {
+            margin-top: 10px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: #a85555;
+            font-size: 0.6rem;
+            text-decoration: underline;
+            cursor: pointer;
+            text-align: left;
+            display: block;
+        }
+        #accountModal #tab-evaluations .spirit-eval-account-reply {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            margin-top: 10px;
         }
         /* Sanctuaire (compte) : grilles calées sur la même colonne que le portefeuille */
         #accountModal #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg {
@@ -13519,18 +13512,16 @@ function spiritLoadMessagesTab() {
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#2a2810;border:1px solid #a88a2a;color:#fc8;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">' + String(mT('msg_open_discussion')).replace(/</g, '&lt;') + '</button></div>'
                     : '';
                 var hasDel = (!n.synthetic && idStr !== '0');
-                var delBtn = hasDel
-                    ? '<button type="button" class="spirit-san-msg-feed-del" title="' + String(mT('msg_del_btn')).replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>'
+                var delFooter = hasDel
+                    ? '<div style="margin-top:10px;"><button type="button" class="spirit-san-msg-feed-textdel" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">' + String(mT('msg_del_btn')).replace(/</g, '&lt;') + '</button></div>'
                     : '';
-                var cardCls = 'spirit-san-msg-feed-card' + (hasDel ? ' spirit-san-msg-feed-card--hasdel' : '');
-                return '<div class="' + cardCls + '" style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;border-radius:4px;">' +
-                    delBtn +
+                return '<div class="spirit-san-msg-feed-card" style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;border-radius:4px;">' +
                     '<div class="spirit-san-msg-feed-main">' +
                     '<div class="spirit-san-msg-feed-meta" style="font-size:0.6rem;color:#777;">' + dt + '</div>' +
                     '<div style="font-size:0.7rem;color:#ddd;min-width:0;">' +
                     '<b style="color:#7fe7ff;">' + String(from).replace(/</g, '&lt;') + '</b> ' + String(txt).replace(/</g, '&lt;') + synTag +
                     listingBtn +
-                    '</div></div></div>';
+                    '</div>' + delFooter + '</div></div>';
             }).join('');
         }
         try {
@@ -16595,12 +16586,12 @@ function renderTransactionList(container, data, error, type) {
         if (type === 'VENTES' && tr.status === 'SÉQUESTRE ACTIF') {
             actionBtn = '<div class="spirit-purchase-actions"><button type="button" onclick="generateSpiritLabel(\'' + idStr + '\')" style="width:100%; background:var(--spirit-green); color:black; font-weight:bold; padding:10px; border:none; margin-top:10px; cursor:pointer; border-radius:4px;">📦 VOIR LE BORDEREAU</button></div>';
         } else if (type === 'ACHATS' && tr.status === 'SÉQUESTRE ACTIF') {
-            actionBtn = '<div class="spirit-purchase-actions" style="display:flex; gap:10px; margin-top:10px;">' +
-                '<button type="button" onclick="confirmReception(\'' + idStr + '\')" style="flex:1; background:var(--spirit-green); color:black; font-weight:bold; border:none; padding:8px; border-radius:4px; cursor:pointer;">✅ REÇU</button>' +
-                '<button type="button" onclick="openDispute(\'' + idStr + '\')" style="flex:1; background:#1a1a1a; color:#ff4444; border:1px solid #ff4444; padding:8px; border-radius:4px; cursor:pointer;">⚠️ LITIGE</button>' +
+            actionBtn = '<div class="spirit-ledger-buyer-actions" style="display:flex; gap:8px; flex-wrap:wrap;">' +
+                '<button type="button" onclick="confirmReception(\'' + idStr + '\')" style="flex:1; min-width:120px; background:var(--spirit-green); color:black; font-weight:bold; border:none; padding:8px 10px; border-radius:4px; cursor:pointer;">REÇU</button>' +
+                '<button type="button" onclick="openDispute(\'' + idStr + '\')" style="flex:1; min-width:120px; background:transparent; color:#ff6666; border:1px solid #333; padding:8px 10px; border-radius:4px; cursor:pointer;">LITIGE</button>' +
                 '</div>';
         } else {
-            actionBtn = '<div class="spirit-purchase-actions spirit-purchase-actions--status" style="margin-top:10px; font-size:0.68rem; color:#888; text-align:center; border-top:1px solid #222; padding-top:8px;">' + fnEsc(tr.status) + '</div>';
+            actionBtn = '<div class="spirit-purchase-actions spirit-purchase-actions--status" style="margin-top:8px; font-size:0.62rem; color:#888; text-align:center; border-top:1px solid #222; padding-top:6px;">' + fnEsc(tr.status) + '</div>';
         }
         var dateStr = '';
         try { dateStr = tr.created_at ? new Date(tr.created_at).toLocaleString() : ''; } catch (eD) {}
@@ -16622,8 +16613,8 @@ function renderTransactionList(container, data, error, type) {
         if (type === 'ACHATS') {
             var actionsCell = '';
             if (tr.status === 'SÉQUESTRE ACTIF') {
-                actionsCell = '<button type="button" class="btn-action" style="font-size:0.62rem;padding:6px 8px;margin:2px;" onclick="confirmReception(\'' + idStr + '\')">✅ REÇU</button>' +
-                    '<button type="button" class="btn-action" style="font-size:0.62rem;padding:6px 8px;margin:2px;background:#1a1010;border-color:#633;color:#f88;" onclick="openDispute(\'' + idStr + '\')">⚠️ LITIGE</button>';
+                actionsCell = '<button type="button" class="btn-action" style="font-size:0.62rem;padding:6px 8px;margin:2px;" onclick="confirmReception(\'' + idStr + '\')">REÇU</button>' +
+                    '<button type="button" class="btn-action" style="font-size:0.62rem;padding:6px 8px;margin:2px;background:#1a1010;border-color:#633;color:#f88;" onclick="openDispute(\'' + idStr + '\')">LITIGE</button>';
             } else {
                 actionsCell = '<span style="font-size:0.65rem;color:#777;">—</span>';
             }
@@ -16635,16 +16626,27 @@ function renderTransactionList(container, data, error, type) {
                 '<td style="text-align:center;">' + actionsCell + '</td></tr>'
             );
         }
-        return '<div class="spirit-purchase-card" style="background:#0d0d0d; border:1px solid #222; padding:14px; margin-bottom:12px; border-radius:8px;">' +
-            '<div class="spirit-purchase-card__row" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">' +
-            '<div class="spirit-purchase-card__main" style="min-width:0; flex:1;">' +
-            '<div style="color:white; font-weight:bold; font-size:0.88rem;">' + fnEsc(productTitle) + '</div>' +
-            '<div style="font-size:0.6rem; color:#555; margin-top:4px;">ID: ' + fnEsc(tr.id) + '</div>' +
+        var imgUrl = String(tr.image_url || tr.img1 || '').trim();
+        var imgAttr = imgUrl.replace(/"/g, '&quot;').replace(/</g, '').replace(/'/g, '&#39;');
+        var imgBlock = imgUrl
+            ? '<img src="' + imgAttr + '" alt="" loading="lazy" decoding="async" style="width:60px;height:60px;object-fit:cover;border:1px solid #333;margin-right:10px;border-radius:2px;flex-shrink:0;">'
+            : '<div style="width:60px;height:60px;background:#222;margin-right:10px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#555;border:1px solid #333;flex-shrink:0;text-align:center;line-height:1.1;">NO IMG</div>';
+        return '<div class="spirit-ledger-buyer-card spirit-purchase-card">' +
+            '<div style="display:flex;align-items:flex-start;">' +
+            imgBlock +
+            '<div style="flex:1;min-width:0;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">' +
+            '<div style="min-width:0;">' +
+            '<small style="color:#666;font-family:monospace;font-size:0.58rem;">LEDGER-ID: ' + fnEsc(tr.id) + '</small>' +
+            '<h3 style="margin:2px 0;color:white;text-transform:uppercase;letter-spacing:0.5px;font-size:0.82rem;line-height:1.2;">' + fnEsc(productTitle) + '</h3>' +
+            '<p style="margin:0;color:var(--spirit-green);font-weight:bold;font-size:0.95rem;">' + fnEsc(amountStr) + '</p>' +
             '</div>' +
-            '<div class="spirit-purchase-card__price" style="text-align:right; flex-shrink:0;">' +
-            '<div style="color:var(--neon-orange); font-weight:bold;">' + fnEsc(amountStr) + '</div>' +
-            '<div style="font-size:0.6rem; color:#888;">' + fnEsc(dateStr) + '</div>' +
-            '</div></div>' + actionBtn + '</div>';
+            '<div style="text-align:right;flex-shrink:0;">' +
+            '<span style="display:block;font-size:0.65rem;color:#888;">' + fnEsc(dateStr) + '</span>' +
+            '<span style="display:inline-block;margin-top:4px;padding:2px 6px;background:rgba(255,165,0,0.1);color:orange;font-size:0.62rem;font-weight:bold;border:1px solid orange;text-transform:uppercase;">' + fnEsc(stUpper || '—') + '</span>' +
+            '</div></div>' +
+            actionBtn +
+            '</div></div></div>';
     }).join('');
     purchasesTableHtml(rowFragments.join(''));
 }
@@ -17428,7 +17430,6 @@ async function spiritLoadMyEvaluations() {
         var dt = (r && r.created_at) ? new Date(r.created_at) : null;
         var dtTxt = (dt && !isNaN(dt.getTime())) ? dt.toLocaleString() : '';
         return '<div class="spirit-eval-account-card" style="border:1px solid #2a2a2a;background:#0a0a0a;border-radius:4px;">'
-            + '<button type="button" title="' + hideTitle + '" aria-label="' + hideTitle + '" class="spirit-eval-account-dismiss" style="position:absolute;top:10px;right:10px;width:32px;height:32px;padding:0;border:1px solid #522;background:#180808;color:#e66;cursor:pointer;border-radius:4px;font-size:1rem;line-height:1;font-weight:bold;z-index:2;" onclick=\'void spiritDeleteMyEvaluation(' + idJson + ')\'>✕</button>'
             + '<div class="spirit-eval-account-head">'
             + '<div style="font-size:0.6rem;color:#666;">' + (dtTxt ? dtTxt + ' · ' : '') + cat.toUpperCase() + '</div>'
             + '<div style="font-size:0.64rem;color:#aaa;margin-top:4px;">' + p + ' · ' + '★'.repeat(stars) + '</div>'
@@ -17436,6 +17437,7 @@ async function spiritLoadMyEvaluations() {
             + '<div style="font-size:0.72rem;color:#e8e8e8;margin-top:8px;line-height:1.45;">' + (cm || '—') + '</div>'
             + (rr ? '<div style="margin-top:10px;border-left:2px solid var(--neon-orange);padding-left:10px;font-size:0.66rem;color:#f6b16a;"><b>' + replyLbl + '</b> ' + rr + '</div>' : '')
             + '<button type="button" class="btn-action spirit-eval-account-reply" style="font-size:0.56rem;padding:8px 12px;" onclick=\'void spiritReplyToEvaluation(' + idJson + ')\'>' + (rr ? replyEditBtn : replyBtn) + '</button>'
+            + '<button type="button" class="spirit-eval-account-textdel" title="' + hideTitle + '" aria-label="' + hideTitle + '" onclick=\'void spiritDeleteMyEvaluation(' + idJson + ')\'>' + String(eT('eval_hide_btn_title')).replace(/</g, '&lt;') + '</button>'
             + '</div>';
     }).join('');
     try { spiritEvalRefreshPendingDotAndPulse(); } catch (eDot1) {}
