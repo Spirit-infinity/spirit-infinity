@@ -3845,39 +3845,39 @@
 <div id="ledgerModal" class="overlay">
     <div class="modal-content" style="max-width:640px;text-align:left;">
         <button onclick="closeSpiritMenu()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <h2 style="color:var(--neon-orange)">PANNEAU DE CONTROLE HARDWARE</h2>
-        <div id="realTimeData" class="ledger-status">
+        <h2 style="color:var(--neon-orange)" data-key="ledger_h2">PANNEAU DE CONTROLE HARDWARE</h2>
+        <div id="realTimeData" class="ledger-status" data-key="ledger_status_connected">
             [ STATUT : CONNECTÉ AU RÉSEAU SPIRIT ]
         </div>
         <div class="control-grid">
             <div class="control-item">
-                <p>Niveau de Batterie</p>
+                <p data-key="ledger_battery_lbl">Niveau de Batterie</p>
                 <div class="control-val" id="ctrl-batt">92% (4.1V)</div>
             </div>
             <div class="control-item">
-                <p>Santé Puce Spirit</p>
-                <div class="control-val" id="ctrl-diag" style="color:var(--spirit-green)">OK - 100% FONCTIONNEL</div>
+                <p data-key="ledger_chip_health_lbl">Santé Puce Spirit</p>
+                <div class="control-val" id="ctrl-diag" style="color:var(--spirit-green)" data-key="ledger_diag_ok">OK - 100% FONCTIONNEL</div>
             </div>
             <div class="control-item">
-                <p>Néon Bas (Pulse-ID)</p>
+                <p data-key="ledger_neon_low_lbl">Néon Bas (Pulse-ID)</p>
                 <div class="control-val" id="ctrl-neon-low">142 Heures d'utilisation</div>
             </div>
             <div class="control-item">
-                <p>Néon Haut (Halo)</p>
+                <p data-key="ledger_neon_high_lbl">Néon Haut (Halo)</p>
                 <div class="control-val" id="ctrl-neon-high">88 Heures d'utilisation</div>
             </div>
             <div class="control-item">
-                <p>Figurine LED</p>
+                <p data-key="ledger_figurine_lbl">Figurine LED</p>
                 <div class="control-val" id="ctrl-fig">210 Heures d'utilisation</div>
             </div>
         </div>
         <div class="mosfet-panel">
-            <h3>Commandes MOSFET (Néons / Figurine)</h3>
-            <label class="mosfet-row"><span>Néon Bas (Pulse-ID)</span><input type="checkbox" id="toggle-mosfet-neon-bas" onchange="spiritPanneauMosfetChanged('neon_bas')"></label>
-            <label class="mosfet-row"><span>Néon Haut (Halo)</span><input type="checkbox" id="toggle-mosfet-neon-haut" onchange="spiritPanneauMosfetChanged('neon_haut')"></label>
-            <label class="mosfet-row"><span>Figurine LED</span><input type="checkbox" id="toggle-mosfet-figurine" onchange="spiritPanneauMosfetChanged('figurine')"></label>
+            <h3 data-key="ledger_mosfet_h3">Commandes MOSFET (Néons / Figurine)</h3>
+            <label class="mosfet-row"><span data-key="ledger_neon_low_lbl">Néon Bas (Pulse-ID)</span><input type="checkbox" id="toggle-mosfet-neon-bas" onchange="spiritPanneauMosfetChanged('neon_bas')"></label>
+            <label class="mosfet-row"><span data-key="ledger_neon_high_lbl">Néon Haut (Halo)</span><input type="checkbox" id="toggle-mosfet-neon-haut" onchange="spiritPanneauMosfetChanged('neon_haut')"></label>
+            <label class="mosfet-row"><span data-key="ledger_figurine_lbl">Figurine LED</span><input type="checkbox" id="toggle-mosfet-figurine" onchange="spiritPanneauMosfetChanged('figurine')"></label>
         </div>
-        <button class="btn-action" style="width:100%; margin-top:20px;" onclick="transferToSale()">TRANSFERER POUR VENTE & CERTIFICATION</button>
+        <button class="btn-action" style="width:100%; margin-top:20px;" onclick="transferToSale()" data-key="ledger_transfer_cert_btn">TRANSFERER POUR VENTE & CERTIFICATION</button>
     </div>
 </div>
 
@@ -4124,6 +4124,10 @@
     const translations = {
         'FR': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANNEAU DE CONTROLE', 'nav_forum': 'FORUM', 'nav_account': 'MON COMPTE',
+            'ledger_h2': 'PANNEAU DE CONTROLE HARDWARE', 'ledger_status_connected': '[ STATUT : CONNECTÉ AU RÉSEAU SPIRIT ]',
+            'ledger_battery_lbl': 'Niveau de Batterie', 'ledger_chip_health_lbl': 'Santé Puce Spirit', 'ledger_neon_low_lbl': 'Néon Bas (Pulse-ID)',
+            'ledger_neon_high_lbl': 'Néon Haut (Halo)', 'ledger_figurine_lbl': 'Figurine LED', 'ledger_mosfet_h3': 'Commandes MOSFET (Néons / Figurine)',
+            'ledger_diag_ok': 'OK - 100% FONCTIONNEL', 'ledger_transfer_cert_btn': 'TRANSFÉRER POUR VENTE & CERTIFICATION', 'ledger_usage_hours_label': 'Heures d\'utilisation',
             'nav_support': 'SUPPORT SPIRIT', 'nav_security': 'SÉCURITÉ', 'nav_preorders': 'PRÉCOMMANDES HOT TOYS', 'nav_ht_admin': 'ADMIN PRÉCO', 'btn_reg': 'INSCRIPTION', 'btn_sell': 'VENDRE & CERTIFIER',
             'filter_title': 'FILTRES DE RECHERCHE', 'lbl_price_range': 'Tranche de Prix (€)', 'opt_all_prices': 'Tous les prix',
             'lbl_zone': "Zone d'expédition", 'opt_all_zones': 'Toutes les zones', 'lbl_brand': 'Marque', 'opt_all_brands': 'Toutes les marques',
@@ -4246,6 +4250,10 @@
         },
         'EN': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'CONTROL PANEL', 'nav_forum': 'FORUM', 'nav_account': 'MY ACCOUNT',
+            'ledger_h2': 'HARDWARE CONTROL PANEL', 'ledger_status_connected': '[ STATUS: CONNECTED TO SPIRIT NETWORK ]',
+            'ledger_battery_lbl': 'Battery level', 'ledger_chip_health_lbl': 'Spirit chip health', 'ledger_neon_low_lbl': 'Lower neon (Pulse-ID)',
+            'ledger_neon_high_lbl': 'Upper neon (Halo)', 'ledger_figurine_lbl': 'LED figurine', 'ledger_mosfet_h3': 'MOSFET controls (Neons / Figurine)',
+            'ledger_diag_ok': 'OK - 100% OPERATIONAL', 'ledger_transfer_cert_btn': 'TRANSFER FOR SALE & CERTIFICATION', 'ledger_usage_hours_label': 'hours of use',
             'nav_support': 'SPIRIT SUPPORT', 'nav_security': 'SECURITY', 'nav_preorders': 'HOT TOYS PREORDERS', 'nav_ht_admin': 'ADMIN PREORDERS', 'btn_reg': 'REGISTER', 'btn_sell': 'SELL & CERTIFY',
             'filter_title': 'SEARCH FILTERS', 'lbl_price_range': 'Price Range (€)', 'opt_all_prices': 'All prices',
             'lbl_zone': 'Shipping Zone', 'opt_all_zones': 'All zones', 'lbl_brand': 'Brand', 'opt_all_brands': 'All brands',
@@ -4367,6 +4375,10 @@
         },
         'ES': {
             'nav_market': 'MARKETPLACE', 'nav_ledger': 'PANEL DE CONTROL', 'nav_forum': 'FORO', 'nav_account': 'MI CUENTA',
+            'ledger_h2': 'PANEL DE CONTROL HARDWARE', 'ledger_status_connected': '[ ESTADO: CONECTADO A LA RED SPIRIT ]',
+            'ledger_battery_lbl': 'Nivel de batería', 'ledger_chip_health_lbl': 'Salud del chip Spirit', 'ledger_neon_low_lbl': 'Neón inferior (Pulse-ID)',
+            'ledger_neon_high_lbl': 'Neón superior (Halo)', 'ledger_figurine_lbl': 'Figurilla LED', 'ledger_mosfet_h3': 'Controles MOSFET (Neones / Figurilla)',
+            'ledger_diag_ok': 'OK - 100% FUNCIONAL', 'ledger_transfer_cert_btn': 'TRANSFERIR PARA VENTA Y CERTIFICACIÓN', 'ledger_usage_hours_label': 'horas de uso',
             'nav_support': 'SOPORTE SPIRIT', 'nav_security': 'SEGURIDAD', 'nav_preorders': 'PREVENTAS HOT TOYS', 'nav_ht_admin': 'ADMIN PREVENTAS', 'btn_reg': 'REGISTRO', 'btn_sell': 'VENDER Y CERTIFICAR',
             'filter_title': 'FILTROS DE BUSQUEDA', 'lbl_price_range': 'Rango de precio (€)', 'opt_all_prices': 'Todos los precios',
             'lbl_zone': 'Zona de envio', 'opt_all_zones': 'Todas las zonas', 'lbl_brand': 'Marca', 'opt_all_brands': 'Todas las marcas',
@@ -4488,6 +4500,10 @@
         },
         'ZH': {
             'nav_market': '市场', 'nav_ledger': '控制面板', 'nav_forum': '论坛', 'nav_account': '我的账户',
+            'ledger_h2': '硬件控制面板', 'ledger_status_connected': '[ 状态：已连接到 Spirit 网络 ]',
+            'ledger_battery_lbl': '电池电量', 'ledger_chip_health_lbl': 'Spirit 芯片健康度', 'ledger_neon_low_lbl': '下霓虹 (Pulse-ID)',
+            'ledger_neon_high_lbl': '上霓虹 (Halo)', 'ledger_figurine_lbl': 'LED 手办', 'ledger_mosfet_h3': 'MOSFET 控制（霓虹 / 手办）',
+            'ledger_diag_ok': '正常 - 100% 运行', 'ledger_transfer_cert_btn': '转售与认证', 'ledger_usage_hours_label': '使用小时',
             'nav_support': 'SPIRIT 支持', 'nav_security': '安全', 'nav_preorders': 'HOT TOYS 预购', 'nav_ht_admin': '预购管理', 'btn_reg': '注册', 'btn_sell': '发布并认证',
             'filter_title': '筛选', 'lbl_price_range': '价格区间 (€)', 'opt_all_prices': '全部价格',
             'lbl_zone': '发货区域', 'opt_all_zones': '全部区域', 'lbl_brand': '品牌', 'opt_all_brands': '全部品牌',
@@ -5158,6 +5174,9 @@ async function loadUserPurchases() {
         try {
             if (typeof spiritApplyForumModalI18n === 'function') spiritApplyForumModalI18n();
         } catch (eForumLang) {}
+        try {
+            if (typeof refreshSpiritPanneauHardwareUI === 'function') void refreshSpiritPanneauHardwareUI({ skipFetch: true });
+        } catch (eLedgerLang) {}
     }
     function changeLang(lang) { switchLanguage(lang); }
 
@@ -18635,9 +18654,10 @@ function spiritPanneauMosfetChanged(which) {
     if (which === 'figurine' && elF) mosfetFigurine = !!elF.checked;
 }
 
-async function refreshSpiritPanneauHardwareUI() {
+async function refreshSpiritPanneauHardwareUI(opts) {
+    var skipFetch = opts && opts.skipFetch;
     const macID = typeof currentMacAddress !== 'undefined' ? currentMacAddress : null;
-    if (_spirit && macID && macID !== 'XX:XX:XX:XX:XX:XX') {
+    if (!skipFetch && _spirit && macID && macID !== 'XX:XX:XX:XX:XX:XX') {
         try {
             const { data, error } = await _spirit.from('ledger_items').select('*').eq('mac_address', macID).maybeSingle();
             if (!error && data) {
@@ -18649,6 +18669,8 @@ async function refreshSpiritPanneauHardwareUI() {
         } catch (e) { console.warn('[SPIRIT] refreshSpiritPanneauHardwareUI', e); }
     }
 
+    const usageLbl = (typeof window.spiritT === 'function') ? window.spiritT('ledger_usage_hours_label') : "Heures d'utilisation";
+
     const battEl = document.getElementById('ctrl-batt');
     if (battEl) {
         const pct = typeof batteryLevelPercent === 'number' ? Math.round(batteryLevelPercent) : 92;
@@ -18658,9 +18680,9 @@ async function refreshSpiritPanneauHardwareUI() {
     const lowEl = document.getElementById('ctrl-neon-low');
     const highEl = document.getElementById('ctrl-neon-high');
     const figEl = document.getElementById('ctrl-fig');
-    if (lowEl) lowEl.textContent = neonLowHoursReading + " Heures d'utilisation";
-    if (highEl) highEl.textContent = neonHighHoursReading + " Heures d'utilisation";
-    if (figEl) figEl.textContent = figurineLedHoursReading + " Heures d'utilisation";
+    if (lowEl) lowEl.textContent = neonLowHoursReading + ' ' + usageLbl;
+    if (highEl) highEl.textContent = neonHighHoursReading + ' ' + usageLbl;
+    if (figEl) figEl.textContent = figurineLedHoursReading + ' ' + usageLbl;
 
     const tb = document.getElementById('toggle-mosfet-neon-bas');
     const th = document.getElementById('toggle-mosfet-neon-haut');
