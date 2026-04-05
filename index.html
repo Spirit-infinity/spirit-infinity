@@ -446,7 +446,7 @@
             #accountModal #tab-ventes,
             #accountModal #tab-messages,
             #accountModal #tab-evaluations,
-            #accountModal #tab-sanctuary {
+            #accountModal #tab-sanctuaire-public {
                 overflow-x: hidden;
                 width: 100%;
                 max-width: min(580px, 100%);
@@ -468,7 +468,7 @@
                 letter-spacing: 0.08em;
                 margin: 0 0 10px 0;
             }
-            #accountModal #tab-sanctuary > h3 {
+            #accountModal #tab-sanctuaire-public > div > p:first-child {
                 font-size: 1rem;
                 font-weight: 800;
                 letter-spacing: 0.12em;
@@ -1059,6 +1059,29 @@
         /* NOUVEAU STATUT VENDU */
         .card.sold { opacity: 0.5; filter: grayscale(1); }
         .badge-sold { background: var(--danger); color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); padding: 10px 20px; font-weight: 900; font-size: 1.2rem; border: 3px solid white; z-index: 20; text-transform: uppercase; pointer-events: none; }
+        /* Profil public — annonces vendues (même esprit que .card.sold sur le marché) */
+        .spirit-public-ad-card { position: relative; box-sizing: border-box; }
+        .spirit-public-ad-card.spirit-public-ad-sold { opacity: 0.5 !important; filter: grayscale(1) !important; }
+        .spirit-public-ad-card.spirit-public-ad-sold:hover { border-color: #333 !important; }
+        .spirit-public-ad-badge-sold {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            padding: 8px 16px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            letter-spacing: 0.06em;
+            border: 3px solid #fff;
+            background: var(--danger);
+            color: #fff;
+            z-index: 20;
+            text-transform: uppercase;
+            pointer-events: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        #spiritPublicPseudoRow { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; width: 100%; }
+        #spiritPublicScrollToChatBtn { flex-shrink: 0; align-self: center; font-size: 0.58rem !important; padding: 7px 12px !important; white-space: nowrap; }
         @media (max-width: 900px) {
             .card.sold { opacity: 0.45 !important; filter: grayscale(1) !important; }
             .card.sold .badge-sold { display: block !important; z-index: 35 !important; }
@@ -1311,7 +1334,7 @@
         #accountModal .dash-content #tab-ventes,
         #accountModal .dash-content #tab-messages,
         #accountModal .dash-content #tab-evaluations,
-        #accountModal .dash-content #tab-sanctuary {
+        #accountModal .dash-content #tab-sanctuaire-public {
             width: 100%;
             max-width: min(580px, 100%);
             margin-left: auto;
@@ -1326,7 +1349,7 @@
             letter-spacing: 0.08em;
             margin: 0 0 10px 0;
         }
-        #accountModal .dash-content #tab-sanctuary > h3 {
+        #accountModal .dash-content #tab-sanctuaire-public > div > p:first-child {
             font-size: 1rem;
             font-weight: 800;
             letter-spacing: 0.12em;
@@ -3483,6 +3506,7 @@
         <div class="dash-container">
             <div class="dash-nav spirit-account-acc-root" role="tablist" aria-label="Sections du compte">
                 <button type="button" id="btn-dashboard" role="tab" aria-expanded="false" aria-controls="tab-dashboard" onclick="showAccountTab('dashboard')"><span data-key="account_tab_dashboard">DASHBOARD</span><span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
+                <button type="button" id="btn-sanctuaire-public" role="tab" aria-expanded="false" aria-controls="tab-sanctuaire-public" onclick="showAccountTab('sanctuaire-public')"><span data-key="account_tab_public_sanctuary">SANCTUAIRE PUBLIC</span></button>
                 <button type="button" id="btn-messages" role="tab" aria-expanded="false" aria-controls="tab-messages" onclick="showAccountTab('messages')"><span data-key="account_tab_messages">MESSAGES</span><span id="messages-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-achats" role="tab" aria-expanded="false" aria-controls="tab-achats" onclick="showAccountTab('achats')"><span data-key="account_tab_purchases">MES ACHATS</span></button>
                 <button type="button" id="btn-ventes" role="tab" aria-expanded="false" aria-controls="tab-ventes" onclick="showAccountTab('ventes')"><span data-key="account_tab_sales">MES VENTES</span></button>
@@ -3528,6 +3552,16 @@
                         <p data-key="dash_friends_hint" style="margin:0 0 10px;font-size:0.62rem;color:#777;">Pseudos cliquables pour ouvrir leur profil public.</p>
                         <div id="spiritFriendsPreview" style="display:flex;flex-direction:column;gap:8px;"></div>
                         <button type="button" class="btn-action" style="margin-top:10px;font-size:0.6rem;padding:8px 12px;" onclick="spiritOpenFriendsModal()" data-key="dash_friends_full">VOIR LA LISTE COMPLÈTE</button>
+                    </div>
+                </div>
+
+                <div id="tab-sanctuaire-public" class="account-page">
+                    <div style="margin-top:0;padding:14px;border:1px solid rgba(255,102,0,0.35);background:#0c0c0c;">
+                        <p data-key="dash_public_block_title" style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">SANCTUAIRE PUBLIC</p>
+                        <p data-key="dash_public_url_hint" style="margin:0 0 10px;font-size:0.65rem;color:#777;">URL unique (partage) :</p>
+                        <code id="spirit-account-public-url" style="display:block;font-size:0.6rem;color:#aaa;word-break:break-all;margin-bottom:10px;">—</code>
+                        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;margin-right:8px;" onclick="spiritCopyMyPublicUrl()" data-key="dash_copy_url_btn">COPIER L’URL</button>
+                        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#222;color:var(--neon-orange);border:1px solid var(--neon-orange);" onclick="spiritOpenMyPublicProfile()" data-key="dash_open_profile_btn">OUVRIR MON SANCTUAIRE PUBLIC</button>
                     </div>
                 </div>
 
@@ -3724,7 +3758,10 @@
             <button type="button" id="spiritPublicFollowBtn" class="btn-action" style="display:none;font-size:0.6rem;padding:6px 12px;background:#111;border:1px solid #00ccff;color:#7fe7ff;" onclick="spiritToggleFollowCurrentPublic()" data-key="pub_follow">SUIVRE</button>
         </div>
         <div style="flex:1;min-width:200px;">
-            <h1 id="spiritPublicPseudo" style="margin:0 0 8px;color:#fff;font-size:1.35rem;letter-spacing:1px;">—</h1>
+            <div id="spiritPublicPseudoRow">
+                <h1 id="spiritPublicPseudo" style="margin:0 0 8px;color:#fff;font-size:1.35rem;letter-spacing:1px;flex:1;min-width:0;">—</h1>
+                <button type="button" id="spiritPublicScrollToChatBtn" class="btn-action" onclick="spiritPublicScrollToSanctuaryChat()" data-key="pub_goto_chat">ACCÉDER AU CHAT</button>
+            </div>
             <p id="spiritPublicCountryRow" style="margin:0;font-size:0.8rem;color:#888;"><span id="spiritPublicCountry">—</span></p>
             <p id="spiritPublicIAScore" style="margin:10px 0 0;font-size:0.85rem;color:var(--spirit-green);font-weight:700;">IA Score : —</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;" id="spiritPublicSocialStats">
@@ -3774,7 +3811,7 @@
             </div>
             <input type="file" id="spiritSanctuaryFileInput" accept="image/*" style="display:none;" />
             <div id="spiritSanctuaryGrid" class="spirit-san-mode-list"></div>
-            <div class="spirit-sanctuary-chat">
+            <div id="spiritPublicSanctuaryChatAnchor" class="spirit-sanctuary-chat" tabindex="-1">
                 <h4 data-key="pub_san_chat_h">CHAT DU SANCTUAIRE</h4>
                 <p data-key="pub_san_chat_rules" style="font-size:0.62rem;color:#555;margin:0 0 8px;">Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.</p>
                 <div style="margin:0 0 8px;">
@@ -4138,7 +4175,7 @@
             'listing_chat_tr_hint': 'Traduction auto · survol pour l’original',
             'mob_lang_label': 'Langue',
             'reg_modal_connected': 'Tu es connecté(e).',
-            'account_tab_dashboard': 'DASHBOARD', 'account_tab_messages': 'MESSAGES', 'account_tab_purchases': 'MES ACHATS',
+            'account_tab_dashboard': 'DASHBOARD', 'account_tab_public_sanctuary': 'SANCTUAIRE PUBLIC', 'account_tab_messages': 'MESSAGES', 'account_tab_purchases': 'MES ACHATS',
             'account_tab_sales': 'MES VENTES', 'account_tab_wallet': 'PORTEFEUILLE', 'account_tab_listings': 'MES ANNONCES',
             'account_tab_reviews': 'ÉVALUATIONS', 'account_tab_sanctuary': 'SANCTUAIRE', 'account_tab_settings': 'PARAMÈTRES',
             'dash_title': '🏠 TABLEAU DE BORD', 'dash_intro': 'C\'est ici que s\'affiche ton résumé.', 'dash_seller_offer_alert': 'ALERTE OFFRES',
@@ -4163,7 +4200,7 @@
             'pay_title': 'FINALISER LE PAIEMENT', 'pay_total_lbl': 'Montant total :', 'pay_pick': 'Choisissez votre mode de paiement sécurisé Spirit Infinity :', 'pay_stripe': '💳 CARTE BANCAIRE (STRIPE)', 'pay_paypal': '🅿️ PAYPAL SÉCURISÉ', 'pay_footer': 'En cliquant sur un mode de paiement, vos fonds seront placés sous séquestre Spirit jusqu\'à réception de la figurine.',
             'prep_ship_h': 'PRÉPARER L\'EXPÉDITION', 'prep_ship_p': 'Un acheteur a validé le paiement — merci de préparer l\'envoi.', 'prep_ok': 'COMPRIS', 'btn_ok_short': 'OK',
             'pm_no_title': 'Sans titre', 'pm_no_desc': 'Aucune description disponible.', 'pm_no_image': 'IMAGE NON DISPONIBLE DANS LE LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURINE',
-            'pub_back': '← MARKETPLACE', 'pub_brand': 'Profil public — Spirit Infinity', 'pub_copy_url': 'COPIER L’URL', 'pub_chg_photo': 'CHANGER LA PHOTO', 'pub_add_san': '+ PHOTO SANCTUAIRE', 'pub_follow': 'SUIVRE', 'pub_ia': 'IA Score :', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
+            'pub_back': '← MARKETPLACE', 'pub_brand': 'Profil public — Spirit Infinity', 'pub_copy_url': 'COPIER L’URL', 'pub_goto_chat': 'ACCÉDER AU CHAT', 'pub_chg_photo': 'CHANGER LA PHOTO', 'pub_add_san': '+ PHOTO SANCTUAIRE', 'pub_follow': 'SUIVRE', 'pub_ia': 'IA Score :', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
             'pub_country_lbl': 'Pays (visible publiquement)', 'pub_save': 'ENREGISTRER', 'pub_tab_ads': 'ANNONCES', 'pub_tab_san': 'SANCTUAIRE', 'pub_ads_note': 'Annonces publiques (products_live)', 'pub_neon_border': 'Bordure néon (toute la galerie)', 'pub_san_chat_h': 'CHAT DU SANCTUAIRE', 'pub_san_chat_rules': 'Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.',
             'params_pseudo_lbl': 'MODIFIER PSEUDO', 'params_pseudo_ph': 'Nouveau pseudo', 'params_pseudo_save': 'ENREGISTRER LE PSEUDO',
             'params_push_h': 'Alertes quand l’application est fermée', 'params_push_p': 'Active les notifications du navigateur pour être prévenu (marché, messages, Sanctuaire) même sans l’onglet ouvert. Nécessite une clé VAPID dans le code + une fonction serveur Supabase qui envoie les push — voir le bloc SQL commenté « Web Push ».',
@@ -4259,7 +4296,7 @@
             'listing_chat_tr_hint': 'Auto translation · hover for original',
             'mob_lang_label': 'Language',
             'reg_modal_connected': 'You are signed in.',
-            'account_tab_dashboard': 'DASHBOARD', 'account_tab_messages': 'MESSAGES', 'account_tab_purchases': 'MY PURCHASES',
+            'account_tab_dashboard': 'DASHBOARD', 'account_tab_public_sanctuary': 'PUBLIC SANCTUARY', 'account_tab_messages': 'MESSAGES', 'account_tab_purchases': 'MY PURCHASES',
             'account_tab_sales': 'MY SALES', 'account_tab_wallet': 'WALLET', 'account_tab_listings': 'MY LISTINGS',
             'account_tab_reviews': 'REVIEWS', 'account_tab_sanctuary': 'SANCTUARY', 'account_tab_settings': 'SETTINGS',
             'dash_title': '🏠 DASHBOARD', 'dash_intro': 'Your summary appears here.', 'dash_seller_offer_alert': 'OFFER ALERT',
@@ -4284,7 +4321,7 @@
             'pay_title': 'COMPLETE PAYMENT', 'pay_total_lbl': 'Total amount:', 'pay_pick': 'Choose your secure Spirit Infinity payment method:', 'pay_stripe': '💳 CARD (STRIPE)', 'pay_paypal': '🅿️ SECURE PAYPAL', 'pay_footer': 'By choosing a method, funds are held in Spirit escrow until you receive the figure.',
             'prep_ship_h': 'PREPARE SHIPMENT', 'prep_ship_p': 'A buyer has paid — please prepare the shipment.', 'prep_ok': 'GOT IT', 'btn_ok_short': 'OK',
             'pm_no_title': 'Untitled', 'pm_no_desc': 'No description available.', 'pm_no_image': 'IMAGE NOT AVAILABLE IN LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURE',
-            'pub_back': '← MARKETPLACE', 'pub_brand': 'Public profile — Spirit Infinity', 'pub_copy_url': 'COPY URL', 'pub_chg_photo': 'CHANGE PHOTO', 'pub_add_san': '+ SANCTUARY PHOTO', 'pub_follow': 'FOLLOW', 'pub_ia': 'AI score:', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
+            'pub_back': '← MARKETPLACE', 'pub_brand': 'Public profile — Spirit Infinity', 'pub_copy_url': 'COPY URL', 'pub_goto_chat': 'GO TO CHAT', 'pub_chg_photo': 'CHANGE PHOTO', 'pub_add_san': '+ SANCTUARY PHOTO', 'pub_follow': 'FOLLOW', 'pub_ia': 'AI score:', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
             'pub_country_lbl': 'Country (public)', 'pub_save': 'SAVE', 'pub_tab_ads': 'LISTINGS', 'pub_tab_san': 'SANCTUARY', 'pub_ads_note': 'Public listings (products_live)', 'pub_neon_border': 'Neon border (whole gallery)', 'pub_san_chat_h': 'SANCTUARY CHAT', 'pub_san_chat_rules': '@, .com domains and phone numbers are blocked — Spirit marketplace only.',
             'params_pseudo_lbl': 'CHANGE USERNAME', 'params_pseudo_ph': 'New username', 'params_pseudo_save': 'SAVE USERNAME',
             'params_push_h': 'Alerts when the app is closed', 'params_push_p': 'Enable browser notifications for marketplace / account alerts without keeping the tab open. Requires a VAPID public key in the code plus a Supabase Edge Function (or backend) that sends pushes — see the commented SQL block « Web Push ».',
@@ -4380,7 +4417,7 @@
             'listing_chat_tr_hint': 'Traducción auto · pasa el cursor para el original',
             'mob_lang_label': 'Idioma',
             'reg_modal_connected': 'Has iniciado sesión.',
-            'account_tab_dashboard': 'PANEL', 'account_tab_messages': 'MENSAJES', 'account_tab_purchases': 'MIS COMPRAS',
+            'account_tab_dashboard': 'PANEL', 'account_tab_public_sanctuary': 'SANTUARIO PÚBLICO', 'account_tab_messages': 'MENSAJES', 'account_tab_purchases': 'MIS COMPRAS',
             'account_tab_sales': 'MIS VENTAS', 'account_tab_wallet': 'CARTERA', 'account_tab_listings': 'MIS ANUNCIOS',
             'account_tab_reviews': 'VALORACIONES', 'account_tab_sanctuary': 'SANTUARIO', 'account_tab_settings': 'AJUSTES',
             'dash_title': '🏠 PANEL', 'dash_intro': 'Aquí verás tu resumen.', 'dash_seller_offer_alert': 'ALERTA DE OFERTAS',
@@ -4405,7 +4442,7 @@
             'pay_title': 'FINALIZAR PAGO', 'pay_total_lbl': 'Importe total:', 'pay_pick': 'Elige tu método de pago seguro Spirit Infinity:', 'pay_stripe': '💳 TARJETA (STRIPE)', 'pay_paypal': '🅿️ PAYPAL SEGURO', 'pay_footer': 'Al elegir un método, los fondos quedan en depósito Spirit hasta recibir la figura.',
             'prep_ship_h': 'PREPARAR ENVÍO', 'prep_ship_p': 'Un comprador ha pagado — prepara el envío.', 'prep_ok': 'ENTENDIDO', 'btn_ok_short': 'OK',
             'pm_no_title': 'Sin título', 'pm_no_desc': 'Sin descripción.', 'pm_no_image': 'IMAGEN NO DISPONIBLE EN LEDGER', 'typ_statue': 'ESTATUA', 'typ_figure': 'FIGURA',
-            'pub_back': '← MARKETPLACE', 'pub_brand': 'Perfil público — Spirit Infinity', 'pub_copy_url': 'COPIAR URL', 'pub_chg_photo': 'CAMBIAR FOTO', 'pub_add_san': '+ FOTO SANTUARIO', 'pub_follow': 'SEGUIR', 'pub_ia': 'Puntuación IA:', 'pub_likes': 'Me gusta', 'pub_followers': 'Seguidores', 'pub_following': 'Siguiendo',
+            'pub_back': '← MARKETPLACE', 'pub_brand': 'Perfil público — Spirit Infinity', 'pub_copy_url': 'COPIAR URL', 'pub_goto_chat': 'IR AL CHAT', 'pub_chg_photo': 'CAMBIAR FOTO', 'pub_add_san': '+ FOTO SANTUARIO', 'pub_follow': 'SEGUIR', 'pub_ia': 'Puntuación IA:', 'pub_likes': 'Me gusta', 'pub_followers': 'Seguidores', 'pub_following': 'Siguiendo',
             'pub_country_lbl': 'País (visible públicamente)', 'pub_save': 'GUARDAR', 'pub_tab_ads': 'ANUNCIOS', 'pub_tab_san': 'SANTUARIO', 'pub_ads_note': 'Anuncios públicos (products_live)', 'pub_neon_border': 'Borde neón (toda la galería)', 'pub_san_chat_h': 'CHAT DEL SANTUARIO', 'pub_san_chat_rules': '@, dominios .com y teléfonos bloqueados — solo marketplace Spirit.',
             'params_pseudo_lbl': 'CAMBIAR USUARIO', 'params_pseudo_ph': 'Nuevo usuario', 'params_pseudo_save': 'GUARDAR USUARIO',
             'params_push_h': 'Alertas con la app cerrada', 'params_push_p': 'Activa las notificaciones del navegador para alertas del mercado o cuenta sin mantener la pestaña abierta. Requiere clave VAPID y una Edge Function en Supabase que envíe los push (ver SQL comentado « Web Push »).',
@@ -4501,7 +4538,7 @@
             'listing_chat_tr_hint': '自动翻译 · 悬停查看原文',
             'mob_lang_label': '语言',
             'reg_modal_connected': '你已登录。',
-            'account_tab_dashboard': '概览', 'account_tab_messages': '消息', 'account_tab_purchases': '我的购买',
+            'account_tab_dashboard': '概览', 'account_tab_public_sanctuary': '公开圣地', 'account_tab_messages': '消息', 'account_tab_purchases': '我的购买',
             'account_tab_sales': '我的销售', 'account_tab_wallet': '钱包', 'account_tab_listings': '我的上架',
             'account_tab_reviews': '评价', 'account_tab_sanctuary': '圣地', 'account_tab_settings': '设置',
             'dash_title': '🏠 控制面板', 'dash_intro': '在此查看你的摘要。', 'dash_seller_offer_alert': '出价提醒',
@@ -4526,7 +4563,7 @@
             'pay_title': '完成支付', 'pay_total_lbl': '应付总额：', 'pay_pick': '选择 Spirit Infinity 安全支付方式：', 'pay_stripe': '💳 银行卡（STRIPE）', 'pay_paypal': '🅿️ 安全 PayPal', 'pay_footer': '选择支付方式后，资金将由 Spirit 托管，直至你收到手办。',
             'prep_ship_h': '准备发货', 'prep_ship_p': '买家已付款 — 请准备寄送。', 'prep_ok': '知道了', 'btn_ok_short': '确定',
             'pm_no_title': '无标题', 'pm_no_desc': '暂无描述。', 'pm_no_image': '账本中无可用图片', 'typ_statue': '雕像', 'typ_figure': '手办',
-            'pub_back': '← 市场', 'pub_brand': '公开资料 — Spirit Infinity', 'pub_copy_url': '复制链接', 'pub_chg_photo': '更换头像', 'pub_add_san': '+ 圣地照片', 'pub_follow': '关注', 'pub_ia': 'AI 评分：', 'pub_likes': '赞', 'pub_followers': '粉丝', 'pub_following': '关注',
+            'pub_back': '← 市场', 'pub_brand': '公开资料 — Spirit Infinity', 'pub_copy_url': '复制链接', 'pub_goto_chat': '进入聊天', 'pub_chg_photo': '更换头像', 'pub_add_san': '+ 圣地照片', 'pub_follow': '关注', 'pub_ia': 'AI 评分：', 'pub_likes': '赞', 'pub_followers': '粉丝', 'pub_following': '关注',
             'pub_country_lbl': '国家（公开显示）', 'pub_save': '保存', 'pub_tab_ads': '商品', 'pub_tab_san': '圣地', 'pub_ads_note': '公开上架（products_live）', 'pub_neon_border': '霓虹边框（整组照片）', 'pub_san_chat_h': '圣地聊天', 'pub_san_chat_rules': '@、.com 域名与电话已屏蔽 — 仅限 Spirit 市场。',
             'params_pseudo_lbl': '修改用户名', 'params_pseudo_ph': '新用户名', 'params_pseudo_save': '保存用户名',
             'params_push_h': '应用关闭时的提醒', 'params_push_p': '启用浏览器通知，在不打开标签页时接收市场/账户提醒。需在代码中配置 VAPID 公钥，并在 Supabase 部署发送推送的 Edge Function（见 SQL 注释 « Web Push »）。',
@@ -12160,6 +12197,9 @@ window.showAccountTab = function showAccountTab(tab) {
         try { if (typeof spiritLoadBuyerOffersSent === 'function') spiritLoadBuyerOffersSent(); } catch (e) {}
         try { if (typeof spiritFriendsRefreshList === 'function') spiritFriendsRefreshList(); } catch (e) {}
     }
+    if (tab === 'sanctuaire-public') {
+        try { if (typeof spiritRefreshDashboardPublicUrl === 'function') spiritRefreshDashboardPublicUrl(); } catch (ePub) {}
+    }
     if (tab === 'params') {
         console.log("[SPIRIT SYSTEM] Accès paramètres");
         try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR) {}
@@ -14365,10 +14405,12 @@ function spiritOpenMyPublicProfile() {
     location.hash = 'spirit-public/' + encodeURIComponent(uid);
 }
 function spiritRefreshDashboardPublicUrl() {
-    var el = document.getElementById('spirit-dashboard-public-url');
-    if (!el) return;
     var uid = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-    el.textContent = uid ? spiritPublicBuildUrl(uid) : '—';
+    var text = uid ? spiritPublicBuildUrl(uid) : '—';
+    var el = document.getElementById('spirit-dashboard-public-url');
+    if (el) el.textContent = text;
+    var el2 = document.getElementById('spirit-account-public-url');
+    if (el2) el2.textContent = text;
 }
 function spiritExitPublicProfile() {
     spiritPublicViewUserId = null;
@@ -14414,6 +14456,29 @@ function spiritPublicSetTab(which) {
     // Recharger l'avatar du header à chaque changement d'onglet public.
     try { if (typeof spiritPublicReloadAvatarFromSanctuary === 'function') void spiritPublicReloadAvatarFromSanctuary(); } catch (e2) {}
 }
+function spiritPublicScrollToSanctuaryChat() {
+    try { spiritPublicSetTab('sanctuary'); } catch (e0) {}
+    var run = function () {
+        var el = document.getElementById('spiritPublicSanctuaryChatAnchor');
+        var sec = document.getElementById('spiritPublicProfileSection');
+        try {
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                try { el.focus({ preventScroll: true }); } catch (eF) {}
+            }
+        } catch (e1) {}
+        try {
+            if (sec && el) {
+                var r = el.getBoundingClientRect();
+                var vh = window.innerHeight || 600;
+                if (r.top < 72 || r.bottom > vh - 24) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        } catch (e2) {}
+    };
+    setTimeout(run, 60);
+    setTimeout(run, 320);
+}
+try { if (typeof window !== 'undefined') window.spiritPublicScrollToSanctuaryChat = spiritPublicScrollToSanctuaryChat; } catch (eWSc) {}
 
 async function spiritResolveUserIdForFakeTestId(v, opts) {
     // Pour les IDs de test ("12345"/"67890"), on évite les requêtes Supabase par défaut
@@ -14933,9 +14998,12 @@ async function spiritPublicLoadAnnonces(uid, opts) {
         var st = String(p.status || '').toLowerCase();
         var sold = st === 'sold' || st === 'vendu';
         var div = document.createElement('div');
+        div.className = sold ? 'spirit-public-ad-card spirit-public-ad-sold' : 'spirit-public-ad-card';
         div.style.cssText = 'background:#111;border:1px solid #333;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;overflow:hidden;transition:border-color 160ms ease;';
-        div.onmouseenter = function () { div.style.borderColor = '#ff4500'; };
-        div.onmouseleave = function () { div.style.borderColor = '#333'; };
+        if (!sold) {
+            div.onmouseenter = function () { div.style.borderColor = '#ff4500'; };
+            div.onmouseleave = function () { div.style.borderColor = '#333'; };
+        }
         div.style.cursor = 'pointer';
         div.addEventListener('click', function () { void spiritPublicOpenAnnonce(p); });
         var urls = (typeof spiritImageUrlList === 'function') ? spiritImageUrlList(p) : [];
@@ -14966,6 +15034,13 @@ async function spiritPublicLoadAnnonces(uid, opts) {
             });
         } catch (eBtn) {}
         div.appendChild(info);
+        if (sold) {
+            var badge = document.createElement('div');
+            badge.className = 'spirit-public-ad-badge-sold';
+            badge.setAttribute('data-key', 'pub_ad_sold');
+            badge.textContent = pubT('pub_ad_sold');
+            div.appendChild(badge);
+        }
         box.appendChild(div);
         });
     }
