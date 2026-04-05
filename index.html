@@ -2063,6 +2063,12 @@
         .spirit-san-thumb-wrap:focus-within .spirit-san-action-btn {
             opacity: 1; transform: translateY(0); pointer-events: auto;
         }
+        /* Mon compte uniquement : corbeille toujours visible (mobile / pas de survol). Le profil public garde le survol. */
+        #spiritAccountSanctuaryGrid .spirit-san-thumb-wrap .spirit-san-action-btn {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
         .spirit-san-dragging { opacity: 0.65; }
         .spirit-san-drop-target { outline: 2px dashed rgba(255,102,0,0.85); outline-offset: 4px; }
         #spiritSanctuaryGrid .spirit-san-meta { flex: 1; font-size: 0.75rem; color: #aaa; }
@@ -3512,11 +3518,11 @@
                         <div id="spiritSellerOffersList" style="display:flex;flex-direction:column;gap:10px;"></div>
                     </div>
                     <div style="margin-top:16px;padding:14px;border:1px solid rgba(255,102,0,0.35);background:#0c0c0c;">
-                        <p data-key="dash_public_block_title" style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">PROFIL PUBLIC &amp; SANCTUAIRE</p>
+                        <p data-key="dash_public_block_title" style="margin:0 0 8px;font-size:0.7rem;color:var(--neon-orange);font-weight:800;letter-spacing:1px;">SANCTUAIRE PUBLIC</p>
                         <p data-key="dash_public_url_hint" style="margin:0 0 10px;font-size:0.65rem;color:#777;">URL unique (partage) :</p>
                         <code id="spirit-dashboard-public-url" style="display:block;font-size:0.6rem;color:#aaa;word-break:break-all;margin-bottom:10px;">—</code>
                         <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;margin-right:8px;" onclick="spiritCopyMyPublicUrl()" data-key="dash_copy_url_btn">COPIER L’URL</button>
-                        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#222;color:var(--neon-orange);border:1px solid var(--neon-orange);" onclick="spiritOpenMyPublicProfile()" data-key="dash_open_profile_btn">OUVRIR MON PROFIL PUBLIC</button>
+                        <button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#222;color:var(--neon-orange);border:1px solid var(--neon-orange);" onclick="spiritOpenMyPublicProfile()" data-key="dash_open_profile_btn">OUVRIR MON SANCTUAIRE PUBLIC</button>
                     </div>
                     <div style="margin-top:16px;padding:14px;border:1px solid rgba(0,200,255,0.35);background:#090d11;">
                         <p data-key="dash_friends_title" style="margin:0 0 8px;font-size:0.7rem;color:#5cf;font-weight:800;letter-spacing:1px;">MES AMIS / ABONNEMENTS</p>
@@ -3642,6 +3648,7 @@
             <button type="button" class="spirit-san-view-acc" data-sanview="icons-lg" onclick="spiritAccountSanctuarySetView('icons-lg')" data-key="ui_v_grid">Vue Grille</button>
             <button type="button" class="spirit-san-view-acc" data-sanview="style" onclick="spiritAccountSanctuarySetView('style')" data-key="ui_v_style">Vue Style</button>
             <button type="button" class="spirit-san-view-acc" data-sanview="style2" onclick="spiritAccountSanctuarySetView('style2')" data-key="ui_v_style2">Vue Style 2</button>
+            <button type="button" class="btn-action" style="font-size:0.58rem;padding:8px 12px;margin-left:auto;background:#2a1010;border-color:#822;color:#f88;" onclick="void spiritAccountSanctuaryClearAllPhotos()" data-key="san_acc_clear_all_btn">EFFACER TOUTES LES PHOTOS</button>
         </div>
         <input type="file" id="spiritAccountSanctuaryFileInput" accept="image/*" style="display:none;" />
         <div id="spiritAccountSanctuaryGrid" class="spirit-san-mode-list"></div>
@@ -4182,8 +4189,8 @@
             'account_tab_reviews': 'ÉVALUATIONS', 'account_tab_sanctuary': 'SANCTUAIRE', 'account_tab_settings': 'PARAMÈTRES',
             'dash_title': '🏠 TABLEAU DE BORD', 'dash_intro': 'C\'est ici que s\'affiche ton résumé.', 'dash_seller_offer_alert': 'ALERTE OFFRES',
             'dash_buyer_offers_title': 'MES OFFRES ENVOYÉES (FAVORIS)', 'dash_buyer_offers_hint': 'Récap : figurine, pseudo vendeur, prix d’origine, ton offre. Clique une ligne pour rouvrir l’annonce (prix à jour si le vendeur a accepté).',
-            'dash_seller_offers_title': 'OFFRES REÇUES SUR TES ANNONCES', 'dash_public_block_title': 'PROFIL PUBLIC & SANCTUAIRE', 'dash_public_url_hint': 'URL unique (partage) :',
-            'dash_copy_url_btn': 'COPIER L’URL', 'dash_open_profile_btn': 'OUVRIR MON PROFIL PUBLIC', 'dash_friends_title': 'MES AMIS / ABONNEMENTS', 'dash_friends_hint': 'Pseudos cliquables pour ouvrir leur profil public.', 'dash_friends_full': 'VOIR LA LISTE COMPLÈTE',
+            'dash_seller_offers_title': 'OFFRES REÇUES SUR TES ANNONCES', 'dash_public_block_title': 'SANCTUAIRE PUBLIC', 'dash_public_url_hint': 'URL unique (partage) :',
+            'dash_copy_url_btn': 'COPIER L’URL', 'dash_open_profile_btn': 'OUVRIR MON SANCTUAIRE PUBLIC', 'dash_friends_title': 'MES AMIS / ABONNEMENTS', 'dash_friends_hint': 'Pseudos cliquables pour ouvrir leur profil public.', 'dash_friends_full': 'VOIR LA LISTE COMPLÈTE',
             'tab_sanctuary_msgs_h': '📩 MESSAGES SANCTUAIRE', 'tab_sanctuary_msgs_p': 'Alertes likes et commentaires sur tes photos du sanctuaire.',
             'tab_purchases_h': '🛒 MES ACHATS', 'tab_purchases_note': 'Les fonds sont bloqués en Séquestre Spirit. Une fois le bouton « REÇU » cliqué, le vendeur est payé et la transaction est définitive.',
             'th_date': 'Date', 'th_product': 'Produit', 'th_amount': 'Montant', 'th_status': 'Statut', 'th_actions_spirit': 'Actions Spirit Shield',
@@ -4191,7 +4198,7 @@
             'btn_close_preview': 'FERMER L\'APERÇU', 'tab_wallet_h': '🏦 MON PORTEFEUILLE', 'tab_wallet_p': 'Les montants de tes ventes sont cumulés ici.', 'wallet_balance_lbl': 'SOLDE DISPONIBLE', 'wallet_transfer_btn': 'VIREMENT BANCAIRE', 'wallet_rib_note': 'RIB utilisé : paramètres du compte.', 'wallet_history_h': 'HISTORIQUE DES ENTRÉES (VENTES)',
             'tab_my_listings_h': 'MES ANNONCES ACTIVES', 'tab_my_listings_empty': 'Aucune annonce active.',
             'eval_page_h': 'ÉVALUATIONS', 'eval_page_p1': 'Avis reçus sur ton profil public. Tu peux répondre à chaque commentaire ; la réponse est visible par tous.', 'eval_page_p2': 'Pour laisser une note à quelqu’un, utilise le flux après une transaction (fenêtre d’évaluation ou notification).', 'eval_clear_all_btn': 'TOUT EFFACER LE FIL',
-            'san_acc_h': 'SANCTUAIRE', 'san_acc_p': 'Galerie noire & néon — jusqu’à 15 pièces (bucket Storage sanctuary).', 'ui_neon_new': 'Néon (nouvelle photo)', 'ui_view': 'Vue', 'ui_v_list': 'Vue Liste', 'ui_v_grid': 'Vue Grille', 'ui_v_style': 'Vue Style', 'ui_v_style2': 'Vue Style 2',
+            'san_acc_h': 'SANCTUAIRE', 'san_acc_p': 'Galerie noire & néon — jusqu’à 15 pièces (bucket Storage sanctuary).', 'san_acc_clear_all_btn': 'EFFACER TOUTES LES PHOTOS', 'san_acc_clear_all_confirm': 'Supprimer toutes les photos de ton Sanctuaire (compte) ? Le Sanctuaire public affichera aussi une galerie vide jusqu’à nouveaux ajouts. Opération irréversible.', 'ui_neon_new': 'Néon (nouvelle photo)', 'ui_view': 'Vue', 'ui_v_list': 'Vue Liste', 'ui_v_grid': 'Vue Grille', 'ui_v_style': 'Vue Style', 'ui_v_style2': 'Vue Style 2',
             'san_chat_h': 'CHAT DU SANCTUAIRE', 'san_chat_rules': '@, .com et numéros de téléphone sont bloqués — marketplace Spirit.', 'san_chat_translate': 'Traduire les messages (langue du site)', 'san_chat_raz': 'Effacer le fil', 'san_chat_raz_confirm': 'Supprimer tous les messages de cette conversation pour vous deux ? (Supabase + cache local)', 'san_chat_raz_nop': 'Aucune conversation sélectionnée.', 'san_chat_raz_err': 'Impossible d’effacer le fil : ', 'ui_conversation': 'Conversation', 'ui_msg_ph': 'Message…', 'ui_send': 'ENVOYER',
             'params_h': 'PARAMÈTRES DU COMPTE', 'params_rep_h': 'MA RÉPUTATION VENDEUR', 'ship_addr_h': 'ADRESSE POSTALE (LIVRAISON)', 'ship_ph_last': 'Nom', 'ship_ph_first': 'Prénom', 'ship_ph_street': 'Adresse', 'ship_ph_zip': 'Code postal', 'ship_ph_city': 'Ville', 'ship_ph_country': 'Pays',
             'ship_save_btn': 'ENREGISTRER ADRESSE', 'ship_save_hint': 'Renseignée une seule fois puis réutilisée à chaque achat.', 'btn_rib_change': 'METTRE / CHANGER UN RIB ACTIF', 'btn_logout': 'DÉCONNEXION',
@@ -4303,8 +4310,8 @@
             'account_tab_reviews': 'REVIEWS', 'account_tab_sanctuary': 'SANCTUARY', 'account_tab_settings': 'SETTINGS',
             'dash_title': '🏠 DASHBOARD', 'dash_intro': 'Your summary appears here.', 'dash_seller_offer_alert': 'OFFER ALERT',
             'dash_buyer_offers_title': 'MY SENT OFFERS (FAVORITES)', 'dash_buyer_offers_hint': 'Summary: figure, seller username, original price, your offer. Click a row to reopen the listing (price updates if the seller accepted).',
-            'dash_seller_offers_title': 'OFFERS ON YOUR LISTINGS', 'dash_public_block_title': 'PUBLIC PROFILE & SANCTUARY', 'dash_public_url_hint': 'Unique URL (share):',
-            'dash_copy_url_btn': 'COPY URL', 'dash_open_profile_btn': 'OPEN MY PUBLIC PROFILE', 'dash_friends_title': 'MY FRIENDS / FOLLOWING', 'dash_friends_hint': 'Click a username to open their public profile.', 'dash_friends_full': 'VIEW FULL LIST',
+            'dash_seller_offers_title': 'OFFERS ON YOUR LISTINGS', 'dash_public_block_title': 'PUBLIC SANCTUARY', 'dash_public_url_hint': 'Unique URL (share):',
+            'dash_copy_url_btn': 'COPY URL', 'dash_open_profile_btn': 'OPEN MY PUBLIC SANCTUARY', 'dash_friends_title': 'MY FRIENDS / FOLLOWING', 'dash_friends_hint': 'Click a username to open their public profile.', 'dash_friends_full': 'VIEW FULL LIST',
             'tab_sanctuary_msgs_h': '📩 SANCTUARY MESSAGES', 'tab_sanctuary_msgs_p': 'Likes and comments on your sanctuary photos.',
             'tab_purchases_h': '🛒 MY PURCHASES', 'tab_purchases_note': 'Funds are held in Spirit Escrow. After you click RECEIVED, the seller is paid and the sale is final.',
             'th_date': 'Date', 'th_product': 'Product', 'th_amount': 'Amount', 'th_status': 'Status', 'th_actions_spirit': 'Spirit Shield actions',
@@ -4312,7 +4319,7 @@
             'btn_close_preview': 'CLOSE PREVIEW', 'tab_wallet_h': '🏦 MY WALLET', 'tab_wallet_p': 'Your sale amounts are accumulated here.', 'wallet_balance_lbl': 'AVAILABLE BALANCE', 'wallet_transfer_btn': 'BANK TRANSFER', 'wallet_rib_note': 'IBAN used: account settings.', 'wallet_history_h': 'INCOMING HISTORY (SALES)',
             'tab_my_listings_h': 'MY ACTIVE LISTINGS', 'tab_my_listings_empty': 'No active listings.',
             'eval_page_h': 'REVIEWS', 'eval_page_p1': 'Reviews on your public profile. You can reply to each comment; replies are visible to everyone.', 'eval_page_p2': 'To rate someone, use the flow after a transaction (review window or notification).', 'eval_clear_all_btn': 'CLEAR ENTIRE FEED',
-            'san_acc_h': 'SANCTUARY', 'san_acc_p': 'Black & neon gallery — up to 15 pieces (Storage sanctuary bucket).', 'ui_neon_new': 'Neon (new photo)', 'ui_view': 'View', 'ui_v_list': 'List view', 'ui_v_grid': 'Grid view', 'ui_v_style': 'Style view', 'ui_v_style2': 'Style view 2',
+            'san_acc_h': 'SANCTUARY', 'san_acc_p': 'Black & neon gallery — up to 15 pieces (Storage sanctuary bucket).', 'san_acc_clear_all_btn': 'DELETE ALL PHOTOS', 'san_acc_clear_all_confirm': 'Delete all photos from your account Sanctuary? Your public gallery will be empty until you add new ones. This cannot be undone.', 'ui_neon_new': 'Neon (new photo)', 'ui_view': 'View', 'ui_v_list': 'List view', 'ui_v_grid': 'Grid view', 'ui_v_style': 'Style view', 'ui_v_style2': 'Style view 2',
             'san_chat_h': 'SANCTUARY CHAT', 'san_chat_rules': '@, .com and phone numbers are blocked — Spirit marketplace.', 'san_chat_translate': 'Translate messages (site language)', 'san_chat_raz': 'Clear thread', 'san_chat_raz_confirm': 'Delete all messages in this conversation for both of you? (Supabase + local cache)', 'san_chat_raz_nop': 'No conversation selected.', 'san_chat_raz_err': 'Could not clear thread: ', 'ui_conversation': 'Conversation', 'ui_msg_ph': 'Message…', 'ui_send': 'SEND',
             'params_h': 'ACCOUNT SETTINGS', 'params_rep_h': 'MY SELLER REPUTATION', 'ship_addr_h': 'SHIPPING ADDRESS', 'ship_ph_last': 'Last name', 'ship_ph_first': 'First name', 'ship_ph_street': 'Address', 'ship_ph_zip': 'Postal code', 'ship_ph_city': 'City', 'ship_ph_country': 'Country',
             'ship_save_btn': 'SAVE ADDRESS', 'ship_save_hint': 'Enter once, reused on every purchase.', 'btn_rib_change': 'ADD / CHANGE ACTIVE IBAN', 'btn_logout': 'LOG OUT',
@@ -4424,8 +4431,8 @@
             'account_tab_reviews': 'VALORACIONES', 'account_tab_sanctuary': 'SANTUARIO', 'account_tab_settings': 'AJUSTES',
             'dash_title': '🏠 PANEL', 'dash_intro': 'Aquí verás tu resumen.', 'dash_seller_offer_alert': 'ALERTA DE OFERTAS',
             'dash_buyer_offers_title': 'MIS OFERTAS ENVIADAS (FAVORITOS)', 'dash_buyer_offers_hint': 'Resumen: figura, vendedor, precio original, tu oferta. Pulsa una fila para reabrir el anuncio (el precio se actualiza si el vendedor aceptó).',
-            'dash_seller_offers_title': 'OFERTAS EN TUS ANUNCIOS', 'dash_public_block_title': 'PERFIL PÚBLICO Y SANTUARIO', 'dash_public_url_hint': 'URL única (compartir):',
-            'dash_copy_url_btn': 'COPIAR URL', 'dash_open_profile_btn': 'ABRIR MI PERFIL PÚBLICO', 'dash_friends_title': 'AMIGOS / SEGUIDOS', 'dash_friends_hint': 'Pulsa un usuario para abrir su perfil público.', 'dash_friends_full': 'VER LISTA COMPLETA',
+            'dash_seller_offers_title': 'OFERTAS EN TUS ANUNCIOS', 'dash_public_block_title': 'SANTUARIO PÚBLICO', 'dash_public_url_hint': 'URL única (compartir):',
+            'dash_copy_url_btn': 'COPIAR URL', 'dash_open_profile_btn': 'ABRIR MI SANTUARIO PÚBLICO', 'dash_friends_title': 'AMIGOS / SEGUIDOS', 'dash_friends_hint': 'Pulsa un usuario para abrir su perfil público.', 'dash_friends_full': 'VER LISTA COMPLETA',
             'tab_sanctuary_msgs_h': '📩 MENSAJES DEL SANTUARIO', 'tab_sanctuary_msgs_p': 'Alertas de me gusta y comentarios en tus fotos del santuario.',
             'tab_purchases_h': '🛒 MIS COMPRAS', 'tab_purchases_note': 'Los fondos quedan en depósito Spirit. Al pulsar RECIBIDO, el vendedor cobra y la venta es definitiva.',
             'th_date': 'Fecha', 'th_product': 'Producto', 'th_amount': 'Importe', 'th_status': 'Estado', 'th_actions_spirit': 'Acciones Spirit Shield',
@@ -4433,7 +4440,7 @@
             'btn_close_preview': 'CERRAR VISTA PREVIA', 'tab_wallet_h': '🏦 MI CARTERA', 'tab_wallet_p': 'Los importes de tus ventas se acumulan aquí.', 'wallet_balance_lbl': 'SALDO DISPONIBLE', 'wallet_transfer_btn': 'TRANSFERENCIA BANCARIA', 'wallet_rib_note': 'IBAN usado: ajustes de la cuenta.', 'wallet_history_h': 'HISTORIAL DE ENTRADAS (VENTAS)',
             'tab_my_listings_h': 'MIS ANUNCIOS ACTIVOS', 'tab_my_listings_empty': 'No hay anuncios activos.',
             'eval_page_h': 'VALORACIONES', 'eval_page_p1': 'Opiniones en tu perfil público. Puedes responder a cada comentario; la respuesta es visible para todos.', 'eval_page_p2': 'Para valorar a alguien, usa el flujo tras una transacción (ventana de valoración o notificación).', 'eval_clear_all_btn': 'BORRAR TODO EL FEED',
-            'san_acc_h': 'SANTUARIO', 'san_acc_p': 'Galería neón — hasta 15 piezas (bucket Storage sanctuary).', 'ui_neon_new': 'Neón (foto nueva)', 'ui_view': 'Vista', 'ui_v_list': 'Vista lista', 'ui_v_grid': 'Vista cuadrícula', 'ui_v_style': 'Vista estilo', 'ui_v_style2': 'Vista estilo 2',
+            'san_acc_h': 'SANTUARIO', 'san_acc_p': 'Galería neón — hasta 15 piezas (bucket Storage sanctuary).', 'san_acc_clear_all_btn': 'BORRAR TODAS LAS FOTOS', 'san_acc_clear_all_confirm': '¿Eliminar todas las fotos de tu Santuario (cuenta)? La galería pública quedará vacía hasta que subas otras. No se puede deshacer.', 'ui_neon_new': 'Neón (foto nueva)', 'ui_view': 'Vista', 'ui_v_list': 'Vista lista', 'ui_v_grid': 'Vista cuadrícula', 'ui_v_style': 'Vista estilo', 'ui_v_style2': 'Vista estilo 2',
             'san_chat_h': 'CHAT DEL SANTUARIO', 'san_chat_rules': '@, .com y teléfonos bloqueados — marketplace Spirit.', 'san_chat_translate': 'Traducir mensajes (idioma del sitio)', 'san_chat_raz': 'Borrar hilo', 'san_chat_raz_confirm': '¿Eliminar todos los mensajes de esta conversación para ambos? (Supabase + caché local)', 'san_chat_raz_nop': 'No hay conversación seleccionada.', 'san_chat_raz_err': 'No se pudo borrar el hilo: ', 'ui_conversation': 'Conversación', 'ui_msg_ph': 'Mensaje…', 'ui_send': 'ENVIAR',
             'params_h': 'AJUSTES DE LA CUENTA', 'params_rep_h': 'MI REPUTACIÓN COMO VENDEDOR', 'ship_addr_h': 'DIRECCIÓN POSTAL (ENVÍO)', 'ship_ph_last': 'Apellido', 'ship_ph_first': 'Nombre', 'ship_ph_street': 'Dirección', 'ship_ph_zip': 'Código postal', 'ship_ph_city': 'Ciudad', 'ship_ph_country': 'País',
             'ship_save_btn': 'GUARDAR DIRECCIÓN', 'ship_save_hint': 'Una sola vez; se reutiliza en cada compra.', 'btn_rib_change': 'AÑADIR / CAMBIAR IBAN ACTIVO', 'btn_logout': 'CERRAR SESIÓN',
@@ -4545,8 +4552,8 @@
             'account_tab_reviews': '评价', 'account_tab_sanctuary': '圣地', 'account_tab_settings': '设置',
             'dash_title': '🏠 控制面板', 'dash_intro': '在此查看你的摘要。', 'dash_seller_offer_alert': '出价提醒',
             'dash_buyer_offers_title': '我发出的出价（收藏）', 'dash_buyer_offers_hint': '摘要：手办、卖家昵称、原价、你的出价。点击一行可重新打开商品（若卖家已接受，价格会更新）。',
-            'dash_seller_offers_title': '你商品上收到的出价', 'dash_public_block_title': '公开资料与圣地', 'dash_public_url_hint': '唯一链接（分享）：',
-            'dash_copy_url_btn': '复制链接', 'dash_open_profile_btn': '打开我的公开资料', 'dash_friends_title': '好友 / 关注', 'dash_friends_hint': '点击用户名打开其公开资料。', 'dash_friends_full': '查看完整列表',
+            'dash_seller_offers_title': '你商品上收到的出价', 'dash_public_block_title': '公开圣地', 'dash_public_url_hint': '唯一链接（分享）：',
+            'dash_copy_url_btn': '复制链接', 'dash_open_profile_btn': '打开我的公开圣地', 'dash_friends_title': '好友 / 关注', 'dash_friends_hint': '点击用户名打开其公开资料。', 'dash_friends_full': '查看完整列表',
             'tab_sanctuary_msgs_h': '📩 圣地消息', 'tab_sanctuary_msgs_p': '你圣地照片上的点赞与评论提醒。',
             'tab_purchases_h': '🛒 我的购买', 'tab_purchases_note': '资金由 Spirit 托管。点击「已收货」后卖家收款，交易完成。',
             'th_date': '日期', 'th_product': '商品', 'th_amount': '金额', 'th_status': '状态', 'th_actions_spirit': 'Spirit Shield 操作',
@@ -4554,7 +4561,7 @@
             'btn_close_preview': '关闭预览', 'tab_wallet_h': '🏦 我的钱包', 'tab_wallet_p': '销售收入会累计在此。', 'wallet_balance_lbl': '可用余额', 'wallet_transfer_btn': '银行转账', 'wallet_rib_note': '使用的 IBAN：账户设置。', 'wallet_history_h': '入账记录（销售）',
             'tab_my_listings_h': '我的在售商品', 'tab_my_listings_empty': '暂无在售商品。',
             'eval_page_h': '评价', 'eval_page_p1': '公开资料上收到的评价。你可以逐条回复；回复对所有人可见。', 'eval_page_p2': '要给他人评分，请在交易后使用评价流程（评价窗口或通知）。', 'eval_clear_all_btn': '清空全部动态',
-            'san_acc_h': '圣地', 'san_acc_p': '黑底霓虹画廊 — 最多 15 件（Storage sanctuary 桶）。', 'ui_neon_new': '霓虹（新照片）', 'ui_view': '视图', 'ui_v_list': '列表视图', 'ui_v_grid': '网格视图', 'ui_v_style': '风格视图', 'ui_v_style2': '风格视图 2',
+            'san_acc_h': '圣地', 'san_acc_p': '黑底霓虹画廊 — 最多 15 件（Storage sanctuary 桶）。', 'san_acc_clear_all_btn': '删除全部照片', 'san_acc_clear_all_confirm': '删除账户圣地中的所有照片？公开圣地也会变空，直到重新上传。此操作不可撤销。', 'ui_neon_new': '霓虹（新照片）', 'ui_view': '视图', 'ui_v_list': '列表视图', 'ui_v_grid': '网格视图', 'ui_v_style': '风格视图', 'ui_v_style2': '风格视图 2',
             'san_chat_h': '圣地聊天', 'san_chat_rules': '@、.com 与电话号码已屏蔽 — Spirit 市场。', 'san_chat_translate': '翻译消息（网站语言）', 'san_chat_raz': '清空会话', 'san_chat_raz_confirm': '删除此会话中双方的所有消息？（Supabase + 本地缓存）', 'san_chat_raz_nop': '未选择会话。', 'san_chat_raz_err': '无法清空会话：', 'ui_conversation': '会话', 'ui_msg_ph': '消息…', 'ui_send': '发送',
             'params_h': '账户设置', 'params_rep_h': '我的卖家信誉', 'ship_addr_h': '收货地址', 'ship_ph_last': '姓', 'ship_ph_first': '名', 'ship_ph_street': '地址', 'ship_ph_zip': '邮编', 'ship_ph_city': '城市', 'ship_ph_country': '国家',
             'ship_save_btn': '保存地址', 'ship_save_hint': '填写一次，每次购买复用。', 'btn_rib_change': '添加 / 更换有效 IBAN', 'btn_logout': '退出登录',
@@ -15247,23 +15254,45 @@ async function spiritSanctuaryPersistSortOrder(ctx, gridEl) {
         spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
     } catch (e) {}
 }
-async function spiritSanctuaryDeleteItem(ctx, itemId, imageUrl) {
+async function spiritSanctuaryDeleteItem(ctx, itemId, imageUrl, opts) {
+    opts = opts || {};
     if (!_spirit) return;
     try {
-        var ok = confirm('Supprimer cette photo du Sanctuaire ?');
-        if (!ok) return;
+        if (!opts.skipConfirm) {
+            var ok = confirm('Supprimer cette photo du Sanctuaire ?');
+            if (!ok) return;
+        }
         var id = String(itemId);
         var publicPath = spiritStoragePublicUrlToObjectPath(SPIRIT_BUCKET_SANCTUARY, imageUrl);
-        // 1) Supprime du bucket
         if (publicPath) {
             try { await _spirit.storage.from(SPIRIT_BUCKET_SANCTUARY).remove([publicPath]); } catch (e) {}
         }
-        // 2) Supprime la ligne Supabase
         try { await _spirit.from('sanctuary_items').delete().eq('id', id); } catch (e2) {}
         spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
-        await spiritSanctuaryRender(ctx);
+        if (!opts.skipRender) await spiritSanctuaryRender(ctx);
     } catch (e3) {}
 }
+async function spiritAccountSanctuaryClearAllPhotos() {
+    if (typeof _spirit === 'undefined' || !_spirit) return;
+    var uid = spiritSanctuaryUid('account');
+    if (!uid) return;
+    var T = typeof spiritT === 'function' ? spiritT : function (k) { return k; };
+    if (!confirm(T('san_acc_clear_all_confirm'))) return;
+    var items = [];
+    try {
+        items = await spiritSanctuaryFetchItems(uid, true);
+    } catch (eF) { items = []; }
+    if (!items.length) return;
+    for (var i = 0; i < items.length; i++) {
+        var it = items[i];
+        if (!it || it.id == null) continue;
+        await spiritSanctuaryDeleteItem('account', it.id, it.src, { skipConfirm: true, skipRender: true });
+    }
+    spiritSanctuaryItemsCacheInvalidate(uid);
+    try { delete spiritSanctuaryItemsSessionRows[spiritSanctuarySessionCacheKey(uid, true)]; } catch (eS) {}
+    await spiritSanctuaryRender('account');
+}
+try { window.spiritAccountSanctuaryClearAllPhotos = spiritAccountSanctuaryClearAllPhotos; } catch (eClr) {}
 function spiritSanctuarySyncPublicNeonToolbar(items) {
     var sel = document.getElementById('spiritSanctuaryNeonSelect');
     if (!sel) return;
