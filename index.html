@@ -3343,15 +3343,15 @@
         <div id="stepMethod">
             <h2 id="sell-title" style="text-align:center;" data-key="btn_sell">VENDRE & CERTIFIER</h2>
             <div style="display:grid; grid-template-columns: 1fr; gap:10px; margin-top:20px;">
-                <button class="btn-action" onclick="chooseMethod('hot_native')">1. Hot Toys (Equipée Spirit Infinity + Scan IA)</button>
-                <button class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')">2. Ancienne Hot Toys (Scan IA uniquement)</button>
-                <button class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')">3. Autre Marque (Vente Directe)</button>
-                <button class="btn-action" style="background:#6a4c93; color:white;" onclick="chooseMethod('statue')">4. Statue (Vente Directe)</button>
-                <button id="btn-publish-final" class="btn-action" style="margin-top:20px; width:100%; display:none;" onclick="publishFinal()">PUBLIER SUR LE MARCHÉ MONDIAL</button>
+                <button type="button" class="btn-action" onclick="chooseMethod('hot_native')" data-key="cert_method_hot_native">1. Hot Toys (Equipée Spirit Infinity + Scan IA)</button>
+                <button type="button" class="btn-action" style="background:#0066ff; color:white;" onclick="chooseMethod('hot_legacy')" data-key="cert_method_hot_legacy">2. Ancienne Hot Toys (Scan IA uniquement)</button>
+                <button type="button" class="btn-action" style="background:#444; color:white;" onclick="chooseMethod('other')" data-key="cert_method_other">3. Autre Marque (Vente Directe)</button>
+                <button type="button" class="btn-action" style="background:#6a4c93; color:white;" onclick="chooseMethod('statue')" data-key="cert_method_statue">4. Statue (Vente Directe)</button>
+                <button type="button" id="btn-publish-final" class="btn-action" style="margin-top:20px; width:100%; display:none;" onclick="publishFinal()" data-key="cert_btn_publish_global">PUBLIER SUR LE MARCHÉ MONDIAL</button>
             </div>
         </div>
         <div id="stepInfo" style="display:none; margin-top:-8px;">
-            <h2 style="text-align:center;">PHOTOS & DÉTAILS</h2>
+            <h2 id="certStepInfoTitle" style="text-align:center;" data-key="cert_stepinfo_h2">PHOTOS & DÉTAILS</h2>
             <div class="spirit-certif-photo-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px; margin-bottom:10px;">
                 <div id="pBox1" onclick="triggerFile('file1')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 1</div>
                 <div id="pBox2" onclick="triggerFile('file2')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 2</div>
@@ -3365,113 +3365,56 @@
             <input type="file" id="file4" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox4', 3)">
             <input type="file" id="file5" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox5', 4)">
             <div id="diag-link" style="background:rgba(0,255,170,0.1); padding:8px; border:1px solid var(--spirit-green); margin-bottom:6px; display:none;">
-                <span style="color:var(--spirit-green); font-size:0.8rem;">✓ Auto-diagnostic Puce Spirit lié à cette annonce</span>
+                <span style="color:var(--spirit-green); font-size:0.8rem;" data-key="cert_diag_ok">✓ Auto-diagnostic Puce Spirit lié à cette annonce</span>
             </div>
-            <input type="text" id="inputTitle" placeholder="Nom précis de la figurine">
-            <select id="saleCat">
-                <option value="">-- FORMAT DU PRODUIT --</option>
-                <option value="1/6">Action Figure 1/6</option>
-                <option value="1/12">Action Figure 1/12</option>
-                <option value="1/4">Statue / Figure 1/4</option>
-                <option value="Resine">Statue Résine</option>
-                <option value="PVC">Statue PVC</option>
-            </select>
-            <select id="saleBrand">
-                <option value="">-- MARQUE --</option>
-                <option value="Sideshow">Sideshow</option>
-                <option value="InArt">InArt</option>
-                <option value="JND">JND</option>
-                <option value="Present Toys">Present Toys</option>
-                <option value="Prime 1 Studio">Prime 1 Studio</option>
-                <option value="Queen Studios">Queen Studios</option>
-                <option value="Autre">Autre</option>
-            </select>
-            <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;">ÉTAT</label>
-            <select id="saleCond">
-                <option value="Neuf">Neuf</option>
-                <option value="Très bon état" selected>Très bon état</option>
-                <option value="Bon état">Bon état</option>
-                <option value="Moyen">Moyen</option>
-                <option value="Satisfaisant">Satisfaisant</option>
-            </select>
-            <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;">PAYS / ZONE D'EXPÉDITION DU COLIS</label>
-            <select id="saleOriginCountry" title="Depuis où l'objet est expédié (filtre marketplace)">
-                <option value="">-- CHOISIR UN PAYS --</option>
-                <option value="France">France</option>
-                <option value="Europe">Europe</option>
-                <option value="Chine">Chine</option>
-                <option value="USA">USA</option>
-                <option value="Hong Kong">Hong Kong</option>
+            <input type="text" id="inputTitle" data-key="cert_ph_title" placeholder="Nom précis de la figurine">
+            <label for="inputReference" style="font-size:0.65rem; color:var(--neon-orange); display:block; margin:6px 0 4px;" data-key="cert_lbl_reference">Référence (SKU / ref. fabricant)</label>
+            <input type="text" id="inputReference" data-key="cert_ph_reference" placeholder="Ex. MMS123, édition, variante…" autocomplete="off">
+            <select id="saleCat"></select>
+            <select id="saleBrand"></select>
+            <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;" data-key="cert_lbl_cond">ÉTAT</label>
+            <select id="saleCond"></select>
+            <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;" data-key="cert_lbl_ship_origin">PAYS / ZONE D'EXPÉDITION DU COLIS</label>
+            <select id="saleOriginCountry" data-key-title="cert_sale_origin_title">
             </select>
             <div id="statueMatiereRow" style="display:none;">
-                <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;">MATIÈRE</label>
-                <select id="saleMatiere">
-                    <option value="">-- MATIÈRE --</option>
-                    <option value="Résine">Résine</option>
-                    <option value="PVC">PVC</option>
-                </select>
+                <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;" data-key="cert_lbl_matiere">MATIÈRE</label>
+                <select id="saleMatiere"></select>
             </div>
             <div style="display:flex; gap:8px; align-items:stretch; flex-wrap:wrap;">
-                <input type="number" id="inputPrice" placeholder="Prix de vente" style="flex:1; min-width:140px;">
-                <select id="salePriceCurrency" style="min-width:88px; max-width:120px;" title="Devise du prix">
+                <input type="number" id="inputPrice" data-key="cert_ph_price" placeholder="Prix de vente" style="flex:1; min-width:140px;">
+                <select id="salePriceCurrency" style="min-width:88px; max-width:120px;" data-key-title="cert_sale_currency_title">
                     <option value="EUR">EUR</option>
                     <option value="USD">USD</option>
                     <option value="CNY">CNY</option>
                 </select>
             </div>
-            <div class="switch-row" style="margin:6px 0;"><span>Environnement non-fumeur</span><label class="switch"><input type="checkbox" id="saleSmokeFree"><span class="slider"></span></label></div>
-            <div class="switch-row" style="margin:6px 0;"><span>A l'abri de la lumiere</span><label class="switch"><input type="checkbox" id="saleLightProtect"><span class="slider"></span></label></div>
-            <div class="switch-row" style="margin:6px 0;"><span>Premiere main</span><label class="switch"><input type="checkbox" id="saleFirstHand"><span class="slider"></span></label></div>
+            <div class="switch-row" style="margin:6px 0;"><span data-key="cert_sw_smoke">Environnement non-fumeur</span><label class="switch"><input type="checkbox" id="saleSmokeFree"><span class="slider"></span></label></div>
+            <div class="switch-row" style="margin:6px 0;"><span data-key="cert_sw_light">A l'abri de la lumiere</span><label class="switch"><input type="checkbox" id="saleLightProtect"><span class="slider"></span></label></div>
+            <div class="switch-row" style="margin:6px 0;"><span data-key="cert_sw_firsthand">Premiere main</span><label class="switch"><input type="checkbox" id="saleFirstHand"><span class="slider"></span></label></div>
             <div class="switch-row switch-row-coa" style="margin:10px 0;">
                 <span style="flex:1; min-width:140px;" data-key="lbl_coa_switch">Certificat d'Authenticité (COA)</span>
                 <span class="coa-yes-no" data-key="coa_no">Non</span>
                 <label class="switch switch-wide"><input type="checkbox" id="saleHasCoa"><span class="slider"></span></label>
                 <span class="coa-yes-no" data-key="coa_yes">Oui</span>
             </div>
-            <label style="font-size:0.65rem; color:var(--neon-orange);">TAILLE DU COLIS (DÉTERMINE LES TARIFS TRANSPORTEURS)</label>
-            <select id="saleShip">
-                <option value="Petit">Petit (Accessoires / Têtes)</option>
-                <option value="Moyen" selected>Moyen (Boite 1/6 Standard)</option>
-                <option value="Grand">Grand (Diecast / Statue / XL)</option>
-            </select>
-            <label style="font-size:0.65rem; color:#8cf; font-weight:bold; display:block; margin-top:8px; margin-bottom:4px;">LOGISTIQUE GLOBALE — FLUX PRINCIPAL (EXPÉDITION → DESTINATION)</label>
-            <select id="saleLogisticsCorridor" onchange="spiritOnSaleLogisticsChange()" title="Sélectionne le corridor servi par cette annonce (mobile &amp; desktop).">
-                <option value="">-- CHOISIR UN FLUX (recommandé) --</option>
-                <optgroup label="Local (même zone)">
-                    <option value="local_FR_FR">France → France</option>
-                    <option value="local_US_US">USA → USA</option>
-                    <option value="local_CN_CN">Chine / HK → Chine / HK</option>
-                    <option value="local_EU_EU">Europe → Europe</option>
-                </optgroup>
-                <optgroup label="Union européenne (sans douane)">
-                    <option value="intra_FR_EU">France → Europe (UE)</option>
-                    <option value="intra_EU_FR">Europe → France</option>
-                </optgroup>
-                <optgroup label="Mondial (intercontinental)">
-                    <option value="intl_US_FR">USA → France</option>
-                    <option value="intl_US_EU">USA → Europe</option>
-                    <option value="intl_CN_US">Chine / HK → USA</option>
-                    <option value="intl_CN_FR">Chine / HK → France</option>
-                    <option value="intl_CN_EU">Chine / HK → Europe</option>
-                    <option value="intl_EU_US">Europe → USA</option>
-                    <option value="intl_EU_CN">Europe → Chine / HK</option>
-                    <option value="intl_FR_US">France → USA</option>
-                    <option value="intl_FR_CN">France → Chine / HK</option>
-                </optgroup>
-            </select>
-            <div id="spiritSaleLogisticsCarrierHint">Les transporteurs affichés à l’achat dépendent du flux et du pays de l’acheteur (Mondial Relay, Colissimo, USPS, SF Express, FedEx, DHL).</div>
-            <div id="spiritSaleLogisticsCustomsPreview" role="alert">⚠ Flux intercontinental : l’acheteur peut devoir régler des droits de douane, TVA d’import ou frais de dédouanement — non inclus dans le prix affiché.</div>
-            <textarea id="inputDesc" placeholder="Description de votre objet..."></textarea>
-            <button class="btn-action" style="width:100%;" onclick="goToScan()">VALIDER L'ANNONCE</button>
+            <label style="font-size:0.65rem; color:var(--neon-orange);" data-key="cert_lbl_ship_size">TAILLE DU COLIS (DÉTERMINE LES TARIFS TRANSPORTEURS)</label>
+            <select id="saleShip"></select>
+            <label style="font-size:0.65rem; color:#8cf; font-weight:bold; display:block; margin-top:8px; margin-bottom:4px;" data-key="cert_lbl_logistics">LOGISTIQUE GLOBALE — FLUX PRINCIPAL (EXPÉDITION → DESTINATION)</label>
+            <select id="saleLogisticsCorridor" onchange="spiritOnSaleLogisticsChange()" data-key-title="cert_lgx_title"></select>
+            <div id="spiritSaleLogisticsCarrierHint" data-key="cert_lgx_hint_default">Les transporteurs affichés à l’achat dépendent du flux et du pays de l’acheteur (Mondial Relay, Colissimo, USPS, SF Express, FedEx, DHL).</div>
+            <div id="spiritSaleLogisticsCustomsPreview" role="alert"><span data-key="cert_lgx_customs_warn">⚠ Flux intercontinental : l’acheteur peut devoir régler des droits de douane, TVA d’import ou frais de dédouanement — non inclus dans le prix affiché.</span></div>
+            <textarea id="inputDesc" data-key="cert_ph_desc" placeholder="Description de votre objet..."></textarea>
+            <button type="button" class="btn-action" style="width:100%;" onclick="goToScan()" data-key="cert_btn_validate_listing">VALIDER L'ANNONCE</button>
         </div>
         <div id="stepScan" style="display:none;">
-            <h2 id="scanTitle" style="text-align:center;">ANALYSE IA : DÉTECTION CONTREFAÇON</h2>
+            <h2 id="scanTitle" style="text-align:center;" data-key="cert_scan_h2">ANALYSE IA : DÉTECTION CONTREFAÇON</h2>
             <div class="spirit-certif-scan-area" style="height:100px; border:1px dashed #333; position:relative; margin:20px 0;"><div class="laser"></div></div>
-            <p id="scanStatus" style="text-align:center; font-family:monospace;">Analyse des pixels et signatures thermiques...</p>
+            <p id="scanStatus" style="text-align:center; font-family:monospace;" data-key="cert_scan_status_init">Analyse des pixels et signatures thermiques...</p>
         </div>
         <div id="stepFinish" style="display:none; text-align:center;">
-            <div style="border:1px solid var(--spirit-green); padding:30px;"><h1>ANNONCE PRÊTE</h1><p id="finishMsg">Authentifié par Spirit IA.</p></div>
-            <button class="btn-action" style="margin-top:20px; width:100%;" onclick="publishFinal()">PUBLIER SUR LE MARCHÉ MONDIAL</button>
+            <div style="border:1px solid var(--spirit-green); padding:30px;"><h1 data-key="cert_finish_h1">ANNONCE PRÊTE</h1><p id="finishMsg" data-key="cert_finish_msg_ok">Authentifié par Spirit IA.</p></div>
+            <button type="button" class="btn-action" style="margin-top:20px; width:100%;" onclick="publishFinal()" data-key="cert_btn_publish_global">PUBLIER SUR LE MARCHÉ MONDIAL</button>
         </div>
     </div>
 </div>
@@ -4268,6 +4211,7 @@
             'params_push_repair_btn': 'Réparer abonnement push (erreur 410)',
             'params_push_save_err': 'Impossible d’enregistrer la souscription push (table ou RLS). Vérifie spirit_web_push_subscriptions dans Supabase.',
             'cert_step_method': 'MÉTHODE', 'cert_step_photos': 'PHOTOS & INFOS', 'cert_step_ai': 'ANALYSE IA', 'cert_step_pub': 'PUBLICATION',
+            'cert_method_hot_native': '1. Hot Toys (équipée Spirit Infinity + scan IA)', 'cert_method_hot_legacy': '2. Ancienne Hot Toys (scan IA uniquement)', 'cert_method_other': '3. Autre marque (vente directe)', 'cert_method_statue': '4. Statue (vente directe)', 'cert_btn_publish_global': 'PUBLIER SUR LE MARCHÉ MONDIAL', 'cert_stepinfo_h2': 'PHOTOS & DÉTAILS', 'cert_photo_1': 'PHOTO 1', 'cert_photo_2': 'PHOTO 2', 'cert_photo_3': 'PHOTO 3', 'cert_photo_4': 'PHOTO 4', 'cert_photo_5': 'PHOTO 5', 'cert_diag_ok': '✓ Auto-diagnostic Puce Spirit lié à cette annonce', 'cert_ph_title': 'Nom précis de la figurine', 'cert_ph_reference': 'Ex. MMS123, édition, variante…', 'cert_lbl_reference': 'Référence (SKU / ref. fabricant)', 'cert_opt_brand_ph': '-- MARQUE --', 'cert_brand_hot_toys': 'Hot Toys', 'cert_brand_sideshow': 'Sideshow', 'cert_brand_inart': 'InArt', 'cert_brand_jnd': 'JND', 'cert_brand_present': 'Present Toys', 'cert_brand_prime1': 'Prime 1 Studio', 'cert_brand_queen': 'Queen Studios', 'cert_brand_autre': 'Autre', 'cert_lbl_cond': 'ÉTAT', 'cert_lbl_ship_origin': 'PAYS / ZONE D\'EXPÉDITION DU COLIS', 'cert_sale_origin_title': 'Depuis où l\'objet est expédié (filtre marketplace)', 'cert_lbl_matiere': 'MATIÈRE', 'cert_ph_price': 'Prix de vente', 'cert_sale_currency_title': 'Devise du prix affiché', 'cert_sw_smoke': 'Environnement non-fumeur', 'cert_sw_light': 'À l\'abri de la lumière', 'cert_sw_firsthand': 'Première main', 'cert_lbl_ship_size': 'TAILLE DU COLIS (détermine les tarifs transporteurs)', 'cert_lbl_logistics': 'LOGISTIQUE GLOBALE — FLUX PRINCIPAL (EXPÉDITION → DESTINATION)', 'cert_lgx_title': 'Corridor servi par cette annonce (mobile et bureau)', 'cert_lgx_placeholder': '-- CHOISIR UN FLUX (recommandé) --', 'cert_lgx_grp_local': 'Local (même zone)', 'cert_lgx_grp_eu': 'Union européenne (sans douane)', 'cert_lgx_grp_intl': 'Mondial (intercontinental)', 'cert_flow_local_FR_FR': 'France → France', 'cert_flow_local_US_US': 'USA → USA', 'cert_flow_local_CN_CN': 'Chine / HK → Chine / HK', 'cert_flow_local_EU_EU': 'Europe → Europe', 'cert_flow_intra_FR_EU': 'France → Europe (UE)', 'cert_flow_intra_EU_FR': 'Europe → France', 'cert_flow_intl_US_FR': 'USA → France', 'cert_flow_intl_US_EU': 'USA → Europe', 'cert_flow_intl_CN_US': 'Chine / HK → USA', 'cert_flow_intl_CN_FR': 'Chine / HK → France', 'cert_flow_intl_CN_EU': 'Chine / HK → Europe', 'cert_flow_intl_EU_US': 'Europe → USA', 'cert_flow_intl_EU_CN': 'Europe → Chine / HK', 'cert_flow_intl_FR_US': 'France → USA', 'cert_flow_intl_FR_CN': 'France → Chine / HK', 'cert_lgx_hint_selected': 'Transporteurs typiques pour ce flux : {carriers}.', 'cert_lgx_hint_default': 'Les transporteurs affichés à l’achat dépendent du flux et du pays de l’acheteur (Mondial Relay, Colissimo, USPS, SF Express, FedEx, DHL).', 'cert_lgx_customs_warn': '⚠ Flux intercontinental : l’acheteur peut devoir régler des droits de douane, TVA d’import ou frais de dédouanement — non inclus dans le prix affiché.', 'cert_ph_desc': 'Description de votre objet…', 'cert_btn_validate_listing': 'VALIDER L’ANNONCE', 'cert_scan_h2': 'ANALYSE IA : DÉTECTION CONTREFAÇON', 'cert_scan_status_init': 'Analyse des pixels et signatures thermiques…', 'cert_scan_status_running': 'SPIRIT EYES : analyse des vecteurs et textures…', 'cert_scan_engine_err': 'ERREUR MOTEUR IA — VÉRIFIEZ LA CONNEXION', 'cert_finish_h1': 'ANNONCE PRÊTE', 'cert_finish_msg_ok': 'Authentifié par Spirit IA.', 'cert_go_title_price_req': 'TITRE ET PRIX REQUIS : Spirit Ledger ne peut pas indexer un objet vide.', 'cert_go_err_price': 'PRIX INVALIDE : indiquez un montant supérieur à 0.', 'cert_go_origin_req': 'PAYS D\'EXPÉDITION REQUIS : choisissez le pays ou la zone depuis laquelle vous expédiez.', 'cert_go_photo1_req': 'PHOTO MANQUANTE : la photo 1 est la base de l’audit Spirit Eyes.', 'cert_go_mat_statue': 'MATIÈRE REQUISE : choisissez Résine ou PVC pour la rubrique Statue.', 'cert_result_a_title': 'REFUSÉ : HORS CATÉGORIE', 'cert_result_a_detected': 'Détecté : {detected}', 'cert_result_a_foot': 'L’IA Spirit n’autorise que les objets de collection certifiables.', 'cert_result_b_title': 'ALERTE : QUALITÉ SUSPECTE', 'cert_result_b_score': 'INDICE DE CONFIANCE : {score} %', 'cert_result_b_foot': 'Attention : les textures détectées ressemblent à un jouet de série (Toy Grade) ou un recast. Certification impossible.', 'cert_result_c_title': 'SCAN RÉUSSI', 'cert_result_c_score': 'SCORE D’AUTHENTICITÉ : {score} %', 'cert_result_c_foot': 'Modèle identifié : {detected}<br>Signature thermique et sculpt conformes.', 'cert_fmt_placeholder': '-- FORMAT DU PRODUIT --', 'cert_fmt_st_18': 'Statue 1/8', 'cert_fmt_st_16': 'Statue 1/6', 'cert_fmt_st_14': 'Statue 1/4', 'cert_fmt_st_13': 'Statue 1/3', 'cert_fmt_st_12': 'Statue 1/2', 'cert_fmt_st_other': 'Autre', 'cert_fmt_af_16': 'Action Figure 1/6', 'cert_fmt_af_12': 'Action Figure 1/12', 'cert_fmt_af_14mix': 'Statue / Figure 1/4', 'cert_fmt_statue_resin': 'Statue Résine', 'cert_fmt_statue_pvc': 'Statue PVC', 'cert_cond_new': 'Neuf', 'cert_cond_vgood': 'Très bon état', 'cert_cond_good': 'Bon état', 'cert_cond_mid': 'Moyen', 'cert_cond_ok': 'Satisfaisant', 'cert_origin_placeholder': '-- CHOISIR UN PAYS --', 'cert_origin_fr': 'France', 'cert_origin_eu': 'Europe', 'cert_origin_cn': 'Chine', 'cert_origin_us': 'USA', 'cert_origin_hk': 'Hong Kong', 'cert_ship_petit': 'Petit (accessoires / têtes)', 'cert_ship_moyen': 'Moyen (boîte 1/6 standard)', 'cert_ship_grand': 'Grand (diecast / statue / XL)', 'cert_mat_placeholder': '-- MATIÈRE --', 'cert_mat_resine': 'Résine', 'cert_mat_pvc': 'PVC', 'cert_pub_invalid_price': 'PRIX INVALIDE : indiquez un montant supérieur à 0.', 'cert_pub_mat_req': 'MATIÈRE REQUISE : choisissez Résine ou PVC pour la rubrique Statue.', 'cert_pub_origin_req': 'PAYS D\'EXPÉDITION REQUIS : choisissez le pays ou la zone depuis laquelle vous expédiez.', 'cert_pub_err_supabase_photos': 'ERREUR : Supabase indisponible, envoi des photos impossible.', 'cert_pub_err_login_photos': 'Connexion requise pour enregistrer les photos sur le stockage Spirit.', 'cert_pub_err_supabase': 'ERREUR : Supabase indisponible, publication impossible.', 'cert_pub_edit_missing': 'ANNONCE INTROUVABLE (édition).', 'cert_pub_update_ok': 'ANNONCE MISE À JOUR !', 'cert_pub_insert_ok': 'ANNONCE PUBLIÉE !', 'cert_pub_err_generic': 'ERREUR : {msg} (CTRL+F5 si besoin)',
             'friends_modal_title': 'LISTE D\'AMIS', 'friends_modal_p': 'Clique un pseudo pour ouvrir son profil public. Utilise la croix pour supprimer.',
             'gallery_prev': '◀ Précédent', 'gallery_next': 'Suivant ▶',
             'pub_lbl_achat': 'Achat', 'pub_lbl_vente': 'Vente', 'pub_lbl_livr': 'Livraison', 'pub_lbl_lit': 'Litige', 'pub_review_suffix': 'avis',
@@ -4387,6 +4331,7 @@
             'params_push_repair_btn': 'Repair push subscription (410)',
             'params_push_save_err': 'Could not save push subscription (missing table or RLS). Check spirit_web_push_subscriptions in Supabase.',
             'cert_step_method': 'METHOD', 'cert_step_photos': 'PHOTOS & INFO', 'cert_step_ai': 'AI ANALYSIS', 'cert_step_pub': 'PUBLICATION',
+            'cert_method_hot_native': '1. Hot Toys (Spirit Infinity equipped + AI scan)', 'cert_method_hot_legacy': '2. Legacy Hot Toys (AI scan only)', 'cert_method_other': '3. Other brand (direct sale)', 'cert_method_statue': '4. Statue (direct sale)', 'cert_btn_publish_global': 'PUBLISH ON THE GLOBAL MARKET', 'cert_stepinfo_h2': 'PHOTOS & DETAILS', 'cert_photo_1': 'PHOTO 1', 'cert_photo_2': 'PHOTO 2', 'cert_photo_3': 'PHOTO 3', 'cert_photo_4': 'PHOTO 4', 'cert_photo_5': 'PHOTO 5', 'cert_diag_ok': '✓ Spirit chip auto-diagnostics linked to this listing', 'cert_ph_title': 'Exact figure name', 'cert_ph_reference': 'e.g. MMS123, edition, variant…', 'cert_lbl_reference': 'Reference (SKU / manufacturer ref.)', 'cert_opt_brand_ph': '-- BRAND --', 'cert_brand_hot_toys': 'Hot Toys', 'cert_brand_sideshow': 'Sideshow', 'cert_brand_inart': 'InArt', 'cert_brand_jnd': 'JND', 'cert_brand_present': 'Present Toys', 'cert_brand_prime1': 'Prime 1 Studio', 'cert_brand_queen': 'Queen Studios', 'cert_brand_autre': 'Other', 'cert_lbl_cond': 'CONDITION', 'cert_lbl_ship_origin': 'COUNTRY / SHIPPING ZONE', 'cert_sale_origin_title': 'Where the item ships from (marketplace filter)', 'cert_lbl_matiere': 'MATERIAL', 'cert_ph_price': 'Sale price', 'cert_sale_currency_title': 'Listing currency', 'cert_sw_smoke': 'Smoke-free environment', 'cert_sw_light': 'Protected from light', 'cert_sw_firsthand': 'First owner', 'cert_lbl_ship_size': 'PARCEL SIZE (sets carrier rates)', 'cert_lbl_logistics': 'GLOBAL LOGISTICS — MAIN CORRIDOR (SHIP FROM → DESTINATION)', 'cert_lgx_title': 'Corridor served by this listing (mobile & desktop)', 'cert_lgx_placeholder': '-- CHOOSE A CORRIDOR (recommended) --', 'cert_lgx_grp_local': 'Local (same region)', 'cert_lgx_grp_eu': 'European Union (no customs)', 'cert_lgx_grp_intl': 'Worldwide (intercontinental)', 'cert_flow_local_FR_FR': 'France → France', 'cert_flow_local_US_US': 'USA → USA', 'cert_flow_local_CN_CN': 'China / HK → China / HK', 'cert_flow_local_EU_EU': 'Europe → Europe', 'cert_flow_intra_FR_EU': 'France → Europe (EU)', 'cert_flow_intra_EU_FR': 'Europe → France', 'cert_flow_intl_US_FR': 'USA → France', 'cert_flow_intl_US_EU': 'USA → Europe', 'cert_flow_intl_CN_US': 'China / HK → USA', 'cert_flow_intl_CN_FR': 'China / HK → France', 'cert_flow_intl_CN_EU': 'China / HK → Europe', 'cert_flow_intl_EU_US': 'Europe → USA', 'cert_flow_intl_EU_CN': 'Europe → China / HK', 'cert_flow_intl_FR_US': 'France → USA', 'cert_flow_intl_FR_CN': 'France → China / HK', 'cert_lgx_hint_selected': 'Typical carriers for this corridor: {carriers}.', 'cert_lgx_hint_default': 'Carriers shown at checkout depend on corridor and buyer country (Mondial Relay, Colissimo, USPS, SF Express, FedEx, DHL).', 'cert_lgx_customs_warn': '⚠ Intercontinental: the buyer may owe import duties, VAT, or brokerage — not included in the listed price.', 'cert_ph_desc': 'Describe your item…', 'cert_btn_validate_listing': 'SUBMIT LISTING', 'cert_scan_h2': 'AI ANALYSIS: COUNTERFEIT DETECTION', 'cert_scan_status_init': 'Analysing pixels and thermal signatures…', 'cert_scan_status_running': 'SPIRIT EYES: analysing vectors and textures…', 'cert_scan_engine_err': 'AI ENGINE ERROR — CHECK YOUR CONNECTION', 'cert_finish_h1': 'LISTING READY', 'cert_finish_msg_ok': 'Authenticated by Spirit AI.', 'cert_go_title_price_req': 'TITLE AND PRICE REQUIRED: Spirit Ledger cannot index an empty item.', 'cert_go_err_price': 'INVALID PRICE: enter an amount greater than 0.', 'cert_go_origin_req': 'SHIPPING COUNTRY REQUIRED: choose where you ship from.', 'cert_go_photo1_req': 'MISSING PHOTO: Photo 1 is required for Spirit Eyes audit.', 'cert_go_mat_statue': 'MATERIAL REQUIRED: choose Resin or PVC for the Statue category.', 'cert_result_a_title': 'REJECTED: OUT OF CATEGORY', 'cert_result_a_detected': 'Detected: {detected}', 'cert_result_a_foot': 'Spirit AI only allows certifiable collectibles.', 'cert_result_b_title': 'ALERT: SUSPECT QUALITY', 'cert_result_b_score': 'CONFIDENCE INDEX: {score}%', 'cert_result_b_foot': 'Textures look like mass-market toy grade or a recast. Certification not possible.', 'cert_result_c_title': 'SCAN SUCCESSFUL', 'cert_result_c_score': 'AUTHENTICITY SCORE: {score}%', 'cert_result_c_foot': 'Identified model: {detected}<br>Thermal signature and sculpt look consistent.', 'cert_fmt_placeholder': '-- PRODUCT FORMAT --', 'cert_fmt_st_18': 'Statue 1/8', 'cert_fmt_st_16': 'Statue 1/6', 'cert_fmt_st_14': 'Statue 1/4', 'cert_fmt_st_13': 'Statue 1/3', 'cert_fmt_st_12': 'Statue 1/2', 'cert_fmt_st_other': 'Other', 'cert_fmt_af_16': 'Action Figure 1/6', 'cert_fmt_af_12': 'Action Figure 1/12', 'cert_fmt_af_14mix': 'Statue / Figure 1/4', 'cert_fmt_statue_resin': 'Resin statue', 'cert_fmt_statue_pvc': 'PVC statue', 'cert_cond_new': 'New', 'cert_cond_vgood': 'Very good', 'cert_cond_good': 'Good', 'cert_cond_mid': 'Average', 'cert_cond_ok': 'Fair', 'cert_origin_placeholder': '-- CHOOSE A COUNTRY --', 'cert_origin_fr': 'France', 'cert_origin_eu': 'Europe', 'cert_origin_cn': 'China', 'cert_origin_us': 'USA', 'cert_origin_hk': 'Hong Kong', 'cert_ship_petit': 'Small (accessories / heads)', 'cert_ship_moyen': 'Medium (standard 1/6 box)', 'cert_ship_grand': 'Large (diecast / statue / XL)', 'cert_mat_placeholder': '-- MATERIAL --', 'cert_mat_resine': 'Resin', 'cert_mat_pvc': 'PVC', 'cert_pub_invalid_price': 'INVALID PRICE: enter an amount greater than 0.', 'cert_pub_mat_req': 'MATERIAL REQUIRED: choose Resin or PVC for the Statue category.', 'cert_pub_origin_req': 'SHIPPING COUNTRY REQUIRED: choose where you ship from.', 'cert_pub_err_supabase_photos': 'ERROR: Supabase unavailable, cannot upload photos.', 'cert_pub_err_login_photos': 'Sign in to store photos on Spirit storage.', 'cert_pub_err_supabase': 'ERROR: Supabase unavailable, cannot publish.', 'cert_pub_edit_missing': 'LISTING NOT FOUND (edit).', 'cert_pub_update_ok': 'LISTING UPDATED!', 'cert_pub_insert_ok': 'LISTING PUBLISHED!', 'cert_pub_err_generic': 'ERROR: {msg} (try CTRL+F5)',
             'friends_modal_title': 'FRIENDS LIST', 'friends_modal_p': 'Click a username to open their public profile. Use ✕ to remove.',
             'gallery_prev': '◀ Previous', 'gallery_next': 'Next ▶',
             'pub_lbl_achat': 'Purchase', 'pub_lbl_vente': 'Sale', 'pub_lbl_livr': 'Shipping', 'pub_lbl_lit': 'Dispute', 'pub_review_suffix': 'reviews',
@@ -4506,6 +4451,7 @@
             'params_push_repair_btn': 'Reparar suscripción push (410)',
             'params_push_save_err': 'No se pudo guardar la suscripción (tabla o RLS). Revisa spirit_web_push_subscriptions.',
             'cert_step_method': 'MÉTODO', 'cert_step_photos': 'FOTOS E INFO', 'cert_step_ai': 'ANÁLISIS IA', 'cert_step_pub': 'PUBLICACIÓN',
+            'cert_method_hot_native': '1. Hot Toys (equipada Spirit Infinity + escaneo IA)', 'cert_method_hot_legacy': '2. Hot Toys antigua (solo escaneo IA)', 'cert_method_other': '3. Otra marca (venta directa)', 'cert_method_statue': '4. Estatua (venta directa)', 'cert_btn_publish_global': 'PUBLICAR EN EL MERCADO GLOBAL', 'cert_stepinfo_h2': 'FOTOS Y DETALLES', 'cert_photo_1': 'FOTO 1', 'cert_photo_2': 'FOTO 2', 'cert_photo_3': 'FOTO 3', 'cert_photo_4': 'FOTO 4', 'cert_photo_5': 'FOTO 5', 'cert_diag_ok': '✓ Autodiagnóstico del chip Spirit vinculado a este anuncio', 'cert_ph_title': 'Nombre exacto de la figura', 'cert_ph_reference': 'Ej. MMS123, edición, variante…', 'cert_lbl_reference': 'Referencia (SKU / ref. fabricante)', 'cert_opt_brand_ph': '-- MARCA --', 'cert_brand_hot_toys': 'Hot Toys', 'cert_brand_sideshow': 'Sideshow', 'cert_brand_inart': 'InArt', 'cert_brand_jnd': 'JND', 'cert_brand_present': 'Present Toys', 'cert_brand_prime1': 'Prime 1 Studio', 'cert_brand_queen': 'Queen Studios', 'cert_brand_autre': 'Otra', 'cert_lbl_cond': 'ESTADO', 'cert_lbl_ship_origin': 'PAÍS / ZONA DE ENVÍO DEL PAQUETE', 'cert_sale_origin_title': 'Desde dónde se envía (filtro del mercado)', 'cert_lbl_matiere': 'MATERIAL', 'cert_ph_price': 'Precio de venta', 'cert_sale_currency_title': 'Moneda del precio', 'cert_sw_smoke': 'Entorno sin humo', 'cert_sw_light': 'Protegido de la luz', 'cert_sw_firsthand': 'Primera mano', 'cert_lbl_ship_size': 'TAMAÑO DEL PAQUETE (define tarifas de transporte)', 'cert_lbl_logistics': 'LOGÍSTICA GLOBAL — CORREDOR PRINCIPAL (ORIGEN → DESTINO)', 'cert_lgx_title': 'Corredor servido por este anuncio (móvil y escritorio)', 'cert_lgx_placeholder': '-- ELIGE UN CORREDOR (recomendado) --', 'cert_lgx_grp_local': 'Local (misma zona)', 'cert_lgx_grp_eu': 'Unión Europea (sin aduanas)', 'cert_lgx_grp_intl': 'Mundial (intercontinental)', 'cert_flow_local_FR_FR': 'Francia → Francia', 'cert_flow_local_US_US': 'EE. UU. → EE. UU.', 'cert_flow_local_CN_CN': 'China / HK → China / HK', 'cert_flow_local_EU_EU': 'Europa → Europa', 'cert_flow_intra_FR_EU': 'Francia → Europa (UE)', 'cert_flow_intra_EU_FR': 'Europa → Francia', 'cert_flow_intl_US_FR': 'EE. UU. → Francia', 'cert_flow_intl_US_EU': 'EE. UU. → Europa', 'cert_flow_intl_CN_US': 'China / HK → EE. UU.', 'cert_flow_intl_CN_FR': 'China / HK → Francia', 'cert_flow_intl_CN_EU': 'China / HK → Europa', 'cert_flow_intl_EU_US': 'Europa → EE. UU.', 'cert_flow_intl_EU_CN': 'Europa → China / HK', 'cert_flow_intl_FR_US': 'Francia → EE. UU.', 'cert_flow_intl_FR_CN': 'Francia → China / HK', 'cert_lgx_hint_selected': 'Transportistas típicos para este corredor: {carriers}.', 'cert_lgx_hint_default': 'Los transportistas en el checkout dependen del corredor y del país del comprador (Mondial Relay, Colissimo, USPS, SF Express, FedEx, DHL).', 'cert_lgx_customs_warn': '⚠ Intercontinental: el comprador puede pagar aranceles, IVA de importación o gestión aduanera — no incluidos en el precio.', 'cert_ph_desc': 'Describe tu artículo…', 'cert_btn_validate_listing': 'VALIDAR EL ANUNCIO', 'cert_scan_h2': 'ANÁLISIS IA: DETECCIÓN DE FALSIFICACIONES', 'cert_scan_status_init': 'Analizando píxeles y firmas térmicas…', 'cert_scan_status_running': 'SPIRIT EYES: analizando vectores y texturas…', 'cert_scan_engine_err': 'ERROR DEL MOTOR IA — COMPRUEBA LA CONEXIÓN', 'cert_finish_h1': 'ANUNCIO LISTO', 'cert_finish_msg_ok': 'Autenticado por Spirit IA.', 'cert_go_title_price_req': 'TÍTULO Y PRECIO OBLIGATORIOS: Spirit Ledger no puede indexar un objeto vacío.', 'cert_go_err_price': 'PRECIO NO VÁLIDO: indica un importe superior a 0.', 'cert_go_origin_req': 'PAÍS DE ENVÍO OBLIGATORIO: elige desde dónde envías.', 'cert_go_photo1_req': 'FALTA LA FOTO: la foto 1 es la base de la auditoría Spirit Eyes.', 'cert_go_mat_statue': 'MATERIAL OBLIGATORIO: elige Resina o PVC para la categoría Estatua.', 'cert_result_a_title': 'RECHAZADO: FUERA DE CATEGORÍA', 'cert_result_a_detected': 'Detectado: {detected}', 'cert_result_a_foot': 'Spirit IA solo autoriza objetos de colección certificables.', 'cert_result_b_title': 'ALERTA: CALIDAD SOSPECHOSA', 'cert_result_b_score': 'ÍNDICE DE CONFIANZA: {score} %', 'cert_result_b_foot': 'Las texturas parecen juguete de serie o recast. Certificación imposible.', 'cert_result_c_title': 'ESCANEO CORRECTO', 'cert_result_c_score': 'PUNTUACIÓN DE AUTENTICIDAD: {score} %', 'cert_result_c_foot': 'Modelo identificado: {detected}<br>Firma térmica y sculpt coherentes.', 'cert_fmt_placeholder': '-- FORMATO DEL PRODUCTO --', 'cert_fmt_st_18': 'Estatua 1/8', 'cert_fmt_st_16': 'Estatua 1/6', 'cert_fmt_st_14': 'Estatua 1/4', 'cert_fmt_st_13': 'Estatua 1/3', 'cert_fmt_st_12': 'Estatua 1/2', 'cert_fmt_st_other': 'Otra', 'cert_fmt_af_16': 'Action Figure 1/6', 'cert_fmt_af_12': 'Action Figure 1/12', 'cert_fmt_af_14mix': 'Estatua / Figura 1/4', 'cert_fmt_statue_resin': 'Estatua resina', 'cert_fmt_statue_pvc': 'Estatua PVC', 'cert_cond_new': 'Nuevo', 'cert_cond_vgood': 'Muy buen estado', 'cert_cond_good': 'Buen estado', 'cert_cond_mid': 'Medio', 'cert_cond_ok': 'Aceptable', 'cert_origin_placeholder': '-- ELIGE UN PAÍS --', 'cert_origin_fr': 'Francia', 'cert_origin_eu': 'Europa', 'cert_origin_cn': 'China', 'cert_origin_us': 'EE. UU.', 'cert_origin_hk': 'Hong Kong', 'cert_ship_petit': 'Pequeño (accesorios / cabezas)', 'cert_ship_moyen': 'Mediano (caja 1/6 estándar)', 'cert_ship_grand': 'Grande (diecast / estatua / XL)', 'cert_mat_placeholder': '-- MATERIAL --', 'cert_mat_resine': 'Resina', 'cert_mat_pvc': 'PVC', 'cert_pub_invalid_price': 'PRECIO NO VÁLIDO: indica un importe superior a 0.', 'cert_pub_mat_req': 'MATERIAL OBLIGATORIO: elige Resina o PVC para la categoría Estatua.', 'cert_pub_origin_req': 'PAÍS DE ENVÍO OBLIGATORIO: elige desde dónde envías.', 'cert_pub_err_supabase_photos': 'ERROR: Supabase no disponible, no se pueden subir fotos.', 'cert_pub_err_login_photos': 'Inicia sesión para guardar fotos en el almacenamiento Spirit.', 'cert_pub_err_supabase': 'ERROR: Supabase no disponible, publicación imposible.', 'cert_pub_edit_missing': 'ANUNCIO NO ENCONTRADO (edición).', 'cert_pub_update_ok': '¡ANUNCIO ACTUALIZADO!', 'cert_pub_insert_ok': '¡ANUNCIO PUBLICADO!', 'cert_pub_err_generic': 'ERROR: {msg} (prueba CTRL+F5)',
             'friends_modal_title': 'LISTA DE AMIGOS', 'friends_modal_p': 'Pulsa un usuario para abrir su perfil público. Usa ✕ para eliminar.',
             'gallery_prev': '◀ Anterior', 'gallery_next': 'Siguiente ▶',
             'pub_lbl_achat': 'Compra', 'pub_lbl_vente': 'Venta', 'pub_lbl_livr': 'Envío', 'pub_lbl_lit': 'Disputa', 'pub_review_suffix': 'reseñas',
@@ -4625,6 +4571,7 @@
             'params_push_repair_btn': '修复推送订阅（410）',
             'params_push_save_err': '无法保存推送订阅（缺表或 RLS）。请检查 spirit_web_push_subscriptions。',
             'cert_step_method': '方式', 'cert_step_photos': '照片与信息', 'cert_step_ai': 'AI 分析', 'cert_step_pub': '发布',
+            'cert_method_hot_native': '1. Hot Toys（Spirit Infinity 芯片 + AI 扫描）', 'cert_method_hot_legacy': '2. 老款 Hot Toys（仅 AI 扫描）', 'cert_method_other': '3. 其他品牌（直售）', 'cert_method_statue': '4. 雕像（直售）', 'cert_btn_publish_global': '发布到全球市场', 'cert_stepinfo_h2': '照片与详情', 'cert_photo_1': '照片 1', 'cert_photo_2': '照片 2', 'cert_photo_3': '照片 3', 'cert_photo_4': '照片 4', 'cert_photo_5': '照片 5', 'cert_diag_ok': '✓ Spirit 芯片自动诊断已关联本上架', 'cert_ph_title': '手办精确名称', 'cert_ph_reference': '例：MMS123、版本、变种…', 'cert_lbl_reference': '参考编号（SKU / 厂商货号）', 'cert_opt_brand_ph': '-- 品牌 --', 'cert_brand_hot_toys': 'Hot Toys', 'cert_brand_sideshow': 'Sideshow', 'cert_brand_inart': 'InArt', 'cert_brand_jnd': 'JND', 'cert_brand_present': 'Present Toys', 'cert_brand_prime1': 'Prime 1 Studio', 'cert_brand_queen': 'Queen Studios', 'cert_brand_autre': '其他', 'cert_lbl_cond': '成色', 'cert_lbl_ship_origin': '发货国家 / 地区', 'cert_sale_origin_title': '从哪里发货（市场筛选）', 'cert_lbl_matiere': '材质', 'cert_ph_price': '售价', 'cert_sale_currency_title': '标价货币', 'cert_sw_smoke': '无吸烟环境', 'cert_sw_light': '避光保存', 'cert_sw_firsthand': '一手', 'cert_lbl_ship_size': '包裹尺寸（影响运费）', 'cert_lbl_logistics': '全球物流 — 主线路（发货地 → 目的地）', 'cert_lgx_title': '本上架服务线路（移动端与桌面端）', 'cert_lgx_placeholder': '-- 选择线路（推荐）--', 'cert_lgx_grp_local': '本地（同区）', 'cert_lgx_grp_eu': '欧盟（无关税）', 'cert_lgx_grp_intl': '全球（洲际）', 'cert_flow_local_FR_FR': '法国 → 法国', 'cert_flow_local_US_US': '美国 → 美国', 'cert_flow_local_CN_CN': '中国 / 香港 → 中国 / 香港', 'cert_flow_local_EU_EU': '欧洲 → 欧洲', 'cert_flow_intra_FR_EU': '法国 → 欧洲（欧盟）', 'cert_flow_intra_EU_FR': '欧洲 → 法国', 'cert_flow_intl_US_FR': '美国 → 法国', 'cert_flow_intl_US_EU': '美国 → 欧洲', 'cert_flow_intl_CN_US': '中国 / 香港 → 美国', 'cert_flow_intl_CN_FR': '中国 / 香港 → 法国', 'cert_flow_intl_CN_EU': '中国 / 香港 → 欧洲', 'cert_flow_intl_EU_US': '欧洲 → 美国', 'cert_flow_intl_EU_CN': '欧洲 → 中国 / 香港', 'cert_flow_intl_FR_US': '法国 → 美国', 'cert_flow_intl_FR_CN': '法国 → 中国 / 香港', 'cert_lgx_hint_selected': '此线路常见承运商：{carriers}。', 'cert_lgx_hint_default': '结账时显示的承运商取决于线路与买家国家（Mondial Relay、Colissimo、USPS、顺丰、FedEx、DHL）。', 'cert_lgx_customs_warn': '⚠ 洲际线路：买家可能需支付关税、进口增值税或清关费用 — 不含在标价内。', 'cert_ph_desc': '描述您的物品…', 'cert_btn_validate_listing': '提交上架', 'cert_scan_h2': 'AI 分析：防伪检测', 'cert_scan_status_init': '正在分析像素与特征…', 'cert_scan_status_running': 'SPIRIT EYES：正在分析向量与纹理…', 'cert_scan_engine_err': 'AI 引擎错误 — 请检查网络', 'cert_finish_h1': '上架已就绪', 'cert_finish_msg_ok': 'Spirit AI 已认证。', 'cert_go_title_price_req': '需要标题与价格：Spirit Ledger 无法索引空商品。', 'cert_go_err_price': '价格无效：请输入大于 0 的金额。', 'cert_go_origin_req': '需要发货国家：请选择发货地。', 'cert_go_photo1_req': '缺少照片：照片 1 是 Spirit Eyes 审核的基础。', 'cert_go_mat_statue': '需要材质：雕像类别请选择树脂或 PVC。', 'cert_result_a_title': '已拒绝：不在类目内', 'cert_result_a_detected': '识别为：{detected}', 'cert_result_a_foot': 'Spirit AI 仅允许可认证收藏品。', 'cert_result_b_title': '警告：质量可疑', 'cert_result_b_score': '置信度：{score}%', 'cert_result_b_foot': '纹理类似量产玩具或翻模，无法认证。', 'cert_result_c_title': '扫描通过', 'cert_result_c_score': '真伪评分：{score}%', 'cert_result_c_foot': '识别模型：{detected}<br>热特征与造型一致。', 'cert_fmt_placeholder': '-- 产品规格 --', 'cert_fmt_st_18': '雕像 1/8', 'cert_fmt_st_16': '雕像 1/6', 'cert_fmt_st_14': '雕像 1/4', 'cert_fmt_st_13': '雕像 1/3', 'cert_fmt_st_12': '雕像 1/2', 'cert_fmt_st_other': '其他', 'cert_fmt_af_16': '可动人偶 1/6', 'cert_fmt_af_12': '可动人偶 1/12', 'cert_fmt_af_14mix': '雕像 / 手办 1/4', 'cert_fmt_statue_resin': '树脂雕像', 'cert_fmt_statue_pvc': 'PVC 雕像', 'cert_cond_new': '全新', 'cert_cond_vgood': '很好', 'cert_cond_good': '良好', 'cert_cond_mid': '一般', 'cert_cond_ok': '尚可', 'cert_origin_placeholder': '-- 选择国家 --', 'cert_origin_fr': '法国', 'cert_origin_eu': '欧洲', 'cert_origin_cn': '中国', 'cert_origin_us': '美国', 'cert_origin_hk': '香港', 'cert_ship_petit': '小（配件 / 头雕）', 'cert_ship_moyen': '中（标准 1/6 盒）', 'cert_ship_grand': '大（合金 / 雕像 / 加大）', 'cert_mat_placeholder': '-- 材质 --', 'cert_mat_resine': '树脂', 'cert_mat_pvc': 'PVC', 'cert_pub_invalid_price': '价格无效：请输入大于 0 的金额。', 'cert_pub_mat_req': '需要材质：雕像类别请选择树脂或 PVC。', 'cert_pub_origin_req': '需要发货国家：请选择发货地。', 'cert_pub_err_supabase_photos': '错误：Supabase 不可用，无法上传照片。', 'cert_pub_err_login_photos': '请登录以将照片保存到 Spirit 存储。', 'cert_pub_err_supabase': '错误：Supabase 不可用，无法发布。', 'cert_pub_edit_missing': '未找到上架（编辑）。', 'cert_pub_update_ok': '上架已更新！', 'cert_pub_insert_ok': '上架已发布！', 'cert_pub_err_generic': '错误：{msg}（可试 CTRL+F5）',
             'friends_modal_title': '好友列表', 'friends_modal_p': '点击用户名打开公开资料。使用 ✕ 删除。',
             'gallery_prev': '◀ 上一张', 'gallery_next': '下一张 ▶',
             'pub_lbl_achat': '购买', 'pub_lbl_vente': '销售', 'pub_lbl_livr': '物流', 'pub_lbl_lit': '纠纷', 'pub_review_suffix': '条评价',
@@ -4676,6 +4623,23 @@
         return (translations['FR'] && translations['FR'][key]) ? translations['FR'][key] : key;
     }
     try { window.spiritT = spiritT; } catch (e) {}
+
+    function spiritApplyI18nToContainer(root) {
+        if (!root) return;
+        var L = spiritUiLang();
+        var set = translations[L] || translations['FR'];
+        root.querySelectorAll('[data-key]').forEach(function (el) {
+            var key = el.getAttribute('data-key');
+            if (!key || !set[key]) return;
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = set[key];
+            else el.textContent = set[key];
+        });
+        root.querySelectorAll('[data-key-title]').forEach(function (el) {
+            var tk = el.getAttribute('data-key-title');
+            if (tk && set[tk]) el.title = set[tk];
+        });
+    }
+    try { window.spiritApplyI18nToContainer = spiritApplyI18nToContainer; } catch (eI18nC) {}
 
     const shippingRates = {
         "Petit": { "mr": 4.90, "cl": 6.50, "dh": 12.00 },
@@ -4850,12 +4814,13 @@
         var v = el && el.value ? String(el.value) : '';
         var prev = document.getElementById('spiritSaleLogisticsCustomsPreview');
         var hint = document.getElementById('spiritSaleLogisticsCarrierHint');
+        var tFn = typeof spiritT === 'function' ? spiritT : function (k) { return k; };
         if (prev) prev.classList.toggle('spirit-logistics-customs-visible', spiritFlowKeyShowsCustomsDuty(v));
         if (hint && v && SPIRIT_FLOW_CARRIERS[v]) {
             var labs = SPIRIT_FLOW_CARRIERS[v].map(function (c) { return SPIRIT_CARRIER_LABELS[c] || c; }).join(', ');
-            hint.textContent = 'Transporteurs typiques pour ce flux : ' + labs + '.';
+            hint.textContent = tFn('cert_lgx_hint_selected').replace(/\{carriers\}/g, labs);
         } else if (hint) {
-            hint.textContent = 'Les transporteurs affichés à l’achat dépendent du flux et du pays de l’acheteur (Mondial Relay, Colissimo, USPS, SF Express, FedEx, DHL).';
+            hint.textContent = tFn('cert_lgx_hint_default');
         }
     }
 
@@ -5137,6 +5102,10 @@ async function loadUserPurchases() {
             if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = set[key];
             else el.textContent = set[key];
         });
+        document.querySelectorAll('[data-key-title]').forEach(function (el) {
+            var tk = el.getAttribute('data-key-title');
+            if (tk && set[tk]) el.title = set[tk];
+        });
         try {
             if (typeof spiritSyncMarketViewSelectOptions === 'function') spiritSyncMarketViewSelectOptions();
             if (typeof spiritApplyMarketViewClasses === 'function') spiritApplyMarketViewClasses();
@@ -5174,6 +5143,9 @@ async function loadUserPurchases() {
         } catch (ePL) {}
         try { spiritSyncRegButtonI18n(); } catch (eBtn) {}
         try { spiritUpdateRegisterModalAuthUi(); } catch (eRegU) {}
+        try {
+            if (typeof spiritApplyCertifModalI18n === 'function') spiritApplyCertifModalI18n();
+        } catch (eCertLang) {}
     }
     function changeLang(lang) { switchLanguage(lang); }
 
@@ -5281,23 +5253,180 @@ function spiritExtractMatiereFromDesc(raw) {
 function spiritApplySaleCatOptions(statueMode) {
     var el = document.getElementById('saleCat');
     if (!el) return;
+    var prev = el.value;
+    function o(val, key) {
+        return '<option value="' + String(val).replace(/"/g, '&quot;') + '" data-key="' + key + '"></option>';
+    }
     if (statueMode) {
-        el.innerHTML = '<option value="">-- FORMAT DU PRODUIT --</option>' +
-            '<option value="statue-1/8">Statue 1/8</option>' +
-            '<option value="statue-1/6">Statue 1/6</option>' +
-            '<option value="statue-1/4">Statue 1/4</option>' +
-            '<option value="statue-1/3">Statue 1/3</option>' +
-            '<option value="statue-1/2">Statue 1/2</option>' +
-            '<option value="statue-autre">Autre</option>';
+        el.innerHTML =
+            o('', 'cert_fmt_placeholder') +
+            o('statue-1/8', 'cert_fmt_st_18') +
+            o('statue-1/6', 'cert_fmt_st_16') +
+            o('statue-1/4', 'cert_fmt_st_14') +
+            o('statue-1/3', 'cert_fmt_st_13') +
+            o('statue-1/2', 'cert_fmt_st_12') +
+            o('statue-autre', 'cert_fmt_st_other');
     } else {
-        el.innerHTML = '<option value="">-- FORMAT DU PRODUIT --</option>' +
-            '<option value="1/6">Action Figure 1/6</option>' +
-            '<option value="1/12">Action Figure 1/12</option>' +
-            '<option value="1/4">Statue / Figure 1/4</option>' +
-            '<option value="Resine">Statue Résine</option>' +
-            '<option value="PVC">Statue PVC</option>';
+        el.innerHTML =
+            o('', 'cert_fmt_placeholder') +
+            o('1/6', 'cert_fmt_af_16') +
+            o('1/12', 'cert_fmt_af_12') +
+            o('1/4', 'cert_fmt_af_14mix') +
+            o('Resine', 'cert_fmt_statue_resin') +
+            o('PVC', 'cert_fmt_statue_pvc');
+    }
+    if (prev) {
+        for (var i = 0; i < el.options.length; i++) {
+            if (el.options[i].value === prev) {
+                el.value = prev;
+                break;
+            }
+        }
+    }
+    if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(el);
+}
+
+function spiritRestoreSelectValue(sel, prev) {
+    if (!sel || prev == null || prev === '') return;
+    for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === prev) {
+            sel.value = prev;
+            return;
+        }
     }
 }
+
+function spiritApplyCertifSaleCondOptions() {
+    var el = document.getElementById('saleCond');
+    if (!el) return;
+    var prev = el.value;
+    function o(val, key) {
+        return '<option value="' + String(val).replace(/"/g, '&quot;') + '" data-key="' + key + '"></option>';
+    }
+    el.innerHTML =
+        o('Neuf', 'cert_cond_new') +
+        o('Très bon état', 'cert_cond_vgood') +
+        o('Bon état', 'cert_cond_good') +
+        o('Moyen', 'cert_cond_mid') +
+        o('Satisfaisant', 'cert_cond_ok');
+    spiritRestoreSelectValue(el, prev);
+    if (!el.value) el.value = 'Très bon état';
+    if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(el);
+}
+
+function spiritApplyCertifOriginOptions() {
+    var el = document.getElementById('saleOriginCountry');
+    if (!el) return;
+    var prev = el.value;
+    function o(val, key) {
+        return '<option value="' + String(val).replace(/"/g, '&quot;') + '" data-key="' + key + '"></option>';
+    }
+    el.innerHTML =
+        o('', 'cert_origin_placeholder') +
+        o('France', 'cert_origin_fr') +
+        o('Europe', 'cert_origin_eu') +
+        o('Chine', 'cert_origin_cn') +
+        o('USA', 'cert_origin_us') +
+        o('Hong Kong', 'cert_origin_hk');
+    spiritRestoreSelectValue(el, prev);
+    if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(el);
+}
+
+function spiritApplyCertifShipOptions() {
+    var el = document.getElementById('saleShip');
+    if (!el) return;
+    var prev = el.value;
+    function o(val, key) {
+        return '<option value="' + String(val).replace(/"/g, '&quot;') + '" data-key="' + key + '"></option>';
+    }
+    el.innerHTML =
+        o('Petit', 'cert_ship_petit') +
+        o('Moyen', 'cert_ship_moyen') +
+        o('Grand', 'cert_ship_grand');
+    spiritRestoreSelectValue(el, prev);
+    if (!el.value) el.value = 'Moyen';
+    if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(el);
+}
+
+function spiritApplyCertifMatiereOptions() {
+    var el = document.getElementById('saleMatiere');
+    if (!el) return;
+    var prev = el.value;
+    function o(val, key) {
+        return '<option value="' + String(val).replace(/"/g, '&quot;') + '" data-key="' + key + '"></option>';
+    }
+    el.innerHTML =
+        o('', 'cert_mat_placeholder') +
+        o('Résine', 'cert_mat_resine') +
+        o('PVC', 'cert_mat_pvc');
+    spiritRestoreSelectValue(el, prev);
+    if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(el);
+}
+
+function spiritRebuildCertifSaleLogisticsSelect() {
+    var el = document.getElementById('saleLogisticsCorridor');
+    if (!el) return;
+    var prev = el.value;
+    var T = typeof spiritT === 'function' ? spiritT : function (k) { return k; };
+    function escAttr(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+    function o(val, key) {
+        return '<option value="' + String(val).replace(/"/g, '&quot;') + '" data-key="' + key + '"></option>';
+    }
+    function og(labelText, inner) {
+        return '<optgroup label="' + escAttr(labelText) + '">' + inner + '</optgroup>';
+    }
+    el.innerHTML =
+        o('', 'cert_lgx_placeholder') +
+        og(T('cert_lgx_grp_local'),
+            o('local_FR_FR', 'cert_flow_local_FR_FR') +
+            o('local_US_US', 'cert_flow_local_US_US') +
+            o('local_CN_CN', 'cert_flow_local_CN_CN') +
+            o('local_EU_EU', 'cert_flow_local_EU_EU')) +
+        og(T('cert_lgx_grp_eu'),
+            o('intra_FR_EU', 'cert_flow_intra_FR_EU') +
+            o('intra_EU_FR', 'cert_flow_intra_EU_FR')) +
+        og(T('cert_lgx_grp_intl'),
+            o('intl_US_FR', 'cert_flow_intl_US_FR') +
+            o('intl_US_EU', 'cert_flow_intl_US_EU') +
+            o('intl_CN_US', 'cert_flow_intl_CN_US') +
+            o('intl_CN_FR', 'cert_flow_intl_CN_FR') +
+            o('intl_CN_EU', 'cert_flow_intl_CN_EU') +
+            o('intl_EU_US', 'cert_flow_intl_EU_US') +
+            o('intl_EU_CN', 'cert_flow_intl_EU_CN') +
+            o('intl_FR_US', 'cert_flow_intl_FR_US') +
+            o('intl_FR_CN', 'cert_flow_intl_FR_CN'));
+    spiritRestoreSelectValue(el, prev);
+    if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(el);
+}
+
+function spiritApplyCertifModalI18n() {
+    var modal = document.getElementById('certifModal');
+    if (!modal) return;
+    var statueMode = (typeof currentMethod !== 'undefined' && currentMethod === 'statue');
+    if (typeof spiritApplySaleCatOptions === 'function') spiritApplySaleCatOptions(statueMode);
+    if (typeof spiritApplyCertifSaleCondOptions === 'function') spiritApplyCertifSaleCondOptions();
+    if (typeof spiritApplyCertifOriginOptions === 'function') spiritApplyCertifOriginOptions();
+    if (typeof spiritApplyCertifShipOptions === 'function') spiritApplyCertifShipOptions();
+    if (typeof spiritApplyCertifMatiereOptions === 'function') spiritApplyCertifMatiereOptions();
+    if (typeof spiritRebuildCertifSaleLogisticsSelect === 'function') spiritRebuildCertifSaleLogisticsSelect();
+    try {
+        spiritApplySaleBrandOptions(typeof currentMethod !== 'undefined' ? currentMethod : 'other');
+    } catch (eBr) {}
+    if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(modal);
+    var pi;
+    for (pi = 1; pi <= 5; pi++) {
+        var box = document.getElementById('pBox' + pi);
+        if (box && !box.querySelector('img') && typeof spiritT === 'function') {
+            box.textContent = spiritT('cert_photo_' + pi);
+        }
+    }
+    try {
+        if (typeof spiritOnSaleLogisticsChange === 'function') spiritOnSaleLogisticsChange();
+    } catch (eLg) {}
+}
+try { window.spiritApplyCertifModalI18n = spiritApplyCertifModalI18n; } catch (eCMI) {}
 
 /** Prix listing en équivalent EUR : priorité `amount` si présent, sinon `price`, selon `currency` (EUR / USD / CNY). */
 function spiritProductsLivePriceEUR(row) {
@@ -5844,6 +5973,8 @@ function spiritAcknowledgeFavoriteTab() {
 /* Supabase: favorites.user_id = text ; product_id = bigint (FK products_live.id).
    Colonnes recommandées (SQL Supabase, une fois chacune) :
    ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS old_price numeric;
+   -- Référence produit (optionnel ; sinon stockée dans description via [[SPIRIT_REF:…]]) :
+   -- ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS product_reference text;
    -- Optionnel (si vous alignez le schéma sur `amount`) :
    -- ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS amount numeric;
    -- Après ajout de `amount`, vous pourrez ré-inclure amount dans les insert/update et dans les .select() ciblés.
@@ -7879,26 +8010,47 @@ async function loadMySales() {
         diagActive = false;
         previewPhotos = [null, null, null, null, null];
         document.getElementById('inputTitle').value = '';
+        try {
+            var ir0 = document.getElementById('inputReference');
+            if (ir0) ir0.value = '';
+        } catch (eRef0) {}
         document.getElementById('inputPrice').value = '';
         try {
             var sp0 = document.getElementById('salePriceCurrency');
             if (sp0) sp0.value = (typeof marketCurrencyMode !== 'undefined' && marketCurrencyMode) ? marketCurrencyMode : 'EUR';
         } catch (eCur0) {}
         document.getElementById('inputDesc').value = '';
-        if (typeof spiritApplySaleCatOptions === 'function') spiritApplySaleCatOptions(false);
-        try { spiritApplySaleBrandOptions('other'); } catch (eBr0) {}
+        try { currentMethod = ''; } catch (eCmR) {}
+        try {
+            if (typeof spiritApplyCertifModalI18n === 'function') spiritApplyCertifModalI18n();
+        } catch (eCmiR) {}
         document.getElementById('saleCat').value = '';
-        if (document.getElementById('saleCond')) document.getElementById('saleCond').value = 'Très bon état';
-        document.getElementById('saleShip').value = 'Moyen';
         if (document.getElementById('saleLogisticsCorridor')) document.getElementById('saleLogisticsCorridor').value = '';
         try { if (typeof spiritOnSaleLogisticsChange === 'function') spiritOnSaleLogisticsChange(); } catch (eSlR) {}
         if (document.getElementById('saleMatiere')) document.getElementById('saleMatiere').value = '';
         var smRow = document.getElementById('statueMatiereRow');
         if (smRow) smRow.style.display = 'none';
-        for(let i=1; i<=5; i++) {
-            document.getElementById('pBox' + i).innerHTML = 'PHOTO ' + i;
+        for (let i = 1; i <= 5; i++) {
+            var _pb = document.getElementById('pBox' + i);
+            if (_pb) {
+                _pb.innerHTML = '';
+                if (typeof spiritT === 'function') _pb.textContent = spiritT('cert_photo_' + i);
+                else _pb.textContent = 'PHOTO ' + i;
+            }
         }
         document.getElementById('diag-link').style.display = 'none';
+        try {
+            var _ss = document.getElementById('scanStatus');
+            if (_ss) {
+                _ss.setAttribute('data-key', 'cert_scan_status_init');
+                _ss.textContent = (typeof spiritT === 'function') ? spiritT('cert_scan_status_init') : '…';
+            }
+            var _fm = document.getElementById('finishMsg');
+            if (_fm) {
+                _fm.setAttribute('data-key', 'cert_finish_msg_ok');
+                _fm.textContent = (typeof spiritT === 'function') ? spiritT('cert_finish_msg_ok') : '';
+            }
+        } catch (eScanReset) {}
         if (document.getElementById('saleHasCoa')) document.getElementById('saleHasCoa').checked = false;
         var coaRow0 = document.querySelector('.switch-row-coa');
         if (coaRow0) coaRow0.style.display = 'none';
@@ -7943,24 +8095,31 @@ async function loadMySales() {
 function spiritApplySaleBrandOptions(method) {
     var sel = document.getElementById('saleBrand');
     if (!sel) return;
+    var prev = sel.value;
     var isHot = (method === 'hot_native' || method === 'hot_legacy');
+    function o(val, key) {
+        return '<option value="' + String(val).replace(/"/g, '&quot;') + '" data-key="' + key + '"></option>';
+    }
     if (isHot) {
-        sel.innerHTML = '<option value="Hot Toys">Hot Toys</option>';
+        sel.innerHTML = '<option value="Hot Toys" data-key="cert_brand_hot_toys"></option>';
         sel.value = 'Hot Toys';
         sel.disabled = true;
         sel.style.opacity = '0.8';
+        if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(sel);
     } else {
         sel.disabled = false;
         sel.style.opacity = '1';
-        sel.innerHTML = '' +
-            '<option value="">-- MARQUE --</option>' +
-            '<option value="Sideshow">Sideshow</option>' +
-            '<option value="InArt">InArt</option>' +
-            '<option value="JND">JND</option>' +
-            '<option value="Present Toys">Present Toys</option>' +
-            '<option value="Prime 1 Studio">Prime 1 Studio</option>' +
-            '<option value="Queen Studios">Queen Studios</option>' +
-            '<option value="Autre">Autre</option>';
+        sel.innerHTML =
+            o('', 'cert_opt_brand_ph') +
+            o('Sideshow', 'cert_brand_sideshow') +
+            o('InArt', 'cert_brand_inart') +
+            o('JND', 'cert_brand_jnd') +
+            o('Present Toys', 'cert_brand_present') +
+            o('Prime 1 Studio', 'cert_brand_prime1') +
+            o('Queen Studios', 'cert_brand_queen') +
+            o('Autre', 'cert_brand_autre');
+        spiritRestoreSelectValue(sel, prev);
+        if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(sel);
     }
 }
 
@@ -7974,8 +8133,6 @@ function spiritApplySaleBrandOptions(method) {
             var ed1 = (typeof editingId !== 'undefined' && editingId != null && String(editingId).trim() !== '');
             if (sp1 && !ed1) sp1.value = (typeof marketCurrencyMode !== 'undefined' && marketCurrencyMode) ? marketCurrencyMode : 'EUR';
         } catch (eCur1) {}
-        if (typeof spiritApplySaleCatOptions === 'function') spiritApplySaleCatOptions(m === 'statue');
-        try { spiritApplySaleBrandOptions(m); } catch (eBr) {}
         var coaRow = document.querySelector('.switch-row-coa');
         var coaSw = document.getElementById('saleHasCoa');
         if (coaRow) coaRow.style.display = (m === 'statue') ? 'flex' : 'none';
@@ -7989,147 +8146,102 @@ function spiritApplySaleBrandOptions(method) {
                 smSel.value = '';
             }
         }
+        try {
+            if (typeof spiritApplyCertifModalI18n === 'function') spiritApplyCertifModalI18n();
+        } catch (eClm) {}
     }
 
 // (c) 2026 Spirit Infinity - Tous droits réservés
 async function goToScan() {
+    var tGs = typeof spiritT === 'function' ? spiritT : function (k) { return k; };
     const title = document.getElementById('inputTitle').value;
     const price = document.getElementById('inputPrice').value;
     const pBox1 = document.getElementById('pBox1');
     const imgToScan = pBox1.querySelector('img');
 
-    // --- SÉCURITÉ PRÉ-SCAN ---
     if (!title || !price) {
-        alert("TITRE ET PRIX REQUIS : Spirit Ledger ne peut pas indexer un objet vide.");
+        alert(tGs('cert_go_title_price_req'));
         return;
     }
     var pScan = parseFloat(price);
     if (!Number.isFinite(pScan) || pScan <= 0) {
-        alert('PRIX INVALIDE : indiquez un montant supérieur à 0.');
+        alert(tGs('cert_go_err_price'));
         return;
     }
     var ocGo = document.getElementById('saleOriginCountry');
     if (!ocGo || !String(ocGo.value || '').trim()) {
-        alert("PAYS D'EXPÉDITION REQUIS : choisissez le pays ou la zone depuis laquelle vous expédiez.");
+        alert(tGs('cert_go_origin_req'));
         return;
     }
-    if(!imgToScan) {
-        alert("PHOTO MANQUANTE : La Photo 1 est la base de l'audit Spirit Eyes.");
+    if (!imgToScan) {
+        alert(tGs('cert_go_photo1_req'));
         return;
     }
     if (typeof currentMethod !== 'undefined' && currentMethod === 'statue') {
         var smGo = document.getElementById('saleMatiere');
         if (!smGo || !String(smGo.value || '').trim()) {
-            alert("MATIÈRE REQUISE : choisissez Résine ou PVC pour la rubrique Statue.");
+            alert(tGs('cert_go_mat_statue'));
             return;
         }
     }
 
-    // Affichage interface de scan
     document.getElementById('stepInfo').style.display = 'none';
     document.getElementById('stepScan').style.display = 'block';
     document.getElementById('s3').className = 'step active';
-    
+
     const statusEl = document.getElementById('scanStatus');
-    statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>SPIRIT EYES : Analyse des vecteurs et textures...</span>";
+    statusEl.removeAttribute('data-key');
+    statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>" + tGs('cert_scan_status_running') + '</span>';
 
     try {
         await spiritEnsureTfjsMobilenet();
-        // --- CHARGEMENT DU MOTEUR IA ---
         const model = await mobilenet.load();
         const predictions = await model.classify(imgToScan);
-        
-        // Extraction des résultats
+
         const topResult = predictions[0].className.toLowerCase();
         const secondResult = predictions[1] ? predictions[1].className.toLowerCase() : "";
         const scoreFinal = Math.round(predictions[0].probability * 100);
 
-        // --- FILTRES DE SÉCURITÉ SPIRIT ---
-        // 1. Liste Noire (Objets interdits)
         const forbidden = ['vape', 'refrigerator', 'fridge', 'desk', 'table', 'chair', 'dog', 'cat', 'phone', 'tv', 'furniture'];
         const isFraud = forbidden.some(term => topResult.includes(term));
 
-        // 2. Détection de "Qualité Jouet" (Indice de contrefaçon)
         const lowQualityTerms = ['toy', 'plastic', 'doll', 'lego', 'mask', 'trinket'];
         const isLowQuality = lowQualityTerms.some(term => topResult.includes(term) || secondResult.includes(term));
 
-        // --- TRANSITION VERS RÉSULTAT ---
         document.getElementById('stepScan').style.display = 'none';
         document.getElementById('stepFinish').style.display = 'block';
         document.getElementById('s4').className = 'step active';
 
         const msg = document.getElementById('finishMsg');
         const publishBtn = document.getElementById('btn-publish-final');
- 
-        // ... (après le calcul du score et des filtres) ...
+        if (msg) msg.removeAttribute('data-key');
 
         if (isFraud || scoreFinal < 50) {
-            // CAS REFUSÉ
-            msg.innerHTML = `<h2 style="color:var(--danger);">OBJET REJETÉ</h2>...`;
-            if(publishBtn) publishBtn.style.display = 'none';
-
-            // --- LA GREFFE ICI ---
-            // On envoie le REJET à Supabase immédiatement
+            msg.innerHTML =
+                '<h2 style="color:var(--danger); margin:0;">' + tGs('cert_result_a_title') + '</h2>' +
+                '<p style="color:white;">' + tGs('cert_result_a_detected').replace(/\{detected\}/g, topResult.toUpperCase()) + '</p>' +
+                '<p style="font-size:0.8rem; color:#777;">' + tGs('cert_result_a_foot') + '</p>';
+            if (publishBtn) publishBtn.style.display = 'none';
             saveSpiritAudit(title, topResult, scoreFinal, 'REJECTED');
-            // ---------------------
-
         } else if (isLowQuality && scoreFinal < 80) {
-            // CAS SUSPECT
-            msg.innerHTML = `<h2 style="color:orange;">QUALITÉ SUSPECTE</h2>...`;
-            if(publishBtn) publishBtn.style.display = 'none';
-
-            // --- ET ICI AUSSI ---
-            saveSpiritAudit(title, topResult, scoreFinal, 'SUSPECT');
-            // ---------------------
-
+            msg.innerHTML =
+                '<h2 style="color:orange; margin:0;">' + tGs('cert_result_b_title') + '</h2>' +
+                '<p style="color:white; font-size:1.1rem;">' + tGs('cert_result_b_score').replace(/\{score\}/g, String(scoreFinal)) + '</p>' +
+                '<p style="font-size:0.8rem; color:#aaa;">' + tGs('cert_result_b_foot') + '</p>';
+            if (publishBtn) publishBtn.style.display = 'none';
+            saveSpiritAudit(title, topResult, scoreFinal, 'REJECTED', isFraud ? 'Fraud' : 'Low Quality');
         } else {
-            // CAS VALIDÉ
-            msg.innerHTML = `<h2 style="color:var(--spirit-green);">SCAN RÉUSSI</h2>...`;
-            if(publishBtn) publishBtn.style.display = 'block';
+            msg.innerHTML =
+                '<h2 style="color:var(--spirit-green); margin:0;">' + tGs('cert_result_c_title') + '</h2>' +
+                '<p style="color:white; font-size:1.1rem;">' + tGs('cert_result_c_score').replace(/\{score\}/g, String(scoreFinal)) + '</p>' +
+                '<p style="color:#aaa; font-size:0.8rem;">' + tGs('cert_result_c_foot').replace(/\{detected\}/g, topResult) + '</p>';
+            if (publishBtn) publishBtn.style.display = 'block';
             document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
-            
-            // Note : Pour les succès, on peut attendre le clic sur "Publier"
-            // ou l'envoyer ici avec le statut 'CERTIFIED-PENDING'
-        }
-
-        // --- LOGIQUE DE DÉCISION (LE COEUR DU SYSTÈME) ---
-        
-        if (isFraud || scoreFinal < 50) {
-            // CAS A : Objet interdit ou Photo illisible
-            msg.innerHTML = `
-                <h2 style="color:var(--danger); margin:0;">REFUSÉ : HORS CATÉGORIE</h2>
-                <p style="color:white;">Détecté : <strong>${topResult.toUpperCase()}</strong></p>
-                <p style="font-size:0.8rem; color:#777;">L'IA Spirit n'autorise que les objets de collection certifiables.</p>
-            `;
-            if(publishBtn) publishBtn.style.display = 'none';
-
-        } else if (isLowQuality && scoreFinal < 80) {
-            // CAS B : Suspect (Plastique brillant, jouet, possible contrefaçon)
-            msg.innerHTML = `
-                <h2 style="color:orange; margin:0;">ALERTE : QUALITÉ SUSPECTE</h2>
-                <p style="color:white; font-size:1.1rem;">INDICE DE CONFIANCE : ${scoreFinal}%</p>
-                <p style="font-size:0.8rem; color:#aaa;">Attention : Les textures détectées ressemblent à un jouet de série (Toy Grade) ou un Recast. Certification impossible.</p>
-            `;
-            if(publishBtn) publishBtn.style.display = 'none';
-
-          saveSpiritAudit(title, topResult, scoreFinal, 'REJECTED', isFraud ? 'Fraud' : 'Low Quality');  
-
-        } else {
-            // CAS C : AUTHENTIQUE (Figurine de collection validée)
-            msg.innerHTML = `
-                <h2 style="color:var(--spirit-green); margin:0;">SCAN RÉUSSI</h2>
-                <p style="color:white; font-size:1.1rem;">SCORE D'AUTHENTICITÉ : ${scoreFinal}%</p>
-                <p style="color:#aaa; font-size:0.8rem;">Modèle identifié : ${topResult}<br>Signature thermique et sculpt conformes.</p>
-            `;
-            if(publishBtn) publishBtn.style.display = 'block';
-            document.getElementById('stepFinish').dataset.lastScore = scoreFinal;
-
-            // Déjà géré dans publishFinal, mais tu peux l'ajouter ici pour un double archivage
         }
 
     } catch (err) {
         console.error("ERREUR CRITIQUE SPIRIT EYES :", err);
-        statusEl.innerHTML = "<span style='color:red;'>ERREUR MOTEUR IA - VÉRIFIEZ CONNEXION</span>";
+        statusEl.innerHTML = "<span style='color:red;'>" + tGs('cert_scan_engine_err') + '</span>';
     }
 }
 
@@ -8166,16 +8278,23 @@ async function saveSpiritAudit(title, detected, score, status, detailNote) {
  * Poster une annonce : products_lives + spirit_ledger + ledger_items (pas de transactions).
  */
 async function publierAnnonce() {
+    var tAl = typeof spiritT === 'function' ? spiritT : function (k) { return k; };
     const title = document.getElementById('inputTitle').value;
     var saleCurEl = document.getElementById('salePriceCurrency');
     var saleCurrency = saleCurEl && saleCurEl.value ? String(saleCurEl.value).toUpperCase() : 'EUR';
     if (saleCurrency !== 'EUR' && saleCurrency !== 'USD' && saleCurrency !== 'CNY') saleCurrency = 'EUR';
     const price = parseFloat(document.getElementById('inputPrice').value);
     if (!Number.isFinite(price) || price <= 0) {
-        alert('PRIX INVALIDE : indiquez un montant supérieur à 0.');
+        alert(tAl('cert_pub_invalid_price'));
         return;
     }
     var desc = document.getElementById('inputDesc').value;
+    desc = String(desc || '').replace(/\[\[SPIRIT_REF:[^\]]+\]\]\s*\n*/g, '').trim();
+    try {
+        var refElPub = document.getElementById('inputReference');
+        var refValPub = refElPub && refElPub.value ? String(refElPub.value).trim().replace(/\]\]/g, '') : '';
+        if (refValPub) desc = '[[SPIRIT_REF:' + refValPub + ']]' + (desc ? '\n\n' + desc : '');
+    } catch (eRefPub) {}
     var condEl = document.getElementById('saleCond');
     var saleCond = condEl && condEl.value ? String(condEl.value).trim() : 'Très bon état';
     if (saleCond) desc = 'ÉTAT : ' + saleCond + '\n\n' + desc;
@@ -8183,7 +8302,7 @@ async function publierAnnonce() {
         var smPub = document.getElementById('saleMatiere');
         var matPub = smPub && smPub.value ? String(smPub.value).trim() : '';
         if (!matPub) {
-            alert("MATIÈRE REQUISE : choisissez Résine ou PVC pour la rubrique Statue.");
+            alert(tAl('cert_pub_mat_req'));
             return;
         }
         desc = 'MATIÈRE : ' + matPub + '\n\n' + desc;
@@ -8208,7 +8327,7 @@ async function publierAnnonce() {
     var saleOriginCountryEl = document.getElementById('saleOriginCountry');
     var saleOriginCountry = saleOriginCountryEl && saleOriginCountryEl.value ? String(saleOriginCountryEl.value).trim() : '';
     if (!saleOriginCountry) {
-        alert("PAYS D'EXPÉDITION REQUIS : choisissez le pays ou la zone depuis laquelle vous expédiez.");
+        alert(tAl('cert_pub_origin_req'));
         return;
     }
     const fromHardwarePanneau = (typeof currentMethod !== 'undefined' && currentMethod === 'hot_native');
@@ -8233,11 +8352,11 @@ async function publierAnnonce() {
     var needsUpload = photoUrls.some(function (x) { return String(x || '').indexOf('data:') === 0; });
     if (needsUpload) {
         if (typeof _spirit === 'undefined' || !_spirit) {
-            alert("ERREUR : Supabase indisponible, envoi des photos impossible.");
+            alert(tAl('cert_pub_err_supabase_photos'));
             return;
         }
         if (!ownerIdPub) {
-            alert("Connexion requise pour enregistrer les photos sur le stockage Spirit.");
+            alert(tAl('cert_pub_err_login_photos'));
             return;
         }
         try {
@@ -8277,7 +8396,7 @@ async function publierAnnonce() {
 
     try {
         if (!_spirit) {
-            alert("ERREUR : Supabase indisponible, publication impossible.");
+            alert(tAl('cert_pub_err_supabase'));
             return;
         }
 
@@ -8286,7 +8405,7 @@ async function publierAnnonce() {
             var selExisting = await _spirit.from('products_live').select('id,price,old_price,currency,uuid').eq('id', eid).maybeSingle();
             if (selExisting.error) throw selExisting.error;
             if (!selExisting.data) {
-                alert('ANNONCE INTROUVABLE (édition).');
+                alert(tAl('cert_pub_edit_missing'));
                 return;
             }
             var ex = selExisting.data;
@@ -8330,7 +8449,7 @@ async function publierAnnonce() {
                 }
             } catch (eUn) {}
             editingId = null;
-            alert('ANNONCE MISE À JOUR !');
+            alert(tAl('cert_pub_update_ok'));
             try { closeModals(); } catch (e) {}
             try {
                 await spiritRefreshAllMarketBuckets();
@@ -8389,7 +8508,7 @@ async function publierAnnonce() {
         const { error: liErr } = await _spirit.from('ledger_items').upsert([liRow], { onConflict: 'mac_address' });
         if (liErr) console.warn('[SPIRIT] ledger_items (annonce):', liErr.message);
 
-        alert("ANNONCE PUBLIÉE !");
+        alert(tAl('cert_pub_insert_ok'));
 
         try { closeModals(); } catch (e) {}
         try {
@@ -8402,7 +8521,7 @@ async function publierAnnonce() {
         try { if (typeof updateUserAnnonces === 'function') updateUserAnnonces(); } catch (e) {}
 
     } catch (err) {
-        alert("ERREUR : " + err.message + " (Appuie sur CTRL+F5)");
+        alert(tAl('cert_pub_err_generic').replace(/\{msg\}/g, err && err.message ? String(err.message) : String(err)));
     }
 }
 
@@ -8592,6 +8711,16 @@ async function editAnnonce(id) {
     var pEd = item.price != null ? Number(item.price) : 0;
     if(document.getElementById('inputPrice')) document.getElementById('inputPrice').value = Number.isFinite(pEd) ? pEd : 0;
     var rawDescEd = item.description || item.desc || '';
+    try {
+        var _refEd = String(rawDescEd).match(/^\s*\[\[SPIRIT_REF:([^\]]+)\]\]\s*\n*/);
+        if (_refEd && document.getElementById('inputReference')) document.getElementById('inputReference').value = _refEd[1];
+        rawDescEd = String(rawDescEd).replace(/^\s*\[\[SPIRIT_REF:[^\]]+\]\]\s*\n*/, '').trim();
+    } catch (eRefEd) {}
+    try {
+        if (item.product_reference != null && String(item.product_reference).trim() !== '' && document.getElementById('inputReference') && !String(document.getElementById('inputReference').value || '').trim()) {
+            document.getElementById('inputReference').value = String(item.product_reference).trim();
+        }
+    } catch (ePrRef) {}
     var mExEd = (typeof spiritExtractMatiereFromDesc === 'function') ? spiritExtractMatiereFromDesc(rawDescEd) : { matiere: '', rest: rawDescEd };
     var descForInput = String(mExEd.rest || '');
     try {
@@ -8617,7 +8746,13 @@ async function editAnnonce(id) {
     if(document.getElementById('saleLightProtect')) document.getElementById('saleLightProtect').checked = !!item.is_light_protect;
     if(document.getElementById('saleFirstHand')) document.getElementById('saleFirstHand').checked = !!item.is_first_hand;
     if(document.getElementById('saleHasCoa')) document.getElementById('saleHasCoa').checked = !!(item.has_coa === true || item.has_coa === 'true' || item.has_coa === 1);
-    if(document.getElementById('saleShip')) document.getElementById('saleShip').value = item.ship_size || item.shipSize || 'medium';
+    if (document.getElementById('saleShip')) {
+        var _shipEd = item.ship_size || item.shipSize || 'Moyen';
+        if (String(_shipEd).toLowerCase() === 'medium') _shipEd = 'Moyen';
+        if (String(_shipEd).toLowerCase() === 'small' || _shipEd === 'Small') _shipEd = 'Petit';
+        if (String(_shipEd).toLowerCase() === 'large' || _shipEd === 'Large') _shipEd = 'Grand';
+        document.getElementById('saleShip').value = _shipEd;
+    }
     try { if (typeof spiritOnSaleLogisticsChange === 'function') spiritOnSaleLogisticsChange(); } catch (eSlEd) {}
     try {
         var _urlsEd = typeof spiritImageUrlList === 'function' ? spiritImageUrlList(item) : [];
