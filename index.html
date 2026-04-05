@@ -440,24 +440,18 @@
                 margin-right: auto;
             }
 
-            /* Mon compte (mobile) : même colonne que portefeuille (accordéon : pas de .dash-content — sélecteurs sans .dash-content) */
+            /* Mon compte (mobile) : même largeur de colonne (achats = ventes, etc.) */
             #accountModal #tab-portefeuille,
+            #accountModal #tab-achats,
             #accountModal #tab-ventes,
+            #accountModal #tab-messages,
+            #accountModal #tab-evaluations,
             #accountModal #tab-sanctuary {
                 overflow-x: hidden;
                 width: 100%;
                 max-width: min(580px, 100%);
                 margin-left: auto;
                 margin-right: auto;
-                box-sizing: border-box;
-            }
-            /* Mes achats : pleine largeur écran sur mobile */
-            #accountModal #tab-achats {
-                overflow-x: hidden;
-                width: 100%;
-                max-width: 100% !important;
-                margin-left: 0 !important;
-                margin-right: 0 !important;
                 box-sizing: border-box;
             }
             #accountModal #tab-achats #my-purchases-list,
@@ -486,28 +480,6 @@
                 overflow-x: hidden;
                 max-width: 100%;
                 box-sizing: border-box;
-            }
-            /* Fil messages Sanctuaire : date + ✕ ne se chevauchent pas sur petit écran */
-            #accountModal #tab-messages .spirit-san-msg-feed-toprow {
-                flex-wrap: wrap;
-            }
-            #accountModal #tab-messages .spirit-san-msg-feed-actions {
-                margin-left: auto;
-                flex-wrap: wrap;
-                justify-content: flex-end;
-            }
-            @media (max-width: 480px) {
-                #accountModal #tab-messages .spirit-san-msg-feed-toprow {
-                    flex-direction: column;
-                    align-items: stretch;
-                }
-                #accountModal #tab-messages .spirit-san-msg-feed-actions {
-                    width: 100%;
-                    justify-content: space-between;
-                    margin-top: 6px;
-                    padding-top: 6px;
-                    border-top: 1px solid #1a1a1a;
-                }
             }
             #accountModal #my-purchases-list {
                 width: 100%;
@@ -1235,15 +1207,12 @@
                 border-right-color: rgba(255, 180, 100, 0.95);
                 border-bottom-color: rgba(255, 180, 100, 0.95);
             }
-            /* Messages / Évaluations : pas de chevron (évite chevauchement avec la pastille et l’effet « validation ») */
-            #accountModal #btn-messages::after,
-            #accountModal #btn-evaluations::after {
-                content: none !important;
-                display: none !important;
-            }
-            #accountModal #btn-messages,
-            #accountModal #btn-evaluations {
-                padding-right: 12px;
+            /* Pastille sous le chevron du menu (flèche conservée pour indiquer le défilement / repli) */
+            #accountModal #btn-messages .spirit-tab-notif.spirit-notif-dot-on,
+            #accountModal #btn-evaluations .spirit-tab-notif.spirit-notif-dot-on {
+                top: 50%;
+                right: 30px;
+                transform: translateY(-50%);
             }
             #accountModal .dash-container {
                 max-height: min(calc(100dvh - 100px), calc(100vh - 100px));
@@ -1252,14 +1221,61 @@
                 margin: 0 6px 12px;
                 background: rgba(8, 8, 8, 0.65);
             }
-            #accountModal #tab-achats.spirit-account-acc-panel {
-                margin-left: 0 !important;
-                margin-right: 0 !important;
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
-                padding-left: max(12px, env(safe-area-inset-left));
-                padding-right: max(12px, env(safe-area-inset-right));
+            /* Contenu Messages / Évaluations (mobile compte ≤900px, pas seulement ≤600px) */
+            #accountModal #tab-messages .spirit-san-msg-feed-card--hasdel {
+                padding-right: 44px;
+                padding-top: 10px;
+            }
+            #accountModal #tab-messages .spirit-san-msg-feed-card {
+                position: relative;
+            }
+            #accountModal #tab-messages .spirit-san-msg-feed-del {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 28px;
+                height: 28px;
+                border: 1px solid #633;
+                background: #1a1012;
+                color: #f88;
+                cursor: pointer;
+                font-size: 0.8rem;
+                line-height: 1;
+                border-radius: 4px;
+                padding: 0;
+                z-index: 2;
+            }
+            #accountModal #tab-messages .spirit-san-msg-feed-meta {
+                margin-bottom: 6px;
+            }
+            #accountModal #tab-evaluations .spirit-eval-account-card {
+                position: relative;
+                padding: 12px;
+                box-sizing: border-box;
+            }
+            #accountModal #tab-evaluations .spirit-eval-account-head {
+                padding-right: 42px;
+                box-sizing: border-box;
+            }
+            #accountModal #tab-evaluations .spirit-eval-account-dismiss {
+                top: 10px;
+                right: 10px;
+            }
+            #accountModal #tab-evaluations .spirit-eval-account-reply {
+                display: block;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                margin-top: 12px;
+            }
+            #accountModal #tab-messages,
+            #accountModal #tab-evaluations {
+                overflow-x: hidden;
+                width: 100%;
+                max-width: min(580px, 100%);
+                margin-left: auto;
+                margin-right: auto;
+                box-sizing: border-box;
             }
         }
         @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
@@ -1336,6 +1352,8 @@
         #accountModal .dash-content #tab-portefeuille,
         #accountModal .dash-content #tab-achats,
         #accountModal .dash-content #tab-ventes,
+        #accountModal .dash-content #tab-messages,
+        #accountModal .dash-content #tab-evaluations,
         #accountModal .dash-content #tab-sanctuary {
             width: 100%;
             max-width: min(580px, 100%);
@@ -13500,18 +13518,18 @@ function spiritLoadMessagesTab() {
                     : ((nType === 'listing_question' || nType === 'listing_reply' || nType === 'offer_accepted' || nType === 'offer_rejected' || nType === 'offer_pending' || nType === 'listing_favorite' || nType === 'purchase_done') && itemIdRaw)
                     ? '<div style="margin-top:8px;"><button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#2a2810;border:1px solid #a88a2a;color:#fc8;" onclick="spiritOpenListingFromNotif(\'' + itemIdEsc + '\')">' + String(mT('msg_open_discussion')).replace(/</g, '&lt;') + '</button></div>'
                     : '';
-                var delBtn = (!n.synthetic && idStr !== '0')
-                    ? '<button type="button" title="' + String(mT('msg_del_btn')).replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" style="width:26px;height:26px;border:1px solid #633;background:#1a1012;color:#f88;cursor:pointer;font-size:0.75rem;line-height:1;border-radius:3px;padding:0;" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>'
+                var hasDel = (!n.synthetic && idStr !== '0');
+                var delBtn = hasDel
+                    ? '<button type="button" class="spirit-san-msg-feed-del" title="' + String(mT('msg_del_btn')).replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" onclick="spiritSanctuaryDeleteNotification(' + idStr + ')">✕</button>'
                     : '';
-                return '<div class="spirit-san-msg-feed-card" style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;border-radius:4px;">' +
-                    '<div class="spirit-san-msg-feed-toprow" style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">' +
-                    '<div style="flex:1;min-width:0;font-size:0.7rem;color:#ddd;">' +
+                var cardCls = 'spirit-san-msg-feed-card' + (hasDel ? ' spirit-san-msg-feed-card--hasdel' : '');
+                return '<div class="' + cardCls + '" style="border:1px solid #222;background:#0c0c0c;padding:10px 12px;border-radius:4px;">' +
+                    delBtn +
+                    '<div class="spirit-san-msg-feed-main">' +
+                    '<div class="spirit-san-msg-feed-meta" style="font-size:0.6rem;color:#777;">' + dt + '</div>' +
+                    '<div style="font-size:0.7rem;color:#ddd;min-width:0;">' +
                     '<b style="color:#7fe7ff;">' + String(from).replace(/</g, '&lt;') + '</b> ' + String(txt).replace(/</g, '&lt;') + synTag +
                     listingBtn +
-                    '</div>' +
-                    '<div class="spirit-san-msg-feed-actions" style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
-                    '<span class="spirit-san-msg-feed-date" style="font-size:0.6rem;color:#777;white-space:nowrap;">' + dt + '</span>' +
-                    delBtn +
                     '</div></div></div>';
             }).join('');
         }
@@ -17409,13 +17427,15 @@ async function spiritLoadMyEvaluations() {
         var idJson = JSON.stringify(String(r.id || ''));
         var dt = (r && r.created_at) ? new Date(r.created_at) : null;
         var dtTxt = (dt && !isNaN(dt.getTime())) ? dt.toLocaleString() : '';
-        return '<div class="spirit-eval-account-card" style="position:relative;border:1px solid #2a2a2a;background:#0a0a0a;padding:12px 44px 12px 12px;border-radius:4px;">'
-            + '<button type="button" title="' + hideTitle + '" aria-label="' + hideTitle + '" class="spirit-eval-account-dismiss" style="position:absolute;top:8px;right:8px;width:34px;height:34px;padding:0;border:1px solid #522;background:#180808;color:#e66;cursor:pointer;border-radius:4px;font-size:1.05rem;line-height:1;font-weight:bold;z-index:2;" onclick=\'void spiritDeleteMyEvaluation(' + idJson + ')\'>✕</button>'
+        return '<div class="spirit-eval-account-card" style="border:1px solid #2a2a2a;background:#0a0a0a;border-radius:4px;">'
+            + '<button type="button" title="' + hideTitle + '" aria-label="' + hideTitle + '" class="spirit-eval-account-dismiss" style="position:absolute;top:10px;right:10px;width:32px;height:32px;padding:0;border:1px solid #522;background:#180808;color:#e66;cursor:pointer;border-radius:4px;font-size:1rem;line-height:1;font-weight:bold;z-index:2;" onclick=\'void spiritDeleteMyEvaluation(' + idJson + ')\'>✕</button>'
+            + '<div class="spirit-eval-account-head">'
             + '<div style="font-size:0.6rem;color:#666;">' + (dtTxt ? dtTxt + ' · ' : '') + cat.toUpperCase() + '</div>'
             + '<div style="font-size:0.64rem;color:#aaa;margin-top:4px;">' + p + ' · ' + '★'.repeat(stars) + '</div>'
+            + '</div>'
             + '<div style="font-size:0.72rem;color:#e8e8e8;margin-top:8px;line-height:1.45;">' + (cm || '—') + '</div>'
             + (rr ? '<div style="margin-top:10px;border-left:2px solid var(--neon-orange);padding-left:10px;font-size:0.66rem;color:#f6b16a;"><b>' + replyLbl + '</b> ' + rr + '</div>' : '')
-            + '<button type="button" class="btn-action" style="margin-top:10px;font-size:0.56rem;padding:6px 12px;" onclick=\'void spiritReplyToEvaluation(' + idJson + ')\'>' + (rr ? replyEditBtn : replyBtn) + '</button>'
+            + '<button type="button" class="btn-action spirit-eval-account-reply" style="font-size:0.56rem;padding:8px 12px;" onclick=\'void spiritReplyToEvaluation(' + idJson + ')\'>' + (rr ? replyEditBtn : replyBtn) + '</button>'
             + '</div>';
     }).join('');
     try { spiritEvalRefreshPendingDotAndPulse(); } catch (eDot1) {}
