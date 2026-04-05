@@ -3491,7 +3491,6 @@
                 <button type="button" id="btn-evaluations" role="tab" aria-expanded="false" aria-controls="tab-evaluations" onclick="showAccountTab('evaluations')"><span data-key="account_tab_reviews">ÉVALUATIONS</span><span id="evaluations-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-liste-envie" role="tab" aria-expanded="false" aria-controls="tab-liste-envie" onclick="showAccountTab('liste-envie')"><span data-key="account_wishlist_menu">LISTE D’ENVIE</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-favoris-recus" role="tab" aria-expanded="false" aria-controls="tab-favoris-recus" onclick="showAccountTab('favoris-recus')"><span data-key="account_seller_fav_menu">FAVORIS</span><span id="seller-received-fav-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
-                <button type="button" id="btn-sanctuary" role="tab" aria-expanded="false" aria-controls="tab-sanctuary" onclick="showAccountTab('sanctuary')"><span data-key="account_tab_sanctuary">SANCTUAIRE</span></button>
                 <button type="button" id="btn-params" role="tab" aria-expanded="false" aria-controls="tab-params" onclick="showAccountTab('params')"><span data-key="account_tab_settings">PARAMÈTRES</span></button>
             </div>
             
@@ -3625,51 +3624,6 @@
     <h3 data-key="account_seller_fav_title">MES FAVORIS (CŒURS REÇUS)</h3>
     <p style="font-size:0.7rem; color:#666; margin-top:0;" data-key="account_seller_fav_hint">Les cœurs que d’autres membres ont mis sur tes annonces apparaissent ici. Ouvre cet onglet pour marquer comme vu et faire disparaître la pastille.</p>
     <div id="spirit-seller-received-favorites-list" style="display:flex; flex-direction:column; gap:10px; margin-top:12px;"></div>
-</div>
-
-<div id="tab-sanctuary" class="account-page">
-    <h3 data-key="san_acc_h" style="color:var(--neon-orange);letter-spacing:2px;font-size:0.85rem;">SANCTUAIRE</h3>
-    <p data-key="san_acc_p" style="font-size:0.65rem;color:#666;margin-top:0;">Galerie noire &amp; néon — jusqu’à 15 pièces (bucket Storage <code>sanctuary</code>).</p>
-    <div id="spiritAccountSanctuaryRoot" style="background:#000000;border:1px solid rgba(255,102,0,0.4);padding:16px;margin-top:12px;">
-        <h2 id="spiritAccountSanctuaryPseudoBanner">—</h2>
-        <div class="spirit-sanctuary-toolbar">
-            <span data-key="ui_neon_new" style="font-size:0.65rem;color:#888;">Néon (nouvelle photo)</span>
-            <select id="spiritAccountSanctuaryNeonSelect" aria-label="Couleur néon">
-                <option value="#ff6600">Orange Spirit</option>
-                <option value="#00ff88">Vert</option>
-                <option value="#00ccff">Cyan</option>
-                <option value="#ff00aa">Magenta</option>
-                <option value="#ffffff">Blanc</option>
-                <option value="#ffcc00">Or</option>
-            </select>
-            <span style="flex:1"></span>
-            <label data-key="ui_view" style="font-size:0.65rem;color:#888;">Vue</label>
-            <button type="button" class="spirit-san-view-acc active" data-sanview="list" onclick="spiritAccountSanctuarySetView('list')" data-key="ui_v_list">Vue Liste</button>
-            <button type="button" class="spirit-san-view-acc" data-sanview="icons-lg" onclick="spiritAccountSanctuarySetView('icons-lg')" data-key="ui_v_grid">Vue Grille</button>
-            <button type="button" class="spirit-san-view-acc" data-sanview="style" onclick="spiritAccountSanctuarySetView('style')" data-key="ui_v_style">Vue Style</button>
-            <button type="button" class="spirit-san-view-acc" data-sanview="style2" onclick="spiritAccountSanctuarySetView('style2')" data-key="ui_v_style2">Vue Style 2</button>
-            <button type="button" class="btn-action" style="font-size:0.58rem;padding:8px 12px;margin-left:auto;background:#2a1010;border-color:#822;color:#f88;" onclick="void spiritAccountSanctuaryClearAllPhotos()" data-key="san_acc_clear_all_btn">EFFACER TOUTES LES PHOTOS</button>
-        </div>
-        <input type="file" id="spiritAccountSanctuaryFileInput" accept="image/*" style="display:none;" />
-        <div id="spiritAccountSanctuaryGrid" class="spirit-san-mode-list"></div>
-        <div class="spirit-sanctuary-chat" style="margin-top:20px;">
-            <h4 data-key="san_chat_h" style="color:var(--neon-orange);font-size:0.7rem;">CHAT DU SANCTUAIRE</h4>
-            <p data-key="san_chat_rules" style="font-size:0.6rem;color:#555;margin:0 0 8px;">@, .com et numéros de téléphone sont bloqués — marketplace Spirit.</p>
-            <div style="margin:0 0 8px;">
-                <label data-key="ui_conversation" style="font-size:0.62rem;color:#888;display:block;margin-bottom:4px;">Conversation</label>
-                <select id="spiritAccountSanctuaryChatPeer" style="width:100%;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;"></select>
-            </div>
-            <div class="spirit-san-chat-toolbar">
-                <label><input type="checkbox" id="spiritAccountSanctuaryChatTranslate" onchange="spiritSanctuaryOnToggleChatTranslate(this,'account')" /> <span data-key="san_chat_translate">Traduire les messages (langue du site)</span></label>
-                <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#221010;border-color:#633;color:#ecc;" onclick="void spiritSanctuaryClearThread('account')" data-key="san_chat_raz">Effacer le fil</button>
-            </div>
-            <div class="spirit-san-chat-msgs" id="spiritAccountSanctuaryChatMsgs"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;">
-                <input type="text" id="spiritAccountSanctuaryChatInput" data-key="ui_msg_ph" placeholder="Message…" style="flex:1;min-width:160px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
-                <button type="button" class="btn-action" style="font-size:0.6rem;padding:10px 14px;" onclick="spiritAccountSanctuarySendChat()" data-key="ui_send">ENVOYER</button>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div id="tab-params" class="account-page">
@@ -12084,6 +12038,7 @@ window.showAccountTab = function showAccountTab(tab) {
 
     tab = String(tab || '').trim();
     if (tab === 'favoris') tab = 'liste-envie';
+    if (tab === 'sanctuary') tab = 'dashboard';
 
     try {
         var p = (typeof spiritParsePublicHash === 'function') ? spiritParsePublicHash() : null;
@@ -12184,9 +12139,6 @@ window.showAccountTab = function showAccountTab(tab) {
                 spiritPerfRunOnceInFlight('tab:favoris-recus:render', function () { return spiritRenderSellerReceivedFavorites(); });
             } catch (eSfR) { void spiritRenderSellerReceivedFavorites(); }
         }
-    } else if (tab === 'sanctuary') {
-        try { if (typeof spiritAccountSanctuaryTabEnter === 'function') void spiritAccountSanctuaryTabEnter(); } catch (e) {}
-        try { if (typeof spiritSanctuaryWireOnce === 'function') spiritSanctuaryWireOnce(); } catch (e) {}
     } else if (tab === 'portefeuille') {
         try { if (typeof spiritLoadWallet === 'function') spiritLoadWallet(); } catch (eW) {}
     } else if (tab === 'messages') {
@@ -19161,3 +19113,122 @@ function closeModals() {
 </div>
 <div id="spiritAutoEvalModal" class="overlay" style="display:none;z-index:100350 !important;" onclick="spiritAutoEvalOnOverlayClick(event)">
     <div class="modal-content" style="max-width:620px;text-align:left;">
+        <button type="button" onclick="spiritAutoEvalClose()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
+        <h3 style="margin-top:0;color:var(--neon-orange);">Évaluation transaction</h3>
+        <p style="font-size:0.66rem;color:#f3bf89;border-left:2px solid var(--neon-orange);padding-left:8px;">
+            Acheteur : note la vente (transaction) et la livraison. Vendeur : note l’achat. Si tu fermes sans envoyer, l’évaluation sera rappelée dans Mon compte → Évaluations ; au-delà de 48 h sans réponse, 5★ seront enregistrées automatiquement et un message t’en informera.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Ton pseudo</label>
+                <input id="spiritAutoEvalAuthorPseudo" type="text" readonly />
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Pseudo à évaluer</label>
+                <input id="spiritAutoEvalPseudo" type="text" readonly />
+            </div>
+            <div style="grid-column:1/-1;">
+                <label style="font-size:0.62rem;color:#888;">Type d’évaluation (fixé selon ton rôle)</label>
+                <select id="spiritAutoEvalCategory" onchange="spiritAutoEvalSyncDeliveryBlock()">
+                    <option value="achat">Achat (vue acheteur)</option>
+                    <option value="vente">Vente (vue vendeur)</option>
+                    <option value="livraison">Livraison</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Note vente / achat /5</label>
+                <div id="spiritAutoEvalStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetStars(1)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetStars(2)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetStars(3)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetStars(4)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetStars(5)">☆</button>
+                </div>
+                <input id="spiritAutoEvalStars" type="hidden" value="5" />
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Transaction</label>
+                <input id="spiritAutoEvalTx" type="text" readonly />
+            </div>
+        </div>
+        <label style="font-size:0.62rem;color:#888;display:block;margin-top:10px;">Commentaire (vente ou achat)</label>
+        <textarea id="spiritAutoEvalComment" placeholder="Ton commentaire sur la transaction (optionnel)…"></textarea>
+        <div id="spiritAutoEvalBuyerLivraisonWrap" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #222;">
+            <div id="spiritAutoEvalDeliveryStarsBlock">
+                <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:6px;">Livraison — note /5</label>
+                <div id="spiritAutoEvalDeliveryStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetDeliveryStars(1)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetDeliveryStars(2)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetDeliveryStars(3)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetDeliveryStars(4)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetDeliveryStars(5)">☆</button>
+                </div>
+                <input id="spiritAutoEvalDeliveryStars" type="hidden" value="5" />
+            </div>
+            <div style="margin-top:8px;">
+                <label style="font-size:0.62rem;color:#888;">Colis bien protégé ?</label>
+                <select id="spiritAutoEvalDeliverySafe">
+                    <option value="oui">Oui</option>
+                    <option value="non">Non</option>
+                </select>
+            </div>
+            <label style="font-size:0.62rem;color:#888;display:block;margin-top:8px;">Commentaire livraison</label>
+            <textarea id="spiritAutoEvalDeliveryComment" placeholder="Ton commentaire sur la livraison (optionnel)…" style="min-height:52px;"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+            <button type="button" class="btn-action" style="font-size:0.6rem;" onclick="spiritAutoEvalSubmit()">ENVOYER L'ÉVALUATION</button>
+            <button type="button" class="btn-action" style="font-size:0.6rem;background:#222;border:1px solid #444;color:#bbb;" onclick="spiritAutoEvalClose()">FERMER</button>
+        </div>
+        <div id="spiritAutoEvalStatus" style="font-size:0.64rem;color:#888;margin-top:8px;"></div>
+    </div>
+</div>
+
+<script>
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', function () {
+    try {
+      var _sw = new URL('sw.js', window.location.href).href;
+      navigator.serviceWorker.register(_sw).catch(function () {});
+    } catch (e) {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
+  });
+}
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
