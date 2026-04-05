@@ -9249,6 +9249,32 @@ async function spiritListingChatViewerLang() {
     return spiritListingChatViewerLangSync();
 }
 var SPIRIT_MM_TRANSLATE_CONCURRENCY = 3;
+/** File + cache MyMemory (quota gratuit ~100 req/jour ; 429 si trop d’appels). */
+var spiritMyMemoryQueueTail = Promise.resolve();
+var SPIRIT_MM_MIN_GAP_MS = 450;
+var spiritMyMemoryBackoffUntil = 0;
+var SPIRIT_MM_BACKOFF_MS = 90000;
+var spiritMyMemoryResultCache = Object.create(null);
+var SPIRIT_MM_CACHE_TTL_MS = 45 * 60 * 1000;
+function spiritMyMemoryCacheGet(key) {
+    var e = spiritMyMemoryResultCache[key];
+    if (!e) return null;
+    if (Date.now() - e.t > SPIRIT_MM_CACHE_TTL_MS) {
+        try { delete spiritMyMemoryResultCache[key]; } catch (eD) {}
+        return null;
+    }
+    return e.v;
+}
+function spiritMyMemoryCacheSet(key, val) {
+    try { spiritMyMemoryResultCache[key] = { v: val, t: Date.now() }; } catch (eS) {}
+}
+function spiritMyMemoryEnqueue(fn) {
+    var run = spiritMyMemoryQueueTail.then(function () {
+        return new Promise(function (resolve) { setTimeout(resolve, SPIRIT_MM_MIN_GAP_MS); });
+    }).then(fn);
+    spiritMyMemoryQueueTail = run.catch(function () { return null; });
+    return run;
+}
 /** MyMemory renvoie parfois un message d’erreur dans translatedText (ex. Autodetect = langue cible). */
 function spiritMyMemoryInvalidTranslationOut(out, raw) {
     var s = String(out || '').trim();
@@ -9269,18 +9295,34 @@ async function spiritTranslateListingMessage(text, fromLang, toLang) {
     var fromM = spiritListingChatLangToMyMemory(f);
     var toM = spiritListingChatLangToMyMemory(t);
     if (fromM === toM) return raw;
+    var cacheKey = 'L|' + fromM + '|' + toM + '|' + raw.slice(0, 300);
+    var cached = spiritMyMemoryCacheGet(cacheKey);
+    if (cached !== null && cached !== undefined) return cached;
+    if (Date.now() < spiritMyMemoryBackoffUntil) return '';
     var url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(raw.slice(0, 480)) + '&langpair=' + encodeURIComponent(fromM + '|' + toM);
     try {
-        var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        var to = ac ? setTimeout(function () { try { ac.abort(); } catch (eA) {} }, 7000) : null;
-        var res = await fetch(url, ac ? { signal: ac.signal } : {});
-        if (to) clearTimeout(to);
-        if (!res.ok) return '';
-        var j = await res.json();
-        if (j && (j.responseStatus === 403 || j.responseStatus === 429)) return '';
-        var out = j && j.responseData && j.responseData.translatedText ? String(j.responseData.translatedText).trim() : '';
-        if (spiritMyMemoryInvalidTranslationOut(out, raw)) return '';
-        return out || '';
+        var outL = await spiritMyMemoryEnqueue(async function () {
+            if (Date.now() < spiritMyMemoryBackoffUntil) return '';
+            var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            var to = ac ? setTimeout(function () { try { ac.abort(); } catch (eA) {} }, 7000) : null;
+            var res = await fetch(url, ac ? { signal: ac.signal } : {});
+            if (to) clearTimeout(to);
+            if (res.status === 429) {
+                spiritMyMemoryBackoffUntil = Date.now() + SPIRIT_MM_BACKOFF_MS;
+                return '';
+            }
+            if (!res.ok) return '';
+            var j = await res.json();
+            if (j && (j.responseStatus === 403 || j.responseStatus === 429)) {
+                if (Number(j.responseStatus) === 429) spiritMyMemoryBackoffUntil = Date.now() + SPIRIT_MM_BACKOFF_MS;
+                return '';
+            }
+            var out = j && j.responseData && j.responseData.translatedText ? String(j.responseData.translatedText).trim() : '';
+            if (spiritMyMemoryInvalidTranslationOut(out, raw)) return '';
+            return out || '';
+        });
+        if (outL && String(outL).trim()) spiritMyMemoryCacheSet(cacheKey, outL);
+        return outL || '';
     } catch (e) {
         return '';
     }
@@ -9307,18 +9349,34 @@ async function spiritTranslateSanctuaryAutodetectToUi(text, toLang) {
     if (!raw) return '';
     var t = spiritListingChatLangNormalize(toLang);
     var toM = spiritListingChatLangToMyMemory(t);
+    var cacheKey = 'A|' + toM + '|' + raw.slice(0, 300);
+    var cachedA = spiritMyMemoryCacheGet(cacheKey);
+    if (cachedA !== null && cachedA !== undefined) return cachedA;
+    if (Date.now() < spiritMyMemoryBackoffUntil) return '';
     var url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(raw.slice(0, 480)) + '&langpair=' + encodeURIComponent('Autodetect|' + toM);
     try {
-        var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        var to = ac ? setTimeout(function () { try { ac.abort(); } catch (eA) {} }, 7000) : null;
-        var res = await fetch(url, ac ? { signal: ac.signal } : {});
-        if (to) clearTimeout(to);
-        if (!res.ok) return '';
-        var j = await res.json();
-        if (j && (j.responseStatus === 403 || j.responseStatus === 429)) return '';
-        var out = j && j.responseData && j.responseData.translatedText ? String(j.responseData.translatedText).trim() : '';
-        if (spiritMyMemoryInvalidTranslationOut(out, raw)) return '';
-        return out || '';
+        var outA = await spiritMyMemoryEnqueue(async function () {
+            if (Date.now() < spiritMyMemoryBackoffUntil) return '';
+            var ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            var to = ac ? setTimeout(function () { try { ac.abort(); } catch (eA) {} }, 7000) : null;
+            var res = await fetch(url, ac ? { signal: ac.signal } : {});
+            if (to) clearTimeout(to);
+            if (res.status === 429) {
+                spiritMyMemoryBackoffUntil = Date.now() + SPIRIT_MM_BACKOFF_MS;
+                return '';
+            }
+            if (!res.ok) return '';
+            var j = await res.json();
+            if (j && (j.responseStatus === 403 || j.responseStatus === 429)) {
+                if (Number(j.responseStatus) === 429) spiritMyMemoryBackoffUntil = Date.now() + SPIRIT_MM_BACKOFF_MS;
+                return '';
+            }
+            var out = j && j.responseData && j.responseData.translatedText ? String(j.responseData.translatedText).trim() : '';
+            if (spiritMyMemoryInvalidTranslationOut(out, raw)) return '';
+            return out || '';
+        });
+        if (outA && String(outA).trim()) spiritMyMemoryCacheSet(cacheKey, outA);
+        return outA || '';
     } catch (e) {
         return '';
     }
@@ -17391,24 +17449,47 @@ async function publishTopic() {
         return;
     }
     try {
-        var ins = await _spirit.from(SPIRIT_FORUM_TOPICS_TABLE).insert({
+        var rowIns = {
             author_id: meNorm,
             author_label: author,
             title: filteredTitle,
             tag: tag,
             body: filteredBody,
             author_lang: authorLangIns
-        }).select('id,created_at');
+        };
+        var ins = await _spirit.from(SPIRIT_FORUM_TOPICS_TABLE).insert(rowIns).select('id,created_at');
         if (ins && ins.error) {
-            spiritForumTopicsMarkMissingIf404(ins.error);
-            if (!spiritForumTopicsTableMissing) {
-                alert(T('forum_err_send'));
+            var stIns = Number(ins.error.status || ins.status || (ins.error.response && ins.error.response.status) || 0);
+            var msgL = String((ins.error.message || '') + (ins.error.details || '')).toLowerCase();
+            var forbidReturn = stIns === 403 || stIns === 401 || msgL.indexOf('permission') >= 0 || msgL.indexOf('row-level security') >= 0;
+            if (forbidReturn && !spiritForumTopicsTableMissing) {
+                ins = await _spirit.from(SPIRIT_FORUM_TOPICS_TABLE).insert(rowIns);
+            }
+            if (ins && ins.error) {
+                spiritForumTopicsMarkMissingIf404(ins.error);
+                if (!spiritForumTopicsTableMissing) {
+                    alert(T('forum_err_send'));
+                    return;
+                }
+                spiritPublishTopicLocalOk();
                 return;
             }
-            spiritPublishTopicLocalOk();
-            return;
         }
         var row = ins && ins.data && ins.data[0];
+        if (!row || row.id == null) {
+            try {
+                await spiritForumSyncFromServerAndRender();
+            } catch (eSyn) {}
+            var found = null;
+            for (var zi = spiritForumUserTopics.length - 1; zi >= 0; zi--) {
+                var zt = spiritForumUserTopics[zi];
+                if (zt && spiritNormUid(String(zt.author_id || '')) === meNorm && String(zt.title || '') === filteredTitle) {
+                    found = zt;
+                    break;
+                }
+            }
+            row = found ? { id: found.id, created_at: found.created_at || new Date().toISOString() } : { id: null, created_at: new Date().toISOString() };
+        }
         var dstr = '';
         try {
             dstr = row && row.created_at ? new Date(row.created_at).toLocaleDateString() : new Date().toLocaleDateString();
@@ -18927,84 +19008,3 @@ function closeModals() {
 </div>
 <div id="spiritAutoEvalModal" class="overlay" style="display:none;z-index:100350 !important;" onclick="spiritAutoEvalOnOverlayClick(event)">
     <div class="modal-content" style="max-width:620px;text-align:left;">
-        <button type="button" onclick="spiritAutoEvalClose()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
-        <h3 style="margin-top:0;color:var(--neon-orange);">Évaluation transaction</h3>
-        <p style="font-size:0.66rem;color:#f3bf89;border-left:2px solid var(--neon-orange);padding-left:8px;">
-            Acheteur : note la vente (transaction) et la livraison. Vendeur : note l’achat. Si tu fermes sans envoyer, l’évaluation sera rappelée dans Mon compte → Évaluations ; au-delà de 48 h sans réponse, 5★ seront enregistrées automatiquement et un message t’en informera.
-        </p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div>
-                <label style="font-size:0.62rem;color:#888;">Ton pseudo</label>
-                <input id="spiritAutoEvalAuthorPseudo" type="text" readonly />
-            </div>
-            <div>
-                <label style="font-size:0.62rem;color:#888;">Pseudo à évaluer</label>
-                <input id="spiritAutoEvalPseudo" type="text" readonly />
-            </div>
-            <div style="grid-column:1/-1;">
-                <label style="font-size:0.62rem;color:#888;">Type d’évaluation (fixé selon ton rôle)</label>
-                <select id="spiritAutoEvalCategory" onchange="spiritAutoEvalSyncDeliveryBlock()">
-                    <option value="achat">Achat (vue acheteur)</option>
-                    <option value="vente">Vente (vue vendeur)</option>
-                    <option value="livraison">Livraison</option>
-                </select>
-            </div>
-            <div>
-                <label style="font-size:0.62rem;color:#888;">Note vente / achat /5</label>
-                <div id="spiritAutoEvalStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetStars(1)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetStars(2)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetStars(3)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetStars(4)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetStars(5)">☆</button>
-                </div>
-                <input id="spiritAutoEvalStars" type="hidden" value="5" />
-            </div>
-            <div>
-                <label style="font-size:0.62rem;color:#888;">Transaction</label>
-                <input id="spiritAutoEvalTx" type="text" readonly />
-            </div>
-        </div>
-        <label style="font-size:0.62rem;color:#888;display:block;margin-top:10px;">Commentaire (vente ou achat)</label>
-        <textarea id="spiritAutoEvalComment" placeholder="Ton commentaire sur la transaction (optionnel)…"></textarea>
-        <div id="spiritAutoEvalBuyerLivraisonWrap" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #222;">
-            <div id="spiritAutoEvalDeliveryStarsBlock">
-                <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:6px;">Livraison — note /5</label>
-                <div id="spiritAutoEvalDeliveryStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetDeliveryStars(1)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetDeliveryStars(2)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetDeliveryStars(3)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetDeliveryStars(4)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetDeliveryStars(5)">☆</button>
-                </div>
-                <input id="spiritAutoEvalDeliveryStars" type="hidden" value="5" />
-            </div>
-            <div style="margin-top:8px;">
-                <label style="font-size:0.62rem;color:#888;">Colis bien protégé ?</label>
-                <select id="spiritAutoEvalDeliverySafe">
-                    <option value="oui">Oui</option>
-                    <option value="non">Non</option>
-                </select>
-            </div>
-            <label style="font-size:0.62rem;color:#888;display:block;margin-top:8px;">Commentaire livraison</label>
-            <textarea id="spiritAutoEvalDeliveryComment" placeholder="Ton commentaire sur la livraison (optionnel)…" style="min-height:52px;"></textarea>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-            <button type="button" class="btn-action" style="font-size:0.6rem;" onclick="spiritAutoEvalSubmit()">ENVOYER L'ÉVALUATION</button>
-            <button type="button" class="btn-action" style="font-size:0.6rem;background:#222;border:1px solid #444;color:#bbb;" onclick="spiritAutoEvalClose()">FERMER</button>
-        </div>
-        <div id="spiritAutoEvalStatus" style="font-size:0.64rem;color:#888;margin-top:8px;"></div>
-    </div>
-</div>
-
-<script>
-if ('serviceWorker' in navigator && window.isSecureContext) {
-  window.addEventListener('load', function () {
-    try {
-      var _sw = new URL('sw.js', window.location.href).href;
-      navigator.serviceWorker.register(_sw).catch(function () {});
-    } catch (e) {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
-    }
-  });
-}
