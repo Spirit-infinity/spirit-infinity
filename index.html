@@ -9917,6 +9917,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 try { if (typeof spiritRefreshHotToysAdminNav === 'function') spiritRefreshHotToysAdminNav(); } catch (eHtS) {}
                 await spiritUpsertUserProfileFromAuth(session.user, 'VISITEUR');
                 spiritRefreshUserScopedUi();
+                try { if (typeof spiritForumWireLiveUpdates === 'function') spiritForumWireLiveUpdates(); } catch (eFoSes) {}
                 setTimeout(function () {
                     try {
                         if (typeof window.spiritWebPushTrySubscribe === 'function') void window.spiritWebPushTrySubscribe({});
@@ -10014,6 +10015,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 spiritApplyAuthUser(signIn.data.user, u);
                 await spiritUpsertUserProfileFromAuth(signIn.data.user, u);
                 spiritRefreshUserScopedUi();
+                try { if (typeof spiritForumWireLiveUpdates === 'function') spiritForumWireLiveUpdates(); } catch (eFoIn) {}
                 setTimeout(function () {
                     try {
                         if (typeof window.spiritWebPushTrySubscribe === 'function') void window.spiritWebPushTrySubscribe({});
@@ -10140,6 +10142,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
 
         spiritRefreshUserScopedUi();
         try { spiritUpdateRegisterModalAuthUi(); } catch (eRegLo) {}
+        try { if (typeof spiritForumUnwireLiveUpdates === 'function') spiritForumUnwireLiveUpdates(); } catch (eFoLo) {}
         closeModals();
         alert("Déconnexion réussie.");
     }
@@ -10871,7 +10874,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
 
     function navigateTo(section) {
         hideAllSections();
-        try { if (typeof spiritForumUnwireLiveUpdates === 'function') spiritForumUnwireLiveUpdates(); } catch (eForumUw) {}
+        /* Ne pas couper le forum ici : sinon plus de realtime / poll ni notifications « réponse à mon sujet » hors modal forum. */
 
         // Recharger l'avatar du header public à chaque changement de vue (bucket Storage « sanctuary »)
         try {
@@ -11004,11 +11007,14 @@ async function spiritLoadListingMessagesForProduct(productId) {
                     spiritApplyAuthUser(session.user);
                     try { void spiritUpsertUserProfileFromAuth(session.user, 'VISITEUR'); } catch (eUp) {}
                     spiritRefreshUserScopedUi();
+                    try { if (typeof spiritForumWireLiveUpdates === 'function') spiritForumWireLiveUpdates(); } catch (eFoAuth) {}
                     setTimeout(function () {
                         try {
                             if (typeof window.spiritWebPushTrySubscribe === 'function') void window.spiritWebPushTrySubscribe({});
                         } catch (ePushA) {}
                     }, 2000);
+                } else {
+                    try { if (typeof spiritForumUnwireLiveUpdates === 'function') spiritForumUnwireLiveUpdates(); } catch (eFoOut) {}
                 }
                 try { spiritUpdateRegisterModalAuthUi(); } catch (eRegA) {}
             });
@@ -16890,6 +16896,12 @@ function spiritForumTopicCardInnerHtml(tp, T) {
         : '';
     return '<div class="' + cls + '"' + oc + '><span class="forum-tag">' + spiritChatEscapeHtml(tagLab) + '</span><strong>' + spiritChatEscapeHtml(String(tp.title || '')) + '</strong><div class="forum-topic-card-meta">' + spiritForumFormatTopicDateHtml(tp, T) + '<span>· ' + spiritChatEscapeHtml(String(tp.meta || '')) + '</span></div>' + razHtml + '</div>';
 }
+function spiritForumMaybeRequestNotifPermission() {
+    try {
+        if (typeof Notification !== 'undefined' && Notification.permission === 'default' && typeof Notification.requestPermission === 'function')
+            void Notification.requestPermission();
+    } catch (eP) {}
+}
 function spiritForumMaybeNotifyTopicAuthorForRow(row) {
     if (!row || row.topic_id == null || row.topic_id === '') return;
     var tid = Number(row.topic_id);
@@ -16904,11 +16916,24 @@ function spiritForumMaybeNotifyTopicAuthorForRow(row) {
     var titleN = T('forum_notify_reply_title');
     var prev = String(row.body || '').replace(/\s+/g, ' ').trim().slice(0, 140);
     var bodyN = T('forum_notify_reply_body').replace(/\{topic\}/g, String(tp.title || '')).replace(/\{preview\}/g, prev);
+    function spiritForumShowReplyNotif() {
+        try {
+            if (typeof Notification === 'undefined') return;
+            if (Notification.permission === 'granted') {
+                new Notification(titleN, { body: bodyN, tag: 'spirit-forum-' + String(row.id) });
+            }
+        } catch (eN) {}
+    }
     try {
-        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-            new Notification(titleN, { body: bodyN, tag: 'spirit-forum-' + String(row.id) });
+        if (typeof Notification === 'undefined') return;
+        if (Notification.permission === 'granted') {
+            spiritForumShowReplyNotif();
+        } else if (Notification.permission === 'default' && typeof Notification.requestPermission === 'function') {
+            Notification.requestPermission().then(function (perm) {
+                if (perm === 'granted') spiritForumShowReplyNotif();
+            }).catch(function () {});
         }
-    } catch (eN) {}
+    } catch (eN2) {}
 }
 function spiritForumInvokeReplyWebhookOptional(row) {
     try {
@@ -16990,17 +17015,30 @@ function spiritForumSubscribeRealtime() {
 async function spiritForumPollInboxOnce() {
     if (typeof _spirit === 'undefined' || !_spirit || spiritForumChatTableMissing) return;
     var maxId = 0;
+    var known = Object.create(null);
     for (var i = 0; i < spiritForumChatMessages.length; i++) {
         var idm = spiritForumChatMessages[i].id;
-        if (idm != null && Number(idm) > maxId) maxId = Number(idm);
+        if (idm != null && Number.isFinite(Number(idm))) {
+            known[Number(idm)] = true;
+            if (Number(idm) > maxId) maxId = Number(idm);
+        }
     }
-    if (maxId <= 0) return;
     try {
-        var q = await _spirit.from(SPIRIT_FORUM_CHAT_TABLE).select('id,sender_id,sender_label,body,author_lang,created_at,topic_id').gt('id', maxId).order('id', { ascending: true }).limit(80);
+        var q;
+        if (maxId > 0) {
+            q = await _spirit.from(SPIRIT_FORUM_CHAT_TABLE).select('id,sender_id,sender_label,body,author_lang,created_at,topic_id').gt('id', maxId).order('id', { ascending: true }).limit(80);
+        } else {
+            q = await _spirit.from(SPIRIT_FORUM_CHAT_TABLE).select('id,sender_id,sender_label,body,author_lang,created_at,topic_id').order('id', { ascending: false }).limit(60);
+        }
         if (q && q.error) return;
         var rows = q && q.data;
         if (!Array.isArray(rows)) return;
-        rows.forEach(function (r) { spiritForumApplyIncomingChatRow(r, 'poll'); });
+        if (maxId <= 0) rows = rows.slice().reverse();
+        for (var j = 0; j < rows.length; j++) {
+            var rj = rows[j];
+            if (maxId <= 0 && rj && rj.id != null && known[Number(rj.id)]) continue;
+            spiritForumApplyIncomingChatRow(rj, 'poll');
+        }
     } catch (ePol) {}
 }
 function spiritForumUnwireLiveUpdates() {
@@ -17114,6 +17152,7 @@ async function spiritForumSyncFromServerAndRender() {
                         title: String((r && r.title) || ''),
                         tag: String((r && r.tag) || 'CONSEILS'),
                         body: String((r && r.body) || ''),
+                        author_lang: String((r && r.author_lang) || 'FR').trim().toUpperCase() || 'FR',
                         meta: (plab || 'Membre') + (dstr ? ' · ' + dstr : ''),
                         ts: d ? new Date(d).getTime() : Date.now(),
                         created_at: r && r.created_at,
@@ -17223,7 +17262,12 @@ function spiritRenderForumChat() {
             if (cand) opUser = cand;
         }
         if (tpTh) {
-            html += '<div class="msg-line spirit-forum-op"><span class="msg-user">' + spiritChatEscapeHtml(opUser) + '</span><span class="msg-text">' + spiritChatEscapeHtml(String(tpTh.body || '')) + '</span></div>';
+            var opOrigB = String(tpTh.body || '');
+            var opDispB = tpTh._displayBody != null && String(tpTh._displayBody).trim() !== '' ? String(tpTh._displayBody) : opOrigB;
+            var opHintB = tpTh._bodyTranslated
+                ? '<span class="spirit-forum-chat-tr" style="font-size:0.58rem;color:#777;display:block;margin-top:3px;" title="' + spiritChatEscapeAttr(opOrigB) + '">' + spiritChatEscapeHtml(trHint) + '</span>'
+                : '';
+            html += '<div class="msg-line spirit-forum-op"><span class="msg-user">' + spiritChatEscapeHtml(opUser) + '</span><span class="msg-text">' + spiritChatEscapeHtml(opDispB) + '</span>' + opHintB + '</div>';
             html += '<div class="msg-line"><span class="msg-user">' + spiritChatEscapeHtml(T('forum_chat_user_system')) + '</span><span class="msg-text">' + spiritChatEscapeHtml(T('forum_thread_replies_below')) + '</span></div>';
         } else {
             html += '<div class="msg-line"><span class="msg-user">' + spiritChatEscapeHtml(T('forum_chat_user_system')) + '</span><span class="msg-text">' + spiritChatEscapeHtml(T('forum_thread_replies_below')) + '</span></div>';
@@ -17245,11 +17289,9 @@ function spiritRenderForumChat() {
     box.scrollTop = box.scrollHeight;
 }
 async function spiritRefreshForumChatForLang() {
-    if (!spiritForumChatMessages.length) {
-        spiritRenderForumChat();
-        return;
-    }
-    var uiLangRaw = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+    var uiLangRaw = typeof spiritUiLang === 'function'
+        ? spiritUiLang()
+        : (typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR');
     var uiLang = typeof spiritListingChatLangNormalize === 'function' ? spiritListingChatLangNormalize(uiLangRaw) : String(uiLangRaw || 'FR').toUpperCase();
     var meN = typeof spiritGetCurrentUserId === 'function' ? spiritNormUid(spiritGetCurrentUserId()) : '';
     for (var i = 0; i < spiritForumChatMessages.length; i++) {
@@ -17283,6 +17325,35 @@ async function spiritRefreshForumChatForLang() {
         }
         m.uiLang = uiLangRaw;
     }
+    if (spiritForumActiveTopicId != null && Number.isFinite(Number(spiritForumActiveTopicId))) {
+        var tpOp = spiritForumFindTopicById(spiritForumActiveTopicId);
+        if (tpOp && String(tpOp.body || '').trim()) {
+            var oB = String(tpOp.body || '').trim();
+            var auOp = tpOp.author_id != null && String(tpOp.author_id).trim() !== '' ? spiritNormUid(String(tpOp.author_id)) : '';
+            if (meN && auOp && auOp === meN) {
+                tpOp._displayBody = oB;
+                tpOp._bodyTranslated = false;
+            } else {
+                var opLang = typeof spiritListingChatLangNormalize === 'function' ? spiritListingChatLangNormalize(tpOp.author_lang || 'FR') : 'FR';
+                if (opLang === uiLang) {
+                    tpOp._displayBody = oB;
+                    tpOp._bodyTranslated = false;
+                } else {
+                    var trB = '';
+                    try {
+                        if (typeof spiritTranslateSanctuaryAutodetectToUi === 'function') trB = await spiritTranslateSanctuaryAutodetectToUi(oB, uiLangRaw);
+                    } catch (eTb) { trB = ''; }
+                    if (trB && String(trB).trim() && String(trB) !== oB && !spiritMyMemoryInvalidTranslationOut(trB, oB)) {
+                        tpOp._displayBody = String(trB).trim();
+                        tpOp._bodyTranslated = true;
+                    } else {
+                        tpOp._displayBody = oB;
+                        tpOp._bodyTranslated = false;
+                    }
+                }
+            }
+        }
+    }
     spiritSaveForumChat();
     spiritRenderForumChat();
 }
@@ -17309,9 +17380,11 @@ async function spiritSendForumMsg() {
     }
     input.value = '';
     var uname = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : T('reg_ph_user');
-    var uiLang = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+    var uiLang = typeof spiritUiLang === 'function'
+        ? spiritUiLang()
+        : (typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR');
     var authorLangIns = typeof spiritListingChatLangNormalize === 'function'
-        ? spiritListingChatLangNormalize(typeof spiritUiLang === 'function' ? spiritUiLang() : uiLang)
+        ? spiritListingChatLangNormalize(uiLang)
         : 'FR';
     var tActive = spiritForumActiveTopicId != null ? Number(spiritForumActiveTopicId) : null;
     var topicIdForRow = tActive != null && Number.isFinite(tActive) ? tActive : null;
@@ -17449,6 +17522,7 @@ async function publishTopic() {
             title: filteredTitle,
             tag: tag,
             body: filteredBody,
+            author_lang: authorLangIns,
             meta: metaLocal,
             ts: Date.now(),
             created_at: new Date().toISOString()
@@ -17456,6 +17530,7 @@ async function publishTopic() {
         spiritSaveForumTopics();
         if (tEl) tEl.value = '';
         if (bEl) bEl.value = '';
+        try { spiritForumMaybeRequestNotifPermission(); } catch (eNfp) {}
         alert(T('forum_publish_ok'));
         hideTopicEditor();
         spiritRenderForumList();
@@ -17519,6 +17594,7 @@ async function publishTopic() {
             title: filteredTitle,
             tag: tag,
             body: filteredBody,
+            author_lang: authorLangIns,
             meta: author + ' · ' + dstr,
             ts: row && row.created_at ? new Date(row.created_at).getTime() : Date.now(),
             created_at: row && row.created_at,
@@ -17527,6 +17603,7 @@ async function publishTopic() {
         spiritSaveForumTopics();
         if (tEl) tEl.value = '';
         if (bEl) bEl.value = '';
+        try { spiritForumMaybeRequestNotifPermission(); } catch (eNfp2) {}
         alert(T('forum_publish_ok'));
         hideTopicEditor();
         spiritRenderForumList();
