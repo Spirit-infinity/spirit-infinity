@@ -5018,6 +5018,41 @@
         return '';
     }
 
+    function spiritSetLedgerStatusText(text, isOk) {
+        try {
+            var el = document.getElementById('realTimeData');
+            if (!el) return;
+            el.textContent = String(text || '');
+            el.style.color = isOk ? 'var(--spirit-green)' : '#ff8a8a';
+        } catch (e) {}
+    }
+
+    async function spiritEnsureMacAddressFromLedger() {
+        var mac = spiritResolveCurrentMacAddress();
+        if (mac) return mac;
+        if (!_spirit) return '';
+        var ownerUid = spiritResolveOwnerUid();
+        if (!ownerUid) return '';
+        try {
+            var out = await _spirit
+                .from('ledger_items')
+                .select('mac_address,last_seen')
+                .eq('owner_user_id', ownerUid)
+                .order('last_seen', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            if (out && !out.error && out.data && out.data.mac_address) {
+                mac = String(out.data.mac_address || '').trim();
+                if (mac) {
+                    try { localStorage.setItem('spirit_mac_address', mac); } catch (eLs) {}
+                    try { window.currentMacAddress = mac; } catch (eW) {}
+                    return mac;
+                }
+            }
+        } catch (e) {}
+        return '';
+    }
+
     async function spiritLedgerSafeUpdateByMac(macID, payload) {
         if (!_spirit || !macID) return { ok: false, error: null };
         try {
@@ -18861,7 +18896,10 @@ function spiritPanneauMosfetChanged(which) {
 
 async function refreshSpiritPanneauHardwareUI(opts) {
     var skipFetch = opts && opts.skipFetch;
-    const macID = typeof currentMacAddress !== 'undefined' ? currentMacAddress : null;
+    var macID = spiritResolveCurrentMacAddress();
+    if (!macID) {
+        try { macID = await spiritEnsureMacAddressFromLedger(); } catch (eMac) {}
+    }
     if (!skipFetch && _spirit && macID && macID !== 'XX:XX:XX:XX:XX:XX') {
         try {
             const { data, error } = await _spirit.from('ledger_items').select('*').eq('mac_address', macID).maybeSingle();
@@ -18878,8 +18916,16 @@ async function refreshSpiritPanneauHardwareUI(opts) {
                 else if (data.neon_high_active != null) mosfetNeonHaut = !!data.neon_high_active;
                 if (data.cmd_figurine != null) mosfetFigurine = !!data.cmd_figurine;
                 else if (data.figurine_active != null) mosfetFigurine = !!data.figurine_active;
+                spiritSetLedgerStatusText('[ STATUT : CONNECTÉ AU RÉSEAU SPIRIT · MAC ' + macID + ' ]', true);
+            } else {
+                spiritSetLedgerStatusText('[ STATUT : MAC NON TROUVÉE DANS LEDGER ]', false);
             }
-        } catch (e) { console.warn('[SPIRIT] refreshSpiritPanneauHardwareUI', e); }
+        } catch (e) {
+            console.warn('[SPIRIT] refreshSpiritPanneauHardwareUI', e);
+            spiritSetLedgerStatusText('[ STATUT : ERREUR LECTURE LEDGER (RLS/API) ]', false);
+        }
+    } else if (!macID) {
+        spiritSetLedgerStatusText('[ STATUT : MAC ESP32 MANQUANTE ]', false);
     }
 
     const usageLbl = (typeof window.spiritT === 'function') ? window.spiritT('ledger_usage_hours_label') : "Heures d'utilisation";
