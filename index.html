@@ -10016,14 +10016,36 @@ async function spiritLoadListingMessagesForProduct(productId) {
     function spiritFormatListingDescriptionHtml(desc) {
         var raw = String(desc || '').replace(/\r\n/g, '\n');
         if (!raw) return '';
+        var diagDateText = '';
+        try {
+            var mHw = raw.match(/\[\[SPIRIT_HW:([\s\S]*?)\]\]/m);
+            if (mHw && mHw[1]) {
+                try {
+                    var hwObj = JSON.parse(String(mHw[1]).trim());
+                    if (hwObj && hwObj.checked_at) {
+                        var d = new Date(String(hwObj.checked_at));
+                        if (!isNaN(d.getTime())) diagDateText = d.toLocaleString('fr-FR');
+                    }
+                } catch (eJ) {}
+            }
+        } catch (eM) {}
+        // Retire le bloc technique interne pour ne pas l'afficher à l'acheteur.
+        raw = raw.replace(/\n*\[\[SPIRIT_HW:[\s\S]*?\]\]\s*/gm, '\n').trim();
         var safe = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
         var lines = safe.split('\n');
         var isDiag = false;
+        var diagDateInjected = false;
         var out = [];
         for (var i = 0; i < lines.length; i++) {
             var l = lines[i];
             var plain = String(l || '').trim().toUpperCase();
-            if (plain.indexOf('DIAGNOSTIC SPIRIT TEHNOLOGIE') >= 0) isDiag = true;
+            if (plain.indexOf('DIAGNOSTIC SPIRIT TEHNOLOGIE') >= 0) {
+                isDiag = true;
+                if (diagDateText && !diagDateInjected) {
+                    out.push('<span style="color:var(--spirit-green);font-weight:700;">Date du diagnostic: ' + String(diagDateText).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') + '</span>');
+                    diagDateInjected = true;
+                }
+            }
             if (isDiag && plain === '') isDiag = false;
             if (isDiag) out.push('<span style="color:var(--spirit-green);font-weight:700;">' + (l || '&nbsp;') + '</span>');
             else out.push(l || '&nbsp;');
