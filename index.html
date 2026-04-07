@@ -3506,7 +3506,7 @@
         <div class="dash-container">
             <div class="dash-nav spirit-account-acc-root" role="tablist" aria-label="Sections du compte">
                 <button type="button" id="btn-dashboard" role="tab" aria-expanded="false" aria-controls="tab-dashboard" onclick="showAccountTab('dashboard')"><span data-key="account_tab_dashboard">DASHBOARD</span><span id="dashboard-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
-                <button type="button" id="btn-sanctuaire-public" role="tab" aria-expanded="false" aria-controls="tab-sanctuaire-public" onclick="showAccountTab('sanctuaire-public')"><span data-key="account_tab_public_sanctuary">SANCTUAIRE PUBLIC</span></button>
+                <button type="button" id="btn-sanctuaire-public" role="tab" aria-expanded="false" aria-controls="tab-sanctuaire-public" onclick="spiritAccountSanctuaryPublicTabClick()"><span data-key="account_tab_public_sanctuary">SANCTUAIRE PUBLIC</span></button>
                 <button type="button" id="btn-messages" role="tab" aria-expanded="false" aria-controls="tab-messages" onclick="showAccountTab('messages')"><span data-key="account_tab_messages">MESSAGES</span><span id="messages-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-achats" role="tab" aria-expanded="false" aria-controls="tab-achats" onclick="showAccountTab('achats')"><span data-key="account_tab_purchases">MES ACHATS</span></button>
                 <button type="button" id="btn-ventes" role="tab" aria-expanded="false" aria-controls="tab-ventes" onclick="showAccountTab('ventes')"><span data-key="account_tab_sales">MES VENTES</span></button>
@@ -10198,7 +10198,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
                     } catch (ePushIn) {}
                 }, 2000);
                 alert("Connexion réussie.");
-                closeModals();
+                spiritAfterAuthOpenMarketAndSanctuaryTab();
                 updateUserAnnonces();
                 return;
             }
@@ -10258,7 +10258,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (signUp.data && signUp.data.session) {
                 spiritRefreshUserScopedUi();
                 alert("Compte créé et connecté.");
-                closeModals();
+                spiritAfterAuthOpenMarketAndSanctuaryTab();
                 updateUserAnnonces();
                 return;
             }
@@ -11150,6 +11150,32 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 setActiveNav('nav-market');
                 break;
         }
+    }
+
+    /** Après connexion / inscription : marketplace visible + Mon compte sur l’onglet Sanctuaire public. */
+    function spiritAfterAuthOpenMarketAndSanctuaryTab() {
+        try {
+            navigateTo('market');
+        } catch (eNav) {
+            try {
+                if (typeof window.navigateTo === 'function') window.navigateTo('market');
+            } catch (e2) {}
+        }
+        try { setActiveNav('nav-account'); } catch (e3) {}
+        try {
+            var account = document.getElementById('accountModal');
+            if (account) account.style.setProperty('display', 'flex', 'important');
+        } catch (e4) {}
+        try { if (typeof spiritAccountLayoutSync === 'function') spiritAccountLayoutSync(); } catch (e5) {}
+        try {
+            var _wAccNav = window.innerWidth || 9999;
+            if (_wAccNav <= 900 && typeof spiritAccountTabsCollapseAll === 'function') spiritAccountTabsCollapseAll();
+        } catch (e6) {}
+        try {
+            if (typeof showAccountTab === 'function') showAccountTab('sanctuaire-public');
+        } catch (e7) {}
+        try { if (typeof spiritSyncAccountTabsForPublicVisitor === 'function') spiritSyncAccountTabsForPublicVisitor(); } catch (e8) {}
+        try { if (typeof spiritRefreshAllAccountNotifs === 'function') spiritRefreshAllAccountNotifs(); } catch (e9) {}
     }
 
     // Compat: on garde les fonctions existantes, mais elles passent par la navigation centrale
@@ -14558,7 +14584,8 @@ function spiritCopyMyPublicUrl() {
 function spiritOpenMyPublicProfile() {
     var uid = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
     if (!uid) return;
-    location.hash = 'spirit-public/' + encodeURIComponent(uid);
+    if (typeof spiritOpenPublicSanctuary === 'function') spiritOpenPublicSanctuary(uid);
+    else location.hash = 'spirit-public/' + encodeURIComponent(uid) + '/sanctuary';
 }
 function spiritRefreshDashboardPublicUrl() {
     var uid = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
@@ -16803,6 +16830,21 @@ function spiritOpenPublicSanctuary(uid) {
     } catch (e) {}
 }
 try { window.spiritOpenPublicSanctuary = spiritOpenPublicSanctuary; } catch (e) {}
+
+/** Onglet « Sanctuaire public » : ouvre directement le profil public sur l’onglet Sanctuaire (sinon compte non connecté → panneau URL). */
+function spiritAccountSanctuaryPublicTabClick() {
+    try {
+        var uid = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
+        if (uid && typeof spiritOpenPublicSanctuary === 'function') {
+            spiritOpenPublicSanctuary(uid);
+            return;
+        }
+    } catch (e0) {}
+    try {
+        if (typeof showAccountTab === 'function') showAccountTab('sanctuaire-public');
+    } catch (e1) {}
+}
+try { window.spiritAccountSanctuaryPublicTabClick = spiritAccountSanctuaryPublicTabClick; } catch (e) {}
 
 function spiritOpenPublicAnnonces(uid) {
     try {
