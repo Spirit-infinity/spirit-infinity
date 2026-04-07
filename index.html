@@ -1273,10 +1273,18 @@
         .stat-banner { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
         .stat-box { background: #0f0f0f; border: 1px solid #222; padding: 20px; border-left: 4px solid var(--neon-orange); }
         /* MESSAGERIE & FORUM */
-        .chat-container { height: 400px; display: flex; flex-direction: column; background: #080808; border: 1px solid #222; margin-top: 20px; }
+        .chat-container { height: 320px; display: flex; flex-direction: column; background: #080808; border: 1px solid #222; margin-top: 20px; }
         .chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 0.85rem; }
         .msg-safety-alert { background: rgba(255,51,51,0.1); color: var(--danger); padding: 10px; font-size: 0.7rem; border: 1px solid var(--danger); margin-bottom: 10px; text-align: center; font-weight: bold; }
         .chat-input-area { display: flex; padding: 10px; border-top: 1px solid #222; }
+        #chatExpandToggleWrap { display:flex; justify-content:flex-end; padding:0 10px 6px; }
+        #chatExpandToggle { font-size:0.56rem; padding:4px 10px; background:#121212; border:1px solid #2b2b2b; color:#9ec9b8; cursor:pointer; }
+        @media (max-width: 900px) {
+            .chat-container { height: 220px; margin-top: 10px; }
+            .chat-messages { padding: 8px; font-size: 0.75rem; }
+            .msg-line { margin-bottom: 5px; font-size: 0.72rem; }
+            .chat-input-area { padding: 6px; }
+        }
         /* ANIMATIONS & LEDGER STATUS */
         .laser { height: 2px; background: var(--neon-orange); box-shadow: 0 0 15px var(--neon-orange); animation: move 2s infinite ease-in-out; }
         @keyframes move { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(100px); } }
@@ -3294,6 +3302,9 @@
                         <button type="button" id="btnClearListingChat" class="btn-action" style="font-size:0.55rem;display:none;padding:4px 10px;background:#2a1010;color:#e88;border:1px solid rgba(200,80,80,0.45);" onclick="spiritDeleteListingChatThread()" data-key="pm_clear_thread">Effacer tout le fil</button>
                     </div>
                     <div class="chat-messages" id="chatMsgs"></div>
+                    <div id="chatExpandToggleWrap">
+                        <button type="button" id="chatExpandToggle" onclick="spiritToggleListingChatExpand()">Voir tous les messages</button>
+                    </div>
                     <div class="chat-input-area">
                         <input type="text" id="chatInput" data-key="pm_chat_ph" placeholder="Votre message..." style="margin:0; border-radius:2px 0 0 2px;">
                         <button class="btn-action" onclick="sendMessage()" style="padding:0 15px;" data-key="pm_chat_ok">OK</button>
@@ -4040,13 +4051,13 @@
 </div>
 
 <div id="spiritSanctuaryLightbox" onclick="spiritSanctuaryLightboxOnOverlayClick(event)">
-    <button type="button" class="spirit-san-lightbox-nav spirit-san-lightbox-prev" aria-label="Image précédente" onclick="spiritSanctuaryLightboxPrev(event)">
+    <button type="button" class="spirit-san-lightbox-nav spirit-san-lightbox-prev" aria-label="Image précédente" onclick="spiritProductLightboxPrev(event)">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6" />
         </svg>
     </button>
     <img id="spiritSanctuaryLightbox-img" src="" alt="" style="display:block;" />
-    <button type="button" class="spirit-san-lightbox-nav spirit-san-lightbox-next" aria-label="Image suivante" onclick="spiritSanctuaryLightboxNext(event)">
+    <button type="button" class="spirit-san-lightbox-nav spirit-san-lightbox-next" aria-label="Image suivante" onclick="spiritProductLightboxNext(event)">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9 18l6-6-6-6" />
         </svg>
@@ -9992,12 +10003,25 @@ async function spiritLoadListingMessagesForProduct(productId) {
         try { void spiritCheckDashboardOfferDot(); } catch (eDot) {}
     }
 
+    var spiritListingChatExpanded = false;
+    function spiritToggleListingChatExpand() {
+        spiritListingChatExpanded = !spiritListingChatExpanded;
+        try { renderChatMessages(); } catch (e) {}
+    }
+    try { window.spiritToggleListingChatExpand = spiritToggleListingChatExpand; } catch (eW) {}
+
     function renderChatMessages() {
         const box = document.getElementById('chatMsgs');
         if (!box) return;
         box.innerHTML = '';
-        if (selectedProduct && selectedProduct.chat) {
-            selectedProduct.chat.forEach(function (m) {
+        var all = (selectedProduct && selectedProduct.chat) ? selectedProduct.chat : [];
+        var compactMax = 4;
+        var shown = all;
+        if (!spiritListingChatExpanded && Array.isArray(all) && all.length > compactMax) {
+            shown = all.slice(all.length - compactMax);
+        }
+        if (shown && shown.length) {
+            shown.forEach(function (m) {
                 var show = m.display_text != null ? m.display_text : m.text;
                 var orig = m.body_orig != null ? m.body_orig : m.text;
                 var u = spiritChatEscapeHtml(m.user);
@@ -10008,6 +10032,13 @@ async function spiritLoadListingMessagesForProduct(productId) {
                     : '';
                 box.innerHTML += '<div class="msg-line"><span class="msg-user">' + u + ':</span><span class="msg-text">' + t + '</span>' + hint + '</div>';
             });
+        }
+        var tgl = document.getElementById('chatExpandToggle');
+        var tglWrap = document.getElementById('chatExpandToggleWrap');
+        if (tgl && tglWrap) {
+            var needToggle = Array.isArray(all) && all.length > compactMax;
+            tglWrap.style.display = needToggle ? 'flex' : 'none';
+            if (needToggle) tgl.textContent = spiritListingChatExpanded ? 'Réduire les messages' : 'Voir tous les messages';
         }
         box.scrollTop = box.scrollHeight;
         try { spiritRefreshListingChatSellerUi(); } catch (eB) {}
@@ -10121,6 +10152,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             }
         }
         selectedProduct = item;
+        spiritListingChatExpanded = false;
         selectedProduct.chat = [];
         try {
             var _lpid = spiritFavoriteProductId(item);
@@ -10170,6 +10202,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var gBox = document.getElementById('pGallery');
         gBox.innerHTML = '';
         var gUrls = spiritImageUrlList(item);
+        try { window.spiritProductGalleryUrls = Array.isArray(gUrls) ? gUrls.slice() : []; } catch (eG) {}
+        try { window.spiritProductGalleryIndex = 0; } catch (eGI) {}
         if (gUrls.length === 0) {
             var noImg = (typeof spiritT === 'function') ? spiritT('pm_no_image') : 'IMAGE NON DISPONIBLE DANS LE LEDGER';
             gBox.innerHTML = "<div style='color:#555; padding:20px;'>" + String(noImg).replace(/</g, '&lt;') + "</div>";
@@ -10186,7 +10220,10 @@ async function spiritLoadListingMessagesForProduct(productId) {
             im1.style.cssText = 'position:relative;z-index:1;width:100%;max-height:300px;object-fit:contain;margin:0 auto;display:block;border:1px solid var(--neon-orange);cursor:zoom-in;background:#000;opacity:0;transition:opacity 0.22s ease;';
             im1.onload = function () { im1.style.opacity = '1'; sk1.style.display = 'none'; };
             im1.onerror = function () { im1.style.display = 'none'; sk1.style.display = 'flex'; sk1.style.alignItems = 'center'; sk1.style.justifyContent = 'center'; sk1.style.color = '#555'; sk1.style.fontSize = '10px'; sk1.textContent = 'IMG'; };
-            im1.onclick = function () { zoomImg(gUrls[0]); };
+            im1.onclick = function () {
+                try { window.spiritProductGalleryIndex = 0; } catch (eIx) {}
+                zoomImg(gUrls[0]);
+            };
             w1.appendChild(sk1);
             w1.appendChild(im1);
             gBox.appendChild(w1);
@@ -10228,7 +10265,10 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 main.style.opacity = '0';
                 mainSk.style.display = 'block';
                 main.src = u;
-                main.onclick = function () { zoomImg(u); };
+                main.onclick = function () {
+                    try { window.spiritProductGalleryIndex = i; } catch (eIx2) {}
+                    zoomImg(u);
+                };
                 cap.textContent = (window.spiritGalleryIndex + 1) + ' / ' + window.spiritGalleryUrls.length;
             }
             btnP.onclick = function () {
@@ -17196,10 +17236,49 @@ function zoomImg(src) {
     const lightboxImg = document.getElementById('lightbox-img');
     const lightbox = document.getElementById('lightbox');
     if(lightboxImg && lightbox) {
+        try {
+            var arr = Array.isArray(window.spiritProductGalleryUrls) ? window.spiritProductGalleryUrls.filter(Boolean) : [];
+            if (!arr.length && src) arr = [src];
+            window.spiritProductGalleryUrls = arr;
+            var idx = arr.indexOf(src);
+            window.spiritProductGalleryIndex = idx >= 0 ? idx : 0;
+        } catch (eIx) {}
         lightboxImg.src = src;
         lightbox.style.setProperty('z-index', '200001', 'important');
         lightbox.style.setProperty('display', 'flex', 'important');
     }
+}
+
+function spiritProductLightboxRenderAtIndex() {
+    try {
+        var arr = Array.isArray(window.spiritProductGalleryUrls) ? window.spiritProductGalleryUrls.filter(Boolean) : [];
+        if (!arr.length) return;
+        var idx = Number(window.spiritProductGalleryIndex || 0);
+        if (!Number.isFinite(idx)) idx = 0;
+        if (idx < 0) idx = arr.length - 1;
+        if (idx >= arr.length) idx = 0;
+        window.spiritProductGalleryIndex = idx;
+        var img = document.getElementById('lightbox-img');
+        if (img) img.src = arr[idx];
+    } catch (e) {}
+}
+function spiritProductLightboxPrev(ev) {
+    try { if (ev && ev.stopPropagation) ev.stopPropagation(); } catch (e0) {}
+    try {
+        var arr = Array.isArray(window.spiritProductGalleryUrls) ? window.spiritProductGalleryUrls.filter(Boolean) : [];
+        if (!arr.length) return;
+        window.spiritProductGalleryIndex = Number(window.spiritProductGalleryIndex || 0) - 1;
+        spiritProductLightboxRenderAtIndex();
+    } catch (e) {}
+}
+function spiritProductLightboxNext(ev) {
+    try { if (ev && ev.stopPropagation) ev.stopPropagation(); } catch (e0) {}
+    try {
+        var arr = Array.isArray(window.spiritProductGalleryUrls) ? window.spiritProductGalleryUrls.filter(Boolean) : [];
+        if (!arr.length) return;
+        window.spiritProductGalleryIndex = Number(window.spiritProductGalleryIndex || 0) + 1;
+        spiritProductLightboxRenderAtIndex();
+    } catch (e) {}
 }
 
 // ======= SANCTUARY LIGHTBOX (full screen navigation) =======
