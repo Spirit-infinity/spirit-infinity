@@ -8667,12 +8667,13 @@ async function publierAnnonce() {
                     '- Batterie: ' + String(hw.battery_health != null ? hw.battery_health : '0') + '% (' + String(hw.battery_voltage != null ? hw.battery_voltage : '—') + 'V)',
                     '- Néon bas: ' + (hw.neon_low_active ? 'ACTIF' : 'INACTIF') + ' · ' + String(hw.neon_low_hours || 0) + 'h',
                     '- Néon haut: ' + (hw.neon_high_active ? 'ACTIF' : 'INACTIF') + ' · ' + String(hw.neon_high_hours || 0) + 'h',
-                    '- Figurine LED: ' + (hw.figurine_active ? 'ACTIVE' : 'INACTIVE') + ' · ' + String(hw.figurine_led_hours || 0) + 'h',
-                    '- MAC: ' + String(hw.mac_address || spiritResolveCurrentMacAddress() || 'XX:XX:XX:XX:XX:XX')
+                    '- Figurine LED: ' + (hw.figurine_active ? 'ACTIVE' : 'INACTIVE') + ' · ' + String(hw.figurine_led_hours || 0) + 'h'
                 ];
                 desc = String(desc || '').replace(/\n*\[\[SPIRIT_HW:[\s\S]*?\]\]\s*$/m, '').trim();
                 desc = hwLines.join('\n') + '\n\n' + desc;
-                desc += '\n\n[[SPIRIT_HW:' + JSON.stringify(hw).replace(/\]\]/g, '') + ']]';
+                var hwSafe = Object.assign({}, hw);
+                try { delete hwSafe.mac_address; } catch (eDel) {}
+                desc += '\n\n[[SPIRIT_HW:' + JSON.stringify(hwSafe).replace(/\]\]/g, '') + ']]';
             }
         } catch (eHwBuild) {}
     }
@@ -19990,30 +19991,6 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
   }
 
   async function spiritShowMySpiritCollection() {
-    if (!_spirit) {
-      alert('Supabase indisponible.');
-      return;
-    }
-    var uid = '';
-    try {
-      var u = await _spirit.auth.getUser();
-      uid = String(u && u.data && u.data.user && u.data.user.id || '').trim();
-    } catch (eU) {}
-    if (!uid) {
-      alert('Connecte-toi pour voir ta collection.');
-      return;
-    }
-    var q = await _spirit
-      .from('ledger_items')
-      .select('mac_address,device_status,last_seen,battery_health,chip_health,neon_low_hours,neon_high_hours,figurine_led_hours')
-      .eq('owner_user_id', uid)
-      .order('last_seen', { ascending: false })
-      .limit(200);
-    if (q.error) {
-      alert('Erreur collection: ' + (q.error.message || q.error));
-      return;
-    }
-    var rows = Array.isArray(q.data) ? q.data : [];
     var id = 'spiritMyCollectionModal';
     var m = document.getElementById(id);
     if (!m) {
@@ -20030,6 +20007,49 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
       document.body.appendChild(m);
     }
     var box = document.getElementById('spiritMyCollectionList');
+    m.style.display = 'flex';
+    if (box) box.innerHTML = '<div style="font-size:0.68rem;color:#888;">Chargement de ta collection…</div>';
+
+    if (!_spirit) {
+      if (box) box.innerHTML = '<div style="font-size:0.68rem;color:#e7a8a8;">Supabase indisponible.</div>';
+      return;
+    }
+    var uid = '';
+    try {
+      var u = await _spirit.auth.getUser();
+      uid = String(u && u.data && u.data.user && u.data.user.id || '').trim();
+    } catch (eU) {}
+    if (!uid) {
+      if (box) box.innerHTML = '<div style="font-size:0.68rem;color:#e7a8a8;">Connecte-toi pour voir ta collection.</div>';
+      return;
+    }
+
+    var rows = [];
+    var q = await _spirit
+      .from('ledger_items')
+      .select('mac_address,device_status,last_seen,battery_health,chip_health,neon_low_hours,neon_high_hours,figurine_led_hours')
+      .eq('owner_user_id', uid)
+      .order('last_seen', { ascending: false })
+      .limit(200);
+    if (!q.error && Array.isArray(q.data)) rows = q.data;
+
+    // Fallback: au moins la figurine active courante si le mapping owner_user_id n'est pas encore en place.
+    if (!rows.length) {
+      var mac = '';
+      try { mac = String(localStorage.getItem('spirit_mac_address') || '').trim(); } catch (eMac) {}
+      if (!mac) {
+        try { if (typeof spiritResolveCurrentMacAddress === 'function') mac = spiritResolveCurrentMacAddress(); } catch (eMac2) {}
+      }
+      if (mac) {
+        var qm = await _spirit
+          .from('ledger_items')
+          .select('mac_address,device_status,last_seen,battery_health,chip_health,neon_low_hours,neon_high_hours,figurine_led_hours')
+          .eq('mac_address', mac)
+          .maybeSingle();
+        if (!qm.error && qm.data) rows = [qm.data];
+      }
+    }
+
     if (box) {
       box.innerHTML = rows.length ? rows.map(function (r) {
         return '<div style="border:1px solid #2b2b2b;background:#111;padding:10px;border-radius:4px;">' +
@@ -20040,7 +20060,6 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
           '</div>';
       }).join('') : '<div style="font-size:0.68rem;color:#888;">Aucune figurine Spirit Tehnologie liée à ton compte.</div>';
     }
-    m.style.display = 'flex';
   }
 
   function spiritAttachDetectionOnPanelOpen() {
