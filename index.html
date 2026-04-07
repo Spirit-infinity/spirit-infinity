@@ -19827,13 +19827,17 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
       '<div id="spiritDetectStatus" style="font-size:0.62rem;color:#aaa;margin-top:6px;">Scan réseau en attente...</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
       '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="void spiritScanNetworkDevices()">SCANNER LES SPIRIT TEHNOLOGIE</button>' +
-      '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#121212;border:1px solid rgba(255,102,0,0.45);color:#ffb07a;" onclick="void spiritShowMySpiritCollection()">VOIR MA COLLECTION HOT TOYS SPIRIT INFINITY</button>' +
+      '<button type="button" id="spiritBtnShowCollection" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#121212;border:1px solid rgba(255,102,0,0.45);color:#ffb07a;" onclick="void spiritShowMySpiritCollection()">VOIR MA COLLECTION HOT TOYS SPIRIT INFINITY</button>' +
       '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#1b0f0f;border:1px solid #804;color:#ff9a9a;" onclick="void spiritReleaseMyCurrentDevice()">LIBÉRER LA FIGURINE</button>' +
       '</div>' +
       '<div id="spiritDetectList" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;"></div>' +
       '<div id="spiritPairingRate" style="font-size:0.6rem;color:#888;margin-top:8px;"></div>';
     var modalContent = host.querySelector('.modal-content');
     if (modalContent) modalContent.appendChild(card);
+    try {
+      var bCol = document.getElementById('spiritBtnShowCollection');
+      if (bCol) bCol.addEventListener('click', function () { void spiritShowMySpiritCollection(); });
+    } catch (eB) {}
   }
 
   function spiritOpenDetectedModal(mac) {
@@ -19857,7 +19861,12 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     m.dataset.mac = mac;
     var txt = document.getElementById('spiritDetectedMacTxt');
     if (txt) txt.textContent = 'MAC: ' + mac;
-    m.style.display = 'flex';
+    try {
+      m.style.setProperty('display', 'flex', 'important');
+      m.style.setProperty('z-index', '200120', 'important');
+    } catch (eDisp) {
+      m.style.display = 'flex';
+    }
   }
 
   async function spiritScanNetworkDevices() {
