@@ -19827,7 +19827,7 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
       '<div id="spiritDetectStatus" style="font-size:0.62rem;color:#aaa;margin-top:6px;">Scan réseau en attente...</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
       '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="void spiritScanNetworkDevices()">SCANNER LES SPIRIT TEHNOLOGIE</button>' +
-      '<button type="button" id="spiritBtnShowCollection" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#121212;border:1px solid rgba(255,102,0,0.45);color:#ffb07a;" onclick="void spiritShowMySpiritCollection()">VOIR MA COLLECTION HOT TOYS SPIRIT INFINITY</button>' +
+      '<button type="button" id="spiritBtnShowCollection" data-spirit-action="show-collection" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#121212;border:1px solid rgba(255,102,0,0.45);color:#ffb07a;" onclick="void spiritShowMySpiritCollection()">VOIR MA COLLECTION HOT TOYS SPIRIT INFINITY</button>' +
       '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#1b0f0f;border:1px solid #804;color:#ff9a9a;" onclick="void spiritReleaseMyCurrentDevice()">LIBÉRER LA FIGURINE</button>' +
       '</div>' +
       '<div id="spiritDetectList" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;"></div>' +
@@ -19836,7 +19836,13 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     if (modalContent) modalContent.appendChild(card);
     try {
       var bCol = document.getElementById('spiritBtnShowCollection');
-      if (bCol) bCol.addEventListener('click', function () { void spiritShowMySpiritCollection(); });
+      if (bCol) bCol.addEventListener('click', function () {
+        try {
+          var st = document.getElementById('spiritDetectStatus');
+          if (st) st.textContent = 'Ouverture de la collection...';
+        } catch (eSt) {}
+        void spiritShowMySpiritCollection();
+      });
     } catch (eB) {}
   }
 
@@ -20000,6 +20006,7 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
   }
 
   async function spiritShowMySpiritCollection() {
+    try {
     var id = 'spiritMyCollectionModal';
     var m = document.getElementById(id);
     if (!m) {
@@ -20069,6 +20076,10 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
           '</div>';
       }).join('') : '<div style="font-size:0.68rem;color:#888;">Aucune figurine Spirit Tehnologie liée à ton compte.</div>';
     }
+    } catch (e) {
+      console.warn('[SPIRIT] spiritShowMySpiritCollection', e);
+      alert('Impossible d’ouvrir la collection: ' + (e && e.message ? e.message : e));
+    }
   }
 
   function spiritAttachDetectionOnPanelOpen() {
@@ -20089,6 +20100,21 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
   try {
     document.addEventListener('DOMContentLoaded', function () {
       try { spiritEnsureDetectionUi(); } catch (e0) {}
+      try {
+        document.addEventListener('click', function (ev) {
+          var t = ev && ev.target ? ev.target : null;
+          if (!t || typeof t.closest !== 'function') return;
+          var btn = t.closest('[data-spirit-action="show-collection"]');
+          if (!btn) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+          try {
+            var st = document.getElementById('spiritDetectStatus');
+            if (st) st.textContent = 'Ouverture de la collection...';
+          } catch (eSt) {}
+          void spiritShowMySpiritCollection();
+        }, true);
+      } catch (eDel) {}
     });
   } catch (eD) {}
 
