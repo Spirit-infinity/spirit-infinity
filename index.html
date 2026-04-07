@@ -20013,9 +20013,9 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
       m = document.createElement('div');
       m.id = id;
       m.className = 'overlay';
-      m.style.cssText = 'display:none;';
+      m.style.cssText = 'display:none;position:fixed;inset:0;z-index:200300;background:rgba(0,0,0,0.78);align-items:center;justify-content:center;padding:18px;overflow:auto;';
       m.innerHTML =
-        '<div class="modal-content" style="max-width:760px;border:1px solid rgba(255,102,0,0.6);background:#0a0a0a;">' +
+        '<div class="modal-content" style="max-width:760px;width:min(760px,95vw);border:1px solid rgba(255,102,0,0.6);background:#0a0a0a;display:block !important;position:relative;z-index:200301;">' +
         '<h2 style="color:#ff6600;font-size:1rem;">Ma collection Hot Toys Spirit Infinity</h2>' +
         '<div id="spiritMyCollectionList" style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto;"></div>' +
         '<div style="display:flex;justify-content:flex-end;margin-top:10px;"><button type="button" class="btn-action" style="background:#222;border:1px solid #444;color:#bbb;" onclick="document.getElementById(\'spiritMyCollectionModal\').style.display=\'none\'">Fermer</button></div>' +
@@ -20023,7 +20023,15 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
       document.body.appendChild(m);
     }
     var box = document.getElementById('spiritMyCollectionList');
-    m.style.display = 'flex';
+    try {
+      m.style.setProperty('display', 'flex', 'important');
+      m.style.setProperty('position', 'fixed', 'important');
+      m.style.setProperty('inset', '0', 'important');
+      m.style.setProperty('z-index', '200300', 'important');
+      m.style.setProperty('background', 'rgba(0,0,0,0.78)', 'important');
+      m.style.setProperty('align-items', 'center', 'important');
+      m.style.setProperty('justify-content', 'center', 'important');
+    } catch (eDisp) { m.style.display = 'flex'; }
     if (box) box.innerHTML = '<div style="font-size:0.68rem;color:#888;">Chargement de ta collection…</div>';
 
     if (!_spirit) {
