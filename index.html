@@ -8834,6 +8834,16 @@ async function publierAnnonce() {
 
         try {
             var newId = insRows && insRows[0] && insRows[0].id != null ? insRows[0].id : null;
+            if (newId == null) {
+                try {
+                    var selIns = await _spirit
+                        .from('products_live')
+                        .select('id')
+                        .eq('uuid', uuidVal)
+                        .maybeSingle();
+                    if (!selIns.error && selIns.data && selIns.data.id != null) newId = selIns.data.id;
+                } catch (eSelIns) {}
+            }
             if (typeof spiritLocalSoldUnmark === 'function') {
                 spiritLocalSoldUnmark(Object.assign({}, newItem, { id: newId, owner_id: ownerIdPub }));
             }
