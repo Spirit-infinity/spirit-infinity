@@ -19748,12 +19748,21 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
       device_status: 'actif',
       last_seen: new Date().toISOString()
     };
-    var up = await _spirit.from('ledger_items').update(payload).eq('mac_address', mac).is('owner_user_id', null);
+    var up = await _spirit
+      .from('ledger_items')
+      .update(payload)
+      .eq('mac_address', mac)
+      .is('owner_user_id', null)
+      .select('mac_address,owner_user_id')
+      .maybeSingle();
     if (up && up.error) {
       if (String(up.error.message || '').toLowerCase().indexOf('0 rows') >= 0) {
         return { ok: false, reason: 'already_claimed' };
       }
       return { ok: false, reason: 'update_error', error: up.error };
+    }
+    if (!up || !up.data) {
+      return { ok: false, reason: 'already_claimed' };
     }
     try {
       localStorage.setItem('spirit_mac_address', mac);
@@ -19859,10 +19868,19 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
         var mac = String(r.mac_address || '').trim();
         return '<div style="border:1px solid #2b2b2b;background:#111;padding:8px;border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
           '<div style="font-size:0.62rem;color:#ccc;">' + mac + '<br><span style="color:#777;">vu: ' + String(r.last_seen || '—') + '</span></div>' +
-          '<button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;" onclick="spiritOpenDetectedModal(\'' + mac.replace(/'/g, '') + '\')">Activer</button>' +
+          '<button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;" data-spirit-activer-mac="' + mac.replace(/"/g, '&quot;') + '">Activer</button>' +
           '</div>';
       }).join('');
     }
+    try {
+      list.querySelectorAll('[data-spirit-activer-mac]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var mac = String(btn.getAttribute('data-spirit-activer-mac') || '').trim();
+          if (!mac) return;
+          spiritOpenDetectedModal(mac);
+        });
+      });
+    } catch (eBind) {}
     var claimedCount = 0;
     try {
       var own = await _spirit.from('ledger_items').select('mac_address', { count: 'exact', head: true }).not('owner_user_id', 'is', null);
@@ -19880,7 +19898,12 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     if (!mac) return;
     var out = await spiritClaimDevice(mac);
     if (!out.ok) {
-      alert('Impossible d\'activer: ' + String(out.reason || 'erreur'));
+      var msg = 'Impossible d\'activer: ' + String(out.reason || 'erreur');
+      try {
+        var st = document.getElementById('spiritDetectStatus');
+        if (st) st.textContent = msg;
+      } catch (eSt) {}
+      alert(msg);
       return;
     }
     if (m) m.style.display = 'none';
@@ -19943,29 +19966,6 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
