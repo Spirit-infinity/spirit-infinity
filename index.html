@@ -19696,6 +19696,251 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
 }
 </script>
 
+<script>
+// (c) 2026 Spirit Infinity - Tous droits réservés
+(function () {
+  function spiritSplitFees(price) {
+    var p = Number(price || 0);
+    if (!Number.isFinite(p) || p < 0) p = 0;
+    var total = p * 0.08;
+    return {
+      creator_fee: +(p * 0.03).toFixed(2),
+      firm_fee: +(p * 0.03).toFixed(2),
+      bank_fee: +(p * 0.02).toFixed(2),
+      buyer_protection_total: +total.toFixed(2),
+      seller_net: +(p - total).toFixed(2)
+    };
+  }
+
+  async function spiritCheckDeviceStatus(macAddress) {
+    var mac = String(macAddress || '').trim().toUpperCase();
+    if (!mac) return { ok: false, reason: 'missing_mac', data: null };
+    if (!_spirit || !_spirit.from) return { ok: false, reason: 'supabase_unavailable', data: null };
+    var r = await _spirit
+      .from('ledger_items')
+      .select('mac_address,owner_user_id,device_status,last_seen')
+      .eq('mac_address', mac)
+      .maybeSingle();
+    if (r.error) return { ok: false, reason: 'query_error', error: r.error, data: null };
+    if (!r.data) return { ok: true, reason: 'not_found', data: null };
+    return { ok: true, reason: 'found', data: r.data };
+  }
+
+  async function spiritClaimDevice(macAddress) {
+    var mac = String(macAddress || '').trim().toUpperCase();
+    if (!mac) return { ok: false, reason: 'missing_mac' };
+    if (!_spirit || !_spirit.from) return { ok: false, reason: 'supabase_unavailable' };
+    var uid = '';
+    try {
+      var u = await _spirit.auth.getUser();
+      uid = String(u && u.data && u.data.user && u.data.user.id || '').trim();
+    } catch (e) {}
+    if (!uid) return { ok: false, reason: 'not_authenticated' };
+
+    var chk = await spiritCheckDeviceStatus(mac);
+    if (!chk.ok) return chk;
+    if (chk.data && chk.data.owner_user_id && String(chk.data.owner_user_id).trim() !== uid) {
+      return { ok: false, reason: 'already_owned', data: chk.data };
+    }
+
+    var payload = {
+      owner_user_id: uid,
+      device_status: 'actif',
+      last_seen: new Date().toISOString()
+    };
+    var up = await _spirit.from('ledger_items').update(payload).eq('mac_address', mac).is('owner_user_id', null);
+    if (up && up.error) {
+      if (String(up.error.message || '').toLowerCase().indexOf('0 rows') >= 0) {
+        return { ok: false, reason: 'already_claimed' };
+      }
+      return { ok: false, reason: 'update_error', error: up.error };
+    }
+    try {
+      localStorage.setItem('spirit_mac_address', mac);
+      window.currentMacAddress = mac;
+    } catch (eLs) {}
+    return { ok: true, reason: 'claimed', mac_address: mac };
+  }
+
+  async function spiritReleaseDevice(macAddress) {
+    var mac = String(macAddress || '').trim().toUpperCase();
+    if (!mac || !_spirit) return { ok: false, reason: 'invalid' };
+    var uid = '';
+    try {
+      var u = await _spirit.auth.getUser();
+      uid = String(u && u.data && u.data.user && u.data.user.id || '').trim();
+    } catch (e) {}
+    if (!uid) return { ok: false, reason: 'not_authenticated' };
+    var up = await _spirit
+      .from('ledger_items')
+      .update({ owner_user_id: null, device_status: 'libéré', last_seen: new Date().toISOString() })
+      .eq('mac_address', mac)
+      .eq('owner_user_id', uid);
+    if (up.error) return { ok: false, reason: 'release_error', error: up.error };
+    return { ok: true, reason: 'released' };
+  }
+
+  function spiritPairingSuccessRate(total, claimed) {
+    total = Number(total || 0);
+    claimed = Number(claimed || 0);
+    if (!total || total < 0) return 0;
+    return Math.max(0, Math.min(100, +(claimed * 100 / total).toFixed(1)));
+  }
+
+  function spiritEnsureDetectionUi() {
+    var host = document.getElementById('ledgerModal');
+    if (!host || document.getElementById('spiritDeviceDetectCard')) return;
+    var card = document.createElement('div');
+    card.id = 'spiritDeviceDetectCard';
+    card.style.cssText = 'margin-top:14px;padding:12px;border:1px solid rgba(255,102,0,0.45);background:#0b0b0b;border-radius:4px;';
+    card.innerHTML =
+      '<div style="font-size:0.72rem;color:#ff6600;font-weight:800;letter-spacing:1px;">DÉTECTION DE MATÉRIEL</div>' +
+      '<div id="spiritDetectStatus" style="font-size:0.62rem;color:#aaa;margin-top:6px;">Scan réseau en attente...</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
+      '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="void spiritScanNetworkDevices()">SCANNER LES ESP32</button>' +
+      '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#1b0f0f;border:1px solid #804;color:#ff9a9a;" onclick="void spiritReleaseMyCurrentDevice()">LIBÉRER LA FIGURINE</button>' +
+      '</div>' +
+      '<div id="spiritDetectList" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;"></div>' +
+      '<div id="spiritPairingRate" style="font-size:0.6rem;color:#888;margin-top:8px;"></div>';
+    var modalContent = host.querySelector('.modal-content');
+    if (modalContent) modalContent.appendChild(card);
+  }
+
+  function spiritOpenDetectedModal(mac) {
+    var id = 'spiritDeviceDetectedModal';
+    var m = document.getElementById(id);
+    if (!m) {
+      m = document.createElement('div');
+      m.id = id;
+      m.className = 'overlay';
+      m.style.cssText = 'display:none;';
+      m.innerHTML =
+        '<div class="modal-content" style="max-width:520px;border:1px solid rgba(255,102,0,0.6);background:#0a0a0a;">' +
+        '<h2 style="color:#ff6600;font-size:1rem;">Nouvelle figurine détectée !</h2>' +
+        '<p id="spiritDetectedMacTxt" style="font-size:0.72rem;color:#bbb;">MAC: —</p>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+        '<button type="button" class="btn-action" onclick="void spiritConfirmClaimFromModal()">Activer ma figurine</button>' +
+        '<button type="button" class="btn-action" style="background:#222;border:1px solid #444;color:#bbb;" onclick="document.getElementById(\'spiritDeviceDetectedModal\').style.display=\'none\'">Fermer</button>' +
+        '</div></div>';
+      document.body.appendChild(m);
+    }
+    m.dataset.mac = mac;
+    var txt = document.getElementById('spiritDetectedMacTxt');
+    if (txt) txt.textContent = 'MAC: ' + mac;
+    m.style.display = 'flex';
+  }
+
+  async function spiritScanNetworkDevices() {
+    spiritEnsureDetectionUi();
+    var status = document.getElementById('spiritDetectStatus');
+    var list = document.getElementById('spiritDetectList');
+    if (status) status.textContent = 'Scan en cours...';
+    if (list) list.innerHTML = '';
+    if (!_spirit) {
+      if (status) status.textContent = 'Supabase indisponible.';
+      return;
+    }
+    var tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    var q = await _spirit
+      .from('ledger_items')
+      .select('mac_address,owner_user_id,last_seen,device_status')
+      .gte('last_seen', tenMinAgo)
+      .is('owner_user_id', null)
+      .order('last_seen', { ascending: false })
+      .limit(30);
+    if (q.error) {
+      if (status) status.textContent = 'Erreur scan: ' + (q.error.message || q.error);
+      return;
+    }
+    var rows = Array.isArray(q.data) ? q.data : [];
+    if (status) status.textContent = rows.length ? (rows.length + ' figurine(s) détectée(s).') : 'Aucune nouvelle figurine détectée.';
+    if (list) {
+      list.innerHTML = rows.map(function (r) {
+        var mac = String(r.mac_address || '').trim();
+        return '<div style="border:1px solid #2b2b2b;background:#111;padding:8px;border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
+          '<div style="font-size:0.62rem;color:#ccc;">' + mac + '<br><span style="color:#777;">vu: ' + String(r.last_seen || '—') + '</span></div>' +
+          '<button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;" onclick="spiritOpenDetectedModal(\'' + mac.replace(/'/g, '') + '\')">Activer</button>' +
+          '</div>';
+      }).join('');
+    }
+    var claimedCount = 0;
+    try {
+      var own = await _spirit.from('ledger_items').select('mac_address', { count: 'exact', head: true }).not('owner_user_id', 'is', null);
+      claimedCount = Number(own && own.count || 0);
+    } catch (eCount) {}
+    var total = rows.length + claimedCount;
+    var rate = spiritPairingSuccessRate(total, claimedCount);
+    var rateEl = document.getElementById('spiritPairingRate');
+    if (rateEl) rateEl.textContent = 'Taux de réussite théorique appairage: ' + rate + '%';
+  }
+
+  async function spiritConfirmClaimFromModal() {
+    var m = document.getElementById('spiritDeviceDetectedModal');
+    var mac = m ? String(m.dataset.mac || '').trim() : '';
+    if (!mac) return;
+    var out = await spiritClaimDevice(mac);
+    if (!out.ok) {
+      alert('Impossible d\'activer: ' + String(out.reason || 'erreur'));
+      return;
+    }
+    if (m) m.style.display = 'none';
+    try { await refreshSpiritPanneauHardwareUI({ skipFetch: false }); } catch (e) {}
+    try { await spiritScanNetworkDevices(); } catch (e2) {}
+    alert('Figurine activée: ' + mac);
+  }
+
+  async function spiritReleaseMyCurrentDevice() {
+    var mac = '';
+    try { mac = String(localStorage.getItem('spirit_mac_address') || '').trim(); } catch (e) {}
+    if (!mac) {
+      try { mac = spiritResolveCurrentMacAddress(); } catch (e2) {}
+    }
+    if (!mac) {
+      alert('Aucune MAC active.');
+      return;
+    }
+    if (!confirm('Confirmer la libération de cette figurine pour revente ?')) return;
+    var r = await spiritReleaseDevice(mac);
+    if (!r.ok) {
+      alert('Libération impossible: ' + String(r.reason || 'erreur'));
+      return;
+    }
+    alert('Figurine libérée: ' + mac);
+    try { localStorage.removeItem('spirit_mac_address'); } catch (eRm) {}
+    try { window.currentMacAddress = ''; } catch (eW) {}
+    try { await spiritScanNetworkDevices(); } catch (e3) {}
+  }
+
+  function spiritAttachDetectionOnPanelOpen() {
+    var orig = window.showLedgerModal;
+    if (typeof orig !== 'function' || orig.__spiritDetectionWrapped) return;
+    var wrap = function () {
+      var out = orig.apply(this, arguments);
+      setTimeout(function () {
+        try { spiritEnsureDetectionUi(); } catch (eU) {}
+        try { void spiritScanNetworkDevices(); } catch (eS) {}
+      }, 150);
+      return out;
+    };
+    wrap.__spiritDetectionWrapped = true;
+    window.showLedgerModal = wrap;
+  }
+
+  try {
+    window.spiritSplitFees = spiritSplitFees;
+    window.spiritCheckDeviceStatus = spiritCheckDeviceStatus;
+    window.spiritClaimDevice = spiritClaimDevice;
+    window.spiritReleaseDevice = spiritReleaseDevice;
+    window.spiritPairingSuccessRate = spiritPairingSuccessRate;
+    window.spiritScanNetworkDevices = spiritScanNetworkDevices;
+    window.spiritOpenDetectedModal = spiritOpenDetectedModal;
+    window.spiritConfirmClaimFromModal = spiritConfirmClaimFromModal;
+    window.spiritReleaseMyCurrentDevice = spiritReleaseMyCurrentDevice;
+    spiritAttachDetectionOnPanelOpen();
+  } catch (e) {}
+})();
+</script>
+
 </body>
 </html>
 
