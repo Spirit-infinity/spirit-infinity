@@ -4931,6 +4931,7 @@
         grid.style.display = 'block';
 
         const items = Array.isArray(hotToysPreorders) ? hotToysPreorders : [];
+        try { void spiritHandlePreorderAnnouncements(items); } catch (eAnn) {}
         if (items.length === 0) {
             return;
         }
@@ -4982,9 +4983,139 @@
     var neonLowHoursReading = 142;
     var neonHighHoursReading = 88;
     var figurineLedHoursReading = 210;
+    var chipHealthStatusReading = 'OK - 100% FONCTIONNEL';
     var mosfetNeonBas = false;
     var mosfetNeonHaut = false;
     var mosfetFigurine = false;
+    var spiritLastHardwareCheck = null;
+    var spiritPreorderSeenIds = Object.create(null);
+
+    function spiritResolveCurrentMacAddress() {
+        try {
+            if (typeof currentMacAddress !== 'undefined' && currentMacAddress) {
+                var m = String(currentMacAddress).trim();
+                if (m && m !== 'XX:XX:XX:XX:XX:XX') return m;
+            }
+        } catch (e) {}
+        try {
+            var ls = String(localStorage.getItem('spirit_mac_address') || '').trim();
+            if (ls && ls !== 'XX:XX:XX:XX:XX:XX') return ls;
+        } catch (e2) {}
+        return '';
+    }
+
+    function spiritResolveOwnerUid() {
+        try {
+            if (typeof spiritGetCurrentUserId === 'function') {
+                var uid0 = String(spiritGetCurrentUserId() || '').trim();
+                if (uid0) return uid0;
+            }
+        } catch (e) {}
+        try {
+            var uid = String(typeof MY_TEST_ID !== 'undefined' ? MY_TEST_ID : '').trim();
+            if (uid) return uid;
+        } catch (e2) {}
+        return '';
+    }
+
+    async function spiritLedgerSafeUpdateByMac(macID, payload) {
+        if (!_spirit || !macID) return { ok: false, error: null };
+        try {
+            var q = await _spirit.from('ledger_items').update(payload).eq('mac_address', macID);
+            if (q && q.error) throw q.error;
+            return { ok: true, error: null };
+        } catch (e) {
+            return { ok: false, error: e };
+        }
+    }
+
+    async function spiritPushHardwareStateToLedger() {
+        var macID = spiritResolveCurrentMacAddress();
+        if (!_spirit || !macID) return;
+        var payloadFull = {
+            cmd_neon_low: !!mosfetNeonBas,
+            cmd_neon_high: !!mosfetNeonHaut,
+            cmd_figurine: !!mosfetFigurine,
+            neon_low_active: !!mosfetNeonBas,
+            neon_high_active: !!mosfetNeonHaut,
+            figurine_active: !!mosfetFigurine,
+            chip_health: String(chipHealthStatusReading || 'OK - 100% FONCTIONNEL'),
+            battery_health: Number.isFinite(Number(batteryLevelPercent)) ? Math.round(Number(batteryLevelPercent)) : null,
+            battery_voltage: Number.isFinite(Number(batteryVoltageReading)) ? Number(batteryVoltageReading) : null,
+            last_seen: new Date().toISOString()
+        };
+        var r = await spiritLedgerSafeUpdateByMac(macID, payloadFull);
+        if (r.ok) return;
+        try {
+            var rf = await spiritLedgerSafeUpdateByMac(macID, {
+                battery_health: Number.isFinite(Number(batteryLevelPercent)) ? Math.round(Number(batteryLevelPercent)) : null,
+                last_seen: new Date().toISOString(),
+                needs_pulse_alert: false
+            });
+            if (!rf.ok) console.warn('[SPIRIT] ledger_items fallback update:', rf.error && rf.error.message ? rf.error.message : rf.error);
+        } catch (e2) {
+            console.warn('[SPIRIT] ledger_items update failed:', e2);
+        }
+    }
+
+    async function spiritMarkPreorderPulseToLedger(seconds) {
+        seconds = Number(seconds || 30);
+        if (!_spirit) return;
+        var macID = spiritResolveCurrentMacAddress();
+        var untilIso = new Date(Date.now() + Math.max(1, seconds) * 1000).toISOString();
+        var payload = { needs_pulse_alert: true, pulse_neon_low_until: untilIso, last_seen: new Date().toISOString() };
+        try {
+            if (macID) {
+                var byMac = await spiritLedgerSafeUpdateByMac(macID, payload);
+                if (byMac.ok) return;
+            }
+            var ownerUid = spiritResolveOwnerUid();
+            if (ownerUid) {
+                var q = await _spirit.from('ledger_items').update(payload).eq('owner_user_id', ownerUid);
+                if (q && q.error) throw q.error;
+            }
+        } catch (e) {
+            try {
+                if (macID) {
+                    await _spirit.from('ledger_items')
+                        .update({ needs_pulse_alert: true, last_seen: new Date().toISOString() })
+                        .eq('mac_address', macID);
+                }
+            } catch (e2) {
+                console.warn('[SPIRIT] preorder pulse ledger update:', e2);
+            }
+        }
+    }
+
+    function spiritNotifyPreorderAnnouncement(item) {
+        try { if (typeof window.spiritWebPushTrySubscribe === 'function') void window.spiritWebPushTrySubscribe({ fromPreorder: true }); } catch (e) {}
+        try {
+            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                var body = 'Nouvelle précommande: ' + String((item && item.name) || 'Hot Toys');
+                new Notification('SPIRIT INFINITY', { body: body, icon: 'icon-512-v2.png' });
+            }
+        } catch (e2) {}
+    }
+
+    async function spiritHandlePreorderAnnouncements(items) {
+        items = Array.isArray(items) ? items : [];
+        var lsKey = 'spirit_preorders_seen_v1';
+        var seen = {};
+        try { seen = JSON.parse(localStorage.getItem(lsKey) || '{}') || {}; } catch (e) { seen = {}; }
+        var hasNew = false;
+        items.forEach(function (it) {
+            var id = String((it && it.id) || '').trim();
+            if (!id) return;
+            if (!seen[id] && !spiritPreorderSeenIds[id]) {
+                spiritNotifyPreorderAnnouncement(it);
+                hasNew = true;
+            }
+            spiritPreorderSeenIds[id] = 1;
+            seen[id] = Date.now();
+        });
+        try { localStorage.setItem(lsKey, JSON.stringify(seen)); } catch (e2) {}
+        if (hasNew) await spiritMarkPreorderPulseToLedger(30);
+    }
 
     // CALCUL DU SPLIT FINANCIER 3% / 3% / 2%
     function calculateSpiritSplit(price) {
@@ -10025,11 +10156,42 @@ async function spiritLoadListingMessagesForProduct(productId) {
     try { window.openProduct = openProduct; } catch (e) {}
     // --- AUTRES FONCTIONS ---
     function transferToSale() {
-        diagActive = true;
-        closeModals();
-        startCertification();
-        chooseMethod('hot_native');
-        document.getElementById('diag-link').style.display = 'block';
+        (async function () {
+            diagActive = true;
+            try { await refreshSpiritPanneauHardwareUI({ skipFetch: false }); } catch (eR) {}
+            var healthRaw = String(chipHealthStatusReading || '').toUpperCase();
+            var batteryPct = Number(batteryLevelPercent || 0);
+            var checkData = {
+                checked_at: new Date().toISOString(),
+                mac_address: spiritResolveCurrentMacAddress() || 'XX:XX:XX:XX:XX:XX',
+                chip_health: chipHealthStatusReading || 'INCONNU',
+                battery_health: Number.isFinite(batteryPct) ? Math.round(batteryPct) : 0,
+                battery_voltage: Number.isFinite(Number(batteryVoltageReading)) ? Number(batteryVoltageReading) : null,
+                neon_low_active: !!mosfetNeonBas,
+                neon_high_active: !!mosfetNeonHaut,
+                figurine_active: !!mosfetFigurine,
+                neon_low_hours: Number(neonLowHoursReading || 0),
+                neon_high_hours: Number(neonHighHoursReading || 0),
+                figurine_led_hours: Number(figurineLedHoursReading || 0)
+            };
+            spiritLastHardwareCheck = checkData;
+            try { window.spiritLastHardwareCheck = checkData; } catch (eW) {}
+            var okChip = healthRaw.indexOf('OK') >= 0;
+            var okBatt = Number.isFinite(batteryPct) && batteryPct >= 10;
+            if (!okChip || !okBatt) {
+                alert("Check matériel non valide : vérifie l'état de la puce Spirit et la batterie (>= 10%).");
+                return;
+            }
+            try { if (typeof spiritPushHardwareStateToLedger === 'function') await spiritPushHardwareStateToLedger(); } catch (eL) {}
+            closeModals();
+            startCertification();
+            chooseMethod('hot_native');
+            var d = document.getElementById('diag-link');
+            if (d) d.style.display = 'block';
+        })().catch(function (e) {
+            console.warn('[SPIRIT] transferToSale check failed', e);
+            alert('Impossible de valider le check hardware pour le transfert.');
+        });
     }
     try { window.transferToSale = transferToSale; } catch (e) {}
 
@@ -18694,6 +18856,7 @@ function spiritPanneauMosfetChanged(which) {
     if (which === 'neon_bas' && elB) mosfetNeonBas = !!elB.checked;
     if (which === 'neon_haut' && elH) mosfetNeonHaut = !!elH.checked;
     if (which === 'figurine' && elF) mosfetFigurine = !!elF.checked;
+    try { void spiritPushHardwareStateToLedger(); } catch (e) {}
 }
 
 async function refreshSpiritPanneauHardwareUI(opts) {
@@ -18704,9 +18867,17 @@ async function refreshSpiritPanneauHardwareUI(opts) {
             const { data, error } = await _spirit.from('ledger_items').select('*').eq('mac_address', macID).maybeSingle();
             if (!error && data) {
                 if (data.battery_health != null && !isNaN(Number(data.battery_health))) batteryLevelPercent = Number(data.battery_health);
+                if (data.battery_voltage != null && !isNaN(Number(data.battery_voltage))) batteryVoltageReading = Number(data.battery_voltage);
                 if (data.neon_low_hours != null) neonLowHoursReading = Number(data.neon_low_hours);
                 if (data.neon_high_hours != null) neonHighHoursReading = Number(data.neon_high_hours);
                 if (data.figurine_led_hours != null) figurineLedHoursReading = Number(data.figurine_led_hours);
+                if (data.chip_health != null && String(data.chip_health).trim() !== '') chipHealthStatusReading = String(data.chip_health).trim();
+                if (data.cmd_neon_low != null) mosfetNeonBas = !!data.cmd_neon_low;
+                else if (data.neon_low_active != null) mosfetNeonBas = !!data.neon_low_active;
+                if (data.cmd_neon_high != null) mosfetNeonHaut = !!data.cmd_neon_high;
+                else if (data.neon_high_active != null) mosfetNeonHaut = !!data.neon_high_active;
+                if (data.cmd_figurine != null) mosfetFigurine = !!data.cmd_figurine;
+                else if (data.figurine_active != null) mosfetFigurine = !!data.figurine_active;
             }
         } catch (e) { console.warn('[SPIRIT] refreshSpiritPanneauHardwareUI', e); }
     }
@@ -18722,9 +18893,16 @@ async function refreshSpiritPanneauHardwareUI(opts) {
     const lowEl = document.getElementById('ctrl-neon-low');
     const highEl = document.getElementById('ctrl-neon-high');
     const figEl = document.getElementById('ctrl-fig');
+    const diagEl = document.getElementById('ctrl-diag');
     if (lowEl) lowEl.textContent = neonLowHoursReading + ' ' + usageLbl;
     if (highEl) highEl.textContent = neonHighHoursReading + ' ' + usageLbl;
     if (figEl) figEl.textContent = figurineLedHoursReading + ' ' + usageLbl;
+    if (diagEl) {
+        var ds = String(chipHealthStatusReading || 'OK - 100% FONCTIONNEL').trim();
+        diagEl.textContent = ds;
+        var dsu = ds.toUpperCase();
+        diagEl.style.color = (dsu.indexOf('OK') >= 0) ? 'var(--spirit-green)' : '#ff5f5f';
+    }
 
     const tb = document.getElementById('toggle-mosfet-neon-bas');
     const th = document.getElementById('toggle-mosfet-neon-haut');
