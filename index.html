@@ -8794,8 +8794,29 @@ async function publierAnnonce() {
                     });
                 }
             } catch (eUn) {}
+            try {
+                var sellerUidUpd = typeof spiritNormUid === 'function'
+                    ? spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '')
+                    : String((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '').trim().toLowerCase();
+                if (eid != null && sellerUidUpd && typeof spiritNotifyFollowersNewListing === 'function') {
+                    await spiritNotifyFollowersNewListing(sellerUidUpd, eid, title);
+                }
+            } catch (eNfUpd) {
+                console.warn('[SPIRIT] Notifications abonnés (update annonce):', eNfUpd && eNfUpd.message ? eNfUpd.message : eNfUpd);
+            }
             editingId = null;
             alert(tAl('cert_pub_update_ok'));
+            try {
+                var meUidUp = typeof spiritNormUid === 'function'
+                    ? spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '')
+                    : String((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '').trim().toLowerCase();
+                if (meUidUp && typeof spiritSanctuarySystemNotifToSelf === 'function') {
+                    await spiritSanctuarySystemNotifToSelf(meUidUp, 'listing_new_self', String(eid), 'Annonce mise à jour : ' + String(title || 'Sans titre'));
+                }
+                if (typeof spiritNotifyMyMobileOnListingPublish === 'function') {
+                    await spiritNotifyMyMobileOnListingPublish(title, eid);
+                }
+            } catch (ePushSelfUp) {}
             try { closeModals(); } catch (e) {}
             try {
                 await spiritRefreshAllMarketBuckets();
@@ -8853,6 +8874,18 @@ async function publierAnnonce() {
         };
         const { error: liErr } = await _spirit.from('ledger_items').upsert([liRow], { onConflict: 'mac_address' });
         if (liErr) console.warn('[SPIRIT] ledger_items (annonce):', liErr.message);
+
+        try {
+            var meUidNew = typeof spiritNormUid === 'function'
+                ? spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '')
+                : String((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '').trim().toLowerCase();
+            if (meUidNew && typeof spiritSanctuarySystemNotifToSelf === 'function') {
+                await spiritSanctuarySystemNotifToSelf(meUidNew, 'listing_new_self', String(newId != null ? newId : ''), 'Annonce publiée : ' + String(title || 'Sans titre'));
+            }
+            if (typeof spiritNotifyMyMobileOnListingPublish === 'function') {
+                await spiritNotifyMyMobileOnListingPublish(title, newId);
+            }
+        } catch (ePushSelfNew) {}
 
         alert(tAl('cert_pub_insert_ok'));
 
@@ -13652,6 +13685,36 @@ async function spiritWebPushTrySubscribe(opts) {
 
 function spiritWebPushEnableFromSettings() {
     void spiritWebPushTrySubscribe({ fromUser: true });
+}
+
+/** Notification locale immédiate (navigateur/PWA) après publication d'annonce. */
+async function spiritNotifyMyMobileOnListingPublish(listingTitle, listingId) {
+    var tit = String(listingTitle || '').trim() || 'Annonce Spirit';
+    var lid = String(listingId != null ? listingId : '').trim();
+    try { await spiritWebPushTrySubscribe({ fromUser: false }); } catch (eSub) {}
+    var body = 'Annonce publiée: ' + tit;
+    var data = { kind: 'listing_new_self', listing_id: lid };
+    try {
+        if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+            var reg = await navigator.serviceWorker.getRegistration();
+            if (reg && typeof reg.showNotification === 'function' && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                await reg.showNotification('Spirit Infinity', {
+                    body: body,
+                    icon: 'icon-512-v2.png',
+                    badge: 'icon-512-v2.png',
+                    data: data
+                });
+                return true;
+            }
+        }
+    } catch (eSw) {}
+    try {
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            new Notification('Spirit Infinity', { body: body, icon: 'icon-512-v2.png', data: data });
+            return true;
+        }
+    } catch (eN) {}
+    return false;
 }
 
 /** FCM/WNS renvoie 410 si l’abonnement est mort : désinscrire ce navigateur puis recréer une souscription + upsert (à faire sur chaque appareil concerné). */
