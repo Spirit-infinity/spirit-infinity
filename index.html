@@ -7896,6 +7896,7 @@ function renderMarket(filteredData = null) {
             const _urls = spiritImageUrlList(item);
             const displayImg = _urls.length ? _urls[0] : null;
             const safeTitle = (item.title || item.name || 'Annonce').trim() || 'Annonce';
+            const rawDescCard = String(item.description || item.desc || '');
             const amountEur = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0);
             const safePrice = spiritConvertCurrency(amountEur, 'EUR', marketCurrencyMode);
             var imgContent;
@@ -7931,6 +7932,16 @@ function renderMarket(filteredData = null) {
             const brandLine = displayBrand
                 ? `<div class="spirit-card-brand" style="font-size:0.62rem;color:#c9a77a;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">${displayBrand.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')}</div>`
                 : '';
+            const hasSpiritTechReport = rawDescCard.indexOf('DIAGNOSTIC SPIRIT TEHNOLOGIE') >= 0;
+            let spiritTechReportLine = '';
+            if (hasSpiritTechReport) {
+                var chipLine = '';
+                try {
+                    var mDiag = /- Puce:\s*([^\n\r]+)/i.exec(rawDescCard);
+                    if (mDiag && mDiag[1]) chipLine = String(mDiag[1]).trim();
+                } catch (eDiag) {}
+                spiritTechReportLine = `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(0,255,170,0.45);background:rgba(0,255,170,0.08);color:var(--spirit-green);font-size:0.62rem;font-weight:700;line-height:1.35;">✓ RAPPORT SPIRIT TEHNOLOGIE${chipLine ? ' · ' + chipLine.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') : ''}</div>`;
+            }
             card.innerHTML = `
                 ${soldBadge}
                 ${litigeBadge}
@@ -7945,6 +7956,7 @@ function renderMarket(filteredData = null) {
                     <div class="price">${safePrice.toFixed(2)} ${marketCurrencyMode}</div>
                     ${isImport ? `<div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}">Estimation Import : ${customs.toFixed(2)} ${marketCurrencyMode} | Total estimé à l'arrivée : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>` : ''}
                     <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
+                    ${spiritTechReportLine}
                     <div style="margin-top:6px; font-size:0.72rem; color:#aaa;">
                         Vendeur :
                         <button type="button"
