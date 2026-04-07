@@ -8657,6 +8657,25 @@ async function publierAnnonce() {
         return;
     }
     const fromHardwarePanneau = (typeof currentMethod !== 'undefined' && currentMethod === 'hot_native');
+    if (fromHardwarePanneau) {
+        try {
+            var hw = (typeof window !== 'undefined' && window.spiritLastHardwareCheck) ? window.spiritLastHardwareCheck : null;
+            if (hw) {
+                var hwLines = [
+                    'DIAGNOSTIC SPIRIT TEHNOLOGIE',
+                    '- Puce: ' + String(hw.chip_health || 'INCONNU'),
+                    '- Batterie: ' + String(hw.battery_health != null ? hw.battery_health : '0') + '% (' + String(hw.battery_voltage != null ? hw.battery_voltage : '—') + 'V)',
+                    '- Néon bas: ' + (hw.neon_low_active ? 'ACTIF' : 'INACTIF') + ' · ' + String(hw.neon_low_hours || 0) + 'h',
+                    '- Néon haut: ' + (hw.neon_high_active ? 'ACTIF' : 'INACTIF') + ' · ' + String(hw.neon_high_hours || 0) + 'h',
+                    '- Figurine LED: ' + (hw.figurine_active ? 'ACTIVE' : 'INACTIVE') + ' · ' + String(hw.figurine_led_hours || 0) + 'h',
+                    '- MAC: ' + String(hw.mac_address || spiritResolveCurrentMacAddress() || 'XX:XX:XX:XX:XX:XX')
+                ];
+                desc = String(desc || '').replace(/\n*\[\[SPIRIT_HW:[\s\S]*?\]\]\s*$/m, '').trim();
+                desc = hwLines.join('\n') + '\n\n' + desc;
+                desc += '\n\n[[SPIRIT_HW:' + JSON.stringify(hw).replace(/\]\]/g, '') + ']]';
+            }
+        } catch (eHwBuild) {}
+    }
     const uuidVal = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
         ? crypto.randomUUID()
         : ('SPIRIT-' + Date.now());
@@ -18925,7 +18944,7 @@ async function refreshSpiritPanneauHardwareUI(opts) {
             spiritSetLedgerStatusText('[ STATUT : ERREUR LECTURE LEDGER (RLS/API) ]', false);
         }
     } else if (!macID) {
-        spiritSetLedgerStatusText('[ STATUT : MAC ESP32 MANQUANTE ]', false);
+        spiritSetLedgerStatusText('[ STATUT : MAC SPIRIT TEHNOLOGIE MANQUANTE ]', false);
     }
 
     const usageLbl = (typeof window.spiritT === 'function') ? window.spiritT('ledger_usage_hours_label') : "Heures d'utilisation";
@@ -19806,7 +19825,8 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
       '<div style="font-size:0.72rem;color:#ff6600;font-weight:800;letter-spacing:1px;">DÉTECTION DE MATÉRIEL</div>' +
       '<div id="spiritDetectStatus" style="font-size:0.62rem;color:#aaa;margin-top:6px;">Scan réseau en attente...</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
-      '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="void spiritScanNetworkDevices()">SCANNER LES ESP32</button>' +
+      '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="void spiritScanNetworkDevices()">SCANNER LES SPIRIT TEHNOLOGIE</button>' +
+      '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#121212;border:1px solid rgba(255,102,0,0.45);color:#ffb07a;" onclick="void spiritShowMySpiritCollection()">VOIR MA COLLECTION HOT TOYS SPIRIT INFINITY</button>' +
       '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#1b0f0f;border:1px solid #804;color:#ff9a9a;" onclick="void spiritReleaseMyCurrentDevice()">LIBÉRER LA FIGURINE</button>' +
       '</div>' +
       '<div id="spiritDetectList" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;"></div>' +
@@ -19969,6 +19989,60 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     try { await spiritScanNetworkDevices(); } catch (e3) {}
   }
 
+  async function spiritShowMySpiritCollection() {
+    if (!_spirit) {
+      alert('Supabase indisponible.');
+      return;
+    }
+    var uid = '';
+    try {
+      var u = await _spirit.auth.getUser();
+      uid = String(u && u.data && u.data.user && u.data.user.id || '').trim();
+    } catch (eU) {}
+    if (!uid) {
+      alert('Connecte-toi pour voir ta collection.');
+      return;
+    }
+    var q = await _spirit
+      .from('ledger_items')
+      .select('mac_address,device_status,last_seen,battery_health,chip_health,neon_low_hours,neon_high_hours,figurine_led_hours')
+      .eq('owner_user_id', uid)
+      .order('last_seen', { ascending: false })
+      .limit(200);
+    if (q.error) {
+      alert('Erreur collection: ' + (q.error.message || q.error));
+      return;
+    }
+    var rows = Array.isArray(q.data) ? q.data : [];
+    var id = 'spiritMyCollectionModal';
+    var m = document.getElementById(id);
+    if (!m) {
+      m = document.createElement('div');
+      m.id = id;
+      m.className = 'overlay';
+      m.style.cssText = 'display:none;';
+      m.innerHTML =
+        '<div class="modal-content" style="max-width:760px;border:1px solid rgba(255,102,0,0.6);background:#0a0a0a;">' +
+        '<h2 style="color:#ff6600;font-size:1rem;">Ma collection Hot Toys Spirit Infinity</h2>' +
+        '<div id="spiritMyCollectionList" style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto;"></div>' +
+        '<div style="display:flex;justify-content:flex-end;margin-top:10px;"><button type="button" class="btn-action" style="background:#222;border:1px solid #444;color:#bbb;" onclick="document.getElementById(\'spiritMyCollectionModal\').style.display=\'none\'">Fermer</button></div>' +
+        '</div>';
+      document.body.appendChild(m);
+    }
+    var box = document.getElementById('spiritMyCollectionList');
+    if (box) {
+      box.innerHTML = rows.length ? rows.map(function (r) {
+        return '<div style="border:1px solid #2b2b2b;background:#111;padding:10px;border-radius:4px;">' +
+          '<div style="font-size:0.66rem;color:#ffb07a;font-weight:700;">MAC: ' + String(r.mac_address || '—') + '</div>' +
+          '<div style="font-size:0.62rem;color:#bbb;margin-top:4px;">Statut: ' + String(r.device_status || '—') + ' · Batterie: ' + String(r.battery_health != null ? r.battery_health : '—') + '% · Puce: ' + String(r.chip_health || '—') + '</div>' +
+          '<div style="font-size:0.6rem;color:#888;margin-top:3px;">Néon bas ' + String(r.neon_low_hours || 0) + 'h · Néon haut ' + String(r.neon_high_hours || 0) + 'h · Figurine ' + String(r.figurine_led_hours || 0) + 'h</div>' +
+          '<div style="font-size:0.58rem;color:#666;margin-top:3px;">Vu: ' + String(r.last_seen || '—') + '</div>' +
+          '</div>';
+      }).join('') : '<div style="font-size:0.68rem;color:#888;">Aucune figurine Spirit Tehnologie liée à ton compte.</div>';
+    }
+    m.style.display = 'flex';
+  }
+
   function spiritAttachDetectionOnPanelOpen() {
     var orig = window.showLedgerModal;
     if (typeof orig !== 'function' || orig.__spiritDetectionWrapped) return;
@@ -20001,6 +20075,7 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     window.spiritConfirmClaimFromModal = spiritConfirmClaimFromModal;
     window.spiritActivateDetectedMac = spiritActivateDetectedMac;
     window.spiritReleaseMyCurrentDevice = spiritReleaseMyCurrentDevice;
+    window.spiritShowMySpiritCollection = spiritShowMySpiritCollection;
     spiritAttachDetectionOnPanelOpen();
   } catch (e) {}
 })();
