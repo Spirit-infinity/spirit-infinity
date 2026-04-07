@@ -8818,17 +8818,6 @@ async function publierAnnonce() {
             }
             editingId = null;
             alert(tAl('cert_pub_update_ok'));
-            try {
-                var meUidUp = typeof spiritNormUid === 'function'
-                    ? spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '')
-                    : String((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '').trim().toLowerCase();
-                if (meUidUp && typeof spiritSanctuarySystemNotifToSelf === 'function') {
-                    await spiritSanctuarySystemNotifToSelf(meUidUp, 'listing_new_self', String(eid), 'Annonce mise à jour : ' + String(title || 'Sans titre'));
-                }
-                if (typeof spiritNotifyMyMobileOnListingPublish === 'function') {
-                    await spiritNotifyMyMobileOnListingPublish(title, eid);
-                }
-            } catch (ePushSelfUp) {}
             try { closeModals(); } catch (e) {}
             try {
                 await spiritRefreshAllMarketBuckets();
@@ -8896,18 +8885,6 @@ async function publierAnnonce() {
         };
         const { error: liErr } = await _spirit.from('ledger_items').upsert([liRow], { onConflict: 'mac_address' });
         if (liErr) console.warn('[SPIRIT] ledger_items (annonce):', liErr.message);
-
-        try {
-            var meUidNew = typeof spiritNormUid === 'function'
-                ? spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '')
-                : String((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '').trim().toLowerCase();
-            if (meUidNew && typeof spiritSanctuarySystemNotifToSelf === 'function') {
-                await spiritSanctuarySystemNotifToSelf(meUidNew, 'listing_new_self', String(newId != null ? newId : ''), 'Annonce publiée : ' + String(title || 'Sans titre'));
-            }
-            if (typeof spiritNotifyMyMobileOnListingPublish === 'function') {
-                await spiritNotifyMyMobileOnListingPublish(title, newId);
-            }
-        } catch (ePushSelfNew) {}
 
         alert(tAl('cert_pub_insert_ok'));
 
@@ -10036,6 +10013,24 @@ async function spiritLoadListingMessagesForProduct(productId) {
         try { spiritRefreshListingChatSellerUi(); } catch (eB) {}
     }
 
+    function spiritFormatListingDescriptionHtml(desc) {
+        var raw = String(desc || '').replace(/\r\n/g, '\n');
+        if (!raw) return '';
+        var safe = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        var lines = safe.split('\n');
+        var isDiag = false;
+        var out = [];
+        for (var i = 0; i < lines.length; i++) {
+            var l = lines[i];
+            var plain = String(l || '').trim().toUpperCase();
+            if (plain.indexOf('DIAGNOSTIC SPIRIT TEHNOLOGIE') >= 0) isDiag = true;
+            if (isDiag && plain === '') isDiag = false;
+            if (isDiag) out.push('<span style="color:var(--spirit-green);font-weight:700;">' + (l || '&nbsp;') + '</span>');
+            else out.push(l || '&nbsp;');
+        }
+        return out.join('<br>');
+    }
+
     async function spiritApplyProductModalTexts(item) {
         item = item || {};
         var viewLR = spiritListingChatUiLangRaw();
@@ -10047,7 +10042,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var rawDesc = String(item.description || item.desc || '').trim();
         function T(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
         if (tEl) tEl.innerText = rawTitle || T('pm_no_title');
-        if (dEl) dEl.innerText = rawDesc || T('pm_no_desc');
+        if (dEl) dEl.innerHTML = spiritFormatListingDescriptionHtml(rawDesc || T('pm_no_desc'));
         if (viewN === srcN || (!rawTitle && !rawDesc)) return;
         if (Date.now() < spiritMyMemoryBackoffUntil) return;
         try {
@@ -10057,7 +10052,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             }
             if (rawDesc && dEl && typeof spiritTranslateLongListingText === 'function') {
                 var td = await spiritTranslateLongListingText(rawDesc, srcN, viewLR);
-                if (td && String(td).trim()) dEl.innerText = td;
+                if (td && String(td).trim()) dEl.innerHTML = spiritFormatListingDescriptionHtml(td);
             }
         } catch (eTr) {}
     }
@@ -10132,7 +10127,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             var tEl0 = document.getElementById('pTitle');
             var dEl0 = document.getElementById('pDescBox');
             if (tEl0) tEl0.innerText = item.title || (typeof spiritT === 'function' ? spiritT('pm_no_title') : 'Sans Titre');
-            if (dEl0) dEl0.innerText = item.description || item.desc || (typeof spiritT === 'function' ? spiritT('pm_no_desc') : '');
+            if (dEl0) dEl0.innerHTML = spiritFormatListingDescriptionHtml(item.description || item.desc || (typeof spiritT === 'function' ? spiritT('pm_no_desc') : ''));
         }
         
         // AJOUT : Fallback pour les données pays et condition
