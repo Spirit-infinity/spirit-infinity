@@ -8246,6 +8246,9 @@ async function loadMySales() {
 }
 
     function resetSellForm() {
+        try {
+            if (typeof spiritInvalidateProductsCatalogBrandsCache === 'function') spiritInvalidateProductsCatalogBrandsCache();
+        } catch (eCatInv) {}
         editingId = null;
         diagActive = false;
         previewPhotos = [null, null, null, null, null];
@@ -8332,6 +8335,76 @@ async function loadMySales() {
         document.getElementById('certifModal').style.setProperty('display', 'flex', 'important');
     }
 
+/**
+ * Marques issues de public.products_catalog (Supabase) — complète le menu « Marque » après import SQL / scraper.
+ * (c) 2026 Spirit Infinity - Tous droits réservés
+ */
+function spiritInvalidateProductsCatalogBrandsCache() {
+    try {
+        delete window.spiritProductsCatalogBrandsCache;
+    } catch (eInv) {
+        window.spiritProductsCatalogBrandsCache = null;
+    }
+}
+
+async function spiritFetchProductsCatalogBrands() {
+    if (window.spiritProductsCatalogBrandsCache && Array.isArray(window.spiritProductsCatalogBrandsCache)) {
+        return window.spiritProductsCatalogBrandsCache;
+    }
+    if (typeof _spirit === 'undefined' || !_spirit) return [];
+    var s = new Set();
+    var from = 0;
+    var page = 1000;
+    try {
+        while (true) {
+            var out = await _spirit.from('products_catalog').select('brand').range(from, from + page - 1);
+            if (out.error) {
+                console.warn('[SPIRIT CATALOG] products_catalog brands:', out.error.message || out.error);
+                break;
+            }
+            var rows = out.data || [];
+            if (!rows.length) break;
+            rows.forEach(function (r) {
+                if (r && r.brand != null && String(r.brand).trim() !== '') s.add(String(r.brand).trim());
+            });
+            if (rows.length < page) break;
+            from += page;
+            if (from > 200000) break;
+        }
+        window.spiritProductsCatalogBrandsCache = Array.from(s).sort(function (a, b) {
+            return a.localeCompare(b, undefined, { sensitivity: 'base' });
+        });
+        return window.spiritProductsCatalogBrandsCache;
+    } catch (eCat) {
+        console.warn('[SPIRIT CATALOG] products_catalog exception:', eCat);
+        return [];
+    }
+}
+
+async function spiritMergeCatalogBrandsIntoSaleSelect(sel) {
+    if (!sel || sel.disabled) return;
+    var brands;
+    try {
+        brands = await spiritFetchProductsCatalogBrands();
+    } catch (eM) {
+        return;
+    }
+    if (!brands || !brands.length) return;
+    var existing = {};
+    var i;
+    for (i = 0; i < sel.options.length; i++) {
+        existing[String(sel.options[i].value || '').trim()] = true;
+    }
+    brands.forEach(function (b) {
+        if (!b || existing[b]) return;
+        existing[b] = true;
+        var opt = document.createElement('option');
+        opt.value = b;
+        opt.textContent = b;
+        sel.appendChild(opt);
+    });
+}
+
 function spiritApplySaleBrandOptions(method) {
     var sel = document.getElementById('saleBrand');
     if (!sel) return;
@@ -8360,8 +8433,15 @@ function spiritApplySaleBrandOptions(method) {
             o('Autre', 'cert_brand_autre');
         spiritRestoreSelectValue(sel, prev);
         if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(sel);
+        try {
+            void spiritMergeCatalogBrandsIntoSaleSelect(sel);
+        } catch (eDBC) {}
     }
 }
+try {
+    window.spiritInvalidateProductsCatalogBrandsCache = spiritInvalidateProductsCatalogBrandsCache;
+    window.spiritFetchProductsCatalogBrands = spiritFetchProductsCatalogBrands;
+} catch (eWinCat) {}
 
     function chooseMethod(m) {
         currentMethod = m;
