@@ -6427,6 +6427,9 @@ function spiritWishlistTokenOverlapScore(haystack, needle) {
     for (var j = 0; j < nt.length; j++) if (map[nt[j]]) common++;
     return common / nt.length;
 }
+function spiritWishlistCompactText(v) {
+    return spiritWishlistNormText(v).replace(/\s+/g, '');
+}
 function spiritWishlistGetStatusBox() {
     return document.getElementById('spiritWishlistSearchStatus');
 }
@@ -6455,14 +6458,25 @@ function spiritWishlistListingMatchesSearch(listing, search) {
     if (!listing || !search) return false;
     var b = spiritWishlistNormText(listing.brand);
     var t = spiritWishlistNormText(listing.title || listing.name || '');
-    var d = spiritWishlistNormText(listing.description || '');
     var r = spiritWishlistNormText(listing.product_reference || '');
     var sb = spiritWishlistNormText(search.brand);
     var st = spiritWishlistNormText(search.name_query);
     var sr = spiritWishlistNormText(search.ref_query);
+    var tc = spiritWishlistCompactText(t);
+    var rc = spiritWishlistCompactText(r);
+    var src = spiritWishlistCompactText(sr);
+    var nameOk = true;
+    var refOk = true;
     if (sb && b.indexOf(sb) === -1) return false;
-    if (st && t.indexOf(st) === -1 && d.indexOf(st) === -1) return false;
-    if (sr && r.indexOf(sr) === -1 && t.indexOf(sr) === -1 && d.indexOf(sr) === -1) return false;
+    if (st) {
+        var ovName = spiritWishlistTokenOverlapScore(t, st);
+        nameOk = (t.indexOf(st) !== -1) || ovName >= 0.66;
+        if (!nameOk) return false;
+    }
+    if (sr) {
+        refOk = (src && ((rc && rc.indexOf(src) !== -1) || (tc && tc.indexOf(src) !== -1)));
+        if (!refOk) return false;
+    }
     var maxP = Number(search.price_max);
     if (Number.isFinite(maxP) && maxP > 0) {
         var lp = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(listing) : Number(listing.price || 0);
@@ -6516,31 +6530,37 @@ function spiritWishlistMatchScore(listing, search) {
 function spiritWishlistSoftMatchScore(listing, search) {
     if (!listing || !search) return -1;
     var t = spiritWishlistNormText(listing.title || listing.name || '');
-    var d = spiritWishlistNormText(listing.description || '');
     var r = spiritWishlistNormText(listing.product_reference || '');
     var st = spiritWishlistNormText(search.name_query);
     var sr = spiritWishlistNormText(search.ref_query);
     var sb = spiritWishlistNormText(search.brand);
     var b = spiritWishlistNormText(listing.brand);
+    var tc = spiritWishlistCompactText(t);
+    var rc = spiritWishlistCompactText(r);
+    var src = spiritWishlistCompactText(sr);
+    var maxP = Number(search.price_max);
     var score = 0;
+    if (!spiritWishlistCondMatches(listing.cond || listing.condition || '', search.cond_query || '')) return -1;
+    if (!spiritWishlistZoneMatches(listing.origin_country || listing.country || '', search.zone_query || '')) return -1;
+    if (Number.isFinite(maxP) && maxP > 0) {
+        var lp = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(listing) : Number(listing.price || 0);
+        if (!(Number.isFinite(lp) && lp <= maxP)) return -1;
+    }
+    if (sb && (!b || b.indexOf(sb) === -1)) return -1;
     if (st) {
         if (t.indexOf(st) !== -1) score += 40;
-        else if (d.indexOf(st) !== -1) score += 20;
         else {
-            var ov1 = spiritWishlistTokenOverlapScore(t + ' ' + d, st);
-            if (ov1 >= 0.5) score += Math.round(ov1 * 24);
+            var ov1 = spiritWishlistTokenOverlapScore(t, st);
+            if (ov1 >= 0.66) score += Math.round(ov1 * 24);
         }
     }
     if (sr) {
-        if (r.indexOf(sr) !== -1) score += 35;
-        else if (t.indexOf(sr) !== -1 || d.indexOf(sr) !== -1) score += 15;
-        else {
-            var ov2 = spiritWishlistTokenOverlapScore(r + ' ' + t, sr);
-            if (ov2 >= 0.5) score += Math.round(ov2 * 20);
-        }
+        if (src && ((rc && rc.indexOf(src) !== -1) || (tc && tc.indexOf(src) !== -1))) score += 45;
+        else return -1;
     }
-    if (sb && b && b.indexOf(sb) !== -1) score += 12;
+    if (sb && b && b.indexOf(sb) !== -1) score += 18;
     if (!st && !sr) return -1;
+    if (st && score < 20) return -1;
     return score > 0 ? score : -1;
 }
 function spiritWishlistFilterSummary(s) {
