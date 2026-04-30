@@ -6704,7 +6704,10 @@ async function spiritAddWishlistSearch() {
             .forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
         await spiritRefreshWishlistSearches();
     } catch (e) {
-        spiritWishlistSetStatus('Ajout impossible (table a verifier).', true);
+        var em = '';
+        try { em = String((e && (e.message || e.details || e.hint)) || e || '').trim(); } catch (e2) {}
+        if (em.length > 160) em = em.slice(0, 160) + '...';
+        spiritWishlistSetStatus('Ajout impossible: ' + (em || 'table/policy a verifier'), true);
     }
 }
 async function spiritNotifyWishlistSearchMatches(listingRow) {
