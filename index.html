@@ -6605,15 +6605,12 @@ async function spiritScanExistingListingsForSearch(searchRow) {
     if (!_spirit || !searchRow) return 0;
     var created = 0;
     try {
-        var q = await _spirit
-            .from('products_live')
-            .select('id,title,name,description,brand,product_reference,price,currency,cond,condition,origin_country,country,owner_id,status')
-            .order('id', { ascending: false })
-            .limit(1200);
-        if (q.error || !Array.isArray(q.data) || !q.data.length) return 0;
+        var pf = await spiritFetchWishlistProductsLiveRows(1200);
+        var rowsData = Array.isArray(pf.rows) ? pf.rows : [];
+        if (!rowsData.length) return 0;
         var ranked = [];
-        for (var i = 0; i < q.data.length; i++) {
-            var listing = q.data[i];
+        for (var i = 0; i < rowsData.length; i++) {
+            var listing = rowsData[i];
             var st = String(listing && listing.status || '').toLowerCase().trim();
             if (st === 'sold' || st === 'vendu') continue;
             var sc = spiritWishlistMatchScore(listing, searchRow);
@@ -6622,8 +6619,8 @@ async function spiritScanExistingListingsForSearch(searchRow) {
         }
         ranked.sort(function (a, b) { return b.score - a.score; });
         if (!ranked.length) {
-            for (var i2 = 0; i2 < q.data.length; i2++) {
-                var listing2 = q.data[i2];
+            for (var i2 = 0; i2 < rowsData.length; i2++) {
+                var listing2 = rowsData[i2];
                 var st2 = String(listing2 && listing2.status || '').toLowerCase().trim();
                 if (st2 === 'sold' || st2 === 'vendu') continue;
                 var softSc = spiritWishlistSoftMatchScore(listing2, searchRow);
@@ -6641,6 +6638,31 @@ async function spiritScanExistingListingsForSearch(searchRow) {
     } catch (e) {}
     return created;
 }
+async function spiritFetchWishlistProductsLiveRows(limitN) {
+    if (!_spirit) return { rows: [], error: null };
+    var lim = Number(limitN);
+    if (!Number.isFinite(lim) || lim <= 0) lim = 1200;
+    var selects = [
+        'id,title,name,description,brand,product_reference,price,currency,cond,condition,origin_country,country,owner_id,status',
+        'id,title,name,description,brand,product_reference,price,currency,cond,country,owner_id,status',
+        'id,title,description,brand,price,currency,owner_id,status'
+    ];
+    var lastErr = null;
+    for (var i = 0; i < selects.length; i++) {
+        try {
+            var q = await _spirit
+                .from('products_live')
+                .select(selects[i])
+                .order('id', { ascending: false })
+                .limit(lim);
+            if (!q.error && Array.isArray(q.data)) return { rows: q.data, error: null };
+            lastErr = q.error || lastErr;
+        } catch (e) {
+            lastErr = e;
+        }
+    }
+    return { rows: [], error: lastErr };
+}
 async function spiritSyncWishlistAlertsForCurrentUser(searchRows) {
     if (!_spirit) return 0;
     var uidN = spiritWishlistGetCurrentUserNorm();
@@ -6649,18 +6671,19 @@ async function spiritSyncWishlistAlertsForCurrentUser(searchRows) {
     if (!searchRows.length) return 0;
     var created = 0;
     try {
-        var q = await _spirit
-            .from('products_live')
-            .select('id,title,name,description,brand,product_reference,price,currency,cond,condition,origin_country,country,owner_id,status')
-            .order('id', { ascending: false })
-            .limit(1200);
-        if (q.error || !Array.isArray(q.data) || !q.data.length) return 0;
+        var pf = await spiritFetchWishlistProductsLiveRows(1200);
+        if (pf.error) {
+            var emP = String((pf.error && (pf.error.message || pf.error.details || pf.error.hint)) || pf.error || '');
+            spiritWishlistSetStatus('Erreur lecture products_live: ' + (emP || 'schema incompatible'), true);
+        }
+        var rowsData = Array.isArray(pf.rows) ? pf.rows : [];
+        if (!rowsData.length) return 0;
         for (var sI = 0; sI < searchRows.length; sI++) {
             var s = searchRows[sI];
             if (spiritNormUid(s.user_id || '') !== uidN) continue;
             var ranked = [];
-            for (var i = 0; i < q.data.length; i++) {
-                var listing = q.data[i];
+            for (var i = 0; i < rowsData.length; i++) {
+                var listing = rowsData[i];
                 var st = String(listing && listing.status || '').toLowerCase().trim();
                 if (st === 'sold' || st === 'vendu') continue;
                 var sc = spiritWishlistMatchScore(listing, s);
@@ -6669,8 +6692,8 @@ async function spiritSyncWishlistAlertsForCurrentUser(searchRows) {
             }
             ranked.sort(function (a, b) { return b.score - a.score; });
             if (!ranked.length) {
-                for (var i2 = 0; i2 < q.data.length; i2++) {
-                    var listing2 = q.data[i2];
+                for (var i2 = 0; i2 < rowsData.length; i2++) {
+                    var listing2 = rowsData[i2];
                     var st2 = String(listing2 && listing2.status || '').toLowerCase().trim();
                     if (st2 === 'sold' || st2 === 'vendu') continue;
                     var softSc = spiritWishlistSoftMatchScore(listing2, s);
@@ -6697,18 +6720,15 @@ async function spiritComputeLiveWishlistAlertsForCurrentUser(searchRows) {
     var outRows = [];
     var seen = {};
     try {
-        var q = await _spirit
-            .from('products_live')
-            .select('id,title,name,description,brand,product_reference,price,currency,cond,condition,origin_country,country,owner_id,status')
-            .order('id', { ascending: false })
-            .limit(1200);
-        if (q.error || !Array.isArray(q.data) || !q.data.length) return [];
+        var pf = await spiritFetchWishlistProductsLiveRows(1200);
+        var rowsData = Array.isArray(pf.rows) ? pf.rows : [];
+        if (!rowsData.length) return [];
         for (var sI = 0; sI < searchRows.length; sI++) {
             var s = searchRows[sI];
             if (spiritNormUid(s.user_id || '') !== uidN) continue;
             var ranked = [];
-            for (var i = 0; i < q.data.length; i++) {
-                var listing = q.data[i];
+            for (var i = 0; i < rowsData.length; i++) {
+                var listing = rowsData[i];
                 var st = String(listing && listing.status || '').toLowerCase().trim();
                 if (st === 'sold' || st === 'vendu') continue;
                 var sc = spiritWishlistMatchScore(listing, s);
