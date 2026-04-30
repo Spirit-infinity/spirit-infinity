@@ -6584,6 +6584,41 @@ async function spiritScanExistingListingsForSearch(searchRow) {
     } catch (e) {}
     return created;
 }
+async function spiritSyncWishlistAlertsForCurrentUser(searchRows) {
+    if (!_spirit) return 0;
+    var uidN = spiritWishlistGetCurrentUserNorm();
+    if (!uidN) return 0;
+    searchRows = Array.isArray(searchRows) ? searchRows : [];
+    if (!searchRows.length) return 0;
+    var created = 0;
+    try {
+        var q = await _spirit
+            .from('products_live')
+            .select('id,title,name,description,brand,product_reference,price,currency,cond,condition,origin_country,country,owner_id,status')
+            .neq('status', 'sold')
+            .order('id', { ascending: false })
+            .limit(1200);
+        if (q.error || !Array.isArray(q.data) || !q.data.length) return 0;
+        for (var sI = 0; sI < searchRows.length; sI++) {
+            var s = searchRows[sI];
+            if (spiritNormUid(s.user_id || '') !== uidN) continue;
+            var ranked = [];
+            for (var i = 0; i < q.data.length; i++) {
+                var listing = q.data[i];
+                var sc = spiritWishlistMatchScore(listing, s);
+                if (sc < 0) continue;
+                ranked.push({ row: listing, score: sc });
+            }
+            ranked.sort(function (a, b) { return b.score - a.score; });
+            var topN = ranked.slice(0, SPIRIT_WISHLIST_MAX_MATCH_NOTIFS);
+            for (var j = 0; j < topN.length; j++) {
+                var ok = await spiritWishlistUpsertAlertForListing(s, topN[j].row, { notify: false });
+                if (ok) created++;
+            }
+        }
+    } catch (e) {}
+    return created;
+}
 async function spiritDeleteWishlistSearch(id) {
     if (!_spirit) return;
     var uidN = spiritWishlistGetCurrentUserNorm();
@@ -6666,6 +6701,19 @@ async function spiritRefreshWishlistSearches() {
             .limit(40);
         if (!a.error && Array.isArray(a.data)) spiritWishlistAlertRows = a.data;
     } catch (e2) {}
+    try {
+        var recovered = await spiritSyncWishlistAlertsForCurrentUser(spiritWishlistSearchRows);
+        if (recovered > 0) {
+            var a2 = await _spirit
+                .from('spirit_wishlist_alerts')
+                .select('id,user_id,search_id,listing_id,listing_title,match_reason,created_at')
+                .eq('user_id', uidN)
+                .order('created_at', { ascending: false })
+                .limit(40);
+            if (!a2.error && Array.isArray(a2.data)) spiritWishlistAlertRows = a2.data;
+            spiritWishlistSetStatus('Synchro terminee: ' + String(recovered) + ' alerte(s) trouvee(s).', false);
+        }
+    } catch (eSync) {}
     spiritRenderWishlistSearchLists();
 }
 async function spiritAddWishlistSearch() {
