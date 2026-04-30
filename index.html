@@ -3442,7 +3442,7 @@
             <input type="text" id="inputReference" data-key="cert_ph_reference" placeholder="Ex. MMS123, édition, variante…" autocomplete="off" list="certRefSuggestions">
             <datalist id="certRefSuggestions"></datalist>
             <div id="certRefHint" style="font-size:0.6rem; color:#89b; margin:4px 0 6px; min-height:14px;"></div>
-            <div id="certRefDropdown" style="display:none; max-height:180px; overflow:auto; border:1px solid #2b3a44; background:#0d1318; margin:0 0 8px; border-radius:6px;"></div>
+            <div id="certRefDropdown" style="display:none; max-height:220px; overflow:auto; border:1px solid #2c2c2c; background:linear-gradient(180deg,#0b0b0b 0%, #121212 100%); margin:0 0 8px; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,102,0,0.08);"></div>
             <select id="saleCat"></select>
             <select id="saleBrand"></select>
             <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;" data-key="cert_lbl_cond">ÉTAT</label>
@@ -8539,12 +8539,20 @@ function spiritRenderCatalogRefSuggestions(items) {
         if (dd) {
             var row = document.createElement('button');
             row.type = 'button';
-            row.style.cssText = 'display:block;width:100%;text-align:left;padding:8px 10px;border:0;border-bottom:1px solid #1c2730;background:transparent;color:#d7e7f2;cursor:pointer;font-size:0.62rem;';
+            row.style.cssText = 'display:block;width:100%;text-align:left;padding:9px 11px;border:0;border-bottom:1px solid rgba(255,255,255,0.06);background:transparent;color:#d8d8d8;cursor:pointer;font-size:0.62rem;transition:background .12s ease,color .12s ease;';
             row.innerHTML =
-                '<span style="color:#66d9ff;font-weight:700;">' + String(it.ref_code || '').replace(/</g, '&lt;') + '</span>' +
-                ' <span style="color:#9ab;">·</span> ' +
-                '<span>' + String(it.model_name || '').replace(/</g, '&lt;') + '</span>' +
-                ' <span style="color:#6f8292;">(' + String(it.brand || '').replace(/</g, '&lt;') + ')</span>';
+                '<span style="color:#ff6600;font-weight:800;letter-spacing:0.4px;">' + String(it.ref_code || '').replace(/</g, '&lt;') + '</span>' +
+                ' <span style="color:#777;">·</span> ' +
+                '<span style="color:#e6e6e6;">' + String(it.model_name || '').replace(/</g, '&lt;') + '</span>' +
+                ' <span style="color:#8a8a8a;">(' + String(it.brand || '').replace(/</g, '&lt;') + ')</span>';
+            row.onmouseenter = function () {
+                row.style.background = 'rgba(255,102,0,0.12)';
+                row.style.color = '#fff';
+            };
+            row.onmouseleave = function () {
+                row.style.background = 'transparent';
+                row.style.color = '#d8d8d8';
+            };
             row.onclick = function () { spiritSelectCatalogRefSuggestion(it); };
             dd.appendChild(row);
         }
