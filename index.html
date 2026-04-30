@@ -6442,6 +6442,33 @@ function spiritWishlistSetStatus(msg, isErr) {
 function spiritWishlistGetCurrentUserNorm() {
     return spiritNormUid(spiritGetCurrentUserId());
 }
+function spiritWishlistLsKey(uidN) {
+    return 'spirit_wishlist_searches_local__' + String(uidN || '');
+}
+function spiritWishlistReadLocalSearches(uidN) {
+    try {
+        var raw = localStorage.getItem(spiritWishlistLsKey(uidN)) || '[]';
+        var arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return [];
+        return arr.filter(function (r) { return spiritNormUid(r && r.user_id) === uidN; });
+    } catch (e) { return []; }
+}
+function spiritWishlistWriteLocalSearch(uidN, row) {
+    if (!uidN || !row) return;
+    try {
+        var cur = spiritWishlistReadLocalSearches(uidN);
+        cur.unshift(row);
+        var seen = {};
+        var out = [];
+        cur.forEach(function (r) {
+            var k = [spiritWishlistNormText(r.brand), spiritWishlistNormText(r.name_query), spiritWishlistNormText(r.ref_query), Number(r.price_max) || 0, spiritWishlistNormText(r.cond_query), spiritWishlistNormText(r.zone_query)].join('|');
+            if (seen[k]) return;
+            seen[k] = true;
+            out.push(r);
+        });
+        localStorage.setItem(spiritWishlistLsKey(uidN), JSON.stringify(out.slice(0, 60)));
+    } catch (e) {}
+}
 function spiritWishlistCondMatches(listingCond, searchCond) {
     var lc = spiritWishlistNormText(listingCond);
     var sc = spiritWishlistNormText(searchCond);
@@ -6681,6 +6708,30 @@ async function spiritFetchWishlistProductsLiveRows(limitN) {
     }
     return { rows: [], error: lastErr };
 }
+async function spiritWishlistGetCandidateListings(limitN) {
+    var lim = Number(limitN);
+    if (!Number.isFinite(lim) || lim <= 0) lim = 1200;
+    var all = [];
+    try {
+        var pf = await spiritFetchWishlistProductsLiveRows(lim);
+        if (Array.isArray(pf.rows)) all = all.concat(pf.rows);
+    } catch (e0) {}
+    try {
+        if (Array.isArray(marketData) && marketData.length) all = all.concat(marketData);
+    } catch (e1) {}
+    var map = {};
+    var uniq = [];
+    for (var i = 0; i < all.length; i++) {
+        var r = all[i] || {};
+        var id = spiritFavoriteProductId(r);
+        var key = (id != null) ? ('id:' + String(id)) : ('tmp:' + String(i));
+        if (map[key]) continue;
+        map[key] = true;
+        uniq.push(r);
+        if (uniq.length >= lim) break;
+    }
+    return uniq;
+}
 async function spiritSyncWishlistAlertsForCurrentUser(searchRows) {
     if (!_spirit) return 0;
     var uidN = spiritWishlistGetCurrentUserNorm();
@@ -6689,12 +6740,12 @@ async function spiritSyncWishlistAlertsForCurrentUser(searchRows) {
     if (!searchRows.length) return 0;
     var created = 0;
     try {
-        var pf = await spiritFetchWishlistProductsLiveRows(1200);
-        if (pf.error) {
-            var emP = String((pf.error && (pf.error.message || pf.error.details || pf.error.hint)) || pf.error || '');
+        var rowsData = await spiritWishlistGetCandidateListings(1200);
+        if (!rowsData.length) {
+            var pf = await spiritFetchWishlistProductsLiveRows(50);
+            var emP = String((pf && pf.error && (pf.error.message || pf.error.details || pf.error.hint)) || (pf && pf.error) || '');
             spiritWishlistSetStatus('Erreur lecture products_live: ' + (emP || 'schema incompatible'), true);
         }
-        var rowsData = Array.isArray(pf.rows) ? pf.rows : [];
         if (!rowsData.length) return 0;
         for (var sI = 0; sI < searchRows.length; sI++) {
             var s = searchRows[sI];
@@ -6738,8 +6789,7 @@ async function spiritComputeLiveWishlistAlertsForCurrentUser(searchRows) {
     var outRows = [];
     var seen = {};
     try {
-        var pf = await spiritFetchWishlistProductsLiveRows(1200);
-        var rowsData = Array.isArray(pf.rows) ? pf.rows : [];
+        var rowsData = await spiritWishlistGetCandidateListings(1200);
         if (!rowsData.length) return [];
         for (var sI = 0; sI < searchRows.length; sI++) {
             var s = searchRows[sI];
@@ -6869,7 +6919,10 @@ async function spiritRefreshWishlistSearches() {
             return spiritNormUid(r && r.user_id) === uidN;
         });
     } catch (e) {
-        spiritWishlistSetStatus('Table spirit_wishlist_searches absente ou inaccessible.', true);
+        spiritWishlistSetStatus('Table spirit_wishlist_searches absente ou inaccessible (fallback local).', true);
+    }
+    if (!spiritWishlistSearchRows.length) {
+        spiritWishlistSearchRows = spiritWishlistReadLocalSearches(uidN);
     }
     try {
         var a = await _spirit
@@ -6957,12 +7010,22 @@ async function spiritAddWishlistSearch() {
         return;
     }
     try {
+        var localDraft = Object.assign({}, payload, {
+            id: 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+        });
+        spiritWishlistWriteLocalSearch(uidN, localDraft);
         var ins = await _spirit
             .from('spirit_wishlist_searches')
             .insert(payload)
             .select('id,user_id,brand,name_query,ref_query,price_max,cond_query,zone_query,created_at')
             .maybeSingle();
-        if (ins.error) throw ins.error;
+        if (ins.error) {
+            spiritWishlistSetStatus('Filtre sauvegarde en local (DB indisponible).', false);
+            var createdLocal = await spiritScanExistingListingsForSearch(localDraft);
+            await spiritRefreshWishlistSearches();
+            if (createdLocal > 0) spiritWishlistSetStatus('Filtre local actif. ' + String(createdLocal) + ' alerte(s) trouvee(s).', false);
+            return;
+        }
         var createdNow = 0;
         if (ins.data) createdNow = await spiritScanExistingListingsForSearch(ins.data);
         spiritWishlistSetStatus(
