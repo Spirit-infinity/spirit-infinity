@@ -4955,6 +4955,7 @@
     var spiritScopedUiLastUserId = '';
     var spiritWishlistSearchRows = [];
     var spiritWishlistAlertRows = [];
+    var SPIRIT_WISHLIST_MAX_MATCH_NOTIFS = 7;
 
     // --- PRÉCOMMANDES HOT TOYS (PARTENAIRE OFFICIEL) ---
     // Vitrine indépendante du Marketplace (pas d'achat in-app)
@@ -6456,6 +6457,47 @@ function spiritWishlistListingMatchesSearch(listing, search) {
     if (!spiritWishlistZoneMatches(listing.origin_country || listing.country || '', search.zone_query || '')) return false;
     return true;
 }
+function spiritWishlistMatchScore(listing, search) {
+    if (!listing || !search) return -1;
+    if (!spiritWishlistListingMatchesSearch(listing, search)) return -1;
+    var score = 0;
+    var b = spiritWishlistNormText(listing.brand);
+    var t = spiritWishlistNormText(listing.title || listing.name || '');
+    var d = spiritWishlistNormText(listing.description || '');
+    var r = spiritWishlistNormText(listing.product_reference || '');
+    var sb = spiritWishlistNormText(search.brand);
+    var st = spiritWishlistNormText(search.name_query);
+    var sr = spiritWishlistNormText(search.ref_query);
+    var sc = spiritWishlistNormText(search.cond_query);
+    var sz = spiritWishlistNormText(search.zone_query);
+    if (sb && b === sb) score += 35;
+    else if (sb && b.indexOf(sb) !== -1) score += 18;
+    if (st && t === st) score += 35;
+    else if (st && t.indexOf(st) !== -1) score += 22;
+    else if (st && d.indexOf(st) !== -1) score += 10;
+    if (sr && r === sr) score += 45;
+    else if (sr && r.indexOf(sr) !== -1) score += 28;
+    else if (sr && t.indexOf(sr) !== -1) score += 12;
+    if (sc) {
+        var lc = spiritWishlistNormText(listing.cond || listing.condition || '');
+        if (lc === sc) score += 16;
+        else if (lc.indexOf(sc) !== -1) score += 8;
+    }
+    if (sz) {
+        var lz = spiritWishlistNormText(listing.origin_country || listing.country || '');
+        if (lz === sz) score += 14;
+        else if (lz.indexOf(sz) !== -1) score += 7;
+    }
+    var maxP = Number(search.price_max);
+    if (Number.isFinite(maxP) && maxP > 0) {
+        var lp = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(listing) : Number(listing.price || 0);
+        if (Number.isFinite(lp) && lp > 0) {
+            var gapRatio = Math.max(0, Math.min(1, (maxP - lp) / maxP));
+            score += Math.round(gapRatio * 12);
+        }
+    }
+    return score;
+}
 function spiritWishlistFilterSummary(s) {
     if (!s) return 'Filtre';
     var chunks = [];
@@ -6466,6 +6508,81 @@ function spiritWishlistFilterSummary(s) {
     if (s.cond_query) chunks.push('Etat: ' + s.cond_query);
     if (s.zone_query) chunks.push('Zone: ' + s.zone_query);
     return chunks.join(' | ') || 'Filtre';
+}
+function spiritWishlistListingSellerLabel(listing) {
+    var uid = spiritOwnerId(listing && listing.owner_id);
+    if (!uid) return 'Vendeur inconnu';
+    var myUid = spiritOwnerId(spiritGetCurrentUserId());
+    if (myUid && uid === myUid && typeof currentUser !== 'undefined' && currentUser) return String(currentUser);
+    return spiritDefaultLabelFromUid(uid);
+}
+async function spiritWishlistUpsertAlertForListing(searchRow, listingRow, opts) {
+    if (!_spirit || !searchRow || !listingRow) return false;
+    opts = opts || {};
+    var listingId = spiritFavoriteProductId(listingRow);
+    var uidN = spiritNormUid(searchRow.user_id || '');
+    if (listingId == null || !uidN || !searchRow.id) return false;
+    try {
+        var ex = await _spirit
+            .from('spirit_wishlist_alerts')
+            .select('id')
+            .eq('user_id', uidN)
+            .eq('search_id', searchRow.id)
+            .eq('listing_id', listingId)
+            .maybeSingle();
+        if (ex && !ex.error && ex.data && ex.data.id) return false;
+    } catch (eEx) {}
+    var sellerLabel = spiritWishlistListingSellerLabel(listingRow);
+    var reason = spiritWishlistFilterSummary(searchRow) + ' | Vendeur: ' + sellerLabel;
+    try {
+        await _spirit.from('spirit_wishlist_alerts').insert({
+            user_id: uidN,
+            search_id: searchRow.id,
+            listing_id: listingId,
+            listing_title: String(listingRow.title || listingRow.name || ''),
+            match_reason: reason,
+            created_at: new Date().toISOString()
+        });
+    } catch (eIns) {
+        return false;
+    }
+    if (opts.notify !== false) {
+        try {
+            if (typeof spiritSanctuaryPushNotif === 'function') {
+                var msg = 'Annonce correspondant a ton filtre: ' + String(listingRow.title || listingId) + ' (vendeur: ' + sellerLabel + ')';
+                await spiritSanctuaryPushNotif(uidN, 'wishlist_match', String(listingId), uidN, msg);
+            }
+        } catch (eNot) {}
+    }
+    return true;
+}
+async function spiritScanExistingListingsForSearch(searchRow) {
+    if (!_spirit || !searchRow) return 0;
+    var created = 0;
+    try {
+        var q = await _spirit
+            .from('products_live')
+            .select('id,title,name,description,brand,product_reference,price,currency,cond,condition,origin_country,country,owner_id,status')
+            .neq('status', 'sold')
+            .order('id', { ascending: false })
+            .limit(1200);
+        if (q.error || !Array.isArray(q.data) || !q.data.length) return 0;
+        var ranked = [];
+        for (var i = 0; i < q.data.length; i++) {
+            var listing = q.data[i];
+            var sc = spiritWishlistMatchScore(listing, searchRow);
+            if (sc < 0) continue;
+            ranked.push({ row: listing, score: sc });
+        }
+        ranked.sort(function (a, b) { return b.score - a.score; });
+        var topN = ranked.slice(0, SPIRIT_WISHLIST_MAX_MATCH_NOTIFS);
+        for (var j = 0; j < topN.length; j++) {
+            var listingTop = topN[j].row;
+            var ok = await spiritWishlistUpsertAlertForListing(searchRow, listingTop, { notify: true });
+            if (ok) created++;
+        }
+    } catch (e) {}
+    return created;
 }
 async function spiritDeleteWishlistSearch(id) {
     if (!_spirit) return;
@@ -6570,9 +6687,19 @@ async function spiritAddWishlistSearch() {
         return;
     }
     try {
-        var ins = await _spirit.from('spirit_wishlist_searches').insert(payload).select('id').maybeSingle();
+        var ins = await _spirit
+            .from('spirit_wishlist_searches')
+            .insert(payload)
+            .select('id,user_id,brand,name_query,ref_query,price_max,cond_query,zone_query,created_at')
+            .maybeSingle();
         if (ins.error) throw ins.error;
-        spiritWishlistSetStatus('Filtre enregistre.', false);
+        var createdNow = 0;
+        if (ins.data) createdNow = await spiritScanExistingListingsForSearch(ins.data);
+        spiritWishlistSetStatus(
+            'Filtre enregistre. ' + String(createdNow) +
+            ' meilleure(s) annonce(s) envoyee(s) (max ' + String(SPIRIT_WISHLIST_MAX_MATCH_NOTIFS) + ').',
+            false
+        );
         ['wishlistSearchBrand', 'wishlistSearchName', 'wishlistSearchRef', 'wishlistSearchPriceMax', 'wishlistSearchCond', 'wishlistSearchZone']
             .forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
         await spiritRefreshWishlistSearches();
@@ -6595,31 +6722,8 @@ async function spiritNotifyWishlistSearchMatches(listingRow) {
             if (!spiritWishlistListingMatchesSearch(listingRow, s)) continue;
             var uidN = spiritNormUid(s.user_id || '');
             if (!uidN) continue;
-            var reason = spiritWishlistFilterSummary(s);
-            try {
-                var ex = await _spirit
-                    .from('spirit_wishlist_alerts')
-                    .select('id')
-                    .eq('user_id', uidN)
-                    .eq('search_id', s.id)
-                    .eq('listing_id', listingId)
-                    .maybeSingle();
-                if (ex && !ex.error && ex.data && ex.data.id) continue;
-                await _spirit.from('spirit_wishlist_alerts').insert({
-                    user_id: uidN,
-                    search_id: s.id,
-                    listing_id: listingId,
-                    listing_title: String(listingRow.title || listingRow.name || ''),
-                    match_reason: reason,
-                    created_at: new Date().toISOString()
-                });
-            } catch (eIns) {}
-            try {
-                if (typeof spiritSanctuaryPushNotif === 'function') {
-                    var msg = 'Nouvelle annonce correspondant a ton filtre: ' + String(listingRow.title || listingId);
-                    await spiritSanctuaryPushNotif(uidN, 'wishlist_match', String(listingId), uidN, msg);
-                }
-            } catch (eNot) {}
+            var ok = await spiritWishlistUpsertAlertForListing(s, listingRow, { notify: true });
+            if (!ok) continue;
         }
     } catch (e) {}
 }
