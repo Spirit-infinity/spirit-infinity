@@ -3700,7 +3700,7 @@
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
             <button type="button" class="btn-action" style="font-size:0.58rem; padding:8px 12px;" onclick="void spiritAddWishlistSearch()">AJOUTER CE FILTRE</button>
-            <button type="button" class="btn-action" style="font-size:0.58rem; padding:8px 12px; background:#17130d; border:1px solid #5a3a1c; color:#f3b273;" onclick="void spiritRefreshWishlistSearches()">RAFRAICHIR ALERTES</button>
+            <button type="button" id="spiritWishlistRefreshBtn" class="btn-action" style="font-size:0.58rem; padding:8px 12px; background:#17130d; border:1px solid #5a3a1c; color:#f3b273;" onclick="void spiritManualRefreshWishlistAlerts()">RAFRAICHIR ALERTES</button>
         </div>
         <div id="spiritWishlistSearchStatus" style="min-height:14px; margin-top:7px; font-size:0.6rem; color:#8f8f8f;"></div>
         <div id="spiritWishlistSearchList" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;"></div>
@@ -6677,9 +6677,16 @@ function spiritRenderWishlistSearchLists() {
     }
 }
 async function spiritRefreshWishlistSearches() {
-    if (!_spirit) return;
+    spiritWishlistSetStatus('Rafraichissement des alertes en cours...', false);
+    if (!_spirit) {
+        spiritWishlistSetStatus('Supabase non initialise. Reconnecte-toi puis reessaie.', true);
+        return;
+    }
     var uidN = spiritWishlistGetCurrentUserNorm();
-    if (!uidN) return;
+    if (!uidN) {
+        spiritWishlistSetStatus('Session introuvable. Reconnecte-toi pour charger tes alertes.', true);
+        return;
+    }
     spiritWishlistSearchRows = [];
     spiritWishlistAlertRows = [];
     try {
@@ -6717,8 +6724,26 @@ async function spiritRefreshWishlistSearches() {
         } else if (spiritWishlistSearchRows.length) {
             spiritWishlistSetStatus('Synchro terminee: aucune nouvelle correspondance pour le moment.', false);
         }
-    } catch (eSync) {}
+    } catch (eSync) {
+        var emSync = '';
+        try { emSync = String((eSync && (eSync.message || eSync.details || eSync.hint)) || eSync || ''); } catch (eSync2) {}
+        spiritWishlistSetStatus('Erreur synchronisation alertes: ' + (emSync || 'inconnue'), true);
+    }
+    if (!spiritWishlistAlertRows.length && spiritWishlistSearchRows.length) {
+        spiritWishlistSetStatus('Rafraichissement termine: aucune alerte pour le moment.', false);
+    } else if (spiritWishlistAlertRows.length) {
+        spiritWishlistSetStatus('Rafraichissement termine: ' + String(spiritWishlistAlertRows.length) + ' alerte(s) chargee(s).', false);
+    }
     spiritRenderWishlistSearchLists();
+}
+async function spiritManualRefreshWishlistAlerts() {
+    try {
+        await spiritRefreshWishlistSearches();
+    } catch (e) {
+        var em = '';
+        try { em = String((e && (e.message || e.details || e.hint)) || e || ''); } catch (e2) {}
+        spiritWishlistSetStatus('Refresh impossible: ' + (em || 'erreur inconnue'), true);
+    }
 }
 async function spiritAddWishlistSearch() {
     if (!_spirit) return;
@@ -6785,8 +6810,18 @@ async function spiritNotifyWishlistSearchMatches(listingRow) {
 try {
     window.spiritAddWishlistSearch = spiritAddWishlistSearch;
     window.spiritRefreshWishlistSearches = spiritRefreshWishlistSearches;
+    window.spiritManualRefreshWishlistAlerts = spiritManualRefreshWishlistAlerts;
     window.spiritNotifyWishlistSearchMatches = spiritNotifyWishlistSearchMatches;
 } catch (eWWish) {}
+try {
+    document.addEventListener('click', function (ev) {
+        var btn = ev && ev.target && ev.target.closest ? ev.target.closest('#spiritWishlistRefreshBtn') : null;
+        if (!btn) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        void spiritManualRefreshWishlistAlerts();
+    }, true);
+} catch (eWishBind) {}
 async function renderUserFavorites() {
     var box = document.getElementById('user-favorites-list');
     if (!box) return;
