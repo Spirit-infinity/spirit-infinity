@@ -7971,6 +7971,9 @@ function renderMarket(filteredData = null) {
             const lightTxt = item.is_light_protect ? 'Lumiere protegee' : 'Lumiere exposee';
             const firstTxt = item.is_first_hand ? '1ere main' : 'Multi-mains';
             const displayBrand = String(item.brand || item.marque || '').trim();
+            const displayRef = String(
+                item.product_reference || item.reference_code || item.ref_code || item.reference || item.sku || ''
+            ).trim();
             const brandLine = displayBrand
                 ? `<div class="spirit-card-brand" style="font-size:0.62rem;color:#c9a77a;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">${displayBrand.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')}</div>`
                 : '';
@@ -7994,10 +7997,13 @@ function renderMarket(filteredData = null) {
                     <div class="market-badges-row">
                         <span class="badge ${badgeClass}">${badgeText}</span>${hasCoa ? `<span class="badge badge-coa">${spiritT('badge_with_coa')}</span>` : ''}
                     </div>
-                    ${brandLine}
+                    <div style="display:flex;flex-direction:column;gap:2px;margin-top:2px;">
+                        <div style="font-size:0.62rem;color:#c9a77a;letter-spacing:0.08em;text-transform:uppercase;">${displayBrand ? displayBrand.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') : '—'}</div>
+                        <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
+                        <div style="font-size:0.6rem;color:#ff6600;font-weight:800;letter-spacing:0.4px;">Réf: ${displayRef ? displayRef.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') : 'N/A'}</div>
+                    </div>
                     <div class="price">${safePrice.toFixed(2)} ${marketCurrencyMode}</div>
                     ${isImport ? `<div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}">Estimation Import : ${customs.toFixed(2)} ${marketCurrencyMode} | Total estimé à l'arrivée : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>` : ''}
-                    <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
                     ${spiritTechReportLine}
                     <div style="margin-top:6px; font-size:0.72rem; color:#aaa;">
                         Vendeur :
