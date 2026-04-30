@@ -732,8 +732,10 @@
         .grid-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; }
         .grid-layout.list-view { display: block; }
         /* CARDS */
-        .card { background: var(--card-bg); border: 1px solid var(--border); cursor: pointer; position: relative; transition: 0.3s; border-radius: 4px; overflow: hidden; }
-        .card:hover { border-color: var(--neon-orange); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .card { background: var(--card-bg); border: 1px solid var(--neon-orange); cursor: pointer; position: relative; transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,102,0,0.18), 0 6px 16px rgba(0,0,0,0.45); }
+        .card:hover,
+        .card:active,
+        .card:focus-within { border-color: #ff8a2b; transform: translateY(-3px); box-shadow: 0 0 0 1px rgba(255,138,43,0.5), 0 0 28px rgba(255,102,0,0.5), 0 12px 24px rgba(0,0,0,0.58); }
         .grid-layout.list-view .card { display:flex; gap:14px; min-height:180px; margin-bottom:15px; transform:none !important; }
         .grid-layout.list-view .img-placeholder {
             width: 100%;
