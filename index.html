@@ -6410,7 +6410,22 @@ function spiritWishlistNormText(v) {
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
         .trim();
+}
+function spiritWishlistTokenOverlapScore(haystack, needle) {
+    var h = spiritWishlistNormText(haystack);
+    var n = spiritWishlistNormText(needle);
+    if (!h || !n) return 0;
+    var ht = h.split(' ').filter(Boolean);
+    var nt = n.split(' ').filter(Boolean);
+    if (!ht.length || !nt.length) return 0;
+    var map = {};
+    for (var i = 0; i < ht.length; i++) map[ht[i]] = true;
+    var common = 0;
+    for (var j = 0; j < nt.length; j++) if (map[nt[j]]) common++;
+    return common / nt.length;
 }
 function spiritWishlistGetStatusBox() {
     return document.getElementById('spiritWishlistSearchStatus');
@@ -6498,6 +6513,36 @@ function spiritWishlistMatchScore(listing, search) {
     }
     return score;
 }
+function spiritWishlistSoftMatchScore(listing, search) {
+    if (!listing || !search) return -1;
+    var t = spiritWishlistNormText(listing.title || listing.name || '');
+    var d = spiritWishlistNormText(listing.description || '');
+    var r = spiritWishlistNormText(listing.product_reference || '');
+    var st = spiritWishlistNormText(search.name_query);
+    var sr = spiritWishlistNormText(search.ref_query);
+    var sb = spiritWishlistNormText(search.brand);
+    var b = spiritWishlistNormText(listing.brand);
+    var score = 0;
+    if (st) {
+        if (t.indexOf(st) !== -1) score += 40;
+        else if (d.indexOf(st) !== -1) score += 20;
+        else {
+            var ov1 = spiritWishlistTokenOverlapScore(t + ' ' + d, st);
+            if (ov1 >= 0.5) score += Math.round(ov1 * 24);
+        }
+    }
+    if (sr) {
+        if (r.indexOf(sr) !== -1) score += 35;
+        else if (t.indexOf(sr) !== -1 || d.indexOf(sr) !== -1) score += 15;
+        else {
+            var ov2 = spiritWishlistTokenOverlapScore(r + ' ' + t, sr);
+            if (ov2 >= 0.5) score += Math.round(ov2 * 20);
+        }
+    }
+    if (sb && b && b.indexOf(sb) !== -1) score += 12;
+    if (!st && !sr) return -1;
+    return score > 0 ? score : -1;
+}
 function spiritWishlistFilterSummary(s) {
     if (!s) return 'Filtre';
     var chunks = [];
@@ -6576,6 +6621,17 @@ async function spiritScanExistingListingsForSearch(searchRow) {
             ranked.push({ row: listing, score: sc });
         }
         ranked.sort(function (a, b) { return b.score - a.score; });
+        if (!ranked.length) {
+            for (var i2 = 0; i2 < q.data.length; i2++) {
+                var listing2 = q.data[i2];
+                var st2 = String(listing2 && listing2.status || '').toLowerCase().trim();
+                if (st2 === 'sold' || st2 === 'vendu') continue;
+                var softSc = spiritWishlistSoftMatchScore(listing2, searchRow);
+                if (softSc < 0) continue;
+                ranked.push({ row: listing2, score: softSc });
+            }
+            ranked.sort(function (a, b) { return b.score - a.score; });
+        }
         var topN = ranked.slice(0, SPIRIT_WISHLIST_MAX_MATCH_NOTIFS);
         for (var j = 0; j < topN.length; j++) {
             var listingTop = topN[j].row;
@@ -6612,6 +6668,17 @@ async function spiritSyncWishlistAlertsForCurrentUser(searchRows) {
                 ranked.push({ row: listing, score: sc });
             }
             ranked.sort(function (a, b) { return b.score - a.score; });
+            if (!ranked.length) {
+                for (var i2 = 0; i2 < q.data.length; i2++) {
+                    var listing2 = q.data[i2];
+                    var st2 = String(listing2 && listing2.status || '').toLowerCase().trim();
+                    if (st2 === 'sold' || st2 === 'vendu') continue;
+                    var softSc = spiritWishlistSoftMatchScore(listing2, s);
+                    if (softSc < 0) continue;
+                    ranked.push({ row: listing2, score: softSc });
+                }
+                ranked.sort(function (a, b) { return b.score - a.score; });
+            }
             var topN = ranked.slice(0, SPIRIT_WISHLIST_MAX_MATCH_NOTIFS);
             for (var j = 0; j < topN.length; j++) {
                 var ok = await spiritWishlistUpsertAlertForListing(s, topN[j].row, { notify: false });
