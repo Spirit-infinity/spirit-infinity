@@ -6852,17 +6852,22 @@ async function spiritRefreshWishlistSearches() {
         spiritWishlistSetStatus('Session introuvable. Reconnecte-toi pour charger tes alertes.', true);
         return;
     }
+    var uidRaw = String(spiritGetCurrentUserId() || '').trim();
+    var uidCandidates = [uidN];
+    if (uidRaw && uidCandidates.indexOf(uidRaw) === -1) uidCandidates.push(uidRaw);
     spiritWishlistSearchRows = [];
     spiritWishlistAlertRows = [];
     try {
         var s = await _spirit
             .from('spirit_wishlist_searches')
             .select('id,user_id,brand,name_query,ref_query,price_max,cond_query,zone_query,created_at')
-            .eq('user_id', uidN)
+            .in('user_id', uidCandidates)
             .order('created_at', { ascending: false })
             .limit(40);
         if (s.error) throw s.error;
-        spiritWishlistSearchRows = Array.isArray(s.data) ? s.data : [];
+        spiritWishlistSearchRows = (Array.isArray(s.data) ? s.data : []).filter(function (r) {
+            return spiritNormUid(r && r.user_id) === uidN;
+        });
     } catch (e) {
         spiritWishlistSetStatus('Table spirit_wishlist_searches absente ou inaccessible.', true);
     }
@@ -6870,10 +6875,14 @@ async function spiritRefreshWishlistSearches() {
         var a = await _spirit
             .from('spirit_wishlist_alerts')
             .select('id,user_id,search_id,listing_id,listing_title,match_reason,created_at')
-            .eq('user_id', uidN)
+            .in('user_id', uidCandidates)
             .order('created_at', { ascending: false })
             .limit(40);
-        if (!a.error && Array.isArray(a.data)) spiritWishlistAlertRows = a.data;
+        if (!a.error && Array.isArray(a.data)) {
+            spiritWishlistAlertRows = a.data.filter(function (r) {
+                return spiritNormUid(r && r.user_id) === uidN;
+            });
+        }
     } catch (e2) {}
     try {
         var recovered = await spiritSyncWishlistAlertsForCurrentUser(spiritWishlistSearchRows);
@@ -6881,10 +6890,14 @@ async function spiritRefreshWishlistSearches() {
             var a2 = await _spirit
                 .from('spirit_wishlist_alerts')
                 .select('id,user_id,search_id,listing_id,listing_title,match_reason,created_at')
-                .eq('user_id', uidN)
+                .in('user_id', uidCandidates)
                 .order('created_at', { ascending: false })
                 .limit(40);
-            if (!a2.error && Array.isArray(a2.data)) spiritWishlistAlertRows = a2.data;
+            if (!a2.error && Array.isArray(a2.data)) {
+                spiritWishlistAlertRows = a2.data.filter(function (r) {
+                    return spiritNormUid(r && r.user_id) === uidN;
+                });
+            }
             spiritWishlistSetStatus('Synchro terminee: ' + String(recovered) + ' alerte(s) trouvee(s).', false);
         } else if (spiritWishlistSearchRows.length) {
             spiritWishlistSetStatus('Synchro terminee: aucune nouvelle correspondance pour le moment.', false);
