@@ -9274,13 +9274,17 @@ function spiritRenderUserAnnoncesRows(container, myAnnonces) {
         const imgHtml = displayImg ? `<img src="${displayImg}" alt="" loading="lazy" decoding="async" style="width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:2px;">` : '<div style="width:50px; height:50px; background:#222; display:flex; align-items:center; justify-content:center; font-size:8px;">' + escAttr(aT('my_ad_no_img')) + '</div>';
         const statusBadge = a.status === 'sold' ? '<span style="color:white; background:red; padding:2px 5px; font-size:0.6rem; font-weight:bold;">' + escAttr(aT('fav_sold')) + '</span>' : '<span style="color:var(--spirit-green); font-size:0.6rem;">' + escAttr(aT('my_ad_online')) + '</span>';
         const titleDisp = escAttr(a.title || a.name || aT('pm_no_title'));
+        const brandDisp = escAttr(String(a.brand || a.marque || '').trim() || '—');
+        const refDisp = escAttr(String(a.product_reference || a.reference_code || a.ref_code || a.reference || a.sku || '').trim() || 'N/A');
         const btnEdit = escAttr(aT('my_ad_edit'));
         const btnDel = escAttr(aT('my_ad_delete'));
         div.innerHTML = `
             <div style="display:flex; gap:12px; align-items:center;">
                 ${imgHtml}
                 <div style="flex:1;">
-                    <div style="font-weight:bold; color:white; text-transform:uppercase; font-size:0.85rem;">${titleDisp}</div>
+                    <div style="font-size:0.62rem;color:#c9a77a;letter-spacing:0.08em;text-transform:uppercase;">${brandDisp}</div>
+                    <div style="font-weight:bold; color:white; text-transform:uppercase; font-size:0.85rem; margin-top:2px;">${titleDisp}</div>
+                    <div style="font-size:0.62rem;color:#ff6600;font-weight:800;letter-spacing:0.4px;margin-top:2px;">Réf: ${refDisp}</div>
                     <div style="display:flex; align-items:center; gap:10px; margin-top:2px;">
                         <span style="font-weight:bold; color:var(--neon-orange);">${(a.price != null && a.price !== '') ? a.price : '—'} €</span>
                         ${statusBadge}
