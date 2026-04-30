@@ -3437,6 +3437,9 @@
             <div id="diag-link" style="background:rgba(0,255,170,0.1); padding:8px; border:1px solid var(--spirit-green); margin-bottom:6px; display:none;">
                 <span style="color:var(--spirit-green); font-size:0.8rem;" data-key="cert_diag_ok">✓ Auto-diagnostic Puce Spirit lié à cette annonce</span>
             </div>
+            <label for="saleBrand" style="font-size:0.65rem; color:var(--neon-orange); display:block; margin:6px 0 4px;" data-key="statues_brand">MARQUE</label>
+            <select id="saleBrand"></select>
+            <label for="inputTitle" style="font-size:0.65rem; color:var(--neon-orange); display:block; margin:6px 0 4px;" data-key="cert_ph_title">Nom précis de la figurine</label>
             <input type="text" id="inputTitle" data-key="cert_ph_title" placeholder="Nom précis de la figurine">
             <label for="inputReference" style="font-size:0.65rem; color:var(--neon-orange); display:block; margin:6px 0 4px;" data-key="cert_lbl_reference">Référence (SKU / ref. fabricant)</label>
             <input type="text" id="inputReference" data-key="cert_ph_reference" placeholder="Ex. MMS123, édition, variante…" autocomplete="off" list="certRefSuggestions">
@@ -3444,7 +3447,6 @@
             <div id="certRefHint" style="font-size:0.6rem; color:#89b; margin:4px 0 6px; min-height:14px;"></div>
             <div id="certRefDropdown" style="display:none; max-height:220px; overflow:auto; border:1px solid #2c2c2c; background:linear-gradient(180deg,#0b0b0b 0%, #121212 100%); margin:0 0 8px; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,102,0,0.08);"></div>
             <select id="saleCat"></select>
-            <select id="saleBrand"></select>
             <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;" data-key="cert_lbl_cond">ÉTAT</label>
             <select id="saleCond"></select>
             <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;" data-key="cert_lbl_ship_origin">PAYS / ZONE D'EXPÉDITION DU COLIS</label>
@@ -7971,9 +7973,6 @@ function renderMarket(filteredData = null) {
             const lightTxt = item.is_light_protect ? 'Lumiere protegee' : 'Lumiere exposee';
             const firstTxt = item.is_first_hand ? '1ere main' : 'Multi-mains';
             const displayBrand = String(item.brand || item.marque || '').trim();
-            const displayRef = String(
-                item.product_reference || item.reference_code || item.ref_code || item.reference || item.sku || ''
-            ).trim();
             const brandLine = displayBrand
                 ? `<div class="spirit-card-brand" style="font-size:0.62rem;color:#c9a77a;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">${displayBrand.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')}</div>`
                 : '';
@@ -7997,13 +7996,10 @@ function renderMarket(filteredData = null) {
                     <div class="market-badges-row">
                         <span class="badge ${badgeClass}">${badgeText}</span>${hasCoa ? `<span class="badge badge-coa">${spiritT('badge_with_coa')}</span>` : ''}
                     </div>
-                    <div style="display:flex;flex-direction:column;gap:2px;margin-top:2px;">
-                        <div style="font-size:0.62rem;color:#c9a77a;letter-spacing:0.08em;text-transform:uppercase;">${displayBrand ? displayBrand.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') : '—'}</div>
-                        <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
-                        <div style="font-size:0.6rem;color:#ff6600;font-weight:800;letter-spacing:0.4px;">Réf: ${displayRef ? displayRef.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') : 'N/A'}</div>
-                    </div>
+                    ${brandLine}
                     <div class="price">${safePrice.toFixed(2)} ${marketCurrencyMode}</div>
                     ${isImport ? `<div class="market-fee-note ${extraRate >= 0.25 ? 'high' : ''}">Estimation Import : ${customs.toFixed(2)} ${marketCurrencyMode} | Total estimé à l'arrivée : ${totalArrival.toFixed(2)} ${marketCurrencyMode}</div>` : ''}
+                    <div class="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${safeTitle}</div>
                     ${spiritTechReportLine}
                     <div style="margin-top:6px; font-size:0.72rem; color:#aaa;">
                         Vendeur :
@@ -9274,17 +9270,13 @@ function spiritRenderUserAnnoncesRows(container, myAnnonces) {
         const imgHtml = displayImg ? `<img src="${displayImg}" alt="" loading="lazy" decoding="async" style="width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:2px;">` : '<div style="width:50px; height:50px; background:#222; display:flex; align-items:center; justify-content:center; font-size:8px;">' + escAttr(aT('my_ad_no_img')) + '</div>';
         const statusBadge = a.status === 'sold' ? '<span style="color:white; background:red; padding:2px 5px; font-size:0.6rem; font-weight:bold;">' + escAttr(aT('fav_sold')) + '</span>' : '<span style="color:var(--spirit-green); font-size:0.6rem;">' + escAttr(aT('my_ad_online')) + '</span>';
         const titleDisp = escAttr(a.title || a.name || aT('pm_no_title'));
-        const brandDisp = escAttr(String(a.brand || a.marque || '').trim() || '—');
-        const refDisp = escAttr(String(a.product_reference || a.reference_code || a.ref_code || a.reference || a.sku || '').trim() || 'N/A');
         const btnEdit = escAttr(aT('my_ad_edit'));
         const btnDel = escAttr(aT('my_ad_delete'));
         div.innerHTML = `
             <div style="display:flex; gap:12px; align-items:center;">
                 ${imgHtml}
                 <div style="flex:1;">
-                    <div style="font-size:0.62rem;color:#c9a77a;letter-spacing:0.08em;text-transform:uppercase;">${brandDisp}</div>
-                    <div style="font-weight:bold; color:white; text-transform:uppercase; font-size:0.85rem; margin-top:2px;">${titleDisp}</div>
-                    <div style="font-size:0.62rem;color:#ff6600;font-weight:800;letter-spacing:0.4px;margin-top:2px;">Réf: ${refDisp}</div>
+                    <div style="font-weight:bold; color:white; text-transform:uppercase; font-size:0.85rem;">${titleDisp}</div>
                     <div style="display:flex; align-items:center; gap:10px; margin-top:2px;">
                         <span style="font-weight:bold; color:var(--neon-orange);">${(a.price != null && a.price !== '') ? a.price : '—'} €</span>
                         ${statusBadge}
@@ -20662,8 +20654,6 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
 
 </body>
 </html>
-
-
 
 
 
