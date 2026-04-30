@@ -3442,6 +3442,7 @@
             <input type="text" id="inputReference" data-key="cert_ph_reference" placeholder="Ex. MMS123, édition, variante…" autocomplete="off" list="certRefSuggestions">
             <datalist id="certRefSuggestions"></datalist>
             <div id="certRefHint" style="font-size:0.6rem; color:#89b; margin:4px 0 6px; min-height:14px;"></div>
+            <div id="certRefDropdown" style="display:none; max-height:180px; overflow:auto; border:1px solid #2b3a44; background:#0d1318; margin:0 0 8px; border-radius:6px;"></div>
             <select id="saleCat"></select>
             <select id="saleBrand"></select>
             <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;" data-key="cert_lbl_cond">ÉTAT</label>
@@ -8519,10 +8520,13 @@ async function spiritFetchCatalogRefSuggestions(queryText, brand, maxRows) {
 function spiritRenderCatalogRefSuggestions(items) {
     var dl = document.getElementById('certRefSuggestions');
     var hint = document.getElementById('certRefHint');
+    var dd = document.getElementById('certRefDropdown');
     if (!dl) return;
     dl.innerHTML = '';
+    if (dd) dd.innerHTML = '';
     if (!items || !items.length) {
         if (hint) hint.textContent = '';
+        if (dd) dd.style.display = 'none';
         return;
     }
     items.forEach(function (it) {
@@ -8532,8 +8536,30 @@ function spiritRenderCatalogRefSuggestions(items) {
         opt.setAttribute('data-model', String(it.model_name || ''));
         opt.setAttribute('data-brand', String(it.brand || ''));
         dl.appendChild(opt);
+        if (dd) {
+            var row = document.createElement('button');
+            row.type = 'button';
+            row.style.cssText = 'display:block;width:100%;text-align:left;padding:8px 10px;border:0;border-bottom:1px solid #1c2730;background:transparent;color:#d7e7f2;cursor:pointer;font-size:0.62rem;';
+            row.innerHTML =
+                '<span style="color:#66d9ff;font-weight:700;">' + String(it.ref_code || '').replace(/</g, '&lt;') + '</span>' +
+                ' <span style="color:#9ab;">·</span> ' +
+                '<span>' + String(it.model_name || '').replace(/</g, '&lt;') + '</span>' +
+                ' <span style="color:#6f8292;">(' + String(it.brand || '').replace(/</g, '&lt;') + ')</span>';
+            row.onclick = function () { spiritSelectCatalogRefSuggestion(it); };
+            dd.appendChild(row);
+        }
     });
     if (hint) hint.textContent = 'Références proposées: ' + items.map(function (x) { return x.ref_code; }).join(' / ');
+    if (dd) dd.style.display = 'block';
+}
+function spiritSelectCatalogRefSuggestion(it) {
+    var r = document.getElementById('inputReference');
+    var hint = document.getElementById('certRefHint');
+    var dd = document.getElementById('certRefDropdown');
+    if (r) r.value = String(it && it.ref_code || '').trim();
+    window.spiritSelectedCatalogRow = it || null;
+    if (hint && it) hint.textContent = 'Réf sélectionnée: ' + String(it.ref_code || '') + ' · ' + String(it.model_name || '');
+    if (dd) dd.style.display = 'none';
 }
 async function spiritSuggestCatalogRefsFromTitle() {
     var titleEl = document.getElementById('inputTitle');
@@ -8563,6 +8589,15 @@ function spiritAttachCatalogAssistEvents() {
     }
     if (r && !r.dataset.catalogBind) {
         r.dataset.catalogBind = '1';
+        r.addEventListener('focus', function () {
+            if (Array.isArray(window.spiritLastCatalogRefSuggestions) && window.spiritLastCatalogRefSuggestions.length) {
+                spiritRenderCatalogRefSuggestions(window.spiritLastCatalogRefSuggestions);
+            }
+        });
+        r.addEventListener('input', function () {
+            var dd = document.getElementById('certRefDropdown');
+            if (dd && dd.children.length) dd.style.display = 'block';
+        });
         r.addEventListener('change', function () {
             var cur = spiritNormalizeCatalogSearch(r.value || '');
             var lst = Array.isArray(window.spiritLastCatalogRefSuggestions) ? window.spiritLastCatalogRefSuggestions : [];
@@ -8572,6 +8607,19 @@ function spiritAttachCatalogAssistEvents() {
             }
             window.spiritSelectedCatalogRow = pick;
         });
+    }
+    if (!window.spiritCatalogRefOutsideBind) {
+        window.spiritCatalogRefOutsideBind = true;
+        document.addEventListener('click', function (ev) {
+            var dd = document.getElementById('certRefDropdown');
+            if (!dd) return;
+            var ref = document.getElementById('inputReference');
+            var title = document.getElementById('inputTitle');
+            var t = ev && ev.target ? ev.target : null;
+            if (!t) return;
+            if ((ref && ref.contains(t)) || (dd && dd.contains(t)) || (title && title.contains(t))) return;
+            dd.style.display = 'none';
+        }, true);
     }
 }
 
