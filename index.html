@@ -6688,6 +6688,57 @@ async function spiritSyncWishlistAlertsForCurrentUser(searchRows) {
     } catch (e) {}
     return created;
 }
+async function spiritComputeLiveWishlistAlertsForCurrentUser(searchRows) {
+    if (!_spirit) return [];
+    var uidN = spiritWishlistGetCurrentUserNorm();
+    if (!uidN) return [];
+    searchRows = Array.isArray(searchRows) ? searchRows : [];
+    if (!searchRows.length) return [];
+    var outRows = [];
+    var seen = {};
+    try {
+        var q = await _spirit
+            .from('products_live')
+            .select('id,title,name,description,brand,product_reference,price,currency,cond,condition,origin_country,country,owner_id,status')
+            .order('id', { ascending: false })
+            .limit(1200);
+        if (q.error || !Array.isArray(q.data) || !q.data.length) return [];
+        for (var sI = 0; sI < searchRows.length; sI++) {
+            var s = searchRows[sI];
+            if (spiritNormUid(s.user_id || '') !== uidN) continue;
+            var ranked = [];
+            for (var i = 0; i < q.data.length; i++) {
+                var listing = q.data[i];
+                var st = String(listing && listing.status || '').toLowerCase().trim();
+                if (st === 'sold' || st === 'vendu') continue;
+                var sc = spiritWishlistMatchScore(listing, s);
+                if (sc < 0) sc = spiritWishlistSoftMatchScore(listing, s);
+                if (sc < 0) continue;
+                ranked.push({ row: listing, score: sc });
+            }
+            ranked.sort(function (a, b) { return b.score - a.score; });
+            var topN = ranked.slice(0, SPIRIT_WISHLIST_MAX_MATCH_NOTIFS);
+            for (var j = 0; j < topN.length; j++) {
+                var r = topN[j].row;
+                var lid = spiritFavoriteProductId(r);
+                if (lid == null) continue;
+                var key = String(s.id || '') + '::' + String(lid);
+                if (seen[key]) continue;
+                seen[key] = true;
+                outRows.push({
+                    id: 'live-' + key,
+                    user_id: uidN,
+                    search_id: s.id,
+                    listing_id: lid,
+                    listing_title: String(r.title || r.name || ('Annonce #' + lid)),
+                    match_reason: spiritWishlistFilterSummary(s) + ' | Vendeur: ' + spiritWishlistListingSellerLabel(r) + ' | source: live',
+                    created_at: new Date().toISOString()
+                });
+            }
+        }
+    } catch (e) {}
+    return outRows;
+}
 async function spiritDeleteWishlistSearch(id) {
     if (!_spirit) return;
     var uidN = spiritWishlistGetCurrentUserNorm();
@@ -6738,7 +6789,16 @@ function spiritRenderWishlistSearchLists() {
             row.style.cssText = 'border:1px solid #3f2d1b;background:#15110d;padding:8px;border-radius:8px;';
             row.innerHTML =
                 '<div style="font-size:0.66rem;color:#fff;">' + nm + '</div>' +
-                '<div style="font-size:0.58rem;color:#b98f64;margin-top:4px;">' + reason + '</div>';
+                '<div style="font-size:0.58rem;color:#b98f64;margin-top:4px;">' + reason + '</div>' +
+                '<div style="margin-top:7px;"><button type="button" class="btn-action spirit-wish-open-btn" style="font-size:0.54rem;padding:5px 8px;">VOIR</button></div>';
+            var btOpen = row.querySelector('.spirit-wish-open-btn');
+            if (btOpen) {
+                btOpen.onclick = function (ev) {
+                    if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+                    var pid = Number(a.listing_id);
+                    if (Number.isFinite(pid) && typeof showProductDetails === 'function') void showProductDetails(pid);
+                };
+            }
             alertBox.appendChild(row);
         });
     }
@@ -6796,6 +6856,21 @@ async function spiritRefreshWishlistSearches() {
         try { emSync = String((eSync && (eSync.message || eSync.details || eSync.hint)) || eSync || ''); } catch (eSync2) {}
         spiritWishlistSetStatus('Erreur synchronisation alertes: ' + (emSync || 'inconnue'), true);
     }
+    try {
+        var liveAlerts = await spiritComputeLiveWishlistAlertsForCurrentUser(spiritWishlistSearchRows);
+        if (liveAlerts.length) {
+            var merged = [];
+            var seenM = {};
+            (spiritWishlistAlertRows || []).concat(liveAlerts).forEach(function (r) {
+                var mk = String(r.search_id || '') + '::' + String(r.listing_id || '');
+                if (seenM[mk]) return;
+                seenM[mk] = true;
+                merged.push(r);
+            });
+            spiritWishlistAlertRows = merged.slice(0, 40);
+            spiritWishlistSetStatus('Rafraichissement termine: ' + String(spiritWishlistAlertRows.length) + ' alerte(s) (live + base).', false);
+        }
+    } catch (eLive) {}
     if (!spiritWishlistAlertRows.length && spiritWishlistSearchRows.length) {
         spiritWishlistSetStatus('Rafraichissement termine: aucune alerte pour le moment.', false);
     } else if (spiritWishlistAlertRows.length) {
