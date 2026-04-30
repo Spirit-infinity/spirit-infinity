@@ -6678,6 +6678,25 @@ async function spiritFetchWishlistProductsLiveRows(limitN) {
             lastErr = e;
         }
     }
+    try {
+        var qAny = await _spirit
+            .from('products_live')
+            .select('*')
+            .limit(lim);
+        if (!qAny.error && Array.isArray(qAny.data)) {
+            var rows = qAny.data.slice();
+            rows.sort(function (a, b) {
+                var ai = Number(a && a.id);
+                var bi = Number(b && b.id);
+                if (Number.isFinite(ai) && Number.isFinite(bi)) return bi - ai;
+                return 0;
+            });
+            return { rows: rows, error: null };
+        }
+        lastErr = qAny.error || lastErr;
+    } catch (eAny) {
+        lastErr = eAny;
+    }
     return { rows: [], error: lastErr };
 }
 async function spiritSyncWishlistAlertsForCurrentUser(searchRows) {
