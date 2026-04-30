@@ -3439,7 +3439,9 @@
             </div>
             <input type="text" id="inputTitle" data-key="cert_ph_title" placeholder="Nom précis de la figurine">
             <label for="inputReference" style="font-size:0.65rem; color:var(--neon-orange); display:block; margin:6px 0 4px;" data-key="cert_lbl_reference">Référence (SKU / ref. fabricant)</label>
-            <input type="text" id="inputReference" data-key="cert_ph_reference" placeholder="Ex. MMS123, édition, variante…" autocomplete="off">
+            <input type="text" id="inputReference" data-key="cert_ph_reference" placeholder="Ex. MMS123, édition, variante…" autocomplete="off" list="certRefSuggestions">
+            <datalist id="certRefSuggestions"></datalist>
+            <div id="certRefHint" style="font-size:0.6rem; color:#89b; margin:4px 0 6px; min-height:14px;"></div>
             <select id="saleCat"></select>
             <select id="saleBrand"></select>
             <label style="font-size:0.65rem; color:var(--neon-orange); display:block; margin-bottom:4px;" data-key="cert_lbl_cond">ÉTAT</label>
@@ -8333,6 +8335,10 @@ async function loadMySales() {
         resetSellForm();
         spiritEnsureTfjsMobilenet().catch(function (e) { console.error('Spirit TFJS:', e); });
         document.getElementById('certifModal').style.setProperty('display', 'flex', 'important');
+        try {
+            spiritAttachCatalogAssistEvents();
+            void spiritSuggestCatalogRefsFromTitle();
+        } catch (eBindCat) {}
     }
 
 /**
@@ -8443,6 +8449,132 @@ try {
     window.spiritFetchProductsCatalogBrands = spiritFetchProductsCatalogBrands;
 } catch (eWinCat) {}
 
+function spiritNormalizeCatalogSearch(s) {
+    try {
+        return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    } catch (e) {
+        return String(s || '').toLowerCase().trim();
+    }
+}
+function spiritCatalogSearchEscapeLike(s) {
+    return String(s || '').replace(/[%_]/g, '');
+}
+function spiritGetSaleBrandForCatalogSearch() {
+    var sel = document.getElementById('saleBrand');
+    if (!sel) return '';
+    return String(sel.value || '').trim();
+}
+async function spiritFetchCatalogRefSuggestions(queryText, brand, maxRows) {
+    if (typeof _spirit === 'undefined' || !_spirit) return [];
+    var q = String(queryText || '').trim();
+    if (q.length < 2) return [];
+    var qLike = '%' + spiritCatalogSearchEscapeLike(q) + '%';
+    var lim = Math.max(3, Math.min(20, Number(maxRows) || 8));
+    try {
+        var req = _spirit
+            .from('products_catalog')
+            .select('brand,ref_code,model_name')
+            .or('model_name.ilike.' + qLike + ',ref_code.ilike.' + qLike)
+            .limit(250);
+        var b = String(brand || '').trim();
+        if (b && b.toLowerCase() !== 'autre') req = req.eq('brand', b);
+        var out = await req;
+        if (out.error) return [];
+        var rows = out.data || [];
+        var scored = [];
+        var nQ = spiritNormalizeCatalogSearch(q);
+        rows.forEach(function (r) {
+            var ref = String(r && r.ref_code || '').trim();
+            var name = String(r && r.model_name || '').trim();
+            var b2 = String(r && r.brand || '').trim();
+            if (!ref || !name) return;
+            var nName = spiritNormalizeCatalogSearch(name);
+            var nRef = spiritNormalizeCatalogSearch(ref);
+            var sc = 0;
+            if (nName.indexOf(nQ) >= 0) sc += 8;
+            if (nRef.indexOf(nQ) >= 0) sc += 12;
+            if (b && b2 && spiritNormalizeCatalogSearch(b2) === spiritNormalizeCatalogSearch(b)) sc += 4;
+            sc += Math.max(0, 5 - Math.floor(Math.min(name.length, 100) / 24));
+            scored.push({ score: sc, brand: b2, ref_code: ref, model_name: name });
+        });
+        scored.sort(function (a, b) {
+            if (b.score !== a.score) return b.score - a.score;
+            return a.model_name.localeCompare(b.model_name, undefined, { sensitivity: 'base' });
+        });
+        var seenRef = Object.create(null);
+        var outList = [];
+        for (var i = 0; i < scored.length; i++) {
+            var it = scored[i];
+            var key = spiritNormalizeCatalogSearch(it.ref_code + '|' + it.model_name);
+            if (seenRef[key]) continue;
+            seenRef[key] = 1;
+            outList.push(it);
+            if (outList.length >= lim) break;
+        }
+        return outList;
+    } catch (e) {
+        return [];
+    }
+}
+function spiritRenderCatalogRefSuggestions(items) {
+    var dl = document.getElementById('certRefSuggestions');
+    var hint = document.getElementById('certRefHint');
+    if (!dl) return;
+    dl.innerHTML = '';
+    if (!items || !items.length) {
+        if (hint) hint.textContent = '';
+        return;
+    }
+    items.forEach(function (it) {
+        var opt = document.createElement('option');
+        opt.value = String(it.ref_code || '').trim();
+        opt.label = String((it.model_name || '') + ' · ' + (it.brand || '')).trim();
+        opt.setAttribute('data-model', String(it.model_name || ''));
+        opt.setAttribute('data-brand', String(it.brand || ''));
+        dl.appendChild(opt);
+    });
+    if (hint) hint.textContent = 'Références proposées: ' + items.map(function (x) { return x.ref_code; }).join(' / ');
+}
+async function spiritSuggestCatalogRefsFromTitle() {
+    var titleEl = document.getElementById('inputTitle');
+    if (!titleEl) return;
+    var q = String(titleEl.value || '').trim();
+    if (q.length < 2) {
+        spiritRenderCatalogRefSuggestions([]);
+        return;
+    }
+    var brand = spiritGetSaleBrandForCatalogSearch();
+    var items = await spiritFetchCatalogRefSuggestions(q, brand, 8);
+    window.spiritLastCatalogRefSuggestions = items || [];
+    spiritRenderCatalogRefSuggestions(items || []);
+}
+function spiritAttachCatalogAssistEvents() {
+    var t = document.getElementById('inputTitle');
+    var b = document.getElementById('saleBrand');
+    var r = document.getElementById('inputReference');
+    if (t && !t.dataset.catalogBind) {
+        t.dataset.catalogBind = '1';
+        t.addEventListener('input', function () { void spiritSuggestCatalogRefsFromTitle(); });
+        t.addEventListener('blur', function () { void spiritSuggestCatalogRefsFromTitle(); });
+    }
+    if (b && !b.dataset.catalogBind) {
+        b.dataset.catalogBind = '1';
+        b.addEventListener('change', function () { void spiritSuggestCatalogRefsFromTitle(); });
+    }
+    if (r && !r.dataset.catalogBind) {
+        r.dataset.catalogBind = '1';
+        r.addEventListener('change', function () {
+            var cur = spiritNormalizeCatalogSearch(r.value || '');
+            var lst = Array.isArray(window.spiritLastCatalogRefSuggestions) ? window.spiritLastCatalogRefSuggestions : [];
+            var pick = null;
+            for (var i = 0; i < lst.length; i++) {
+                if (spiritNormalizeCatalogSearch(lst[i].ref_code) === cur) { pick = lst[i]; break; }
+            }
+            window.spiritSelectedCatalogRow = pick;
+        });
+    }
+}
+
     function chooseMethod(m) {
         currentMethod = m;
         document.getElementById('stepMethod').style.display = 'none';
@@ -8469,6 +8601,10 @@ try {
         try {
             if (typeof spiritApplyCertifModalI18n === 'function') spiritApplyCertifModalI18n();
         } catch (eClm) {}
+        try {
+            spiritAttachCatalogAssistEvents();
+            void spiritSuggestCatalogRefsFromTitle();
+        } catch (eSug) {}
     }
 
 /**
@@ -8651,6 +8787,32 @@ async function goToScan() {
     const statusEl = document.getElementById('scanStatus');
     statusEl.removeAttribute('data-key');
     statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>" + tGs('cert_scan_status_running') + '</span>';
+    // Contrôle catalogue: si une référence est choisie mais peu cohérente avec le texte, on alerte tôt.
+    try {
+        var refNorm = spiritNormalizeCatalogSearch(reference);
+        var titleNorm = spiritNormalizeCatalogSearch(title + ' ' + description);
+        if (refNorm) {
+            var picked = null;
+            var lstCheck = Array.isArray(window.spiritLastCatalogRefSuggestions) ? window.spiritLastCatalogRefSuggestions : [];
+            for (var z = 0; z < lstCheck.length; z++) {
+                if (spiritNormalizeCatalogSearch(lstCheck[z].ref_code) === refNorm) { picked = lstCheck[z]; break; }
+            }
+            if (picked) {
+                window.spiritSelectedCatalogRow = picked;
+                var modelNorm = spiritNormalizeCatalogSearch(picked.model_name || '');
+                var overlap = 0;
+                var toks = modelNorm.split(/\s+/).filter(function (x) { return x && x.length > 3; });
+                for (var ti = 0; ti < toks.length; ti++) {
+                    if (titleNorm.indexOf(toks[ti]) >= 0) overlap++;
+                }
+                if (overlap === 0) {
+                    statusEl.innerHTML += "<br><span style='color:#ffb347;'>⚠ Réf choisie peu cohérente avec le titre/description (" + String(picked.ref_code) + ").</span>";
+                } else {
+                    statusEl.innerHTML += "<br><span style='color:#8bd98b;'>✓ Correspondance catalogue détectée: " + String(picked.ref_code) + ".</span>";
+                }
+            }
+        }
+    } catch (ePreCheck) {}
 
     try {
         await spiritEnsureTfjsMobilenet();
