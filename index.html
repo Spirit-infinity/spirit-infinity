@@ -6463,19 +6463,12 @@ function spiritWishlistListingMatchesSearch(listing, search) {
     var st = spiritWishlistNormText(search.name_query);
     var sr = spiritWishlistNormText(search.ref_query);
     var tc = spiritWishlistCompactText(t);
-    var rc = spiritWishlistCompactText(r);
-    var src = spiritWishlistCompactText(sr);
-    var nameOk = true;
-    var refOk = true;
     if (sb && b.indexOf(sb) === -1) return false;
     if (st) {
-        var ovName = spiritWishlistTokenOverlapScore(t, st);
-        nameOk = (t.indexOf(st) !== -1) || ovName >= 0.66;
+        var d = spiritWishlistNormText(listing.description || '');
+        var ovName = spiritWishlistTokenOverlapScore(t + ' ' + d, st);
+        var nameOk = (t.indexOf(st) !== -1) || (d.indexOf(st) !== -1) || ovName >= 0.45;
         if (!nameOk) return false;
-    }
-    if (sr) {
-        refOk = (src && ((rc && rc.indexOf(src) !== -1) || (tc && tc.indexOf(src) !== -1)));
-        if (!refOk) return false;
     }
     var maxP = Number(search.price_max);
     if (Number.isFinite(maxP) && maxP > 0) {
@@ -6550,17 +6543,21 @@ function spiritWishlistSoftMatchScore(listing, search) {
     if (st) {
         if (t.indexOf(st) !== -1) score += 40;
         else {
-            var ov1 = spiritWishlistTokenOverlapScore(t, st);
-            if (ov1 >= 0.66) score += Math.round(ov1 * 24);
+            var d = spiritWishlistNormText(listing.description || '');
+            if (d.indexOf(st) !== -1) score += 24;
+            else {
+                var ov1 = spiritWishlistTokenOverlapScore(t + ' ' + d, st);
+                if (ov1 >= 0.45) score += Math.round(ov1 * 24);
+            }
         }
     }
     if (sr) {
-        if (src && ((rc && rc.indexOf(src) !== -1) || (tc && tc.indexOf(src) !== -1))) score += 45;
-        else return -1;
+        if (src && ((rc && rc.indexOf(src) !== -1) || (tc && tc.indexOf(src) !== -1))) score += 28;
+        else score += 0;
     }
     if (sb && b && b.indexOf(sb) !== -1) score += 18;
-    if (!st && !sr) return -1;
-    if (st && score < 20) return -1;
+    if (!st && !sr && !sb) return -1;
+    if (st && score < 16) return -1;
     return score > 0 ? score : -1;
 }
 function spiritWishlistFilterSummary(s) {
