@@ -6469,6 +6469,14 @@ function spiritWishlistWriteLocalSearch(uidN, row) {
         localStorage.setItem(spiritWishlistLsKey(uidN), JSON.stringify(out.slice(0, 60)));
     } catch (e) {}
 }
+function spiritWishlistDeleteLocalSearch(uidN, id) {
+    if (!uidN || !id) return;
+    try {
+        var cur = spiritWishlistReadLocalSearches(uidN);
+        var next = cur.filter(function (r) { return String(r && r.id || '') !== String(id); });
+        localStorage.setItem(spiritWishlistLsKey(uidN), JSON.stringify(next));
+    } catch (e) {}
+}
 function spiritWishlistCondMatches(listingCond, searchCond) {
     var lc = spiritWishlistNormText(listingCond);
     var sc = spiritWishlistNormText(searchCond);
@@ -6835,9 +6843,14 @@ async function spiritComputeLiveWishlistAlertsForCurrentUser(searchRows) {
     return outRows;
 }
 async function spiritDeleteWishlistSearch(id) {
-    if (!_spirit) return;
     var uidN = spiritWishlistGetCurrentUserNorm();
     if (!uidN || !id) return;
+    spiritWishlistDeleteLocalSearch(uidN, id);
+    if (!_spirit || String(id).indexOf('local-') === 0) {
+        spiritWishlistSetStatus('Filtre supprime.', false);
+        await spiritRefreshWishlistSearches();
+        return;
+    }
     try {
         await _spirit.from('spirit_wishlist_alerts').delete().eq('search_id', id).eq('user_id', uidN);
     } catch (eA) {}
@@ -6846,7 +6859,7 @@ async function spiritDeleteWishlistSearch(id) {
         if (del.error) throw del.error;
         spiritWishlistSetStatus('Filtre supprime.', false);
     } catch (e) {
-        spiritWishlistSetStatus('Suppression impossible (table a verifier).', true);
+        spiritWishlistSetStatus('Suppression locale OK, DB non disponible.', false);
     }
     await spiritRefreshWishlistSearches();
 }
