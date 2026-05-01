@@ -6881,7 +6881,6 @@ async function spiritAnalyzePrePublishMarket(probe) {
             var ws = await _spirit.from('spirit_wishlist_searches').select('brand,name_query,ref_query,user_id').limit(2000);
             if (!ws.error && Array.isArray(ws.data)) {
                 var dm = {};
-                var meN = spiritNormUid(spiritGetCurrentUserId());
                 ws.data.forEach(function (s) {
                     var fakeListing = {
                         brand: probe.brand || '',
@@ -6891,7 +6890,7 @@ async function spiritAnalyzePrePublishMarket(probe) {
                     };
                     if (spiritWishlistListingMatchesSearch(fakeListing, s) || spiritWishlistSoftMatchScore(fakeListing, s) >= 0) {
                         var u = spiritNormUid(s && s.user_id || '');
-                        if (u && (!meN || u !== meN)) dm[u] = true;
+                        if (u) dm[u] = true;
                     }
                 });
                 out.demand = Object.keys(dm).length;
@@ -6939,7 +6938,8 @@ function spiritShowMarketInsightModal(m, probe, rareTxt) {
                 '<div>Vendeurs actifs : <b style="color:#fff;">' + String(m.sellers) + '</b></div>' +
                 '<div>Prix EUR (min / mediane / max) : <b style="color:#fff;">' + (m.min ? m.min.toFixed(0) : '—') + ' / ' + (m.med ? m.med.toFixed(0) : '—') + ' / ' + (m.max ? m.max.toFixed(0) : '—') + '</b></div>' +
                 '<div>Etat dominant : <b style="color:#fff;">' + String(m.condTop || '—').replace(/</g, '&lt;') + '</b></div>' +
-                '<div>Utilisateurs en demande (wishlist hors toi) : <b style="color:#fff;">' + String(m.demand) + '</b></div>' +
+                '<div>Statut du badge : <b style="color:#fff;">' + String(rareTxt || 'INTERMEDIAIRE') + '</b></div>' +
+                '<div>Utilisateurs en demande (wishlist) : <b style="color:#fff;">' + String(m.demand) + '</b></div>' +
                 '<div>Ratio offre/(offre+demande) : <b style="color:#fff;">' + (Number.isFinite(m.rarityRatio) ? m.rarityRatio.toFixed(1) : '0.0') + '%</b></div>' +
                 '</div>' +
                 '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">' +
@@ -8829,6 +8829,14 @@ function renderMarket(filteredData = null) {
         }
 
         spiritRenderMarketSig = renderSig;
+        var rareKeyCountMap = {};
+        dataToRender.forEach(function (it) {
+            var kb = spiritWishlistNormText(it && (it.brand || it.marque) || '');
+            var kt = spiritWishlistNormText(it && (it.title || it.name) || '');
+            if (!kt) return;
+            var kk = kb + '|' + kt;
+            rareKeyCountMap[kk] = (rareKeyCountMap[kk] || 0) + 1;
+        });
 
         dataToRender.forEach(item => {
             const card = document.createElement('div');
@@ -8894,6 +8902,11 @@ function renderMarket(filteredData = null) {
             const lightTxt = item.is_light_protect ? 'Lumiere protegee' : 'Lumiere exposee';
             const firstTxt = item.is_first_hand ? '1ere main' : 'Multi-mains';
             const displayBrand = String(item.brand || item.marque || '').trim();
+            var rareKey = spiritWishlistNormText(displayBrand) + '|' + spiritWishlistNormText(safeTitle);
+            var rareCount = rareKeyCountMap[rareKey] || 0;
+            var rareBadge = rareCount > 0 && rareCount <= 3
+                ? '<div style="position:absolute;top:8px;left:8px;z-index:13;padding:4px 8px;border-radius:999px;background:rgba(0,170,255,0.20);border:1px solid rgba(0,200,255,0.85);color:#8be9ff;font-size:0.56rem;font-weight:800;letter-spacing:0.06em;box-shadow:0 0 12px rgba(0,200,255,0.55);">RARE</div>'
+                : '';
             const brandLine = displayBrand
                 ? `<div class="spirit-card-brand" style="font-size:0.62rem;color:#c9a77a;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">${displayBrand.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')}</div>`
                 : '';
@@ -8911,6 +8924,7 @@ function renderMarket(filteredData = null) {
                 ${soldBadge}
                 ${litigeBadge}
                 ${favBlock}
+                ${rareBadge}
                 ${ownerTag}
                 <div class="img-placeholder" style="height:200px; display:flex; align-items:center; justify-content:center; background:#050505; overflow:hidden; border-bottom:1px solid #111;">${imgContent}</div>
                 <div class="card-info">
