@@ -3444,7 +3444,7 @@
             <label for="inputTitle" style="font-size:0.65rem; color:var(--neon-orange); display:block; margin:6px 0 4px;" data-key="cert_ph_title">Nom précis de la figurine</label>
             <input type="text" id="inputTitle" data-key="cert_ph_title" placeholder="Nom précis de la figurine">
             <label for="inputReference" style="font-size:0.65rem; color:var(--neon-orange); display:block; margin:6px 0 4px;" data-key="cert_lbl_reference">Référence (SKU / ref. fabricant)</label>
-            <input type="text" id="inputReference" data-key="cert_ph_reference" placeholder="Ex. MMS123, édition, variante…" autocomplete="off" list="certRefSuggestions">
+            <input type="text" id="inputReference" data-key="cert_ph_reference" placeholder="Ex. MMS123, édition, variante…" autocomplete="off">
             <datalist id="certRefSuggestions"></datalist>
             <div id="certRefHint" style="font-size:0.6rem; color:#89b; margin:4px 0 6px; min-height:14px;"></div>
             <div id="certRefDropdown" style="display:none; max-height:220px; overflow:auto; border:1px solid #2c2c2c; background:linear-gradient(180deg,#0b0b0b 0%, #121212 100%); margin:0 0 8px; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,102,0,0.08);"></div>
@@ -6841,18 +6841,21 @@ function spiritListingMatchesPrePublishProbe(listing, probe) {
     return true;
 }
 async function spiritAnalyzePrePublishMarket(probe) {
-    var out = { total: 0, sellers: 0, min: 0, med: 0, max: 0, demand: 0, rare: false, condTop: '—' };
+    var out = { total: 0, sellers: 0, min: 0, med: 0, max: 0, demand: 0, rare: false, condTop: '—', exactNameCount: 0 };
     var rows = await spiritWishlistGetCandidateListings(1600);
     var matched = [];
     var sellerMap = {};
     var condMap = {};
     var prices = [];
+    var probeTitleN = spiritWishlistNormText(probe && probe.title || '');
     for (var i = 0; i < rows.length; i++) {
         var it = rows[i];
         var st = String(it && it.status || '').toLowerCase().trim();
         if (st === 'sold' || st === 'vendu') continue;
         if (!spiritListingMatchesPrePublishProbe(it, probe)) continue;
         matched.push(it);
+        var tN = spiritWishlistNormText(it && (it.title || it.name) || '');
+        if (probeTitleN && tN && (tN === probeTitleN || tN.indexOf(probeTitleN) !== -1 || probeTitleN.indexOf(tN) !== -1)) out.exactNameCount++;
         var su = spiritOwnerId(it && it.owner_id);
         if (su) sellerMap[su] = true;
         var c = String(it && (it.cond || it.condition) || '').trim() || '—';
@@ -6878,6 +6881,7 @@ async function spiritAnalyzePrePublishMarket(probe) {
             var ws = await _spirit.from('spirit_wishlist_searches').select('brand,name_query,ref_query,user_id').limit(2000);
             if (!ws.error && Array.isArray(ws.data)) {
                 var dm = {};
+                var meN = spiritNormUid(spiritGetCurrentUserId());
                 ws.data.forEach(function (s) {
                     var fakeListing = {
                         brand: probe.brand || '',
@@ -6887,7 +6891,7 @@ async function spiritAnalyzePrePublishMarket(probe) {
                     };
                     if (spiritWishlistListingMatchesSearch(fakeListing, s) || spiritWishlistSoftMatchScore(fakeListing, s) >= 0) {
                         var u = spiritNormUid(s && s.user_id || '');
-                        if (u) dm[u] = true;
+                        if (u && (!meN || u !== meN)) dm[u] = true;
                     }
                 });
                 out.demand = Object.keys(dm).length;
@@ -6895,27 +6899,62 @@ async function spiritAnalyzePrePublishMarket(probe) {
         }
     } catch (eD) {}
     var ratio = out.total > 0 ? (out.demand / out.total) : (out.demand > 0 ? out.demand : 0);
-    out.rare = (out.total > 0 && out.total <= 10 && (out.demand >= 5 || ratio >= 1.5));
+    out.rare = (
+        (out.total > 0 && out.total <= 5) ||
+        (out.exactNameCount > 0 && out.exactNameCount <= 2) ||
+        (out.total > 0 && out.total <= 10 && (out.demand >= 3 || ratio >= 1.2))
+    );
     return out;
+}
+function spiritShowMarketInsightModal(m, probe, rareTxt) {
+    return new Promise(function (resolve) {
+        try {
+            var old = document.getElementById('spiritMarketInsightModal');
+            if (old && old.parentNode) old.parentNode.removeChild(old);
+            var wrap = document.createElement('div');
+            wrap.id = 'spiritMarketInsightModal';
+            wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:240000;display:flex;align-items:center;justify-content:center;padding:18px;';
+            var box = document.createElement('div');
+            box.style.cssText = 'width:min(560px,95vw);background:linear-gradient(180deg,#0b0b0b,#131313);border:1px solid #383838;border-radius:12px;padding:14px;box-shadow:0 18px 60px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,102,0,0.12);color:#eee;';
+            var badgeBg = (rareTxt === 'RARE') ? '#2a1506' : (rareTxt === 'CLASSIQUE' ? '#1b1b1b' : '#1f180d');
+            var badgeCol = (rareTxt === 'RARE') ? '#ff8a3d' : (rareTxt === 'CLASSIQUE' ? '#c8c8c8' : '#ffbd74');
+            box.innerHTML =
+                '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
+                '<div style="font-size:0.9rem;color:#fff;font-weight:800;letter-spacing:0.03em;">ANALYSE MARCHE AVANT PUBLICATION</div>' +
+                '<div style="padding:4px 10px;border-radius:999px;background:' + badgeBg + ';border:1px solid rgba(255,102,0,0.35);color:' + badgeCol + ';font-size:0.62rem;font-weight:800;">' + rareTxt + '</div>' +
+                '</div>' +
+                '<div style="margin-top:10px;font-size:0.66rem;color:#cfcfcf;line-height:1.55;">' +
+                '<div><b style="color:#ffb16d;">Figurine</b> : ' + String(probe.title || '—').replace(/</g, '&lt;') + '</div>' +
+                '<div><b style="color:#ffb16d;">Marque</b> : ' + String(probe.brand || '—').replace(/</g, '&lt;') + '</div>' +
+                '<div style="margin-top:6px;">Annonces similaires actives : <b style="color:#fff;">' + String(m.total) + '</b></div>' +
+                '<div>Vendeurs actifs : <b style="color:#fff;">' + String(m.sellers) + '</b></div>' +
+                '<div>Prix EUR (min / mediane / max) : <b style="color:#fff;">' + (m.min ? m.min.toFixed(0) : '—') + ' / ' + (m.med ? m.med.toFixed(0) : '—') + ' / ' + (m.max ? m.max.toFixed(0) : '—') + '</b></div>' +
+                '<div>Etat dominant : <b style="color:#fff;">' + String(m.condTop || '—').replace(/</g, '&lt;') + '</b></div>' +
+                '<div>Utilisateurs en demande (wishlist hors toi) : <b style="color:#fff;">' + String(m.demand) + '</b></div>' +
+                '</div>' +
+                '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">' +
+                '<button type="button" id="spiritMarketInsightCancel" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#1b1b1b;border:1px solid #444;color:#ddd;">ANNULER</button>' +
+                '<button type="button" id="spiritMarketInsightOk" class="btn-action" style="font-size:0.62rem;padding:8px 12px;background:#ff6600;border:1px solid #ff6600;color:#111;font-weight:800;">CONTINUER</button>' +
+                '</div>';
+            wrap.appendChild(box);
+            function close(v) {
+                try { if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap); } catch (e) {}
+                resolve(!!v);
+            }
+            wrap.addEventListener('click', function (ev) { if (ev.target === wrap) close(false); });
+            document.body.appendChild(wrap);
+            var bOk = box.querySelector('#spiritMarketInsightOk');
+            var bNo = box.querySelector('#spiritMarketInsightCancel');
+            if (bOk) bOk.onclick = function () { close(true); };
+            if (bNo) bNo.onclick = function () { close(false); };
+        } catch (e) { resolve(true); }
+    });
 }
 async function spiritConfirmPublishWithMarketInsight(probe) {
     try {
         var m = await spiritAnalyzePrePublishMarket(probe);
         var rareTxt = m.rare ? 'RARE' : ((m.total >= 100) ? 'CLASSIQUE' : 'INTERMEDIAIRE');
-        var lines = [
-            'ANALYSE MARCHE AVANT PUBLICATION',
-            'Figurine: ' + String(probe.title || '—'),
-            'Marque: ' + String(probe.brand || '—'),
-            'Rareté estimée: ' + rareTxt,
-            'Annonces actives similaires: ' + String(m.total),
-            'Vendeurs actifs: ' + String(m.sellers),
-            'Prix EUR (min / mediane / max): ' + (m.min ? m.min.toFixed(0) : '—') + ' / ' + (m.med ? m.med.toFixed(0) : '—') + ' / ' + (m.max ? m.max.toFixed(0) : '—'),
-            'Etat dominant: ' + String(m.condTop || '—'),
-            'Utilisateurs en demande (wishlist): ' + String(m.demand),
-            '',
-            'Continuer la publication ?'
-        ];
-        return confirm(lines.join('\n'));
+        return await spiritShowMarketInsightModal(m, probe, rareTxt);
     } catch (e) {
         return true;
     }
@@ -7239,6 +7278,10 @@ try {
     window.spiritManualRefreshWishlistAlerts = spiritManualRefreshWishlistAlerts;
     window.spiritNotifyWishlistSearchMatches = spiritNotifyWishlistSearchMatches;
 } catch (eWWish) {}
+    try {
+        var _irNoNative = document.getElementById('inputReference');
+        if (_irNoNative) _irNoNative.removeAttribute('list');
+    } catch (eRefNativeOff) {}
 try {
     document.addEventListener('click', function (ev) {
         var btn = ev && ev.target && ev.target.closest ? ev.target.closest('#spiritWishlistRefreshBtn') : null;
@@ -9705,6 +9748,21 @@ async function goToScan() {
             return;
         }
     }
+    try {
+        var bGo = document.getElementById('saleBrand');
+        var cGo = document.getElementById('saleCond');
+        var pGo = parseFloat(price);
+        var probeGo = {
+            title: title,
+            brand: bGo && bGo.value ? String(bGo.value).trim() : '',
+            ref: reference,
+            price: Number.isFinite(pGo) ? pGo : 0,
+            cond: cGo && cGo.value ? String(cGo.value).trim() : '',
+            country: ocGo && ocGo.value ? String(ocGo.value).trim() : ''
+        };
+        var okGo = await spiritConfirmPublishWithMarketInsight(probeGo);
+        if (!okGo) return;
+    } catch (eProbeGo) {}
 
     document.getElementById('stepInfo').style.display = 'none';
     document.getElementById('stepScan').style.display = 'block';
@@ -9958,19 +10016,6 @@ async function publierAnnonce() {
         origin_country: saleOriginCountry,
         country: saleOriginCountry
     };
-
-    try {
-        var probe = {
-            title: title,
-            brand: brand || '',
-            ref: (typeof refValPub !== 'undefined' ? String(refValPub || '') : ''),
-            price: price,
-            cond: saleCond || '',
-            country: saleOriginCountry || ''
-        };
-        var okPublish = await spiritConfirmPublishWithMarketInsight(probe);
-        if (!okPublish) return;
-    } catch (eProbe) {}
 
     try {
         if (!_spirit) {
