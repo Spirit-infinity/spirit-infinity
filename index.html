@@ -6477,6 +6477,23 @@ function spiritWishlistDeleteLocalSearch(uidN, id) {
         localStorage.setItem(spiritWishlistLsKey(uidN), JSON.stringify(next));
     } catch (e) {}
 }
+function spiritWishlistDraftFromInputs(uidN) {
+    uidN = spiritNormUid(uidN || spiritWishlistGetCurrentUserNorm());
+    if (!uidN) return null;
+    var draft = {
+        id: 'local-draft-' + Date.now(),
+        user_id: uidN,
+        brand: String((document.getElementById('wishlistSearchBrand') || {}).value || '').trim(),
+        name_query: String((document.getElementById('wishlistSearchName') || {}).value || '').trim(),
+        ref_query: String((document.getElementById('wishlistSearchRef') || {}).value || '').trim(),
+        price_max: Number((document.getElementById('wishlistSearchPriceMax') || {}).value || 0) || null,
+        cond_query: String((document.getElementById('wishlistSearchCond') || {}).value || '').trim(),
+        zone_query: String((document.getElementById('wishlistSearchZone') || {}).value || '').trim(),
+        created_at: new Date().toISOString()
+    };
+    if (!draft.brand && !draft.name_query && !draft.ref_query && !draft.price_max && !draft.cond_query && !draft.zone_query) return null;
+    return draft;
+}
 function spiritWishlistCondMatches(listingCond, searchCond) {
     var lc = spiritWishlistNormText(listingCond);
     var sc = spiritWishlistNormText(searchCond);
@@ -6943,6 +6960,13 @@ async function spiritRefreshWishlistSearches() {
     }
     if (!spiritWishlistSearchRows.length) {
         spiritWishlistSearchRows = spiritWishlistReadLocalSearches(uidN);
+    }
+    if (!spiritWishlistSearchRows.length) {
+        var draftRow = spiritWishlistDraftFromInputs(uidN);
+        if (draftRow) {
+            spiritWishlistSearchRows = [draftRow];
+            spiritWishlistSetStatus('Mode brouillon: analyse en direct avec les champs en cours.', false);
+        }
     }
     try {
         var a = await _spirit
