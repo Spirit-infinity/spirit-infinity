@@ -8852,6 +8852,7 @@ function renderMarket(filteredData = null) {
         }
 
         spiritRenderMarketSig = renderSig;
+        var rareBrandNameCountMap = {};
         var rareKeyCountMap = {};
         dataToRender.forEach(function (it) {
             var stR = String(it && it.status || '').toLowerCase().trim();
@@ -8860,7 +8861,9 @@ function renderMarket(filteredData = null) {
             var kr = spiritWishlistNormText(spiritListingRefForRarity(it) || '');
             var kt = spiritWishlistNormText(it && (it.title || it.name) || '');
             if (!kb) return;
-            var kk = kr ? ('ref|' + kb + '|' + kr) : ('name|' + kb + '|' + kt);
+            var kbn = 'bn|' + kb + '|' + kt;
+            rareBrandNameCountMap[kbn] = (rareBrandNameCountMap[kbn] || 0) + 1;
+            var kk = 'bnref|' + kb + '|' + kt + '|' + kr;
             rareKeyCountMap[kk] = (rareKeyCountMap[kk] || 0) + 1;
         });
 
@@ -8931,8 +8934,13 @@ function renderMarket(filteredData = null) {
             var rareBrandN = spiritWishlistNormText(displayBrand);
             var rareRefN = spiritWishlistNormText(spiritListingRefForRarity(item) || '');
             var rareTitleN = spiritWishlistNormText(safeTitle || '');
-            var rareKey = rareRefN ? ('ref|' + rareBrandN + '|' + rareRefN) : ('name|' + rareBrandN + '|' + rareTitleN);
-            var rareCount = rareKeyCountMap[rareKey] || 0;
+            var rareBnKey = 'bn|' + rareBrandN + '|' + rareTitleN;
+            var rareBnCount = rareBrandNameCountMap[rareBnKey] || 0;
+            var rareCount = rareBnCount;
+            if (rareBnCount > 1 && rareRefN) {
+                var rareRefKey = 'bnref|' + rareBrandN + '|' + rareTitleN + '|' + rareRefN;
+                rareCount = rareKeyCountMap[rareRefKey] || rareBnCount;
+            }
             var rareBadge = (!isSold && rareCount > 0 && rareCount <= 3)
                 ? '<div style="position:absolute;top:8px;left:8px;z-index:13;padding:4px 8px;border-radius:999px;background:rgba(0,170,255,0.20);border:1px solid rgba(0,200,255,0.85);color:#8be9ff;font-size:0.56rem;font-weight:800;letter-spacing:0.06em;box-shadow:0 0 12px rgba(0,200,255,0.55);">RARE</div>'
                 : '';
