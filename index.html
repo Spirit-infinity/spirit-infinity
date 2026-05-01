@@ -6781,6 +6781,22 @@ async function spiritWishlistGetCandidateListings(limitN) {
     try {
         if (Array.isArray(marketData) && marketData.length) all = all.concat(marketData);
     } catch (e1) {}
+    try {
+        if (typeof spiritMarketBucket !== 'undefined' && spiritMarketBucket) {
+            if (spiritMarketBucket.figurine && Array.isArray(spiritMarketBucket.figurine.rows)) all = all.concat(spiritMarketBucket.figurine.rows);
+            if (spiritMarketBucket.statue && Array.isArray(spiritMarketBucket.statue.rows)) all = all.concat(spiritMarketBucket.statue.rows);
+        }
+    } catch (e2) {}
+    if (!all.length) {
+        try {
+            if (typeof spiritRefreshAllMarketBuckets === 'function') await spiritRefreshAllMarketBuckets();
+            if (Array.isArray(marketData) && marketData.length) all = all.concat(marketData);
+            if (typeof spiritMarketBucket !== 'undefined' && spiritMarketBucket) {
+                if (spiritMarketBucket.figurine && Array.isArray(spiritMarketBucket.figurine.rows)) all = all.concat(spiritMarketBucket.figurine.rows);
+                if (spiritMarketBucket.statue && Array.isArray(spiritMarketBucket.statue.rows)) all = all.concat(spiritMarketBucket.statue.rows);
+            }
+        } catch (e3) {}
+    }
     var map = {};
     var uniq = [];
     for (var i = 0; i < all.length; i++) {
@@ -6793,6 +6809,116 @@ async function spiritWishlistGetCandidateListings(limitN) {
         if (uniq.length >= lim) break;
     }
     return uniq;
+}
+function spiritMedian(nums) {
+    if (!Array.isArray(nums) || !nums.length) return 0;
+    var arr = nums.slice().sort(function (a, b) { return a - b; });
+    var mid = Math.floor(arr.length / 2);
+    return (arr.length % 2) ? arr[mid] : ((arr[mid - 1] + arr[mid]) / 2);
+}
+function spiritListingMatchesPrePublishProbe(listing, probe) {
+    if (!listing || !probe) return false;
+    var b = spiritWishlistNormText(listing.brand);
+    var t = spiritWishlistNormText(listing.title || listing.name || '');
+    var d = spiritWishlistNormText(listing.description || '');
+    var r = spiritWishlistNormText(listing.product_reference || '');
+    var pb = spiritWishlistNormText(probe.brand || '');
+    var pt = spiritWishlistNormText(probe.title || '');
+    var pr = spiritWishlistNormText(probe.ref || '');
+    if (pb && (!b || b.indexOf(pb) === -1)) return false;
+    if (pt) {
+        var ov = spiritWishlistTokenOverlapScore(t + ' ' + d, pt);
+        if (t.indexOf(pt) === -1 && d.indexOf(pt) === -1 && ov < 0.4) return false;
+    }
+    if (pr) {
+        var tc = spiritWishlistCompactText(t);
+        var rc = spiritWishlistCompactText(r);
+        var prc = spiritWishlistCompactText(pr);
+        if (prc && !((tc && tc.indexOf(prc) !== -1) || (rc && rc.indexOf(prc) !== -1))) {
+            // Ref optionnelle: ne bloque pas, mais réduit la confiance (géré dans message)
+        }
+    }
+    return true;
+}
+async function spiritAnalyzePrePublishMarket(probe) {
+    var out = { total: 0, sellers: 0, min: 0, med: 0, max: 0, demand: 0, rare: false, condTop: '—' };
+    var rows = await spiritWishlistGetCandidateListings(1600);
+    var matched = [];
+    var sellerMap = {};
+    var condMap = {};
+    var prices = [];
+    for (var i = 0; i < rows.length; i++) {
+        var it = rows[i];
+        var st = String(it && it.status || '').toLowerCase().trim();
+        if (st === 'sold' || st === 'vendu') continue;
+        if (!spiritListingMatchesPrePublishProbe(it, probe)) continue;
+        matched.push(it);
+        var su = spiritOwnerId(it && it.owner_id);
+        if (su) sellerMap[su] = true;
+        var c = String(it && (it.cond || it.condition) || '').trim() || '—';
+        condMap[c] = (condMap[c] || 0) + 1;
+        var p = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(it) : Number(it && it.price || 0);
+        if (Number.isFinite(p) && p > 0) prices.push(p);
+    }
+    out.total = matched.length;
+    out.sellers = Object.keys(sellerMap).length;
+    if (prices.length) {
+        out.min = Math.min.apply(null, prices);
+        out.max = Math.max.apply(null, prices);
+        out.med = spiritMedian(prices);
+    }
+    var topCond = '—';
+    var topN = -1;
+    Object.keys(condMap).forEach(function (k) {
+        if (condMap[k] > topN) { topN = condMap[k]; topCond = k; }
+    });
+    out.condTop = topCond;
+    try {
+        if (_spirit) {
+            var ws = await _spirit.from('spirit_wishlist_searches').select('brand,name_query,ref_query,user_id').limit(2000);
+            if (!ws.error && Array.isArray(ws.data)) {
+                var dm = {};
+                ws.data.forEach(function (s) {
+                    var fakeListing = {
+                        brand: probe.brand || '',
+                        title: probe.title || '',
+                        description: probe.title || '',
+                        product_reference: probe.ref || ''
+                    };
+                    if (spiritWishlistListingMatchesSearch(fakeListing, s) || spiritWishlistSoftMatchScore(fakeListing, s) >= 0) {
+                        var u = spiritNormUid(s && s.user_id || '');
+                        if (u) dm[u] = true;
+                    }
+                });
+                out.demand = Object.keys(dm).length;
+            }
+        }
+    } catch (eD) {}
+    var ratio = out.total > 0 ? (out.demand / out.total) : (out.demand > 0 ? out.demand : 0);
+    out.rare = (out.total > 0 && out.total <= 10 && (out.demand >= 5 || ratio >= 1.5));
+    return out;
+}
+async function spiritConfirmPublishWithMarketInsight(probe) {
+    try {
+        var m = await spiritAnalyzePrePublishMarket(probe);
+        var rareTxt = m.rare ? 'RARE' : ((m.total >= 100) ? 'CLASSIQUE' : 'INTERMEDIAIRE');
+        var lines = [
+            'ANALYSE MARCHE AVANT PUBLICATION',
+            'Figurine: ' + String(probe.title || '—'),
+            'Marque: ' + String(probe.brand || '—'),
+            'Rareté estimée: ' + rareTxt,
+            'Annonces actives similaires: ' + String(m.total),
+            'Vendeurs actifs: ' + String(m.sellers),
+            'Prix EUR (min / mediane / max): ' + (m.min ? m.min.toFixed(0) : '—') + ' / ' + (m.med ? m.med.toFixed(0) : '—') + ' / ' + (m.max ? m.max.toFixed(0) : '—'),
+            'Etat dominant: ' + String(m.condTop || '—'),
+            'Utilisateurs en demande (wishlist): ' + String(m.demand),
+            '',
+            'Continuer la publication ?'
+        ];
+        return confirm(lines.join('\n'));
+    } catch (e) {
+        return true;
+    }
 }
 async function spiritSyncWishlistAlertsForCurrentUser(searchRows) {
     if (!_spirit) return 0;
@@ -9832,6 +9958,19 @@ async function publierAnnonce() {
         origin_country: saleOriginCountry,
         country: saleOriginCountry
     };
+
+    try {
+        var probe = {
+            title: title,
+            brand: brand || '',
+            ref: (typeof refValPub !== 'undefined' ? String(refValPub || '') : ''),
+            price: price,
+            cond: saleCond || '',
+            country: saleOriginCountry || ''
+        };
+        var okPublish = await spiritConfirmPublishWithMarketInsight(probe);
+        if (!okPublish) return;
+    } catch (eProbe) {}
 
     try {
         if (!_spirit) {
