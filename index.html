@@ -6840,6 +6840,35 @@ function spiritListingMatchesPrePublishProbe(listing, probe) {
     }
     return true;
 }
+function spiritListingRefForRarity(row) {
+    var direct = String(row && row.product_reference || '').trim();
+    if (direct) return direct;
+    var desc = String(row && row.description || '');
+    var m = desc.match(/\[\[SPIRIT_REF:([^\]]+)\]\]/);
+    if (m && m[1]) return String(m[1]).trim();
+    return '';
+}
+function spiritWishlistDemandMatchesProbe(searchRow, probe) {
+    if (!searchRow || !probe) return false;
+    var sb = spiritWishlistNormText(searchRow.brand || '');
+    var sn = spiritWishlistNormText(searchRow.name_query || '');
+    var sr = spiritWishlistNormText(searchRow.ref_query || '');
+    var pb = spiritWishlistNormText(probe.brand || '');
+    var pn = spiritWishlistNormText(probe.title || '');
+    var pr = spiritWishlistNormText(probe.ref || '');
+    if (sb && pb && sb !== pb && pb.indexOf(sb) === -1 && sb.indexOf(pb) === -1) return false;
+    if (sn) {
+        var ov = spiritWishlistTokenOverlapScore(pn, sn);
+        if (pn.indexOf(sn) === -1 && sn.indexOf(pn) === -1 && ov < 0.6) return false;
+    }
+    if (sr) {
+        var src = spiritWishlistCompactText(sr);
+        var prc = spiritWishlistCompactText(pr);
+        var pnc = spiritWishlistCompactText(pn);
+        if (src && !(prc.indexOf(src) !== -1 || pnc.indexOf(src) !== -1)) return false;
+    }
+    return !!(sb || sn || sr);
+}
 async function spiritAnalyzePrePublishMarket(probe) {
     var out = { total: 0, sellers: 0, min: 0, med: 0, max: 0, demand: 0, rare: false, condTop: '—', exactNameCount: 0, rarityTier: 'INTERMEDIAIRE', rarityRatio: 0 };
     var rows = await spiritWishlistGetCandidateListings(1600);
@@ -6882,13 +6911,7 @@ async function spiritAnalyzePrePublishMarket(probe) {
             if (!ws.error && Array.isArray(ws.data)) {
                 var dm = {};
                 ws.data.forEach(function (s) {
-                    var fakeListing = {
-                        brand: probe.brand || '',
-                        title: probe.title || '',
-                        description: probe.title || '',
-                        product_reference: probe.ref || ''
-                    };
-                    if (spiritWishlistListingMatchesSearch(fakeListing, s) || spiritWishlistSoftMatchScore(fakeListing, s) >= 0) {
+                    if (spiritWishlistDemandMatchesProbe(s, probe)) {
                         var u = spiritNormUid(s && s.user_id || '');
                         if (u) dm[u] = true;
                     }
@@ -8832,9 +8855,8 @@ function renderMarket(filteredData = null) {
         var rareKeyCountMap = {};
         dataToRender.forEach(function (it) {
             var kb = spiritWishlistNormText(it && (it.brand || it.marque) || '');
-            var kt = spiritWishlistNormText(it && (it.title || it.name) || '');
-            if (!kt) return;
-            var kk = kb + '|' + kt;
+            if (!kb) return;
+            var kk = kb;
             rareKeyCountMap[kk] = (rareKeyCountMap[kk] || 0) + 1;
         });
 
@@ -8902,7 +8924,7 @@ function renderMarket(filteredData = null) {
             const lightTxt = item.is_light_protect ? 'Lumiere protegee' : 'Lumiere exposee';
             const firstTxt = item.is_first_hand ? '1ere main' : 'Multi-mains';
             const displayBrand = String(item.brand || item.marque || '').trim();
-            var rareKey = spiritWishlistNormText(displayBrand) + '|' + spiritWishlistNormText(safeTitle);
+            var rareKey = spiritWishlistNormText(displayBrand);
             var rareCount = rareKeyCountMap[rareKey] || 0;
             var rareBadge = rareCount > 0 && rareCount <= 3
                 ? '<div style="position:absolute;top:8px;left:8px;z-index:13;padding:4px 8px;border-radius:999px;background:rgba(0,170,255,0.20);border:1px solid rgba(0,200,255,0.85);color:#8be9ff;font-size:0.56rem;font-weight:800;letter-spacing:0.06em;box-shadow:0 0 12px rgba(0,200,255,0.55);">RARE</div>'
