@@ -8941,7 +8941,7 @@ function renderMarket(filteredData = null) {
                 var rareRefKey = 'bnref|' + rareBrandN + '|' + rareTitleN + '|' + rareRefN;
                 rareCount = rareKeyCountMap[rareRefKey] || rareBnCount;
             }
-            var rareBadge = (!isSold && rareCount > 0 && rareCount <= 3)
+            var rareBadge = (!isSold && rareCount === 1)
                 ? '<div style="position:absolute;top:8px;left:8px;z-index:13;padding:4px 8px;border-radius:999px;background:rgba(0,170,255,0.20);border:1px solid rgba(0,200,255,0.85);color:#8be9ff;font-size:0.56rem;font-weight:800;letter-spacing:0.06em;box-shadow:0 0 12px rgba(0,200,255,0.55);">RARE</div>'
                 : '';
             const brandLine = displayBrand
