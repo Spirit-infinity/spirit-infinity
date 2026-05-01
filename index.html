@@ -6841,7 +6841,7 @@ function spiritListingMatchesPrePublishProbe(listing, probe) {
     return true;
 }
 async function spiritAnalyzePrePublishMarket(probe) {
-    var out = { total: 0, sellers: 0, min: 0, med: 0, max: 0, demand: 0, rare: false, condTop: '—', exactNameCount: 0 };
+    var out = { total: 0, sellers: 0, min: 0, med: 0, max: 0, demand: 0, rare: false, condTop: '—', exactNameCount: 0, rarityTier: 'INTERMEDIAIRE', rarityRatio: 0 };
     var rows = await spiritWishlistGetCandidateListings(1600);
     var matched = [];
     var sellerMap = {};
@@ -6898,16 +6898,21 @@ async function spiritAnalyzePrePublishMarket(probe) {
             }
         }
     } catch (eD) {}
-    var ratio = out.total > 0 ? (out.demand / out.total) : (out.demand > 0 ? out.demand : 0);
-    /* Règle métier:
-       - 1 à 3 annonces similaires actives => RARE (prioritaire)
-       - nom exact très peu présent => RARE
-       - faible offre + demande notable => RARE */
-    out.rare = (
-        (out.total > 0 && out.total <= 3) ||
-        (out.exactNameCount > 0 && out.exactNameCount <= 2 && out.sellers <= 2) ||
-        (out.total > 0 && out.total <= 10 && (out.demand >= 3 || ratio >= 1.2))
-    );
+    var baseDen = Math.max(1, out.total + out.demand);
+    var ratioPct = (out.total / baseDen) * 100;
+    out.rarityRatio = ratioPct;
+    /* Option B:
+       - RARE <= 4%
+       - INTERMEDIAIRE >4% et <=30%
+       - FREQUENT >30% et <50%
+       - COMMUN >=50%
+       Garde métier: <=3 annonces => RARE */
+    if (out.total > 0 && out.total <= 3) out.rarityTier = 'RARE';
+    else if (ratioPct <= 4) out.rarityTier = 'RARE';
+    else if (ratioPct <= 30) out.rarityTier = 'INTERMEDIAIRE';
+    else if (ratioPct < 50) out.rarityTier = 'FREQUENT';
+    else out.rarityTier = 'COMMUN';
+    out.rare = (out.rarityTier === 'RARE');
     return out;
 }
 function spiritShowMarketInsightModal(m, probe, rareTxt) {
@@ -6920,8 +6925,8 @@ function spiritShowMarketInsightModal(m, probe, rareTxt) {
             wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:240000;display:flex;align-items:center;justify-content:center;padding:18px;';
             var box = document.createElement('div');
             box.style.cssText = 'width:min(560px,95vw);background:linear-gradient(180deg,#0b0b0b,#131313);border:1px solid #383838;border-radius:12px;padding:14px;box-shadow:0 18px 60px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,102,0,0.12);color:#eee;';
-            var badgeBg = (rareTxt === 'RARE') ? '#2a1506' : (rareTxt === 'CLASSIQUE' ? '#1b1b1b' : '#1f180d');
-            var badgeCol = (rareTxt === 'RARE') ? '#ff8a3d' : (rareTxt === 'CLASSIQUE' ? '#c8c8c8' : '#ffbd74');
+            var badgeBg = (rareTxt === 'RARE') ? '#2a1506' : (rareTxt === 'COMMUN' ? '#1b1b1b' : (rareTxt === 'FREQUENT' ? '#1b1f10' : '#1f180d'));
+            var badgeCol = (rareTxt === 'RARE') ? '#ff8a3d' : (rareTxt === 'COMMUN' ? '#c8c8c8' : (rareTxt === 'FREQUENT' ? '#b7db7f' : '#ffbd74'));
             box.innerHTML =
                 '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
                 '<div style="font-size:0.9rem;color:#fff;font-weight:800;letter-spacing:0.03em;">ANALYSE MARCHE AVANT PUBLICATION</div>' +
@@ -6935,6 +6940,7 @@ function spiritShowMarketInsightModal(m, probe, rareTxt) {
                 '<div>Prix EUR (min / mediane / max) : <b style="color:#fff;">' + (m.min ? m.min.toFixed(0) : '—') + ' / ' + (m.med ? m.med.toFixed(0) : '—') + ' / ' + (m.max ? m.max.toFixed(0) : '—') + '</b></div>' +
                 '<div>Etat dominant : <b style="color:#fff;">' + String(m.condTop || '—').replace(/</g, '&lt;') + '</b></div>' +
                 '<div>Utilisateurs en demande (wishlist hors toi) : <b style="color:#fff;">' + String(m.demand) + '</b></div>' +
+                '<div>Ratio offre/(offre+demande) : <b style="color:#fff;">' + (Number.isFinite(m.rarityRatio) ? m.rarityRatio.toFixed(1) : '0.0') + '%</b></div>' +
                 '</div>' +
                 '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">' +
                 '<button type="button" id="spiritMarketInsightCancel" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#1b1b1b;border:1px solid #444;color:#ddd;">ANNULER</button>' +
@@ -6957,7 +6963,7 @@ function spiritShowMarketInsightModal(m, probe, rareTxt) {
 async function spiritConfirmPublishWithMarketInsight(probe) {
     try {
         var m = await spiritAnalyzePrePublishMarket(probe);
-        var rareTxt = m.rare ? 'RARE' : ((m.total >= 100) ? 'CLASSIQUE' : 'INTERMEDIAIRE');
+        var rareTxt = String(m && m.rarityTier || 'INTERMEDIAIRE');
         return await spiritShowMarketInsightModal(m, probe, rareTxt);
     } catch (e) {
         return true;
