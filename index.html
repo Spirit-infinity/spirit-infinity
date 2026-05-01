@@ -6614,12 +6614,15 @@ function spiritWishlistCoreScore(listing, search, relaxPrice) {
     return score;
 }
 function spiritWishlistBuildRankedRows(rowsData, searchRow) {
+    var meUid = spiritOwnerId(spiritGetCurrentUserId());
     var rankedStrict = [];
     var rankedSoft = [];
     var rankedCore = [];
     var rankedCoreRelax = [];
     for (var i = 0; i < rowsData.length; i++) {
         var listing = rowsData[i];
+        var ownerUid = spiritOwnerId(listing && listing.owner_id);
+        if (meUid && ownerUid && ownerUid === meUid) continue;
         var st = String(listing && listing.status || '').toLowerCase().trim();
         if (st === 'sold' || st === 'vendu') continue;
         var scStrict = spiritWishlistMatchScore(listing, searchRow);
