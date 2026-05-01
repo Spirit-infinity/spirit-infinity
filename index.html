@@ -8857,8 +8857,10 @@ function renderMarket(filteredData = null) {
             var stR = String(it && it.status || '').toLowerCase().trim();
             if (stR === 'sold' || stR === 'vendu') return;
             var kb = spiritWishlistNormText(it && (it.brand || it.marque) || '');
+            var kr = spiritWishlistNormText(spiritListingRefForRarity(it) || '');
+            var kt = spiritWishlistNormText(it && (it.title || it.name) || '');
             if (!kb) return;
-            var kk = kb;
+            var kk = kr ? ('ref|' + kb + '|' + kr) : ('name|' + kb + '|' + kt);
             rareKeyCountMap[kk] = (rareKeyCountMap[kk] || 0) + 1;
         });
 
@@ -8926,7 +8928,10 @@ function renderMarket(filteredData = null) {
             const lightTxt = item.is_light_protect ? 'Lumiere protegee' : 'Lumiere exposee';
             const firstTxt = item.is_first_hand ? '1ere main' : 'Multi-mains';
             const displayBrand = String(item.brand || item.marque || '').trim();
-            var rareKey = spiritWishlistNormText(displayBrand);
+            var rareBrandN = spiritWishlistNormText(displayBrand);
+            var rareRefN = spiritWishlistNormText(spiritListingRefForRarity(item) || '');
+            var rareTitleN = spiritWishlistNormText(safeTitle || '');
+            var rareKey = rareRefN ? ('ref|' + rareBrandN + '|' + rareRefN) : ('name|' + rareBrandN + '|' + rareTitleN);
             var rareCount = rareKeyCountMap[rareKey] || 0;
             var rareBadge = (!isSold && rareCount > 0 && rareCount <= 3)
                 ? '<div style="position:absolute;top:8px;left:8px;z-index:13;padding:4px 8px;border-radius:999px;background:rgba(0,170,255,0.20);border:1px solid rgba(0,200,255,0.85);color:#8be9ff;font-size:0.56rem;font-weight:800;letter-spacing:0.06em;box-shadow:0 0 12px rgba(0,200,255,0.55);">RARE</div>'
