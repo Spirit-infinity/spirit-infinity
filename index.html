@@ -6899,9 +6899,13 @@ async function spiritAnalyzePrePublishMarket(probe) {
         }
     } catch (eD) {}
     var ratio = out.total > 0 ? (out.demand / out.total) : (out.demand > 0 ? out.demand : 0);
+    /* Règle métier:
+       - 1 à 3 annonces similaires actives => RARE (prioritaire)
+       - nom exact très peu présent => RARE
+       - faible offre + demande notable => RARE */
     out.rare = (
-        (out.total > 0 && out.total <= 5) ||
-        (out.exactNameCount > 0 && out.exactNameCount <= 2) ||
+        (out.total > 0 && out.total <= 3) ||
+        (out.exactNameCount > 0 && out.exactNameCount <= 2 && out.sellers <= 2) ||
         (out.total > 0 && out.total <= 10 && (out.demand >= 3 || ratio >= 1.2))
     );
     return out;
