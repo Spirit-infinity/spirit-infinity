@@ -10303,6 +10303,13 @@ function spiritAppDialog(opts) {
             try {
                 document.removeEventListener('keydown', onKey, true);
             } catch (eK) {}
+            try {
+                if (root._spiritAppDialogUnified) {
+                    root.removeEventListener('pointerup', root._spiritAppDialogUnified, true);
+                    root.removeEventListener('click', root._spiritAppDialogUnified, false);
+                    root._spiritAppDialogUnified = null;
+                }
+            } catch (eRmF) {}
             root.classList.remove('spirit-publish-success--visible');
             try { document.body.style.overflow = ''; } catch (eO) {}
             resolve(val);
@@ -10335,7 +10342,7 @@ function spiritAppDialog(opts) {
             ? '<div class="spirit-app-dialog-prompt-row"><input type="text" id="spiritAppDialogInput" class="spirit-app-dialog-input" autocomplete="off" /></div>'
             : '';
         root.innerHTML =
-            '<div class="spirit-publish-success-panel" onclick="event.stopPropagation()">' +
+            '<div class="spirit-publish-success-panel">' +
             '<div class="spirit-publish-success-head">' +
             '<div class="spirit-publish-success-icon' + iconExtra + '" aria-hidden="true">' + spiritAppDialogEsc(iconChar) + '</div>' +
             '<h2 class="spirit-publish-success-title">' + spiritAppDialogEsc(title) + '</h2>' +
@@ -10357,23 +10364,38 @@ function spiritAppDialog(opts) {
                 });
             }
         }
-        root.onclick = function () {
-            if (mode === 'alert') finish(undefined);
-            else if (mode === 'confirm') finish(false);
-            else finish(null);
-        };
-        root.querySelectorAll('[data-spirit-appd]').forEach(function (btn) {
-            btn.onclick = function (ev) {
-                ev.stopPropagation();
-                var v = btn.getAttribute('data-spirit-appd');
+        try {
+            if (root._spiritAppDialogUnified) {
+                root.removeEventListener('pointerup', root._spiritAppDialogUnified, true);
+                root.removeEventListener('click', root._spiritAppDialogUnified, false);
+                root._spiritAppDialogUnified = null;
+            }
+        } catch (eRm) {}
+        function spiritAppDialogUnified(ev) {
+            if (!ev || !ev.target || typeof ev.target.closest !== 'function') return;
+            var btn = ev.target.closest('[data-spirit-appd]');
+            if (btn && root.contains(btn)) {
+                try { ev.preventDefault(); } catch (eP) {}
+                try { ev.stopPropagation(); } catch (eS) {}
+                var v = String(btn.getAttribute('data-spirit-appd') || '');
                 if (v === '1') {
                     if (mode === 'prompt') {
-                        var el = document.getElementById('spiritAppDialogInput');
-                        finish(el ? String(el.value != null ? el.value : '') : '');
+                        var elW = document.getElementById('spiritAppDialogInput');
+                        finish(elW ? String(elW.value != null ? elW.value : '') : '');
                     } else finish(true);
                 } else finish(mode === 'confirm' ? false : null);
-            };
-        });
+                return;
+            }
+            if (ev.target.closest && ev.target.closest('.spirit-publish-success-panel')) return;
+            if (ev.type === 'click' || ev.type === 'pointerup') {
+                if (mode === 'alert') finish(undefined);
+                else if (mode === 'confirm') finish(false);
+                else finish(null);
+            }
+        }
+        root._spiritAppDialogUnified = spiritAppDialogUnified;
+        root.addEventListener('pointerup', spiritAppDialogUnified, true);
+        root.addEventListener('click', spiritAppDialogUnified, false);
         try { document.body.style.overflow = 'hidden'; } catch (eB) {}
         root.classList.add('spirit-publish-success--visible');
         try {
