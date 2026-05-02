@@ -19138,6 +19138,7 @@ function spiritSanctuaryChatNotifyMaybeOs(ctx, rows, meLocal, resolvedMe) {
         } catch (eU) {}
         spiritSanctuaryShowOsChatNotification(title, line, openUrl);
     }
+    try { void spiritUpdateNavSanctuaryDot(); } catch (eDotChatNav) {}
 }
 async function spiritSanctuaryInboxPollOnce() {
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) return;
@@ -19197,6 +19198,7 @@ async function spiritSanctuaryInboxPollOnce() {
         if (!fg && permit && spiritSanctuaryChatOsShouldAlert('inbox')) {
             spiritSanctuaryShowOsChatNotification(title, line, '/');
         }
+        try { void spiritUpdateNavSanctuaryDot(); } catch (eDotInboxNav) {}
     } catch (e) {}
 }
 function spiritSanctuaryStopInboxPoll() {
@@ -19608,16 +19610,6 @@ async function spiritUpdateNavSanctuaryDot() {
             return;
         }
 
-        // Anti-spam/anti-erreurs: ne pas interroger `sanctuary_chat` tant que l'utilisateur
-        // n'est pas sur l'onglet `tab-sanctuary` (sinon on déclenche des 400 côté Supabase).
-        var tabS = document.getElementById('tab-sanctuary');
-        var tabSActive = tabS && (tabS.classList.contains('active') || tabS.style.display === 'block');
-        if (!tabSActive) {
-            spiritSetNotifDotVisible(dot, false, 'block');
-            spiritSetNotifDotVisible(fix, false, 'block');
-            return;
-        }
-
         try {
             if (!resolvedMe) {
                 // Mode local (IDs de test non mappés Supabase): dot basé sur cache local.
@@ -19627,14 +19619,23 @@ async function spiritUpdateNavSanctuaryDot() {
                 spiritSetNotifDotVisible(fix, showLocal2, 'block');
                 return;
             }
-            // Raison: éviter de dépendre de `is_read`/`count/head/order` (ça génère des 400 chez toi).
-            // On affiche le dot si une ligne existe pour ce `recipient_id` (dot = activité chat côté serveur).
-            var q = await _spirit.from('sanctuary_chat')
-                .select('*')
-                // Utilise la valeur "compte" (MY_TEST_ID) pour matcher la donnée stockée côté serveur.
-                .eq('recipient_id', String(resolvedMe))
-                .limit(1);
-            var show = !!(q && !q.error && q.data && Array.isArray(q.data) && q.data.length > 0);
+            /* Pastille + pulse comme les offres : messages reçus non lus (même hors onglet Sanctuaire — tab-sanctuary absent du DOM). */
+            var rid = String(resolvedMe);
+            var show = false;
+            var qc = await _spirit.from('sanctuary_chat')
+                .select('id', { count: 'exact', head: true })
+                .eq('recipient_id', rid)
+                .eq('is_read', false);
+            if (qc && !qc.error && qc.count != null) {
+                show = Number(qc.count) > 0;
+            } else {
+                var q1 = await _spirit.from('sanctuary_chat')
+                    .select('id')
+                    .eq('recipient_id', rid)
+                    .eq('is_read', false)
+                    .limit(1);
+                show = !!(q1 && !q1.error && q1.data && q1.data.length > 0);
+            }
             spiritSetNotifDotVisible(dot, show, 'block');
             spiritSetNotifDotVisible(fix, show, 'block');
         } catch (e) {
