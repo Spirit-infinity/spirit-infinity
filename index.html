@@ -18818,11 +18818,23 @@ async function spiritSanctuaryClearThread(ctx) {
     }
     if (delErrMsg) {
         try {
-            alert((typeof spiritT === 'function' ? spiritT('san_chat_raz_err') : 'Impossible d’effacer le fil : ') + delErrMsg);
+            spiritSanctuaryShowToast(
+                (typeof spiritT === 'function' ? spiritT('san_chat_raz_err') : 'Effacement impossible'),
+                String(delErrMsg).slice(0, 400)
+            );
         } catch (eAl) {}
     }
     spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread, resolvedMe, resolvedPeer);
     await spiritSanctuaryRenderChat(ctx);
+    try {
+        var left = await spiritSanctuaryFetchThreadSupabase(qMe, qPeer);
+        if (left && left.length) {
+            spiritSanctuaryShowToast(
+                'Fil non supprimé côté serveur',
+                String(left.length) + ' message(s) encore en base. Ouvre Supabase → sanctuary_chat → policies : autorise DELETE pour les participants (même logique que SELECT).'
+            );
+        }
+    } catch (eLeft) {}
     void spiritUpdateNavSanctuaryDot();
 }
 
@@ -19002,13 +19014,13 @@ async function spiritSanctuaryRenderChat(ctx) {
     } else {
         peerThread = String(spiritSanctuaryGetActivePeer(ctx) || spiritSanctuaryInferPeerFromLocal(String(ownerRaw || ''), meLocal) || '');
     }
-    var resolvedMe = meLocal ? await spiritResolveUserIdForFakeTestId(meLocal) : '';
-    var resolvedPeer = peerThread ? await spiritResolveUserIdForFakeTestId(peerThread) : '';
-    var resolvedOwner = ownerRaw != null && String(ownerRaw).trim() !== '' ? await spiritResolveUserIdForFakeTestId(String(ownerRaw)) : '';
+    var resolvedMe = meLocal ? await spiritResolveUserIdForFakeTestId(meLocal, { allowCurrentAuthMap: true }) : '';
+    var resolvedPeer = peerThread ? await spiritResolveUserIdForFakeTestId(peerThread, { allowCurrentAuthMap: true }) : '';
+    var resolvedOwner = ownerRaw != null && String(ownerRaw).trim() !== '' ? await spiritResolveUserIdForFakeTestId(String(ownerRaw), { allowCurrentAuthMap: true }) : '';
     var qMe = String(resolvedMe || meLocal || '').trim();
     var qPeer = String(resolvedPeer || peerThread || '').trim();
 
-    if (qMe && qPeer && qMe !== qPeer) {
+    if (qMe && qPeer && !spiritSanctuarySanUidEqLoose(qMe, qPeer)) {
         var threadRows = await spiritSanctuaryFetchThreadSupabase(qMe, qPeer);
         var vMeM = spiritSanctuaryIdVariantsMany([meLocal, resolvedMe, qMe]);
         var vPeerM = spiritSanctuaryIdVariantsMany([peerThread, resolvedPeer, qPeer]);
@@ -19181,8 +19193,8 @@ async function spiritSanctuarySendChat(ctx) {
         await spiritSanctuaryRenderChat(ctx);
         return;
     }
-    var resolvedUid = await spiritResolveUserIdForFakeTestId(targetUid);
-    var resolvedMe = await spiritResolveUserIdForFakeTestId(me);
+    var resolvedUid = await spiritResolveUserIdForFakeTestId(targetUid, { allowCurrentAuthMap: true });
+    var resolvedMe = await spiritResolveUserIdForFakeTestId(me, { allowCurrentAuthMap: true });
     var label = (typeof currentUser !== 'undefined' && currentUser) ? String(currentUser) : me;
     if (!resolvedUid || !resolvedMe) {
         spiritSanctuaryPushLocalMessage({
@@ -19231,7 +19243,7 @@ async function spiritUpdateNavSanctuaryDot() {
     var fix = document.getElementById('spiritSanctuaryNotifDot');
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
     var resolvedMe = me;
-    try { resolvedMe = await spiritResolveUserIdForFakeTestId(me); } catch (e2) {}
+    try { resolvedMe = await spiritResolveUserIdForFakeTestId(me, { allowCurrentAuthMap: true }); } catch (e2) {}
     try {
         if (!me || typeof _spirit === 'undefined' || !_spirit) {
             spiritSetNotifDotVisible(dot, false, 'block');
