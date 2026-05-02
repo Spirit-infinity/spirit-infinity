@@ -2389,6 +2389,15 @@
             background: linear-gradient(155deg, rgba(255,102,0,0.22), rgba(0,180,200,0.12));
             border-color: rgba(255,102,0,0.42); box-shadow: 0 0 24px rgba(255,102,0,0.08), 0 6px 20px rgba(0,0,0,0.35);
         }
+        .spirit-sanctuary-chat .spirit-san-chat-bubble-stack {
+            display: flex; flex-direction: column; align-items: flex-start; max-width: 100%;
+        }
+        .spirit-sanctuary-chat .spirit-san-chat-line--mine .spirit-san-chat-bubble-stack { align-items: flex-end; }
+        .spirit-sanctuary-chat .spirit-san-chat-when {
+            font-size: 0.55rem; color: #5a5a5a; margin-top: 3px; padding: 0 6px 0 2px;
+            letter-spacing: 0.02em; line-height: 1.2;
+        }
+        .spirit-sanctuary-chat .spirit-san-chat-line--mine .spirit-san-chat-when { color: #6a5a48; padding: 0 2px 0 6px; }
         .spirit-sanctuary-chat .spirit-san-chat-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 8px; font-size: 0.62rem; }
         .spirit-sanctuary-chat .spirit-san-chat-toolbar label { display: flex; align-items: center; gap: 6px; color: #aaa; cursor: pointer; }
         /* Chat sanctuaire — profil public : carte et en-tête */
@@ -2417,14 +2426,39 @@
         }
         #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-card {
             background: linear-gradient(180deg, rgba(14,16,22,0.97) 0%, rgba(6,7,10,0.99) 100%);
-            border: 1px solid rgba(255,102,0,0.28); border-radius: 18px;
+            border: 1px solid rgba(255,102,0,0.42); border-radius: 18px;
             padding: 16px 14px 14px;
             box-shadow:
                 inset 0 1px 0 rgba(255,255,255,0.04),
                 0 12px 40px rgba(0,0,0,0.5),
-                0 0 80px rgba(255,102,0,0.05);
+                0 0 28px rgba(255,102,0,0.35),
+                0 0 56px rgba(255,102,0,0.12);
+            animation: spirit-pub-chat-card-neon 2.8s ease-in-out infinite;
+        }
+        @keyframes spirit-pub-chat-card-neon {
+            0%, 100% {
+                border-color: rgba(255,102,0,0.38);
+                box-shadow:
+                    inset 0 1px 0 rgba(255,255,255,0.04),
+                    0 12px 40px rgba(0,0,0,0.5),
+                    0 0 22px rgba(255,102,0,0.28),
+                    0 0 48px rgba(255,102,0,0.08);
+            }
+            50% {
+                border-color: rgba(255,160,60,0.72);
+                box-shadow:
+                    inset 0 1px 0 rgba(255,200,160,0.06),
+                    0 12px 40px rgba(0,0,0,0.55),
+                    0 0 36px rgba(255,120,0,0.55),
+                    0 0 72px rgba(255,102,0,0.22),
+                    0 0 100px rgba(0,200,255,0.06);
+            }
         }
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-field label { font-size: 0.62rem; color: #8a8a8a; }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-field.spirit-san-chat-field--solo,
+        .spirit-sanctuary-chat .spirit-san-chat-field.spirit-san-chat-field--solo {
+            display: none !important;
+        }
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-peer-select {
             width: 100%; padding: 10px 12px; background: #0c0e12; border: 1px solid rgba(255,255,255,0.1);
             color: #eee; font-size: 0.74rem; border-radius: 10px; margin-top: 4px;
@@ -18601,6 +18635,17 @@ function spiritSanctuaryMeCandidates(meLocal, resolvedMe) {
     });
     return out;
 }
+function spiritSanctuaryChatFormatWhen(iso) {
+    if (!iso) return '';
+    try {
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleString('fr-FR', {
+            weekday: 'short', day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    } catch (e) { return ''; }
+}
 function spiritSanctuaryChatLineHtmlRow(m, meCand) {
     var wantTr = spiritSanctuaryChatTranslatePref();
     var viewL = spiritSanctuaryChatTargetLang();
@@ -18616,7 +18661,12 @@ function spiritSanctuaryChatLineHtmlRow(m, meCand) {
     var idAttr = (m && m.id != null) ? String(m.id).replace(/"/g, '&quot;') : '';
     var bodyCls = 'spirit-san-chat-body' + (doTr ? ' spirit-san-chat-body--pending' : '');
     var rowCls = 'spirit-san-chat-line spirit-san-chat-line--' + (mine ? 'mine' : 'other');
-    return '<div class="' + rowCls + '" data-san-tr="' + (doTr ? '1' : '0') + '"' + (idAttr ? ' data-san-id="' + idAttr + '"' : '') + '><div class="spirit-san-chat-meta"><span class="who">' + who + '</span></div><div class="spirit-san-chat-bubble"><span class="' + bodyCls + '">' + bodyEsc + '</span></div></div>';
+    var whenRaw = spiritSanctuaryChatFormatWhen(m && m.created_at);
+    var whenEsc = whenRaw.replace(/</g, '&lt;');
+    var whenHtml = whenEsc
+        ? '<div class="spirit-san-chat-when">' + whenEsc + '</div>'
+        : '';
+    return '<div class="' + rowCls + '" data-san-tr="' + (doTr ? '1' : '0') + '"' + (idAttr ? ' data-san-id="' + idAttr + '"' : '') + '><div class="spirit-san-chat-meta"><span class="who">' + who + '</span></div><div class="spirit-san-chat-bubble-stack"><div class="spirit-san-chat-bubble"><span class="' + bodyCls + '">' + bodyEsc + '</span></div>' + whenHtml + '</div></div>';
 }
 function spiritSanctuaryChatLinesHtml(rows, meCand) {
     if (!rows || !rows.length) return '';
@@ -18852,14 +18902,24 @@ function spiritSanctuaryPeerFromRow(row, meLocal, resolvedMe) {
     return sid || rid;
 }
 
+function spiritSanctuarySyncChatPeerFieldVisibility(peerSel) {
+    if (!peerSel) return;
+    var wrap = peerSel.closest('.spirit-san-chat-field');
+    if (!wrap) return;
+    var n = peerSel.options ? peerSel.options.length : 0;
+    if (n <= 1) wrap.classList.add('spirit-san-chat-field--solo');
+    else wrap.classList.remove('spirit-san-chat-field--solo');
+}
+
 function spiritSanctuaryBindChatPeerDropdown(peerSel, valRaw, ctxB) {
     if (!peerSel || !valRaw) return;
     var v = String(valRaw);
     var lbl = (typeof spiritPublicDefaultLabel === 'function') ? spiritPublicDefaultLabel(v).replace(/</g, '&lt;') : v;
     var eo = function (s) { return String(s || '').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
-    peerSel.innerHTML = '<option value="' + eo(v) + '">' + lbl + ' (' + eo(v) + ')</option>';
+    peerSel.innerHTML = '<option value="' + eo(v) + '" title="' + eo(v) + '">' + lbl + '</option>';
     peerSel.value = v;
     spiritSanctuarySetActivePeer(ctxB, v);
+    spiritSanctuarySyncChatPeerFieldVisibility(peerSel);
     if (!peerSel.__spiritBound) {
         peerSel.__spiritBound = true;
         peerSel.addEventListener('change', function () {
@@ -18979,10 +19039,13 @@ async function spiritSanctuaryRenderChat(ctx) {
             peerSel.innerHTML = peers.length
                 ? peers.map(function (p) {
                     var lbl = spiritPublicDefaultLabel(p).replace(/</g, '&lt;');
-                    return '<option value="' + String(p).replace(/"/g, '&quot;') + '">' + lbl + ' (' + String(p).replace(/</g, '&lt;') + ')</option>';
+                    var pv = String(p).replace(/"/g, '&quot;');
+                    var pt = String(p).replace(/</g, '&lt;').replace(/"/g, '&quot;');
+                    return '<option value="' + pv + '" title="' + pt + '">' + lbl + '</option>';
                 }).join('')
                 : '<option value="">Aucune conversation</option>';
             peerSel.value = activePeer || '';
+            spiritSanctuarySyncChatPeerFieldVisibility(peerSel);
             if (!peerSel.__spiritBound) {
                 peerSel.__spiritBound = true;
                 peerSel.addEventListener('change', function () {
@@ -19037,6 +19100,7 @@ async function spiritSanctuaryRenderChat(ctx) {
             spiritSanctuaryBindChatPeerDropdown(peerSel, peerThread, ctx);
         } else if (peerSel) {
             peerSel.innerHTML = '<option value="">—</option>';
+            spiritSanctuarySyncChatPeerFieldVisibility(peerSel);
         }
         box.innerHTML = threadRows.length
             ? spiritSanctuaryChatLinesHtml(threadRows, spiritSanctuaryMeCandidates(meLocal, resolvedMe))
@@ -19051,7 +19115,10 @@ async function spiritSanctuaryRenderChat(ctx) {
         arr = arr.slice().sort(function (a, b) {
             return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
         });
-        if (peerSel) peerSel.innerHTML = '<option value="">Conversation active</option>';
+        if (peerSel) {
+            peerSel.innerHTML = '<option value="">Conversation active</option>';
+            spiritSanctuarySyncChatPeerFieldVisibility(peerSel);
+        }
         box.innerHTML = spiritSanctuaryChatLinesHtml(arr, spiritSanctuaryMeCandidates(meLocal, resolvedMe));
         await spiritSanctuaryChatPostRender(box);
         return;
@@ -19063,10 +19130,16 @@ async function spiritSanctuaryRenderChat(ctx) {
     }
     if (!out.data || !out.data.length) {
         box.innerHTML = '<p style="color:#555;font-size:0.65rem;">Aucun message.</p>';
-        if (peerSel) peerSel.innerHTML = '<option value="">—</option>';
+        if (peerSel) {
+            peerSel.innerHTML = '<option value="">—</option>';
+            spiritSanctuarySyncChatPeerFieldVisibility(peerSel);
+        }
         return;
     }
-    if (peerSel) peerSel.innerHTML = '<option value="">Conversation active</option>';
+    if (peerSel) {
+        peerSel.innerHTML = '<option value="">Conversation active</option>';
+        spiritSanctuarySyncChatPeerFieldVisibility(peerSel);
+    }
     box.innerHTML = spiritSanctuaryChatLinesHtml(out.data, spiritSanctuaryMeCandidates(meLocal, resolvedMe));
     if (out.data.length && meLocal && peerSel) {
         var sortedIn = out.data.slice().sort(function (a, b) {
