@@ -18364,6 +18364,7 @@ function spiritSanctuaryPushLocalMessage(msg) {
         is_read: !!msg.is_read,
         created_at: String(msg.created_at || new Date().toISOString())
     };
+    if (msg.id != null && msg.id !== '') base.id = msg.id;
     if (!Array.isArray(spiritLocalSanctuaryChatByRecipient[rec])) spiritLocalSanctuaryChatByRecipient[rec] = [];
     spiritLocalSanctuaryChatByRecipient[rec].push(base);
     // Copie côté expéditeur : permet de voir l'historique après switch utilisateur.
@@ -18424,6 +18425,78 @@ async function spiritSanctuaryFetchThreadSupabase(meId, peerId) {
 function spiritSanctuarySanUidEq(a, b) {
     return String(a || '').trim() === String(b || '').trim();
 }
+/** Même utilisateur (UUID casse variable, ou égalité stricte). */
+function spiritSanctuarySanUidEqLoose(a, b) {
+    if (spiritSanctuarySanUidEq(a, b)) return true;
+    try {
+        var na = spiritNormUid(a);
+        var nb = spiritNormUid(b);
+        return !!na && na === nb;
+    } catch (e) { return false; }
+}
+function spiritSanctuaryIdVariantsMany(arr) {
+    var out = [];
+    (arr || []).forEach(function (x) {
+        x = String(x || '').trim();
+        if (!x) return;
+        var dup = false;
+        for (var k = 0; k < out.length; k++) {
+            if (spiritSanctuarySanUidEqLoose(out[k], x)) { dup = true; break; }
+        }
+        if (!dup) out.push(x);
+    });
+    return out;
+}
+function spiritSanctuarySenderRecipientInThread(sid, rid, vMe, vPeer) {
+    for (var i = 0; i < vMe.length; i++) {
+        for (var j = 0; j < vPeer.length; j++) {
+            var M = vMe[i];
+            var P = vPeer[j];
+            if (!M || !P) continue;
+            if (spiritSanctuarySanUidEqLoose(sid, M) && spiritSanctuarySanUidEqLoose(rid, P)) return true;
+            if (spiritSanctuarySanUidEqLoose(sid, P) && spiritSanctuarySanUidEqLoose(rid, M)) return true;
+        }
+    }
+    return false;
+}
+function spiritSanctuaryCollectLocalForThread(vMe, vPeer) {
+    var out = [];
+    var seen = Object.create(null);
+    function add(row) {
+        if (!row) return;
+        var k = row.id != null ? ('id:' + row.id) : ('k:' + String(row.created_at || '') + '|' + String(row.sender_id || '') + '|' + String((row.body || '')).slice(0, 40));
+        if (seen[k]) return;
+        seen[k] = true;
+        out.push(row);
+    }
+    try {
+        Object.keys(spiritLocalSanctuaryChatByRecipient || {}).forEach(function (key) {
+            var arr = spiritLocalSanctuaryChatByRecipient[key];
+            if (!Array.isArray(arr)) return;
+            arr.forEach(function (m) {
+                var sid = String((m && m.sender_id) || '').trim();
+                var rid = String((m && m.recipient_id) || '').trim();
+                if (spiritSanctuarySenderRecipientInThread(sid, rid, vMe, vPeer)) add(m);
+            });
+        });
+    } catch (e) {}
+    return out;
+}
+function spiritSanctuaryMergeChatRows(serverRows, more) {
+    var byId = Object.create(null);
+    function put(r) {
+        if (!r) return;
+        var k = r.id != null ? ('id:' + r.id) : ('k:' + String(r.created_at || '') + ':' + String(r.sender_id || '') + ':' + String((r.body || '')).slice(0, 32));
+        byId[k] = r;
+    }
+    (serverRows || []).forEach(put);
+    (more || []).forEach(put);
+    var arr = Object.keys(byId).map(function (k) { return byId[k]; });
+    arr.sort(function (a, b) {
+        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+    });
+    return arr;
+}
 
 function spiritSanctuaryChatTranslatePref() {
     try { return localStorage.getItem('spirit_san_chat_translate') === '1'; } catch (e) { return false; }
@@ -18439,12 +18512,14 @@ function spiritSanctuaryMeCandidates(meLocal, resolvedMe) {
 }
 function spiritSanctuaryChatLineHtmlRow(m, meCand) {
     var wantTr = spiritSanctuaryChatTranslatePref();
-    var viewLRaw = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+    var viewLRaw = typeof spiritListingChatUiLangRaw === 'function'
+        ? spiritListingChatUiLangRaw()
+        : (typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR');
     var viewL = typeof spiritListingChatLangNormalize === 'function' ? spiritListingChatLangNormalize(viewLRaw) : String(viewLRaw || 'FR').toUpperCase();
     var sid = String((m && m.sender_id) || '').trim();
     var mine = false;
     for (var i = 0; i < (meCand || []).length; i++) {
-        if (meCand[i] && spiritSanctuarySanUidEq(sid, meCand[i])) { mine = true; break; }
+        if (meCand[i] && spiritSanctuarySanUidEqLoose(sid, meCand[i])) { mine = true; break; }
     }
     var who = String((m && m.sender_label) || sid || '?').replace(/</g, '&lt;');
     var body = String((m && m.body) || '');
@@ -18487,7 +18562,9 @@ async function spiritSanctuaryChatPostRender(box) {
 }
 async function spiritSanctuaryAfterChatRender(box) {
     if (!box || !spiritSanctuaryChatTranslatePref()) return;
-    var viewLRaw = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+    var viewLRaw = typeof spiritListingChatUiLangRaw === 'function'
+        ? spiritListingChatUiLangRaw()
+        : (typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR');
     var viewL = typeof spiritListingChatLangNormalize === 'function' ? spiritListingChatLangNormalize(viewLRaw) : String(viewLRaw || 'FR').toUpperCase();
     if (viewL === 'FR') return;
     var pending = box.querySelectorAll('.spirit-san-chat-body--pending');
@@ -18531,18 +18608,9 @@ function spiritSanctuaryOnToggleChatTranslate(ck, ctx) {
     if (other && other !== ck) other.checked = !!(ck && ck.checked);
     void spiritSanctuaryRenderChat(ctx);
 }
-function spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread) {
-    function isThreadMessage(sid, rid) {
-        var pairs = [[qMe, qPeer], [meLocal, peerThread]];
-        for (var p = 0; p < pairs.length; p++) {
-            var A = String(pairs[p][0] || '').trim();
-            var B = String(pairs[p][1] || '').trim();
-            if (!A || !B || A === B) continue;
-            if ((spiritSanctuarySanUidEq(sid, A) && spiritSanctuarySanUidEq(rid, B)) || (spiritSanctuarySanUidEq(sid, B) && spiritSanctuarySanUidEq(rid, A)))
-                return true;
-        }
-        return false;
-    }
+function spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread, resolvedMe, resolvedPeer) {
+    var vMe = spiritSanctuaryIdVariantsMany([meLocal, qMe, resolvedMe]);
+    var vPeer = spiritSanctuaryIdVariantsMany([peerThread, qPeer, resolvedPeer]);
     try {
         Object.keys(spiritLocalSanctuaryChatByRecipient || {}).forEach(function (k) {
             var arr = spiritLocalSanctuaryChatByRecipient[k];
@@ -18550,7 +18618,7 @@ function spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread) {
             spiritLocalSanctuaryChatByRecipient[k] = arr.filter(function (m) {
                 var sid = String((m && m.sender_id) || '').trim();
                 var rid = String((m && m.recipient_id) || '').trim();
-                return !isThreadMessage(sid, rid);
+                return !spiritSanctuarySenderRecipientInThread(sid, rid, vMe, vPeer);
             });
         });
     } catch (e) {}
@@ -18589,18 +18657,24 @@ async function spiritSanctuaryClearThread(ctx) {
         return;
     }
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY || typeof _spirit === 'undefined' || !_spirit) {
-        spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread);
+        spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread, resolvedMe, resolvedPeer);
         await spiritSanctuaryRenderChat(ctx);
         return;
     }
-    var d1 = await _spirit.from('sanctuary_chat').delete().eq('sender_id', qMe).eq('recipient_id', qPeer);
-    var d2 = await _spirit.from('sanctuary_chat').delete().eq('sender_id', qPeer).eq('recipient_id', qMe);
-    if (d1.error && d2.error) {
-        var errPre = (typeof spiritT === 'function') ? spiritT('san_chat_raz_err') : 'Erreur : ';
-        alert(errPre + (d1.error.message || d2.error.message || ''));
-        return;
+    var vMeDel = spiritSanctuaryIdVariantsMany([meLocal, qMe, resolvedMe]);
+    var vPeerDel = spiritSanctuaryIdVariantsMany([peerThread, qPeer, resolvedPeer]);
+    for (var di = 0; di < vMeDel.length; di++) {
+        for (var dj = 0; dj < vPeerDel.length; dj++) {
+            var a = String(vMeDel[di] || '').trim();
+            var b = String(vPeerDel[dj] || '').trim();
+            if (!a || !b || spiritSanctuarySanUidEqLoose(a, b)) continue;
+            var r1 = await _spirit.from('sanctuary_chat').delete().eq('sender_id', a).eq('recipient_id', b);
+            var r2 = await _spirit.from('sanctuary_chat').delete().eq('sender_id', b).eq('recipient_id', a);
+            if (r1 && r1.error) console.warn('[SPIRIT] sanctuary_chat delete A→B:', r1.error.message || r1.error);
+            if (r2 && r2.error) console.warn('[SPIRIT] sanctuary_chat delete B→A:', r2.error.message || r2.error);
+        }
     }
-    spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread);
+    spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread, resolvedMe, resolvedPeer);
     await spiritSanctuaryRenderChat(ctx);
     void spiritUpdateNavSanctuaryDot();
 }
@@ -18789,18 +18863,9 @@ async function spiritSanctuaryRenderChat(ctx) {
 
     if (qMe && qPeer && qMe !== qPeer) {
         var threadRows = await spiritSanctuaryFetchThreadSupabase(qMe, qPeer);
-        if (!threadRows.length) {
-            var loc1 = spiritLocalSanctuaryChatByRecipient[qMe] || [];
-            var loc2 = spiritLocalSanctuaryChatByRecipient[qPeer] || [];
-            threadRows = loc1.concat(loc2).filter(function (m) {
-                var sid = String((m && m.sender_id) || '').trim();
-                var rid = String((m && m.recipient_id) || '').trim();
-                return (sid === qMe && rid === qPeer) || (sid === qPeer && rid === qMe);
-            });
-            threadRows.sort(function (a, b) {
-                return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-            });
-        }
+        var vMeM = spiritSanctuaryIdVariantsMany([meLocal, resolvedMe, qMe]);
+        var vPeerM = spiritSanctuaryIdVariantsMany([peerThread, resolvedPeer, qPeer]);
+        threadRows = spiritSanctuaryMergeChatRows(threadRows, spiritSanctuaryCollectLocalForThread(vMeM, vPeerM));
         if (ctx === 'public' && meLocal && ownerRaw && String(meLocal) !== String(ownerRaw)) {
             spiritSanctuaryBindChatPeerDropdown(peerSel, String(ownerRaw), ctx);
         } else if (threadRows.length && meLocal && peerSel) {
@@ -18992,8 +19057,23 @@ async function spiritSanctuarySendChat(ctx) {
         sender_label: label,
         body: chk.text,
         is_read: String(resolvedMe) === String(resolvedUid)
-    });
+    }).select('*');
     if (ins.error) { alert('Erreur chat : ' + ins.error.message); return; }
+    if (ins.data && ins.data.length) {
+        try {
+            ins.data.forEach(function (row) {
+                spiritSanctuaryPushLocalMessage({
+                    id: row.id,
+                    recipient_id: String(row.recipient_id || ''),
+                    sender_id: String(row.sender_id || ''),
+                    sender_label: String(row.sender_label || label),
+                    body: String(row.body != null ? row.body : chk.text),
+                    is_read: !!row.is_read,
+                    created_at: String(row.created_at || new Date().toISOString())
+                });
+            });
+        } catch (ePushIns) {}
+    }
     spiritSanctuarySetActivePeer(ctx, String(targetUid));
     inp.value = '';
     await spiritSanctuaryRenderChat(ctx);
