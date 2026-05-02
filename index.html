@@ -18607,7 +18607,7 @@ function spiritSanctuaryMergeChatRows(serverRows, more) {
 function spiritSanctuaryChatTranslatePref() {
     try { return localStorage.getItem('spirit_san_chat_translate') === '1'; } catch (e) { return false; }
 }
-/** Langue cible pour traduire le chat (FR → autre) : préférence UI, puis navigator.language / document.documentElement.lang (souvent EN sur tel alors que l'UI reste FR). */
+/** Langue cible du chat (préférence UI, puis navigator / html lang). Si FR : traduction des messages des autres via Autodetect→FR ; sinon chaîne FR→EN/ES/ZH. */
 function spiritSanctuaryChatTargetLang() {
     var raw = typeof spiritListingChatUiLangRaw === 'function'
         ? spiritListingChatUiLangRaw()
@@ -18648,7 +18648,6 @@ function spiritSanctuaryChatFormatWhen(iso) {
 }
 function spiritSanctuaryChatLineHtmlRow(m, meCand) {
     var wantTr = spiritSanctuaryChatTranslatePref();
-    var viewL = spiritSanctuaryChatTargetLang();
     var sid = String((m && m.sender_id) || '').trim();
     var mine = false;
     for (var i = 0; i < (meCand || []).length; i++) {
@@ -18657,7 +18656,8 @@ function spiritSanctuaryChatLineHtmlRow(m, meCand) {
     var who = String((m && m.sender_label) || sid || '?').replace(/</g, '&lt;');
     var body = String((m && m.body) || '');
     var bodyEsc = body.replace(/</g, '&lt;');
-    var doTr = wantTr && !mine && body.trim() && viewL !== 'FR';
+    /* Traduire les messages des autres : FR→langue du site si l’UI n’est pas FR ; sinon autodetect→FR (tél. en français qui reçoit de l’anglais, etc.). */
+    var doTr = wantTr && !mine && body.trim();
     var idAttr = (m && m.id != null) ? String(m.id).replace(/"/g, '&quot;') : '';
     var bodyCls = 'spirit-san-chat-body' + (doTr ? ' spirit-san-chat-body--pending' : '');
     var rowCls = 'spirit-san-chat-line spirit-san-chat-line--' + (mine ? 'mine' : 'other');
@@ -18726,10 +18726,13 @@ async function spiritSanctuaryChatPostRender(box) {
 async function spiritSanctuaryAfterChatRender(box) {
     if (!box || !spiritSanctuaryChatTranslatePref()) return;
     var viewL = spiritSanctuaryChatTargetLang();
-    if (viewL === 'FR') return;
     var pending = box.querySelectorAll('.spirit-san-chat-body--pending');
     if (!pending.length) return;
-    if (typeof spiritTranslateListingMessage !== 'function') return;
+    if (viewL === 'FR') {
+        if (typeof spiritTranslateSanctuaryAutodetectToUi !== 'function') return;
+    } else if (typeof spiritTranslateListingMessage !== 'function') {
+        return;
+    }
     var conc = typeof SPIRIT_MM_TRANSLATE_CONCURRENCY === 'number' ? SPIRIT_MM_TRANSLATE_CONCURRENCY : 3;
     var nodes = Array.prototype.slice.call(pending);
     for (var j = 0; j < nodes.length; j += conc) {
@@ -18738,16 +18741,23 @@ async function spiritSanctuaryAfterChatRender(box) {
             var line = el.closest('.spirit-san-chat-line');
             var id = line && line.getAttribute('data-san-id');
             var orig = el.textContent || '';
-            var cacheKey = (id ? 'id:' + id : 't:' + orig.slice(0, 120)) + '|' + viewL;
+            var cacheKey = (viewL === 'FR' ? 'a:' : '') + (id ? 'id:' + id : 't:' + orig.slice(0, 120)) + '|' + viewL;
             var cached = spiritSanctuaryChatTrCache[cacheKey];
             if (cached) {
                 el.textContent = cached;
                 el.classList.remove('spirit-san-chat-body--pending');
                 return Promise.resolve();
             }
-            var trFn = (orig.length > 420 && typeof spiritTranslateLongListingText === 'function')
-                ? function () { return spiritTranslateLongListingText(orig, 'FR', viewL); }
-                : function () { return spiritTranslateListingMessage(orig, 'FR', viewL); };
+            var trFn;
+            if (viewL === 'FR') {
+                trFn = (orig.length > 420 && typeof spiritTranslateLongSanctuaryAutodetectToUi === 'function')
+                    ? function () { return spiritTranslateLongSanctuaryAutodetectToUi(orig, 'FR'); }
+                    : function () { return spiritTranslateSanctuaryAutodetectToUi(orig, 'FR'); };
+            } else {
+                trFn = (orig.length > 420 && typeof spiritTranslateLongListingText === 'function')
+                    ? function () { return spiritTranslateLongListingText(orig, 'FR', viewL); }
+                    : function () { return spiritTranslateListingMessage(orig, 'FR', viewL); };
+            }
             return Promise.resolve()
                 .then(function () { return trFn(); })
                 .then(function (tr) {
