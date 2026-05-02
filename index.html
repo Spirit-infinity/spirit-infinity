@@ -1750,8 +1750,10 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
+        /* Au-dessus du profil public (100300), de la loupe HD (200120), etc. — sinon confirm / traduction semblent « morts » sur mobile. */
         #spiritAppDialogOverlay {
-            z-index: 100460 !important;
+            z-index: 201000 !important;
+            isolation: isolate;
         }
         #spiritPublishSuccessOverlay.spirit-publish-success--visible,
         #spiritAppDialogOverlay.spirit-publish-success--visible {
@@ -1925,6 +1927,8 @@
             flex: 1;
             min-width: 120px;
             cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
             font-size: 0.62rem;
             font-weight: 800;
             letter-spacing: 0.06em;
@@ -5011,6 +5015,14 @@
     function spiritUiLang() {
         var raw = 'FR';
         try {
+            try {
+                var ls0 = localStorage.getItem('spirit_ui_lang');
+                if (ls0) {
+                    var u0 = String(ls0).toUpperCase();
+                    if (u0 === 'CN') u0 = 'ZH';
+                    if (['FR', 'EN', 'ES', 'ZH'].indexOf(u0) >= 0) return u0;
+                }
+            } catch (eLs0) {}
             var sel = document.querySelector('.lang-selector');
             if (sel && sel.value) raw = String(sel.value).toUpperCase();
             else {
@@ -10295,6 +10307,11 @@ function spiritAppDialog(opts) {
             try { document.body.style.overflow = ''; } catch (eO) {}
             resolve(val);
         }
+        try {
+            if (root.parentNode === document.body && document.body.lastElementChild !== root) {
+                document.body.appendChild(root);
+            }
+        } catch (eRe) {}
         function onKey(ev) {
             if (ev.key === 'Escape') {
                 ev.preventDefault();
@@ -18584,6 +18601,12 @@ async function spiritSanctuaryChatPostRender(box) {
     await spiritSanctuaryAfterChatRender(box);
     spiritSanctuaryChatScrollToEnd(box);
     spiritSanctuaryChatBumpLayout(box);
+    try {
+        var coarse = typeof window.matchMedia === 'function' && window.matchMedia('(pointer:coarse)').matches;
+        if (coarse && spiritSanctuaryChatTranslatePref()) {
+            setTimeout(function () { void spiritSanctuaryAfterChatRender(box); }, 350);
+        }
+    } catch (eCo) {}
 }
 async function spiritSanctuaryAfterChatRender(box) {
     if (!box || !spiritSanctuaryChatTranslatePref()) return;
