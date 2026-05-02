@@ -19098,7 +19098,22 @@ function spiritSanctuaryChatNotifyMaybeOs(ctx, rows, meLocal, resolvedMe) {
     st.lastSig = sig;
     var nid = (latest && latest.id != null && latest.id !== '') ? String(latest.id) : sig;
     if (spiritSanctuaryChatOsNotifiedIds[nid]) return;
-    if (!spiritSanctuaryChatOsShouldAlert(ctx)) return;
+
+    var viewingThread = (ctx === 'public' && spiritSanctuarySanctuaryPaneIsVisible())
+        || (ctx === 'account' && spiritSanctuaryAccountChatPanelVisible());
+    var fg = false;
+    try {
+        fg = typeof document !== 'undefined'
+            && document.visibilityState === 'visible'
+            && (typeof document.hasFocus !== 'function' || document.hasFocus());
+    } catch (eFg) {}
+
+    /* Déjà le fil ouvert sous les yeux : pas d’alerte. */
+    if (viewingThread && fg) {
+        spiritSanctuaryChatOsNotifiedIds[nid] = 1;
+        return;
+    }
+
     spiritSanctuaryChatOsNotifiedIds[nid] = 1;
     try {
         var keys = Object.keys(spiritSanctuaryChatOsNotifiedIds);
@@ -19108,14 +19123,21 @@ function spiritSanctuaryChatNotifyMaybeOs(ctx, rows, meLocal, resolvedMe) {
     var preview = String((latest && latest.body) || '').replace(/\s+/g, ' ').trim().slice(0, 140);
     var title = (typeof spiritT === 'function') ? spiritT('san_chat_os_title') : 'Nouveau message — Sanctuaire';
     var line = sender + (preview ? ' : ' + preview : '');
-    var openUrl = '/';
-    try {
-        openUrl = String(location.pathname || '/') + String(location.search || '');
-        if (ctx === 'public' && typeof spiritPublicViewUserId !== 'undefined' && spiritPublicViewUserId) {
-            openUrl = '#spirit-public/' + encodeURIComponent(String(spiritPublicViewUserId)) + '/sanctuary';
-        }
-    } catch (eU) {}
-    spiritSanctuaryShowOsChatNotification(title, line, openUrl);
+    /* Navigation in-app (onglet actif) : toast ; arrière-plan / autre fenêtre : notification système si autorisée. */
+    if (fg && !viewingThread) {
+        try { spiritSanctuaryShowToast(title, line); } catch (eT0) {}
+    }
+    var permit = typeof Notification !== 'undefined' && Notification.permission === 'granted';
+    if (!fg && permit && spiritSanctuaryChatOsShouldAlert(ctx)) {
+        var openUrl = '/';
+        try {
+            openUrl = String(location.pathname || '/') + String(location.search || '');
+            if (ctx === 'public' && typeof spiritPublicViewUserId !== 'undefined' && spiritPublicViewUserId) {
+                openUrl = '#spirit-public/' + encodeURIComponent(String(spiritPublicViewUserId)) + '/sanctuary';
+            }
+        } catch (eU) {}
+        spiritSanctuaryShowOsChatNotification(title, line, openUrl);
+    }
 }
 async function spiritSanctuaryInboxPollOnce() {
     if (SPIRIT_SANCTUARY_CHAT_LOCAL_ONLY) return;
@@ -19152,12 +19174,29 @@ async function spiritSanctuaryInboxPollOnce() {
             return;
         }
         spiritSanctuaryInboxLastRowId = id;
-        if (!spiritSanctuaryChatOsShouldAlert('inbox')) return;
+        var viewingThread = spiritSanctuarySanctuaryPaneIsVisible() || spiritSanctuaryAccountChatPanelVisible();
+        var fg = false;
+        try {
+            fg = typeof document !== 'undefined'
+                && document.visibilityState === 'visible'
+                && (typeof document.hasFocus !== 'function' || document.hasFocus());
+        } catch (eFg2) {}
+        if (viewingThread && fg) {
+            spiritSanctuaryChatOsNotifiedIds[id] = 1;
+            return;
+        }
         spiritSanctuaryChatOsNotifiedIds[id] = 1;
         var sender = String((row.sender_label) || sid || '—').trim();
         var preview = String(row.body || '').replace(/\s+/g, ' ').trim().slice(0, 140);
         var title = (typeof spiritT === 'function') ? spiritT('san_chat_os_title') : 'Nouveau message — Sanctuaire';
-        spiritSanctuaryShowOsChatNotification(title, sender + (preview ? ' : ' + preview : ''), '/');
+        var line = sender + (preview ? ' : ' + preview : '');
+        if (fg && !viewingThread) {
+            try { spiritSanctuaryShowToast(title, line); } catch (eT1) {}
+        }
+        var permit = typeof Notification !== 'undefined' && Notification.permission === 'granted';
+        if (!fg && permit && spiritSanctuaryChatOsShouldAlert('inbox')) {
+            spiritSanctuaryShowOsChatNotification(title, line, '/');
+        }
     } catch (e) {}
 }
 function spiritSanctuaryStopInboxPoll() {
@@ -22840,42 +22879,3 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     window.spiritActivateDetectedMac = spiritActivateDetectedMac;
     window.spiritReleaseMyCurrentDevice = spiritReleaseMyCurrentDevice;
     window.spiritShowMySpiritCollection = spiritShowMySpiritCollection;
-    spiritAttachDetectionOnPanelOpen();
-  } catch (e) {}
-})();
-</script>
-
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
