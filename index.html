@@ -8887,7 +8887,7 @@ function renderMarket(filteredData = null) {
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
             const oidLitEsc = oidNormLit ? String(oidNormLit).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '') : '';
             const litigeBadge = oidNormLit
-                ? '<div class="spirit-market-litige-macaron" data-seller-litige="' + oidLitEsc + '" title="Litige en cours impliquant ce vendeur" role="img" aria-label="Litige en cours"></div>'
+                ? '<div class="spirit-market-litige-macaron" data-seller-litige="' + oidLitEsc + '" title="Litige ouvert sur une vente de ce vendeur" role="img" aria-label="Litige en cours sur ce vendeur"></div>'
                 : '';
             const favNum = spiritFavoriteProductId(item);
             const favKey = favNum != null ? String(favNum) : '';
@@ -16517,7 +16517,7 @@ async function spiritOpenBadgeComments(category) {
             + '</div>';
     }).join('');
 }
-/** True si le statut décrit un litige / dispute encore ouvert (macaron vendeur). */
+/** True si le statut décrit un litige / dispute encore ouvert (affichage public : côté vendeur visé). */
 function spiritTransactionLitigeIsOpenStatus(status) {
     var s = String(status || '').toLowerCase();
     if (!s) return false;
@@ -16536,7 +16536,7 @@ async function spiritFetchOpenLitigesForUser(uid) {
     try {
         var out = await _spirit.from('transactions')
             .select('id,created_at,status,title,amount,seller_id,buyer_id,seller_name,buyer_name')
-            .or('seller_id.eq.' + uid + ',buyer_id.eq.' + uid)
+            .eq('seller_id', uid)
             .order('created_at', { ascending: false })
             .limit(200);
         if (out.error) throw out.error;
@@ -19738,6 +19738,10 @@ function renderTransactionList(container, data, error, type) {
                 '<button type="button" onclick="confirmReception(\'' + idStr + '\')" style="flex:1; min-width:120px; background:var(--spirit-green); color:black; font-weight:bold; border:none; padding:8px 10px; border-radius:4px; cursor:pointer;">REÇU</button>' +
                 '<button type="button" onclick="openDispute(\'' + idStr + '\')" style="flex:1; min-width:120px; background:transparent; color:#ff6666; border:1px solid #333; padding:8px 10px; border-radius:4px; cursor:pointer;">LITIGE</button>' +
                 '</div>';
+        } else if (type === 'ACHATS' && typeof spiritTransactionLitigeIsOpenStatus === 'function' && spiritTransactionLitigeIsOpenStatus(tr.status)) {
+            actionBtn = '<div class="spirit-ledger-buyer-actions" style="display:flex; gap:8px; flex-wrap:wrap;">' +
+                '<button type="button" onclick="withdrawDispute(\'' + idStr + '\')" style="flex:1; min-width:120px; background:#1a2a1a; color:#9fdfbf; border:1px solid #363; padding:8px 10px; border-radius:4px; cursor:pointer;">RETRAIT LITIGE</button>' +
+                '</div>';
         } else {
             actionBtn = '<div class="spirit-purchase-actions spirit-purchase-actions--status" style="margin-top:8px; font-size:0.62rem; color:#888; text-align:center; border-top:1px solid #222; padding-top:6px;">' + fnEsc(tr.status) + '</div>';
         }
@@ -19763,6 +19767,8 @@ function renderTransactionList(container, data, error, type) {
             if (tr.status === 'SÉQUESTRE ACTIF') {
                 actionsCell = '<button type="button" class="btn-action" style="font-size:0.62rem;padding:6px 8px;margin:2px;" onclick="confirmReception(\'' + idStr + '\')">REÇU</button>' +
                     '<button type="button" class="btn-action" style="font-size:0.62rem;padding:6px 8px;margin:2px;background:#1a1010;border-color:#633;color:#f88;" onclick="openDispute(\'' + idStr + '\')">LITIGE</button>';
+            } else if (typeof spiritTransactionLitigeIsOpenStatus === 'function' && spiritTransactionLitigeIsOpenStatus(tr.status)) {
+                actionsCell = '<button type="button" class="btn-action" style="font-size:0.62rem;padding:6px 8px;margin:2px;background:#1a2a1a;border-color:#363;color:#9fdfbf;" onclick="withdrawDispute(\'' + idStr + '\')">RETRAIT LITIGE</button>';
             } else {
                 actionsCell = '<span style="font-size:0.65rem;color:#777;">—</span>';
             }
@@ -19826,6 +19832,44 @@ async function openDispute(transactionId) {
         alert("Erreur lors de l'ouverture : " + err.message);
     }
 }
+
+/**
+ * Retirer le litige (acheteur uniquement) : repasse en séquestre actif.
+ */
+async function withdrawDispute(transactionId) {
+    if (!confirm('Retirer ta déclaration de litige ? Le statut repasse en « SÉQUESTRE ACTIF » (fonds toujours protégés jusqu’à réception ou décision).')) return;
+    var txKey = String(transactionId || '').trim().toLowerCase();
+    if (!txKey || !_spirit) return;
+    var meRaw = (typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : window.MY_TEST_ID || MY_TEST_ID) || '';
+    var me = spiritNormUid(meRaw);
+    if (!me) {
+        alert('Connecte-toi pour modifier cette transaction.');
+        return;
+    }
+    try {
+        var trLoad = await _spirit.from('transactions').select('buyer_id,status').eq('id', txKey).maybeSingle();
+        if (trLoad.error || !trLoad.data) throw trLoad.error || new Error('Transaction introuvable.');
+        if (spiritNormUid(trLoad.data.buyer_id) !== me) {
+            alert('Seul l’acheteur peut retirer ce litige.');
+            return;
+        }
+        if (!spiritTransactionLitigeIsOpenStatus(trLoad.data.status)) {
+            alert('Aucun litige ouvert sur cette transaction.');
+            return;
+        }
+        var upd = await _spirit.from('transactions').update({ status: 'SÉQUESTRE ACTIF' }).eq('id', txKey);
+        if (upd.error) throw upd.error;
+        alert('Litige retiré. Statut : SÉQUESTRE ACTIF.');
+        loadMyPurchases();
+        try { if (typeof loadMySales === 'function') loadMySales(); } catch (eS) {}
+        try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eN) {}
+        try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (eP) {}
+    } catch (err) {
+        console.error('Erreur retrait litige:', err && err.message ? err.message : err);
+        alert('Erreur : ' + (err && err.message ? err.message : err));
+    }
+}
+try { window.withdrawDispute = withdrawDispute; } catch (eWD) {}
 
 /**
  * CONFIRMER LA RÉCEPTION
@@ -20505,11 +20549,12 @@ function showLedgerModal() {
     try { refreshSpiritPanneauHardwareUI().catch(function (e) { console.warn(e); }); } catch (e) { console.warn(e); }
 }
 
+/** Litige ouvert depuis Mes achats : seul le vendeur est « visé » publiquement (macaron + badge sanctuaire). */
 async function spiritHasOpenLitigeForUser(uid) {
     uid = spiritNormUid(uid || '');
     if (!uid || !_spirit) return false;
     try {
-        var out = await _spirit.from('transactions').select('id,status,seller_id,buyer_id').or('seller_id.eq.' + uid + ',buyer_id.eq.' + uid).order('created_at', { ascending: false }).limit(200);
+        var out = await _spirit.from('transactions').select('id,status').eq('seller_id', uid).order('created_at', { ascending: false }).limit(200);
         if (out.error) throw out.error;
         var rows = Array.isArray(out.data) ? out.data : [];
         return rows.some(function (r) {
