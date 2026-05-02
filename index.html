@@ -2354,9 +2354,9 @@
             margin-top: 28px; padding-top: 20px; border-top: 1px solid #222; background: #030303; padding: 16px; border: 1px solid #1a1a1a;
         }
         .spirit-sanctuary-chat h4 { margin: 0 0 10px; font-size: 0.7rem; color: var(--neon-orange); letter-spacing: 1px; }
+        /* Pas de flex sur la zone scrollable : évite hauteur / repaint incorrects (messages invisibles jusqu’au resize). */
         .spirit-sanctuary-chat .spirit-san-chat-msgs {
-            max-height: 200px; overflow-y: auto; margin-bottom: 10px; font-size: 0.72rem;
-            display: flex; flex-direction: column; gap: 2px;
+            max-height: 200px; overflow-y: auto; overflow-x: hidden; margin-bottom: 10px; font-size: 0.72rem;
             scrollbar-width: thin; scrollbar-color: rgba(255,102,0,0.45) #111;
         }
         .spirit-sanctuary-chat .spirit-san-chat-msgs::-webkit-scrollbar { width: 6px; }
@@ -2365,10 +2365,10 @@
         }
         .spirit-sanctuary-chat .spirit-san-chat-line {
             display: flex; flex-direction: column; align-items: flex-start; max-width: 92%; margin-bottom: 10px;
-            align-self: flex-start;
+            margin-right: auto;
         }
         .spirit-sanctuary-chat .spirit-san-chat-line--mine {
-            align-self: flex-end; align-items: flex-end; max-width: 88%;
+            margin-left: auto; margin-right: 0; align-items: flex-end; max-width: 88%;
         }
         .spirit-sanctuary-chat .spirit-san-chat-meta {
             font-size: 0.58rem; letter-spacing: 0.04em; color: #666; margin-bottom: 4px; padding: 0 6px;
@@ -4193,7 +4193,7 @@
                         <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#221010;border-color:#633;color:#ecc;" onclick="void spiritSanctuaryClearThread('public')" data-key="san_chat_raz">Effacer le fil</button>
                     </div>
                     <div class="spirit-san-chat-msgs-wrap">
-                        <div class="spirit-san-chat-msgs" id="spiritSanctuaryChatMsgs" role="log" aria-live="polite" aria-relevant="additions"></div>
+                        <div class="spirit-san-chat-msgs" id="spiritSanctuaryChatMsgs"></div>
                     </div>
                     <div class="spirit-san-chat-composer">
                         <input type="text" id="spiritSanctuaryChatInput" class="spirit-san-chat-input" data-key="ui_msg_ph" placeholder="Message…" />
@@ -18439,7 +18439,8 @@ function spiritSanctuaryMeCandidates(meLocal, resolvedMe) {
 }
 function spiritSanctuaryChatLineHtmlRow(m, meCand) {
     var wantTr = spiritSanctuaryChatTranslatePref();
-    var viewL = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+    var viewLRaw = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+    var viewL = typeof spiritListingChatLangNormalize === 'function' ? spiritListingChatLangNormalize(viewLRaw) : String(viewLRaw || 'FR').toUpperCase();
     var sid = String((m && m.sender_id) || '').trim();
     var mine = false;
     for (var i = 0; i < (meCand || []).length; i++) {
@@ -18458,9 +18459,36 @@ function spiritSanctuaryChatLinesHtml(rows, meCand) {
     if (!rows || !rows.length) return '';
     return rows.map(function (m) { return spiritSanctuaryChatLineHtmlRow(m, meCand); }).join('');
 }
+function spiritSanctuaryChatScrollToEnd(box) {
+    if (!box) return;
+    try { box.scrollTop = box.scrollHeight; } catch (e0) {}
+    try {
+        requestAnimationFrame(function () {
+            try { box.scrollTop = box.scrollHeight; } catch (e1) {}
+            requestAnimationFrame(function () {
+                try { box.scrollTop = box.scrollHeight; } catch (e2) {}
+            });
+        });
+    } catch (eR) {}
+}
+async function spiritSanctuaryChatPostRender(box) {
+    if (!box) return;
+    spiritSanctuaryChatScrollToEnd(box);
+    try {
+        await new Promise(function (resolve) {
+            requestAnimationFrame(function () {
+                try { box.scrollTop = box.scrollHeight; } catch (eS) {}
+                resolve();
+            });
+        });
+    } catch (eW) {}
+    await spiritSanctuaryAfterChatRender(box);
+    spiritSanctuaryChatScrollToEnd(box);
+}
 async function spiritSanctuaryAfterChatRender(box) {
     if (!box || !spiritSanctuaryChatTranslatePref()) return;
-    var viewL = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+    var viewLRaw = typeof spiritListingChatViewerLangSync === 'function' ? spiritListingChatViewerLangSync() : 'FR';
+    var viewL = typeof spiritListingChatLangNormalize === 'function' ? spiritListingChatLangNormalize(viewLRaw) : String(viewLRaw || 'FR').toUpperCase();
     if (viewL === 'FR') return;
     var pending = box.querySelectorAll('.spirit-san-chat-body--pending');
     if (!pending.length) return;
@@ -18483,12 +18511,17 @@ async function spiritSanctuaryAfterChatRender(box) {
             var trFn = (orig.length > 420 && typeof spiritTranslateLongListingText === 'function')
                 ? function () { return spiritTranslateLongListingText(orig, 'FR', viewL); }
                 : function () { return spiritTranslateListingMessage(orig, 'FR', viewL); };
-            return trFn().then(function (tr) {
-                var out = (tr && String(tr).trim()) ? tr : orig;
-                spiritSanctuaryChatTrCache[cacheKey] = out;
-                el.textContent = out;
-                el.classList.remove('spirit-san-chat-body--pending');
-            });
+            return Promise.resolve()
+                .then(function () { return trFn(); })
+                .then(function (tr) {
+                    var out = (tr && String(tr).trim()) ? tr : orig;
+                    spiritSanctuaryChatTrCache[cacheKey] = out;
+                    el.textContent = out;
+                    el.classList.remove('spirit-san-chat-body--pending');
+                })
+                .catch(function () {
+                    try { el.classList.remove('spirit-san-chat-body--pending'); } catch (eC) {}
+                });
         }));
     }
 }
@@ -18732,8 +18765,7 @@ async function spiritSanctuaryRenderChat(ctx) {
             return (sid === activePeer && rid === meLocal) || (sid === meLocal && rid === activePeer);
         });
         box.innerHTML = spiritSanctuaryChatLinesHtml(filteredLocal, meLocal ? [meLocal] : []);
-        box.scrollTop = box.scrollHeight;
-        void spiritSanctuaryAfterChatRender(box);
+        await spiritSanctuaryChatPostRender(box);
         return;
     }
     if (typeof _spirit === 'undefined' || !_spirit) return;
@@ -18785,8 +18817,7 @@ async function spiritSanctuaryRenderChat(ctx) {
         box.innerHTML = threadRows.length
             ? spiritSanctuaryChatLinesHtml(threadRows, spiritSanctuaryMeCandidates(meLocal, resolvedMe))
             : '<p style="color:#555;font-size:0.65rem;">Aucun message pour l’instant.</p>';
-        box.scrollTop = box.scrollHeight;
-        void spiritSanctuaryAfterChatRender(box);
+        await spiritSanctuaryChatPostRender(box);
         return;
     }
 
@@ -18798,8 +18829,7 @@ async function spiritSanctuaryRenderChat(ctx) {
         });
         if (peerSel) peerSel.innerHTML = '<option value="">Conversation active</option>';
         box.innerHTML = spiritSanctuaryChatLinesHtml(arr, spiritSanctuaryMeCandidates(meLocal, resolvedMe));
-        box.scrollTop = box.scrollHeight;
-        void spiritSanctuaryAfterChatRender(box);
+        await spiritSanctuaryChatPostRender(box);
         return;
     }
     var out = await _spirit.from('sanctuary_chat').select('*').eq('recipient_id', String(resolvedOwner)).order('created_at', { ascending: true }).limit(200);
@@ -18824,8 +18854,7 @@ async function spiritSanctuaryRenderChat(ctx) {
             spiritSanctuaryBindChatPeerDropdown(peerSel, peerGuess, ctx);
         }
     }
-    box.scrollTop = box.scrollHeight;
-    void spiritSanctuaryAfterChatRender(box);
+    await spiritSanctuaryChatPostRender(box);
 }
 async function spiritSanctuarySendChat(ctx) {
     ctx = ctx === 'account' ? 'account' : 'public';
