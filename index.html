@@ -2354,11 +2354,99 @@
             margin-top: 28px; padding-top: 20px; border-top: 1px solid #222; background: #030303; padding: 16px; border: 1px solid #1a1a1a;
         }
         .spirit-sanctuary-chat h4 { margin: 0 0 10px; font-size: 0.7rem; color: var(--neon-orange); letter-spacing: 1px; }
-        .spirit-sanctuary-chat .spirit-san-chat-msgs { max-height: 200px; overflow-y: auto; margin-bottom: 10px; font-size: 0.72rem; }
-        .spirit-sanctuary-chat .spirit-san-chat-line { padding: 6px 0; border-bottom: 1px solid #151515; }
-        .spirit-sanctuary-chat .spirit-san-chat-line .who { color: var(--spirit-green); font-weight: 700; }
+        .spirit-sanctuary-chat .spirit-san-chat-msgs {
+            max-height: 200px; overflow-y: auto; margin-bottom: 10px; font-size: 0.72rem;
+            display: flex; flex-direction: column; gap: 2px;
+            scrollbar-width: thin; scrollbar-color: rgba(255,102,0,0.45) #111;
+        }
+        .spirit-sanctuary-chat .spirit-san-chat-msgs::-webkit-scrollbar { width: 6px; }
+        .spirit-sanctuary-chat .spirit-san-chat-msgs::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(255,102,0,0.5), rgba(0,200,255,0.35)); border-radius: 6px;
+        }
+        .spirit-sanctuary-chat .spirit-san-chat-line {
+            display: flex; flex-direction: column; align-items: flex-start; max-width: 92%; margin-bottom: 10px;
+            align-self: flex-start;
+        }
+        .spirit-sanctuary-chat .spirit-san-chat-line--mine {
+            align-self: flex-end; align-items: flex-end; max-width: 88%;
+        }
+        .spirit-sanctuary-chat .spirit-san-chat-meta {
+            font-size: 0.58rem; letter-spacing: 0.04em; color: #666; margin-bottom: 4px; padding: 0 6px;
+        }
+        .spirit-sanctuary-chat .spirit-san-chat-line--other .who { color: #7dccb0; font-weight: 800; }
+        .spirit-sanctuary-chat .spirit-san-chat-line--mine .who { color: #ffb27a; font-weight: 800; }
+        .spirit-sanctuary-chat .spirit-san-chat-bubble {
+            padding: 10px 14px; border-radius: 16px 16px 16px 5px; line-height: 1.45; word-break: break-word;
+            background: linear-gradient(165deg, rgba(28,32,38,0.95), rgba(12,14,18,0.98));
+            border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+        }
+        .spirit-sanctuary-chat .spirit-san-chat-line--mine .spirit-san-chat-bubble {
+            border-radius: 16px 16px 5px 16px;
+            background: linear-gradient(155deg, rgba(255,102,0,0.22), rgba(0,180,200,0.12));
+            border-color: rgba(255,102,0,0.42); box-shadow: 0 0 24px rgba(255,102,0,0.08), 0 6px 20px rgba(0,0,0,0.35);
+        }
         .spirit-sanctuary-chat .spirit-san-chat-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 8px; font-size: 0.62rem; }
         .spirit-sanctuary-chat .spirit-san-chat-toolbar label { display: flex; align-items: center; gap: 6px; color: #aaa; cursor: pointer; }
+        /* Chat sanctuaire — profil public : carte et en-tête */
+        #spiritPublicSanctuaryChatAnchor.spirit-public-san-chat-panel {
+            margin-top: 32px; padding: 0; border: none; background: transparent; border-top: none;
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-head {
+            display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px;
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-head-badge {
+            flex-shrink: 0; width: 12px; height: 12px; margin-top: 4px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff4e0, var(--neon-orange) 45%, #661800 100%);
+            box-shadow: 0 0 14px rgba(255,102,0,0.75), 0 0 28px rgba(255,102,0,0.25);
+            animation: spirit-pub-chat-pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes spirit-pub-chat-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(0.92); }
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-head h4 {
+            margin: 0 0 6px; font-size: 0.78rem; letter-spacing: 0.12em; color: #fff;
+            text-shadow: 0 0 20px rgba(255,102,0,0.35);
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-rules {
+            margin: 0; font-size: 0.62rem; color: #6a6a6a; line-height: 1.45; max-width: 52rem;
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-card {
+            background: linear-gradient(180deg, rgba(14,16,22,0.97) 0%, rgba(6,7,10,0.99) 100%);
+            border: 1px solid rgba(255,102,0,0.28); border-radius: 18px;
+            padding: 16px 14px 14px;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.04),
+                0 12px 40px rgba(0,0,0,0.5),
+                0 0 80px rgba(255,102,0,0.05);
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-field label { font-size: 0.62rem; color: #8a8a8a; }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-peer-select {
+            width: 100%; padding: 10px 12px; background: #0c0e12; border: 1px solid rgba(255,255,255,0.1);
+            color: #eee; font-size: 0.74rem; border-radius: 10px; margin-top: 4px;
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-toolbar {
+            margin-top: 10px; padding: 10px 12px; background: rgba(0,0,0,0.35); border-radius: 10px; border: 1px solid #222;
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs-wrap {
+            margin-top: 12px; padding: 10px 8px; background: rgba(0,0,0,0.45);
+            border: 1px solid #1e1e24; border-radius: 14px;
+            background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,102,0,0.07), transparent 55%);
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs {
+            max-height: min(360px, 46vh); margin-bottom: 0; font-size: 0.74rem; padding: 6px 4px;
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-composer {
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; margin-top: 12px;
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-input {
+            flex: 1; min-width: 160px; padding: 12px 14px; background: #0a0c10; border: 1px solid rgba(255,255,255,0.12);
+            color: #eee; font-size: 0.78rem; border-radius: 12px;
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-composer .btn-action {
+            font-size: 0.68rem; padding: 12px 20px; border-radius: 12px;
+            box-shadow: 0 0 20px rgba(255,102,0,0.15);
+        }
         .spirit-san-chat-body--pending { opacity: 0.88; }
         .spirit-san-comments-panel {
             max-height: 0;
@@ -4087,21 +4175,30 @@
             </div>
             <input type="file" id="spiritSanctuaryFileInput" accept="image/*" style="display:none;" />
             <div id="spiritSanctuaryGrid" class="spirit-san-mode-list"></div>
-            <div id="spiritPublicSanctuaryChatAnchor" class="spirit-sanctuary-chat" tabindex="-1">
-                <h4 data-key="pub_san_chat_h">CHAT DU SANCTUAIRE</h4>
-                <p data-key="pub_san_chat_rules" style="font-size:0.62rem;color:#555;margin:0 0 8px;">Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.</p>
-                <div style="margin:0 0 8px;">
-                    <label data-key="ui_conversation" style="font-size:0.62rem;color:#888;display:block;margin-bottom:4px;">Conversation</label>
-                    <select id="spiritSanctuaryChatPeer" style="width:100%;padding:8px;background:#111;border:1px solid #333;color:#eee;font-size:0.72rem;"></select>
+            <div id="spiritPublicSanctuaryChatAnchor" class="spirit-sanctuary-chat spirit-public-san-chat-panel" tabindex="-1">
+                <div class="spirit-public-san-chat-head">
+                    <span class="spirit-public-san-chat-head-badge" aria-hidden="true"></span>
+                    <div>
+                        <h4 data-key="pub_san_chat_h">CHAT DU SANCTUAIRE</h4>
+                        <p class="spirit-public-san-chat-rules" data-key="pub_san_chat_rules">Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.</p>
+                    </div>
                 </div>
-                <div class="spirit-san-chat-toolbar">
-                    <label><input type="checkbox" id="spiritSanctuaryChatTranslate" onchange="spiritSanctuaryOnToggleChatTranslate(this,'public')" /> <span data-key="san_chat_translate">Traduire les messages (langue du site)</span></label>
-                    <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#221010;border-color:#633;color:#ecc;" onclick="void spiritSanctuaryClearThread('public')" data-key="san_chat_raz">Effacer le fil</button>
-                </div>
-                <div class="spirit-san-chat-msgs" id="spiritSanctuaryChatMsgs"></div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                    <input type="text" id="spiritSanctuaryChatInput" data-key="ui_msg_ph" placeholder="Message…" style="flex:1;min-width:180px;padding:10px;background:#111;border:1px solid #333;color:#eee;font-size:0.75rem;" />
-                    <button type="button" class="btn-action" style="font-size:0.65rem;padding:10px 16px;" onclick="spiritSanctuarySendChat('public')" data-key="ui_send">ENVOYER</button>
+                <div class="spirit-public-san-chat-card">
+                    <div class="spirit-san-chat-field" style="margin:0 0 8px;">
+                        <label data-key="ui_conversation" style="display:block;margin-bottom:4px;">Conversation</label>
+                        <select id="spiritSanctuaryChatPeer" class="spirit-san-chat-peer-select" aria-label="Conversation"></select>
+                    </div>
+                    <div class="spirit-san-chat-toolbar">
+                        <label><input type="checkbox" id="spiritSanctuaryChatTranslate" onchange="spiritSanctuaryOnToggleChatTranslate(this,'public')" /> <span data-key="san_chat_translate">Traduire les messages (langue du site)</span></label>
+                        <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;background:#221010;border-color:#633;color:#ecc;" onclick="void spiritSanctuaryClearThread('public')" data-key="san_chat_raz">Effacer le fil</button>
+                    </div>
+                    <div class="spirit-san-chat-msgs-wrap">
+                        <div class="spirit-san-chat-msgs" id="spiritSanctuaryChatMsgs" role="log" aria-live="polite" aria-relevant="additions"></div>
+                    </div>
+                    <div class="spirit-san-chat-composer">
+                        <input type="text" id="spiritSanctuaryChatInput" class="spirit-san-chat-input" data-key="ui_msg_ph" placeholder="Message…" />
+                        <button type="button" class="btn-action" onclick="spiritSanctuarySendChat('public')" data-key="ui_send">ENVOYER</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -18354,7 +18451,8 @@ function spiritSanctuaryChatLineHtmlRow(m, meCand) {
     var doTr = wantTr && !mine && body.trim() && viewL !== 'FR';
     var idAttr = (m && m.id != null) ? String(m.id).replace(/"/g, '&quot;') : '';
     var bodyCls = 'spirit-san-chat-body' + (doTr ? ' spirit-san-chat-body--pending' : '');
-    return '<div class="spirit-san-chat-line" data-san-tr="' + (doTr ? '1' : '0') + '"' + (idAttr ? ' data-san-id="' + idAttr + '"' : '') + '><span class="who">' + who + '</span> — <span class="' + bodyCls + '">' + bodyEsc + '</span></div>';
+    var rowCls = 'spirit-san-chat-line spirit-san-chat-line--' + (mine ? 'mine' : 'other');
+    return '<div class="' + rowCls + '" data-san-tr="' + (doTr ? '1' : '0') + '"' + (idAttr ? ' data-san-id="' + idAttr + '"' : '') + '><div class="spirit-san-chat-meta"><span class="who">' + who + '</span></div><div class="spirit-san-chat-bubble"><span class="' + bodyCls + '">' + bodyEsc + '</span></div></div>';
 }
 function spiritSanctuaryChatLinesHtml(rows, meCand) {
     if (!rows || !rows.length) return '';
