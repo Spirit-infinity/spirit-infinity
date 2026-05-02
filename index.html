@@ -18467,6 +18467,33 @@ async function spiritSanctuaryFetchThreadSupabase(meId, peerId) {
     }
 }
 
+/** IDs Supabase des messages du fil (toutes paires id possibles) — pour DELETE par id (les .eq sender/recipient ratent souvent UUID vs id affiché). */
+async function spiritSanctuaryCollectThreadIdsForClear(vMeDel, vPeerDel, qMe, qPeer) {
+    var seen = Object.create(null);
+    var out = [];
+    function addRows(rows) {
+        (rows || []).forEach(function (row) {
+            if (!row || row.id == null || row.id === '') return;
+            var idk = String(row.id);
+            if (seen[idk]) return;
+            seen[idk] = true;
+            out.push(row.id);
+        });
+    }
+    try { addRows(await spiritSanctuaryFetchThreadSupabase(String(qMe || '').trim(), String(qPeer || '').trim())); } catch (e0) {}
+    if (!out.length) {
+        for (var di = 0; di < vMeDel.length; di++) {
+            for (var dj = 0; dj < vPeerDel.length; dj++) {
+                var a = String(vMeDel[di] || '').trim();
+                var b = String(vPeerDel[dj] || '').trim();
+                if (!a || !b || spiritSanctuarySanUidEqLoose(a, b)) continue;
+                try { addRows(await spiritSanctuaryFetchThreadSupabase(a, b)); } catch (e1) {}
+            }
+        }
+    }
+    return out;
+}
+
 function spiritSanctuarySanUidEq(a, b) {
     return String(a || '').trim() === String(b || '').trim();
 }
@@ -18762,16 +18789,37 @@ async function spiritSanctuaryClearThread(ctx) {
     }
     var vMeDel = spiritSanctuaryIdVariantsMany([meLocal, qMe, resolvedMe]);
     var vPeerDel = spiritSanctuaryIdVariantsMany([peerThread, qPeer, resolvedPeer]);
-    for (var di = 0; di < vMeDel.length; di++) {
-        for (var dj = 0; dj < vPeerDel.length; dj++) {
-            var a = String(vMeDel[di] || '').trim();
-            var b = String(vPeerDel[dj] || '').trim();
-            if (!a || !b || spiritSanctuarySanUidEqLoose(a, b)) continue;
-            var r1 = await _spirit.from('sanctuary_chat').delete().eq('sender_id', a).eq('recipient_id', b);
-            var r2 = await _spirit.from('sanctuary_chat').delete().eq('sender_id', b).eq('recipient_id', a);
-            if (r1 && r1.error) console.warn('[SPIRIT] sanctuary_chat delete A→B:', r1.error.message || r1.error);
-            if (r2 && r2.error) console.warn('[SPIRIT] sanctuary_chat delete B→A:', r2.error.message || r2.error);
+    var delIds = [];
+    try { delIds = await spiritSanctuaryCollectThreadIdsForClear(vMeDel, vPeerDel, qMe, qPeer); } catch (eIds) { delIds = []; }
+    var delErrMsg = '';
+    if (delIds.length) {
+        var chunkSz = 80;
+        for (var ci = 0; ci < delIds.length; ci += chunkSz) {
+            var slice = delIds.slice(ci, ci + chunkSz);
+            var dr = await _spirit.from('sanctuary_chat').delete().in('id', slice);
+            if (dr && dr.error && !delErrMsg) delErrMsg = String(dr.error.message || dr.error);
+            if (dr && dr.error) console.warn('[SPIRIT] sanctuary_chat delete by id:', dr.error.message || dr.error);
         }
+    }
+    if (!delIds.length || delErrMsg) {
+        for (var di = 0; di < vMeDel.length; di++) {
+            for (var dj = 0; dj < vPeerDel.length; dj++) {
+                var a = String(vMeDel[di] || '').trim();
+                var b = String(vPeerDel[dj] || '').trim();
+                if (!a || !b || spiritSanctuarySanUidEqLoose(a, b)) continue;
+                var r1 = await _spirit.from('sanctuary_chat').delete().eq('sender_id', a).eq('recipient_id', b);
+                var r2 = await _spirit.from('sanctuary_chat').delete().eq('sender_id', b).eq('recipient_id', a);
+                if (r1 && r1.error && !delErrMsg) delErrMsg = String(r1.error.message || r1.error);
+                if (r2 && r2.error && !delErrMsg) delErrMsg = String(r2.error.message || r2.error);
+                if (r1 && r1.error) console.warn('[SPIRIT] sanctuary_chat delete A→B:', r1.error.message || r1.error);
+                if (r2 && r2.error) console.warn('[SPIRIT] sanctuary_chat delete B→A:', r2.error.message || r2.error);
+            }
+        }
+    }
+    if (delErrMsg) {
+        try {
+            alert((typeof spiritT === 'function' ? spiritT('san_chat_raz_err') : 'Impossible d’effacer le fil : ') + delErrMsg);
+        } catch (eAl) {}
     }
     spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread, resolvedMe, resolvedPeer);
     await spiritSanctuaryRenderChat(ctx);
