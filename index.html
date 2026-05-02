@@ -1736,8 +1736,8 @@
         #spiritLitigeModal.overlay {
             z-index: 100400 !important;
         }
-        /* Confirmation publication annonce (remplace alert natif) */
-        #spiritPublishSuccessOverlay {
+        /* Modales style Spirit (publication + alertes / confirm / prompt) */
+        #spiritPublishSuccessOverlay, #spiritAppDialogOverlay {
             position: fixed;
             inset: 0;
             z-index: 100450 !important;
@@ -1750,10 +1750,15 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
-        #spiritPublishSuccessOverlay.spirit-publish-success--visible {
+        #spiritAppDialogOverlay {
+            z-index: 100460 !important;
+        }
+        #spiritPublishSuccessOverlay.spirit-publish-success--visible,
+        #spiritAppDialogOverlay.spirit-publish-success--visible {
             display: flex;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-panel {
+        #spiritPublishSuccessOverlay .spirit-publish-success-panel,
+        #spiritAppDialogOverlay .spirit-publish-success-panel {
             width: min(440px, 100%);
             max-height: min(88vh, 560px);
             overflow: hidden;
@@ -1770,13 +1775,15 @@
             from { opacity: 0; transform: scale(0.94) translateY(12px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-head {
+        #spiritPublishSuccessOverlay .spirit-publish-success-head,
+        #spiritAppDialogOverlay .spirit-publish-success-head {
             padding: 22px 22px 14px;
             text-align: center;
             border-bottom: 1px solid rgba(255, 102, 0, 0.2);
             background: radial-gradient(ellipse 120% 100% at 50% 0%, rgba(255, 102, 0, 0.12), transparent 55%);
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-icon {
+        #spiritPublishSuccessOverlay .spirit-publish-success-icon,
+        #spiritAppDialogOverlay .spirit-publish-success-icon {
             width: 56px;
             height: 56px;
             margin: 0 auto 12px;
@@ -1792,11 +1799,22 @@
             box-shadow: 0 0 24px rgba(0, 255, 136, 0.45);
             animation: spiritPubSuccPulse 1.6s ease-in-out infinite;
         }
+        #spiritAppDialogOverlay .spirit-publish-success-icon.spirit-app-dialog-icon--mute {
+            animation: none;
+            background: linear-gradient(145deg, #3a3530, #1a1814);
+            box-shadow: 0 0 18px rgba(255, 140, 60, 0.25);
+        }
+        #spiritAppDialogOverlay .spirit-publish-success-icon.spirit-app-dialog-icon--confirm {
+            animation: none;
+            background: linear-gradient(145deg, #2a6a8a, #143545);
+            box-shadow: 0 0 22px rgba(0, 180, 255, 0.35);
+        }
         @keyframes spiritPubSuccPulse {
             0%, 100% { box-shadow: 0 0 18px rgba(0, 255, 136, 0.35); transform: scale(1); }
             50% { box-shadow: 0 0 32px rgba(0, 255, 136, 0.6); transform: scale(1.03); }
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-title {
+        #spiritPublishSuccessOverlay .spirit-publish-success-title,
+        #spiritAppDialogOverlay .spirit-publish-success-title {
             margin: 0;
             font-size: 1.05rem;
             font-weight: 900;
@@ -1805,19 +1823,55 @@
             color: #fff;
             line-height: 1.25;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-tag {
+        #spiritPublishSuccessOverlay .spirit-publish-success-tag,
+        #spiritAppDialogOverlay .spirit-publish-success-tag {
             margin: 10px 0 0;
             font-size: 0.78rem;
             color: #a89f96;
             line-height: 1.45;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-body {
+        #spiritAppDialogOverlay .spirit-app-dialog-msg-wrap {
+            padding: 0 22px 18px;
+            border-bottom: 1px solid rgba(255, 102, 0, 0.12);
+            text-align: left;
+        }
+        #spiritAppDialogOverlay .spirit-app-dialog-msg {
+            margin: 0;
+            font-size: 0.78rem;
+            color: #c8bfb5;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 42vh;
+            overflow-y: auto;
+        }
+        #spiritAppDialogOverlay .spirit-app-dialog-prompt-row {
+            padding: 14px 22px 6px;
+        }
+        #spiritAppDialogOverlay .spirit-app-dialog-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 102, 0, 0.35);
+            background: #080706;
+            color: #eee;
+            font-size: 0.84rem;
+            outline: none;
+        }
+        #spiritAppDialogOverlay .spirit-app-dialog-input:focus {
+            border-color: var(--neon-orange);
+            box-shadow: 0 0 0 1px rgba(255, 102, 0, 0.25);
+        }
+        #spiritPublishSuccessOverlay .spirit-publish-success-body,
+        #spiritAppDialogOverlay .spirit-publish-success-body {
             display: flex;
             gap: 14px;
             padding: 16px 20px 20px;
             align-items: center;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-thumb {
+        #spiritPublishSuccessOverlay .spirit-publish-success-thumb,
+        #spiritAppDialogOverlay .spirit-publish-success-thumb {
             width: 88px;
             height: 88px;
             flex-shrink: 0;
@@ -1827,7 +1881,8 @@
             background: #111;
             object-fit: cover;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-thumb.spirit-publish-success-thumb--empty {
+        #spiritPublishSuccessOverlay .spirit-publish-success-thumb.spirit-publish-success-thumb--empty,
+        #spiritAppDialogOverlay .spirit-publish-success-thumb.spirit-publish-success-thumb--empty {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1837,11 +1892,13 @@
             padding: 6px;
             line-height: 1.2;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-meta {
+        #spiritPublishSuccessOverlay .spirit-publish-success-meta,
+        #spiritAppDialogOverlay .spirit-publish-success-meta {
             flex: 1;
             min-width: 0;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-name {
+        #spiritPublishSuccessOverlay .spirit-publish-success-name,
+        #spiritAppDialogOverlay .spirit-publish-success-name {
             margin: 0 0 6px;
             font-size: 0.82rem;
             font-weight: 800;
@@ -1849,19 +1906,22 @@
             line-height: 1.3;
             word-break: break-word;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-price {
+        #spiritPublishSuccessOverlay .spirit-publish-success-price,
+        #spiritAppDialogOverlay .spirit-publish-success-price {
             margin: 0;
             font-size: 0.95rem;
             font-weight: 800;
             color: var(--spirit-green);
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-actions {
+        #spiritPublishSuccessOverlay .spirit-publish-success-actions,
+        #spiritAppDialogOverlay .spirit-publish-success-actions {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             padding: 0 20px 20px;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-actions button {
+        #spiritPublishSuccessOverlay .spirit-publish-success-actions button,
+        #spiritAppDialogOverlay .spirit-publish-success-actions button {
             flex: 1;
             min-width: 120px;
             cursor: pointer;
@@ -1874,20 +1934,24 @@
             border: 1px solid #333;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-actions button:hover {
+        #spiritPublishSuccessOverlay .spirit-publish-success-actions button:hover,
+        #spiritAppDialogOverlay .spirit-publish-success-actions button:hover {
             transform: translateY(-1px);
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-btn-primary {
+        #spiritPublishSuccessOverlay .spirit-publish-success-btn-primary,
+        #spiritAppDialogOverlay .spirit-publish-success-btn-primary {
             background: var(--neon-orange);
             color: #000;
             border-color: var(--neon-orange);
             box-shadow: 0 0 18px rgba(255, 102, 0, 0.35);
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-btn-secondary {
+        #spiritPublishSuccessOverlay .spirit-publish-success-btn-secondary,
+        #spiritAppDialogOverlay .spirit-publish-success-btn-secondary {
             background: #151515;
             color: #ccc;
         }
-        #spiritPublishSuccessOverlay .spirit-publish-success-btn-ghost {
+        #spiritPublishSuccessOverlay .spirit-publish-success-btn-ghost,
+        #spiritAppDialogOverlay .spirit-publish-success-btn-ghost {
             background: transparent;
             color: #888;
             flex-basis: 100%;
@@ -8162,24 +8226,24 @@ async function spiritSubmitProductOffer(productId, sellerId, offerAmount, origin
     }
 }
 
-function spiritOfferFromProductModal() {
+async function spiritOfferFromProductModal() {
     try {
         if (typeof selectedProduct === 'undefined' || !selectedProduct) return;
         var pid = spiritFavoriteProductId(selectedProduct);
         var sid = spiritOwnerId(selectedProduct.owner_id);
         if (pid == null || !sid) return;
         var base = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(selectedProduct) : Number(selectedProduct.price || 0);
-        var raw = window.prompt('Montant de votre offre (' + String(selectedProduct.currency || 'EUR') + ') :', String(Number.isFinite(base) ? base : ''));
+        var raw = await spiritPrompt('Montant de votre offre (' + String(selectedProduct.currency || 'EUR') + ') :', String(Number.isFinite(base) ? base : ''));
         if (raw == null) return;
         var amt = parseFloat(String(raw).replace(',', '.').trim());
         void spiritSubmitProductOffer(pid, sid, amt, base, selectedProduct.currency || 'EUR');
     } catch (e) {}
 }
 
-function spiritOfferFromFavoritesPrompt(productId, sellerId, originalPrice, currency) {
+async function spiritOfferFromFavoritesPrompt(productId, sellerId, originalPrice, currency) {
     var pid = spiritParseFavoriteProductId(productId);
     if (pid == null) return;
-    var raw = window.prompt('Montant de votre offre (' + String(currency || 'EUR') + ') :', String(Number.isFinite(Number(originalPrice)) ? originalPrice : ''));
+    var raw = await spiritPrompt('Montant de votre offre (' + String(currency || 'EUR') + ') :', String(Number.isFinite(Number(originalPrice)) ? originalPrice : ''));
     if (raw == null) return;
     var amt = parseFloat(String(raw).replace(',', '.').trim());
     void spiritSubmitProductOffer(pid, sellerId, amt, originalPrice, currency || 'EUR');
@@ -8284,17 +8348,17 @@ function spiritRenderRibDisplay() {
         'IBAN : ' + String(rib.iban || '—').replace(/</g, '&lt;') + '<br>' +
         'BIC : ' + String(rib.bic || '—').replace(/</g, '&lt;');
 }
-function changeRIB() {
+async function changeRIB() {
     var uid = spiritOwnerId(spiritGetCurrentUserId());
     if (!uid) { alert('Connecte-toi pour enregistrer ton RIB.'); return; }
     var prev = spiritGetRibForUid(uid) || {};
-    var bank = window.prompt('Nom de la banque :', prev.bank || 'SPIRIT DIGITAL BANK');
+    var bank = await spiritPrompt('Nom de la banque :', prev.bank || 'SPIRIT DIGITAL BANK');
     if (bank == null) return;
-    var iban = window.prompt('IBAN :', prev.iban || '');
+    var iban = await spiritPrompt('IBAN :', prev.iban || '');
     if (iban == null) return;
     iban = String(iban || '').trim().toUpperCase();
     if (iban.length < 12) { alert('IBAN invalide.'); return; }
-    var bic = window.prompt('BIC :', prev.bic || '');
+    var bic = await spiritPrompt('BIC :', prev.bic || '');
     if (bic == null) return;
     bic = String(bic || '').trim().toUpperCase();
     try {
@@ -8780,7 +8844,7 @@ async function spiritRejectProductOffer(offerId) {
     if (!_spirit || !offerId) return;
     var uid = spiritOwnerId(spiritGetCurrentUserId());
     if (!uid) return;
-    if (!window.confirm('Refuser cette offre ?')) return;
+    if (!(await spiritConfirm('Refuser cette offre ?'))) return;
     try {
         var g = await _spirit.from('product_offers').select('seller_id,buyer_id,product_id,status').eq('id', offerId).maybeSingle();
         if (g.error || !g.data || spiritNormUid(g.data.seller_id) !== spiritNormUid(uid)) {
@@ -8811,7 +8875,7 @@ async function spiritAcceptProductOffer(offerId) {
     var uid = spiritOwnerId(spiritGetCurrentUserId());
     var uidN = spiritNormUid(uid);
     if (!uidN) return;
-    if (!window.confirm('Accepter cette offre ? Le prix convenu sera visible uniquement entre toi et l’acheteur sur la fiche annonce. Le marché continue d’afficher le prix public pour les autres. Les autres offres en attente sur ce produit seront refusées.')) return;
+    if (!(await spiritConfirm('Accepter cette offre ? Le prix convenu sera visible uniquement entre toi et l’acheteur sur la fiche annonce. Le marché continue d’afficher le prix public pour les autres. Les autres offres en attente sur ce produit seront refusées.'))) return;
     try {
         var g = await _spirit.from('product_offers').select('*').eq('id', offerId).maybeSingle();
         if (g.error || !g.data) {
@@ -10096,6 +10160,139 @@ async function saveSpiritAudit(title, detected, score, status, detailNote) {
  * (c) 2026 Spirit Infinity - Tous droits réservés
  */
 /**
+ * Dialogues génériques (alert / confirm / prompt) — même style que la modale de publication.
+ * Remplace les boîtes natives pour cohérence UI.
+ */
+function spiritAppDialogEsc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+function spiritAppDialog(opts) {
+    opts = opts || {};
+    var mode = opts.mode || 'alert';
+    var message = String(opts.message != null ? opts.message : '');
+    var title = String(opts.title != null ? opts.title : (mode === 'confirm' ? 'CONFIRMATION' : mode === 'prompt' ? 'SAISIE' : 'SPIRIT'));
+    var okText = String(opts.okText != null ? opts.okText : 'OK');
+    var cancelText = String(opts.cancelText != null ? opts.cancelText : 'ANNULER');
+    var defaultValue = String(opts.defaultValue != null ? opts.defaultValue : '');
+    var root = document.getElementById('spiritAppDialogOverlay');
+    if (!root) {
+        root = document.createElement('div');
+        root.id = 'spiritAppDialogOverlay';
+        root.setAttribute('role', 'dialog');
+        root.setAttribute('aria-modal', 'true');
+        document.body.appendChild(root);
+    }
+    return new Promise(function (resolve) {
+        var settled = false;
+        function finish(val) {
+            if (settled) return;
+            settled = true;
+            try {
+                document.removeEventListener('keydown', onKey, true);
+            } catch (eK) {}
+            root.classList.remove('spirit-publish-success--visible');
+            try { document.body.style.overflow = ''; } catch (eO) {}
+            resolve(val);
+        }
+        function onKey(ev) {
+            if (ev.key === 'Escape') {
+                ev.preventDefault();
+                if (mode === 'alert') finish(undefined);
+                else if (mode === 'confirm') finish(false);
+                else finish(null);
+            }
+        }
+        document.addEventListener('keydown', onKey, true);
+        var iconChar = mode === 'confirm' ? '?' : mode === 'prompt' ? '✎' : '!';
+        var iconExtra = mode === 'confirm' ? ' spirit-app-dialog-icon--confirm' : mode === 'prompt' ? ' spirit-app-dialog-icon--confirm' : ' spirit-app-dialog-icon--mute';
+        var actionsHtml = '';
+        if (mode === 'confirm' || mode === 'prompt') {
+            actionsHtml =
+                '<button type="button" class="spirit-publish-success-btn-secondary" data-spirit-appd="0">' + spiritAppDialogEsc(cancelText) + '</button>' +
+                '<button type="button" class="spirit-publish-success-btn-primary" data-spirit-appd="1">' + spiritAppDialogEsc(okText) + '</button>';
+        } else {
+            actionsHtml = '<button type="button" class="spirit-publish-success-btn-primary" data-spirit-appd="1">' + spiritAppDialogEsc(okText) + '</button>';
+        }
+        var promptRow = mode === 'prompt'
+            ? '<div class="spirit-app-dialog-prompt-row"><input type="text" id="spiritAppDialogInput" class="spirit-app-dialog-input" autocomplete="off" /></div>'
+            : '';
+        root.innerHTML =
+            '<div class="spirit-publish-success-panel" onclick="event.stopPropagation()">' +
+            '<div class="spirit-publish-success-head">' +
+            '<div class="spirit-publish-success-icon' + iconExtra + '" aria-hidden="true">' + spiritAppDialogEsc(iconChar) + '</div>' +
+            '<h2 class="spirit-publish-success-title">' + spiritAppDialogEsc(title) + '</h2>' +
+            '</div>' +
+            '<div class="spirit-app-dialog-msg-wrap"><p class="spirit-app-dialog-msg">' + spiritAppDialogEsc(message).replace(/\n/g, '<br />') + '</p></div>' +
+            promptRow +
+            '<div class="spirit-publish-success-actions">' + actionsHtml + '</div>' +
+            '</div>';
+        if (mode === 'prompt') {
+            var inp = document.getElementById('spiritAppDialogInput');
+            if (inp) {
+                inp.value = defaultValue;
+                try { inp.focus(); inp.select(); } catch (eF) {}
+                inp.addEventListener('keydown', function (ev) {
+                    if (ev.key === 'Enter') {
+                        ev.preventDefault();
+                        finish(String(inp.value != null ? inp.value : ''));
+                    }
+                });
+            }
+        }
+        root.onclick = function () {
+            if (mode === 'alert') finish(undefined);
+            else if (mode === 'confirm') finish(false);
+            else finish(null);
+        };
+        root.querySelectorAll('[data-spirit-appd]').forEach(function (btn) {
+            btn.onclick = function (ev) {
+                ev.stopPropagation();
+                var v = btn.getAttribute('data-spirit-appd');
+                if (v === '1') {
+                    if (mode === 'prompt') {
+                        var el = document.getElementById('spiritAppDialogInput');
+                        finish(el ? String(el.value != null ? el.value : '') : '');
+                    } else finish(true);
+                } else finish(mode === 'confirm' ? false : null);
+            };
+        });
+        try { document.body.style.overflow = 'hidden'; } catch (eB) {}
+        root.classList.add('spirit-publish-success--visible');
+        try {
+            var fb = root.querySelector(mode === 'alert' ? '.spirit-publish-success-btn-primary' : '.spirit-publish-success-btn-secondary');
+            if (fb) fb.focus();
+        } catch (eFc) {}
+    });
+}
+function spiritConfirm(message) {
+    return spiritAppDialog({ mode: 'confirm', message: message, okText: 'CONFIRMER', cancelText: 'ANNULER' });
+}
+function spiritPrompt(message, defaultValue) {
+    return spiritAppDialog({ mode: 'prompt', message: message, defaultValue: defaultValue, okText: 'OK', cancelText: 'ANNULER' });
+}
+try {
+    window.spiritAppDialog = spiritAppDialog;
+    window.spiritConfirm = spiritConfirm;
+    window.spiritPrompt = spiritPrompt;
+} catch (eExp) {}
+(function () {
+    var _alert = window.alert;
+    window.alert = function (msg) {
+        try {
+            if (typeof spiritAppDialog === 'function') {
+                spiritAppDialog({ mode: 'alert', message: String(msg == null ? '' : msg), okText: 'OK' });
+                return;
+            }
+        } catch (e1) {}
+        try { _alert(msg); } catch (e2) {}
+    };
+})();
+
+/**
  * Modale « industrial » après publication / mise à jour d’annonce (remplace window.alert).
  */
 function spiritShowListingPublishSuccess(opts) {
@@ -10750,36 +10947,35 @@ async function editAnnonce(id) {
 // AJOUT : Suppression réelle sur Supabase pour la cohérence
 async function deleteAnnonce(id) {
     var _adC = (typeof spiritT === 'function') ? spiritT('my_ad_del_confirm') : 'Voulez-vous vraiment supprimer cette annonce du Ledger Spirit ?';
-    if (confirm(_adC)) {
+    if (!(await spiritConfirm(_adC))) return;
+    try {
+        console.log("[SPIRIT LEDGER] Suppression en cours de l'ID:", id);
+
+        // On supprime d'abord sur Supabase (table products_live)
+        const { error } = await _spirit
+            .from('products_live')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        // AJOUT : Mise à jour du cache local après succès
+        marketData = marketData.filter(m => String(m.id) !== String(id));
+        spiritMarketBucket.figurine.rows = spiritMarketBucket.figurine.rows.filter(function (m) { return String(m.id) !== String(id); });
+        spiritMarketBucket.statue.rows = spiritMarketBucket.statue.rows.filter(function (m) { return String(m.id) !== String(id); });
+        spiritRenderMarketSig = '';
         try {
-            console.log("[SPIRIT LEDGER] Suppression en cours de l'ID:", id);
-            
-            // On supprime d'abord sur Supabase (table products_live)
-            const { error } = await _spirit
-                .from('products_live')
-                .delete()
-                .eq('id', id);
+            var _delUid = String(window.MY_TEST_ID || MY_TEST_ID || '').trim();
+            if (_delUid) localStorage.removeItem(spiritMyAdsCacheKey(_delUid));
+        } catch (eLs) {}
+        // AJOUT : Rafraîchissement global immédiat
+        if (typeof renderMarket === 'function') renderMarket();
+        updateUserAnnonces();
 
-            if (error) throw error;
-
-            // AJOUT : Mise à jour du cache local après succès
-            marketData = marketData.filter(m => String(m.id) !== String(id));
-            spiritMarketBucket.figurine.rows = spiritMarketBucket.figurine.rows.filter(function (m) { return String(m.id) !== String(id); });
-            spiritMarketBucket.statue.rows = spiritMarketBucket.statue.rows.filter(function (m) { return String(m.id) !== String(id); });
-            spiritRenderMarketSig = '';
-            try {
-                var _delUid = String(window.MY_TEST_ID || MY_TEST_ID || '').trim();
-                if (_delUid) localStorage.removeItem(spiritMyAdsCacheKey(_delUid));
-            } catch (eLs) {}
-            // AJOUT : Rafraîchissement global immédiat
-            if (typeof renderMarket === 'function') renderMarket();
-            updateUserAnnonces();
-            
-            alert((typeof spiritT === 'function') ? spiritT('my_ad_del_ok') : 'ANNONCE SUPPRIMÉE : Le Ledger a été mis à jour.');
-        } catch (err) {
-            console.error("[SPIRIT ERROR] Échec de suppression :", err);
-            alert((typeof spiritT === 'function') ? spiritT('my_ad_del_err') : "ERREUR LEDGER : Impossible de supprimer l'annonce.");
-        }
+        alert((typeof spiritT === 'function') ? spiritT('my_ad_del_ok') : 'ANNONCE SUPPRIMÉE : Le Ledger a été mis à jour.');
+    } catch (err) {
+        console.error("[SPIRIT ERROR] Échec de suppression :", err);
+        alert((typeof spiritT === 'function') ? spiritT('my_ad_del_err') : "ERREUR LEDGER : Impossible de supprimer l'annonce.");
     }
 }
     // --- LOGIQUE PAIEMENT ---
@@ -11444,7 +11640,7 @@ async function spiritDeleteListingChatThread() {
     var me = spiritNormUid(spiritGetCurrentUserId());
     var seller = spiritNormUid(selectedProduct.owner_id || selectedProduct.owner);
     if (!me || me !== seller) return;
-    if (!confirm('Supprimer tout le fil de discussion de cette annonce ? Les messages seront effacés pour tout le monde.')) return;
+    if (!(await spiritConfirm('Supprimer tout le fil de discussion de cette annonce ? Les messages seront effacés pour tout le monde.'))) return;
     var pid = spiritFavoriteProductId(selectedProduct);
     if (pid == null) return;
     try {
@@ -12197,7 +12393,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
     }
 
     async function spiritLogout() {
-        if (!confirm("Voulez-vous vous déconnecter ?")) return;
+        if (!(await spiritConfirm("Voulez-vous vous déconnecter ?"))) return;
         try {
             if (typeof window.spiritWebPushUnregister === 'function') await window.spiritWebPushUnregister();
         } catch (ePushLo) {}
@@ -13683,8 +13879,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
         spiritHotToysPrecoSetCards(out);
         alert('Précommandes enregistrées (stockage local du navigateur).');
     }
-    function spiritHotToysAdminResetPreco() {
-        if (!confirm('Réinitialiser les précommandes aux valeurs d’origine ?')) return;
+    async function spiritHotToysAdminResetPreco() {
+        if (!(await spiritConfirm('Réinitialiser les précommandes aux valeurs d’origine ?'))) return;
         try { localStorage.removeItem(SPIRIT_HOT_TOYS_PRECO_LS_KEY); } catch (e) {}
         spiritHotToysAdminRenderPrecoEditor();
         alert('Valeurs par défaut restaurées.');
@@ -13826,10 +14022,10 @@ async function spiritLoadListingMessagesForProduct(productId) {
         }, 300);
     }
 
-    function spiritHotToysAdminResetBourseSection(boxId) {
+    async function spiritHotToysAdminResetBourseSection(boxId) {
         var el = document.getElementById(boxId);
         if (!el) return;
-        if (!window.confirm('Effacer le contenu de cette zone ?')) return;
+        if (!(await spiritConfirm('Effacer le contenu de cette zone ?'))) return;
         el.innerHTML = '<p style="color:#888;font-size:0.65rem;margin:0;">Zone réinitialisée. Utilise « Charger / rafraîchir (synthèse + litiges + ledger) » pour recharger.</p>';
     }
 
@@ -15700,7 +15896,7 @@ try { window.spiritSanctuaryDeleteNotification = spiritSanctuaryDeleteNotificati
 
 async function spiritSanctuaryClearAllMessagesFeed() {
     function mT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
-    if (!confirm(String(mT('msg_clear_feed_confirm')))) return;
+    if (!(await spiritConfirm(String(mT('msg_clear_feed_confirm'))))) return;
     if (typeof _spirit === 'undefined' || !_spirit || !spiritSanSocialCanUseSupabase()) {
         try { alert(String(mT('msg_supabase'))); } catch (a0) {}
         return;
@@ -16497,22 +16693,31 @@ async function spiritStorageUploadPublic(bucket, path, file) {
 function spiritPublicBuildUrl(uid) {
     return location.origin + location.pathname + location.search + '#spirit-public/' + encodeURIComponent(String(uid));
 }
-function spiritClipboardCopy(t) {
+async function spiritClipboardCopy(t) {
+    var url = String(t != null ? t : '');
     try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(t).then(function () { alert('URL copiée dans le presse-papiers.'); }, function () { window.prompt('Copier cette URL :', t); });
-            return;
+            try {
+                await navigator.clipboard.writeText(url);
+                alert('URL copiée dans le presse-papiers.');
+                return;
+            } catch (errClip) {
+                await spiritPrompt('Copier cette URL :', url);
+                return;
+            }
         }
     } catch (e) {}
     try {
         var ta = document.createElement('textarea');
-        ta.value = t;
+        ta.value = url;
         document.body.appendChild(ta);
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
         alert('URL copiée.');
-    } catch (e2) { window.prompt('Copier cette URL :', t); }
+    } catch (e2) {
+        await spiritPrompt('Copier cette URL :', url);
+    }
 }
 function spiritCopyPublicProfileUrl() {
     if (!spiritPublicViewUserId) return;
@@ -16848,7 +17053,9 @@ async function spiritOpenLitigePage() {
 async function spiritReplyToEvaluation(evalId) {
     evalId = String(evalId != null ? evalId : '').trim();
     if (!evalId) return;
-    var txt = window.prompt('Ta réponse publique :', '');
+    var txt = await spiritPrompt('Ta réponse publique :', '');
+    if (txt == null) return;
+    txt = String(txt || '').trim();
     if (!txt) return;
     if (!_spirit || spiritEvalTableMissing) return;
     try {
@@ -17411,8 +17618,7 @@ async function spiritSanctuaryDeleteItem(ctx, itemId, imageUrl, opts) {
     if (!_spirit) return;
     try {
         if (!opts.skipConfirm) {
-            var ok = confirm('Supprimer cette photo du Sanctuaire ?');
-            if (!ok) return;
+            if (!(await spiritConfirm('Supprimer cette photo du Sanctuaire ?'))) return;
         }
         var id = String(itemId);
         var publicPath = spiritStoragePublicUrlToObjectPath(SPIRIT_BUCKET_SANCTUARY, imageUrl);
@@ -17429,7 +17635,7 @@ async function spiritAccountSanctuaryClearAllPhotos() {
     var uid = spiritSanctuaryUid('account');
     if (!uid) return;
     var T = typeof spiritT === 'function' ? spiritT : function (k) { return k; };
-    if (!confirm(T('san_acc_clear_all_confirm'))) return;
+    if (!(await spiritConfirm(T('san_acc_clear_all_confirm')))) return;
     var items = [];
     try {
         items = await spiritSanctuaryFetchItems(uid, true);
@@ -17591,7 +17797,7 @@ async function spiritSanctuaryRender(ctx) {
         bCom.onclick = async function (e) {
             e.stopPropagation();
             if (!actorId) { alert(sanT('san_login_comment')); return; }
-            var txt = window.prompt(sanT('san_prompt_comment'), '');
+            var txt = await spiritPrompt(sanT('san_prompt_comment'), '');
             if (txt == null) return;
             txt = String(txt || '').trim();
             if (!txt) return;
@@ -18221,7 +18427,7 @@ function spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread) {
 async function spiritSanctuaryClearThread(ctx) {
     ctx = ctx === 'account' ? 'account' : 'public';
     var confirmMsg = (typeof spiritT === 'function') ? spiritT('san_chat_raz_confirm') : 'Supprimer tous les messages de cette conversation ?';
-    if (!confirm(confirmMsg)) return;
+    if (!(await spiritConfirm(confirmMsg))) return;
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
     if (!me) {
         alert((typeof spiritT === 'function') ? spiritT('eval_login') : 'Connecte-toi.');
@@ -19070,7 +19276,7 @@ async function spiritForumDeleteTopic(rawId) {
         alert(T('forum_topic_delete_forbidden'));
         return;
     }
-    if (!confirm(T('forum_topic_delete_confirm'))) return;
+    if (!(await spiritConfirm(T('forum_topic_delete_confirm')))) return;
     if (typeof _spirit === 'undefined' || !_spirit || spiritForumTopicsTableMissing) {
         spiritForumUserTopics = spiritForumUserTopics.filter(function (x) { return Number(x && x.id) !== tid; });
         spiritForumChatMessages = spiritForumChatMessages.filter(function (m) { return Number(m && m.topic_id) !== tid; });
@@ -20074,7 +20280,7 @@ function renderTransactionList(container, data, error, type) {
  * On met à jour uniquement le statut pour éviter l'erreur de colonne manquante
  */
 async function openDispute(transactionId) {
-    if (!confirm("⚠️ Voulez-vous ouvrir un litige sur cette figurine ? Les fonds seront gelés.")) return;
+    if (!(await spiritConfirm("⚠️ Voulez-vous ouvrir un litige sur cette figurine ? Les fonds seront gelés."))) return;
 
     try {
         const { error } = await _spirit
@@ -20099,7 +20305,7 @@ async function openDispute(transactionId) {
  * Retirer le litige (acheteur uniquement) : repasse en séquestre actif.
  */
 async function withdrawDispute(transactionId) {
-    if (!confirm('Retirer ta déclaration de litige ? Le statut repasse en « SÉQUESTRE ACTIF » (fonds toujours protégés jusqu’à réception ou décision).')) return;
+    if (!(await spiritConfirm('Retirer ta déclaration de litige ? Le statut repasse en « SÉQUESTRE ACTIF » (fonds toujours protégés jusqu’à réception ou décision).'))) return;
     var txKey = String(transactionId || '').trim().toLowerCase();
     if (!txKey || !_spirit) return;
     var meRaw = (typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : window.MY_TEST_ID || MY_TEST_ID) || '';
@@ -20137,7 +20343,7 @@ try { window.withdrawDispute = withdrawDispute; } catch (eWD) {}
  * CONFIRMER LA RÉCEPTION
  */
 async function confirmReception(transactionId) {
-    if (!confirm("✅ Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur.")) return;
+    if (!(await spiritConfirm("✅ Confirmez-vous avoir reçu la figurine ? Cela débloquera les fonds pour le vendeur."))) return;
 
     var txKey = String(transactionId || '').trim().toLowerCase();
     if (!txKey || !_spirit) return;
@@ -20846,7 +21052,7 @@ async function spiritDeleteMyEvaluation(evalId) {
     var me = spiritNormUid(MY_TEST_ID || '');
     if (!me) return;
     function eT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
-    if (!window.confirm(eT('eval_hide_confirm'))) return;
+    if (!(await spiritConfirm(eT('eval_hide_confirm')))) return;
     try {
         spiritEvalAddHiddenFromAccountId(me, evalId);
         alert(eT('eval_hidden_ok'));
@@ -20863,8 +21069,8 @@ async function spiritDeleteAllMyReceivedEvaluations() {
     var me = spiritNormUid(MY_TEST_ID || '');
     if (!me || !_spirit || spiritEvalTableMissing) return;
     function eT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
-    if (!window.confirm(eT('eval_hide_all_confirm'))) return;
-    if (!window.confirm(eT('eval_hide_all_confirm2'))) return;
+    if (!(await spiritConfirm(eT('eval_hide_all_confirm')))) return;
+    if (!(await spiritConfirm(eT('eval_hide_all_confirm2')))) return;
     try {
         var rows = await spiritEvalFetchForUser(me);
         var hidden = spiritEvalGetHiddenFromAccountIds(me);
@@ -21802,7 +22008,7 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
       alert('Aucune MAC active.');
       return;
     }
-    if (!confirm('Confirmer la libération de cette figurine pour revente ?')) return;
+    if (!(await spiritConfirm('Confirmer la libération de cette figurine pour revente ?'))) return;
     var r = await spiritReleaseDevice(mac);
     if (!r.ok) {
       alert('Libération impossible: ' + String(r.reason || 'erreur'));
