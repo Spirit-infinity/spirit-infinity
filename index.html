@@ -14892,6 +14892,8 @@ var spiritSanctuaryViewModeAccount = 'list';
 var spiritSanctuaryChatPeerPublic = '';
 var spiritSanctuaryChatPeerAccount = '';
 var spiritSanctuaryPollTimer = null;
+/** Rafraîchissement léger du chat public tant que l’onglet Sanctuaire du profil est ouvert (évite « F5 » pour voir les messages). */
+var spiritSanctuaryPublicChatPollTimer = null;
 var SPIRIT_BUCKET_AVATAR = 'sanctuary';
 var SPIRIT_BUCKET_SANCTUARY = 'sanctuary';
 /** Annonces marketplace : même bucket public, chemins `{ownerId}/listings/{listingUuid}/…`. */
@@ -16840,6 +16842,7 @@ function spiritRefreshDashboardPublicUrl() {
     if (el2) el2.textContent = text;
 }
 function spiritExitPublicProfile() {
+    try { spiritSanctuaryStopPublicChatPoll(); } catch (ePoll) {}
     spiritPublicViewUserId = null;
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
     document.body.classList.remove('spirit-public-active');
@@ -16879,6 +16882,9 @@ function spiritPublicSetTab(which) {
     try { spiritSanctuarySyncPublicChrome(); } catch (e) {}
     if (isS) {
         void spiritSanctuaryTabEnter();
+        try { spiritSanctuaryStartPublicChatPoll(); } catch (ePollS) {}
+    } else {
+        try { spiritSanctuaryStopPublicChatPoll(); } catch (ePollH) {}
     }
     // Recharger l'avatar du header à chaque changement d'onglet public.
     try { if (typeof spiritPublicReloadAvatarFromSanctuary === 'function') void spiritPublicReloadAvatarFromSanctuary(); } catch (e2) {}
@@ -18546,6 +18552,24 @@ function spiritSanctuaryChatScrollToEnd(box) {
         });
     } catch (eR) {}
 }
+function spiritSanctuaryChatBumpLayout(box) {
+    if (!box) return;
+    try {
+        void box.offsetHeight;
+        var wrap = box.closest('.spirit-san-chat-msgs-wrap');
+        if (wrap) void wrap.offsetHeight;
+        var card = box.closest('.spirit-public-san-chat-card');
+        if (card) void card.offsetHeight;
+    } catch (e0) {}
+    try {
+        setTimeout(function () {
+            try { box.scrollTop = box.scrollHeight; } catch (e1) {}
+        }, 0);
+        setTimeout(function () {
+            try { box.scrollTop = box.scrollHeight; } catch (e2) {}
+        }, 120);
+    } catch (e3) {}
+}
 async function spiritSanctuaryChatPostRender(box) {
     if (!box) return;
     spiritSanctuaryChatScrollToEnd(box);
@@ -18559,6 +18583,7 @@ async function spiritSanctuaryChatPostRender(box) {
     } catch (eW) {}
     await spiritSanctuaryAfterChatRender(box);
     spiritSanctuaryChatScrollToEnd(box);
+    spiritSanctuaryChatBumpLayout(box);
 }
 async function spiritSanctuaryAfterChatRender(box) {
     if (!box || !spiritSanctuaryChatTranslatePref()) return;
@@ -18626,7 +18651,16 @@ function spiritSanctuaryPurgeLocalThread(qMe, qPeer, meLocal, peerThread, resolv
 async function spiritSanctuaryClearThread(ctx) {
     ctx = ctx === 'account' ? 'account' : 'public';
     var confirmMsg = (typeof spiritT === 'function') ? spiritT('san_chat_raz_confirm') : 'Supprimer tous les messages de cette conversation ?';
-    if (!(await spiritConfirm(confirmMsg))) return;
+    var okClear = false;
+    try {
+        if (typeof spiritConfirm === 'function') okClear = !!(await spiritConfirm(confirmMsg));
+        else if (typeof window !== 'undefined' && typeof window.confirm === 'function') okClear = !!window.confirm(confirmMsg);
+    } catch (eCf) {
+        try {
+            if (typeof window !== 'undefined' && typeof window.confirm === 'function') okClear = !!window.confirm(confirmMsg);
+        } catch (eCf2) {}
+    }
+    if (!okClear) return;
     var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
     if (!me) {
         alert((typeof spiritT === 'function') ? spiritT('eval_login') : 'Connecte-toi.');
@@ -19157,6 +19191,25 @@ function spiritSanctuaryStartPoll() {
         if (document.body && document.body.classList && document.body.classList.contains('spirit-public-active')) return;
         void spiritUpdateNavSanctuaryDot();
     } catch (e) {}
+}
+function spiritSanctuaryStopPublicChatPoll() {
+    try {
+        if (spiritSanctuaryPublicChatPollTimer) clearInterval(spiritSanctuaryPublicChatPollTimer);
+    } catch (e) {}
+    spiritSanctuaryPublicChatPollTimer = null;
+}
+function spiritSanctuaryStartPublicChatPoll() {
+    spiritSanctuaryStopPublicChatPoll();
+    try {
+        spiritSanctuaryPublicChatPollTimer = setInterval(function () {
+            try {
+                var s = document.getElementById('spiritPublicPaneSanctuary');
+                if (!s || s.style.display === 'none') return;
+                if (!document.body || !document.body.classList.contains('spirit-public-active')) return;
+                void spiritSanctuaryRenderChat('public');
+            } catch (eI) {}
+        }, 3000);
+    } catch (e2) {}
 }
 function spiritApplyPublicHashRoute() {
     var p = spiritParsePublicHash();
