@@ -17129,6 +17129,17 @@ function spiritSanctuaryTogglePublicChatExpand() {
     }
     var box = document.getElementById('spiritSanctuaryChatMsgs');
     if (box) try { box.scrollTop = box.scrollHeight; } catch (eSc) {}
+    /* Réduit : héros + grille réapparaissent — rester visuellement sur le chat (scroll). */
+    if (!on) {
+        try {
+            requestAnimationFrame(function () {
+                var anchor = document.getElementById('spiritPublicSanctuaryChatAnchor');
+                if (anchor && typeof anchor.scrollIntoView === 'function') {
+                    anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        } catch (eSanScroll) {}
+    }
 }
 try {
     window.spiritSanctuaryResetPublicChatExpand = spiritSanctuaryResetPublicChatExpand;
@@ -20209,6 +20220,17 @@ function spiritForumToggleChatExpand() {
     }
     var box = document.getElementById('forumChat');
     if (box) try { box.scrollTop = box.scrollHeight; } catch (eSc) {}
+    /* Réduit : la liste sujets réapparaît au-dessus — garder le chat visible (scroll). */
+    if (!on) {
+        try {
+            requestAnimationFrame(function () {
+                var stack = document.querySelector('#forumModal .spirit-forum-chat-stack');
+                var card = document.querySelector('#forumModal .spirit-public-san-chat-card');
+                var el = card || stack || box;
+                if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        } catch (eFScroll) {}
+    }
 }
 async function spiritForumClearThread() {
     var T = typeof spiritT === 'function' ? spiritT : function (k) { return k; };
