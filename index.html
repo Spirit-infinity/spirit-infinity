@@ -12413,6 +12413,13 @@ async function spiritLoadListingMessagesForProduct(productId) {
     function spiritFormatListingDescriptionHtml(desc) {
         var raw = String(desc || '').replace(/\r\n/g, '\n');
         if (!raw) return '';
+        raw = raw
+            .replace(/\[\[SPIRIT_LGX:[^\]]+\]\]/gi, '')
+            .replace(/\[\[SPIRIT_LGX:[^\]\n\r]+/gi, '')
+            .replace(/\[SPIRIT_LGX:[^\]\n\r]+\]/gi, '')
+            .replace(/\[SPIRIT_LGX:[^\]\n\r]+/gi, '')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
         function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
         var chipCond = 'État';
         var chipRef = 'Réf.';
@@ -12562,11 +12569,16 @@ async function spiritLoadListingMessagesForProduct(productId) {
         item = Object.assign({}, item);
         try {
             var _rawLgxD = String(item.description || '');
-            var _lgxM = _rawLgxD.match(/\[\[SPIRIT_LGX:([^\]]+)\]\]/);
-            if (_lgxM) item.spirit_logistics_corridor = _lgxM[1];
-            if (_rawLgxD.indexOf('[[SPIRIT_LGX:') >= 0) {
-                item.description = _rawLgxD.replace(/\n*\[\[SPIRIT_LGX:[^\]]+\]\]\s*$/, '').trim();
-            }
+            var _lgxM = _rawLgxD.match(/\[\[SPIRIT_LGX:([^\]]+)\]\]/) || _rawLgxD.match(/\[SPIRIT_LGX:([^\]\n\r]+)\]?/);
+            if (_lgxM && _lgxM[1]) item.spirit_logistics_corridor = String(_lgxM[1]).trim();
+            /* Retirer partout (pas seulement en fin de chaîne) — évite le texte brut sous le diagnostic. */
+            item.description = _rawLgxD
+                .replace(/\[\[SPIRIT_LGX:[^\]]+\]\]/gi, '')
+                .replace(/\[\[SPIRIT_LGX:[^\]\n\r]+/gi, '')
+                .replace(/\[SPIRIT_LGX:[^\]\n\r]+\]/gi, '')
+                .replace(/\[SPIRIT_LGX:[^\]\n\r]+/gi, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
         } catch (eLgxOpen) {}
         if (typeof spiritIsListingStatusSold === 'function' && spiritIsListingStatusSold(item)) {
             var meOpen = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : (typeof MY_TEST_ID !== 'undefined' ? MY_TEST_ID : '')) || '');
