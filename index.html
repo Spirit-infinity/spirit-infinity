@@ -15789,6 +15789,10 @@ async function spiritOpenEvaluationFromNotif(refId, fromUid) {
         }
         if (tr.error || !tr.data) { alert('Transaction introuvable.'); return; }
         var t = tr.data;
+        if (!spiritEvalTxStatusAllowsUserReview(t.status)) {
+            alert('L’évaluation est proposée après que tu aies confirmé la réception (bouton REÇU dans Mes achats).');
+            return;
+        }
         var buyer = spiritNormUid(t.buyer_id || '');
         var seller = spiritNormUid(t.seller_id || '');
         var isBuyer = me && me === buyer;
@@ -22625,11 +22629,15 @@ async function spiritEvalProcessExpiredPending() {
         if (spiritNormUid(p && p.authorUid) !== me) { next.push(p); continue; }
         var qAt = Number(p.queuedAt) || 0;
         if (now - qAt < TWO_DAYS) { next.push(p); continue; }
-        var txId = String(p.txId || '').trim().toLowerCase();
+        var txId = String(p.txId || '').trim();
         if (await spiritEvalExistsByAuthor(txId, me)) {
             spiritAutoEvalMarkDone(String(p.role || ''), txId);
             continue;
         }
+        try {
+            var trSt = await _spirit.from('transactions').select('status').eq('id', txId).maybeSingle();
+            if (trSt.error || !trSt.data || !spiritEvalTxStatusAllowsUserReview(trSt.data.status)) continue;
+        } catch (eTxSt) { continue; }
         spiritAutoEvalCtx = {
             txId: p.txId,
             role: p.role,
@@ -22686,8 +22694,8 @@ async function spiritEvalOnSessionReady() {
 try { window.spiritEvalResumePending = spiritEvalResumePending; } catch (eWEv) {}
 async function spiritEvalExistsByAuthor(txId, authorUid) {
     if (!_spirit || spiritEvalTableMissing) return false;
-    txId = String(txId || '').trim().toLowerCase();
-    if (typeof spiritIsUuid !== 'function' || !spiritIsUuid(txId)) return false;
+    txId = String(txId || '').trim();
+    if (!txId) return false;
     try {
         var out = await _spirit.from(SPIRIT_EVAL_TABLE)
             .select('id')
@@ -22782,11 +22790,36 @@ async function spiritEvalResolveTxId(authorUid, targetUid) {
             var t2 = new Date(r2.created_at || 0).getTime();
             pick = t1 >= t2 ? r1 : r2;
         } else pick = r1 || r2;
-        if (pick && pick.id != null) {
-            var id = String(pick.id).trim().toLowerCase();
-            if (typeof spiritIsUuid === 'function' && spiritIsUuid(id)) return id;
-        }
+        if (pick && pick.id != null) return String(pick.id).trim();
     } catch (e) {}
+    return '';
+}
+/** True seulement après réception confirmée (ou équivalent), jamais sur séquestre actif seul. */
+function spiritEvalTxStatusAllowsUserReview(status) {
+    var s = String(status || '').toLowerCase();
+    if (s.indexOf('livraison valid') >= 0) return true;
+    if (s.indexOf('livraison validée') >= 0) return true;
+    if (s.indexOf('livraison validee') >= 0) return true;
+    if (s.indexOf('termine') >= 0 || s.indexOf('terminé') >= 0) return true;
+    return false;
+}
+/** transaction_id utilisable pour spirit_listing_evaluations (ligne réelle dans `transactions`). */
+async function spiritEvalCanonicalTransactionId(txGuess, authorUid, targetUid) {
+    if (!_spirit) return '';
+    var g = String(txGuess || '').trim();
+    if (g) {
+        try {
+            var chk = await _spirit.from('transactions').select('id').eq('id', g).maybeSingle();
+            if (!chk.error && chk.data && chk.data.id != null) return String(chk.data.id);
+        } catch (e0) {}
+    }
+    var r = String((await spiritEvalResolveTxId(authorUid, targetUid)) || '').trim();
+    if (r) {
+        try {
+            var chk2 = await _spirit.from('transactions').select('id').eq('id', r).maybeSingle();
+            if (!chk2.error && chk2.data && chk2.data.id != null) return String(chk2.data.id);
+        } catch (e1) {}
+    }
     return '';
 }
 async function spiritAutoEvalOpen(ctx) {
@@ -22815,13 +22848,21 @@ async function spiritAutoEvalInsert(stars, mainComment, categoryOverride, delive
     if (!ctx || !_spirit || spiritEvalTableMissing) return false;
     try {
         var category = spiritEvalCategoryNorm(categoryOverride || ctx.category || 'achat') || 'achat';
-        var txIdTxt = String(ctx.txId || '').trim().toLowerCase();
-        if (typeof spiritIsUuid !== 'function' || !spiritIsUuid(txIdTxt)) {
-            txIdTxt = String((await spiritEvalResolveTxId(ctx.authorUid, ctx.targetUid)) || '').trim().toLowerCase();
-        }
-        if (typeof spiritIsUuid !== 'function' || !spiritIsUuid(txIdTxt)) {
+        var txIdTxt = String((await spiritEvalCanonicalTransactionId(ctx.txId, ctx.authorUid, ctx.targetUid)) || '').trim();
+        if (!txIdTxt) {
             var st0 = document.getElementById('spiritAutoEvalStatus');
-            if (st0) st0.textContent = 'Transaction invalide pour évaluation.';
+            if (st0) st0.textContent = 'Transaction introuvable — impossible d’enregistrer l’évaluation (vérifie l’ID transaction).';
+            return false;
+        }
+        var trLive = await _spirit.from('transactions').select('id,status').eq('id', txIdTxt).maybeSingle();
+        if (trLive.error || !trLive.data) {
+            var st0b = document.getElementById('spiritAutoEvalStatus');
+            if (st0b) st0b.textContent = 'Transaction introuvable (clé étrangère) — synchronise Mes achats et réessaie.';
+            return false;
+        }
+        if (!spiritEvalTxStatusAllowsUserReview(trLive.data.status)) {
+            var st0c = document.getElementById('spiritAutoEvalStatus');
+            if (st0c) st0c.textContent = 'Évaluation disponible uniquement après confirmation de réception (REÇU).';
             return false;
         }
         var basePayload = {
@@ -22907,15 +22948,13 @@ function spiritAutoEvalOnOverlayClick(ev) {
 }
 async function spiritMaybePromptAutoEvaluationByTx(txId, roleHint) {
     if (!txId || !_spirit) return;
-    txId = String(txId || '').trim().toLowerCase();
-    if (typeof spiritIsUuid !== 'function' || !spiritIsUuid(txId)) return;
+    txId = String(txId || '').trim();
     var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
     if (!me) return;
     var tr = await _spirit.from('transactions').select('*').eq('id', txId).maybeSingle();
     if (tr.error || !tr.data) return;
     var t = tr.data;
-    var status = String(t.status || '').toLowerCase();
-    if (status.indexOf('livraison valid') < 0 && status.indexOf('termine') < 0 && status.indexOf('séquestre actif') < 0 && status.indexOf('sequestre actif') < 0) return;
+    if (!spiritEvalTxStatusAllowsUserReview(t.status)) return;
     var buyer = spiritNormUid(t.buyer_id || '');
     var seller = spiritNormUid(t.seller_id || '');
     var isBuyer = me && me === buyer;
@@ -22947,9 +22986,8 @@ async function spiritMaybePromptSellerEvaluations(rows) {
     if (!me || !Array.isArray(rows) || !rows.length) return;
     for (var i = 0; i < rows.length; i++) {
         var tr = rows[i] || {};
-        var st = String(tr.status || '').toLowerCase();
-        if (st.indexOf('livraison valid') < 0 && st.indexOf('termine') < 0 && st.indexOf('séquestre actif') < 0 && st.indexOf('sequestre actif') < 0) continue;
-        var txId = String(tr.id || '').trim().toLowerCase();
+        if (!spiritEvalTxStatusAllowsUserReview(tr.status)) continue;
+        var txId = String(tr.id || '').trim();
         if (!txId) continue;
         if (spiritAutoEvalIsDone('seller', txId)) continue;
         var exists = await spiritEvalExistsByAuthor(txId, me);
