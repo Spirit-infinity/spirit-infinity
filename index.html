@@ -1284,11 +1284,224 @@
         .chat-input-area { display: flex; padding: 10px; border-top: 1px solid #222; }
         #chatExpandToggleWrap { display:flex; justify-content:flex-end; padding:0 10px 6px; }
         #chatExpandToggle { font-size:0.56rem; padding:4px 10px; background:#121212; border:1px solid #2b2b2b; color:#9ec9b8; cursor:pointer; }
+        /* Détail annonce — chat même esprit que sanctuaire / forum */
+        #productModal .spirit-listing-chat-wrap {
+            height: auto;
+            min-height: 300px;
+            max-height: min(460px, 54vh);
+            background: transparent;
+            border: none;
+            margin-top: 12px;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-listing-chat-stack.spirit-sanctuary-chat {
+            margin-top: 0;
+            padding: 0;
+            border: none;
+            background: transparent;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-public-san-chat-head {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-public-san-chat-head-badge {
+            flex-shrink: 0;
+            width: 10px;
+            height: 10px;
+            margin-top: 3px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff4e0, var(--neon-orange) 45%, #661800 100%);
+            box-shadow: 0 0 12px rgba(255,102,0,0.65);
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-listing-chat-head h4 {
+            margin: 0 0 4px;
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            color: #fff;
+            text-shadow: 0 0 14px rgba(255,102,0,0.3);
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-public-san-chat-rules {
+            margin: 0;
+            font-size: 0.58rem;
+            color: #6a6a6a;
+            line-height: 1.4;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-public-san-chat-card {
+            background: linear-gradient(180deg, rgba(14,16,22,0.97) 0%, rgba(6,7,10,0.99) 100%);
+            border: 1px solid rgba(255,102,0,0.42);
+            border-radius: 16px;
+            padding: 12px 12px 10px;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.04),
+                0 10px 32px rgba(0,0,0,0.45),
+                0 0 22px rgba(255,102,0,0.28);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-listing-chat-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-listing-chat-toolbar .btn-action#btnClearListingChat {
+            font-size: 0.55rem;
+            padding: 6px 12px;
+            background: rgba(42,16,16,0.95);
+            color: #e88;
+            border: 1px solid rgba(200,80,80,0.45);
+            border-radius: 10px;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-san-chat-msgs-wrap {
+            margin-top: 0;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 6px;
+            background: rgba(0,0,0,0.45);
+            border: 1px solid #1e1e24;
+            border-radius: 12px;
+            background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,102,0,0.08), transparent 55%);
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-san-chat-msgs {
+            max-height: none;
+            flex: 1;
+            min-height: 120px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin-bottom: 0;
+            font-size: 0.72rem;
+            padding: 4px 2px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,102,0,0.45) #111;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-san-chat-msgs::-webkit-scrollbar { width: 6px; }
+        #productModal .spirit-listing-chat-wrap .spirit-san-chat-msgs::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(255,102,0,0.5), rgba(0,200,255,0.35));
+            border-radius: 6px;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-sanctuary-chat .spirit-san-chat-line {
+            max-width: 94%;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-listing-chat-tr {
+            font-size: 0.55rem;
+            color: #6a6a6a;
+            margin-top: 2px;
+        }
+        #productModal .spirit-listing-chat-wrap #chatExpandToggleWrap {
+            padding: 4px 0 6px;
+            justify-content: flex-end;
+        }
+        #productModal .spirit-listing-chat-wrap #chatExpandToggle {
+            font-size: 0.54rem;
+            padding: 5px 10px;
+            border-radius: 8px;
+            background: rgba(18,22,28,0.95);
+            border: 1px solid rgba(255,102,0,0.25);
+            color: #9ec9b8;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-san-chat-composer {
+            margin-top: 10px;
+            flex-shrink: 0;
+            border-top: none;
+            padding: 0;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-san-chat-composer.chat-input-area {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+            flex-wrap: nowrap;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-san-chat-input {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 12px;
+            background: #0a0c10;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #eee;
+            font-size: 0.78rem;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+        #productModal .spirit-listing-chat-wrap .spirit-san-chat-composer .btn-action {
+            font-size: 0.68rem;
+            padding: 10px 18px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 0 16px rgba(255,102,0,0.12);
+        }
+        #productModal .spirit-listing-chat-wrap .msg-safety-alert {
+            margin-bottom: 8px;
+        }
+        #productModal .spirit-desc-meta-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        #productModal .spirit-desc-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(135deg, rgba(30,34,42,0.95), rgba(12,14,18,0.98));
+            box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+        }
+        #productModal .spirit-desc-chip--ref {
+            border-color: rgba(0,200,255,0.45);
+            color: #9ee8ff;
+        }
+        #productModal .spirit-desc-chip--cond {
+            border-color: rgba(255,140,60,0.55);
+            color: #ffc9a0;
+        }
+        #productModal .spirit-desc-chip--tag {
+            border-color: rgba(255,102,0,0.35);
+            color: #ddd;
+        }
+        #productModal .spirit-desc-chip .spirit-desc-chip-k {
+            font-size: 0.52rem;
+            opacity: 0.8;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        #productModal .spirit-desc-chip .spirit-desc-chip-v {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: none;
+        }
+        #productModal #pDescBox {
+            border-radius: 10px;
+            border-left: 3px solid var(--neon-orange);
+            line-height: 1.55;
+            background: #111;
+            padding: 12px 14px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
         @media (max-width: 900px) {
             .chat-container { height: 220px; margin-top: 10px; }
             .chat-messages { padding: 8px; font-size: 0.75rem; }
             .msg-line { margin-bottom: 5px; font-size: 0.72rem; }
             .chat-input-area { padding: 6px; }
+            #productModal .spirit-listing-chat-wrap { min-height: 260px; max-height: min(400px, 48vh); }
         }
         /* ANIMATIONS & LEDGER STATUS */
         .laser { height: 2px; background: var(--neon-orange); box-shadow: 0 0 15px var(--neon-orange); animation: move 2s infinite ease-in-out; }
@@ -3830,19 +4043,32 @@
         <div style="display:flex; gap:30px; flex-wrap:wrap;">
             <div style="flex:1; min-width:300px;">
                 <div id="pGallery" style="background:#111; min-height:350px; border:1px solid #333; margin-bottom:15px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; overflow:hidden;"></div>
-                <div class="chat-container">
+                <div class="chat-container spirit-listing-chat-wrap">
                     <div id="msg-alert" class="msg-safety-alert" data-key="safety_msg_escrow">SÉCURITÉ : Fonds sécurisés. Libération : 4j (Legacy) / 3j (Native).</div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
-                        <span data-key="pm_discuss_hint" style="font-size:0.62rem;color:#888;">Discussion · affichage selon ton pays (profil)</span>
-                        <button type="button" id="btnClearListingChat" class="btn-action" style="font-size:0.55rem;display:none;padding:4px 10px;background:#2a1010;color:#e88;border:1px solid rgba(200,80,80,0.45);" onclick="spiritDeleteListingChatThread()" data-key="pm_clear_thread">Effacer tout le fil</button>
-                    </div>
-                    <div class="chat-messages" id="chatMsgs"></div>
-                    <div id="chatExpandToggleWrap">
-                        <button type="button" id="chatExpandToggle" onclick="spiritToggleListingChatExpand()">Voir tous les messages</button>
-                    </div>
-                    <div class="chat-input-area">
-                        <input type="text" id="chatInput" data-key="pm_chat_ph" placeholder="Votre message..." style="margin:0; border-radius:2px 0 0 2px;">
-                        <button class="btn-action" onclick="sendMessage()" style="padding:0 15px;" data-key="pm_chat_ok">OK</button>
+                    <div class="spirit-sanctuary-chat spirit-listing-chat-stack">
+                        <div class="spirit-public-san-chat-head spirit-listing-chat-head">
+                            <span class="spirit-public-san-chat-head-badge" aria-hidden="true"></span>
+                            <div>
+                                <h4 data-key="pm_chat_h">Discussion annonce</h4>
+                                <p class="spirit-public-san-chat-rules" data-key="pm_chat_rules">N’échange pas de coordonnées externes — la transaction passe par Spirit.</p>
+                            </div>
+                        </div>
+                        <div class="spirit-public-san-chat-card">
+                            <div class="spirit-listing-chat-toolbar">
+                                <span data-key="pm_discuss_hint" style="font-size:0.6rem;color:#8a8a8a;">Discussion · affichage selon ton pays (profil)</span>
+                                <button type="button" id="btnClearListingChat" class="btn-action" style="display:none;" onclick="spiritDeleteListingChatThread()" data-key="pm_clear_thread">Effacer tout le fil</button>
+                            </div>
+                            <div class="spirit-san-chat-msgs-wrap">
+                                <div id="chatMsgs" class="spirit-san-chat-msgs"></div>
+                            </div>
+                            <div id="chatExpandToggleWrap">
+                                <button type="button" id="chatExpandToggle" onclick="spiritToggleListingChatExpand()">Voir tous les messages</button>
+                            </div>
+                            <div class="chat-input-area spirit-san-chat-composer">
+                                <input type="text" id="chatInput" class="spirit-san-chat-input" data-key="pm_chat_ph" placeholder="Votre message…">
+                                <button type="button" class="btn-action" onclick="sendMessage()" data-key="pm_chat_ok">OK</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3850,7 +4076,7 @@
                 <h2 id="pTitle">Titre</h2>
                 <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
                 <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
-                <div id="pDescBox" style="font-size:0.85rem; color:#aaa; margin-bottom:15px; background:#111; padding:10px; border-left:2px solid var(--neon-orange);"></div>
+                <div id="pDescBox" style="margin-bottom:15px;"></div>
                 <div id="pNegotiatedNote" data-key="pm_negotiated_note" style="display:none;font-size:0.62rem;color:#6cf;margin:-4px 0 10px 0;line-height:1.35;padding:6px 8px;border:1px solid rgba(0,200,255,0.35);background:rgba(0,80,120,0.12);">Prix convenu — visible uniquement entre le vendeur et l’acheteur concerné. Sur le marché, le prix public reste affiché pour les autres.</div>
                 
                 <div style="background:rgba(255,102,0,0.05); padding:15px; border:1px solid #333; margin-bottom:15px;">
@@ -4804,7 +5030,7 @@
             'pm_sum_ship': 'Livraison (', 'pm_sum_ship_end': ')', 'pm_sum_prot': 'Protection Acheteur Spirit (Garantie Fonds)', 'pm_carrier_select': 'Sélectionner',
             'pay_title': 'FINALISER LE PAIEMENT', 'pay_total_lbl': 'Montant total :', 'pay_pick': 'Choisissez votre mode de paiement sécurisé Spirit Infinity :', 'pay_stripe': '💳 CARTE BANCAIRE (STRIPE)', 'pay_paypal': '🅿️ PAYPAL SÉCURISÉ', 'pay_footer': 'En cliquant sur un mode de paiement, vos fonds seront placés sous séquestre Spirit jusqu\'à réception de la figurine.',
             'prep_ship_h': 'PRÉPARER L\'EXPÉDITION', 'prep_ship_p': 'Un acheteur a validé le paiement — merci de préparer l\'envoi.', 'prep_ok': 'COMPRIS', 'btn_ok_short': 'OK',
-            'pm_no_title': 'Sans titre', 'pm_no_desc': 'Aucune description disponible.', 'pm_no_image': 'IMAGE NON DISPONIBLE DANS LE LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURINE',
+            'pm_no_title': 'Sans titre', 'pm_no_desc': 'Aucune description disponible.', 'pm_chat_h': 'Discussion annonce', 'pm_chat_rules': 'N’échange pas de coordonnées externes — la transaction passe par Spirit.', 'pm_desc_lbl_cond': 'État', 'pm_desc_lbl_ref': 'Réf.', 'pm_desc_lbl_note': 'Info', 'pm_no_image': 'IMAGE NON DISPONIBLE DANS LE LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURINE',
             'pub_back': '← MARKETPLACE', 'pub_brand': 'Profil public — Spirit Infinity', 'pub_copy_url': 'COPIER L’URL', 'pub_goto_chat': 'ACCÉDER AU CHAT', 'pub_chg_photo': 'CHANGER LA PHOTO', 'pub_add_san': '+ PHOTO SANCTUAIRE', 'pub_follow': 'SUIVRE', 'pub_ia': 'IA Score :', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
             'pub_country_lbl': 'Pays (visible publiquement)', 'pub_save': 'ENREGISTRER', 'pub_tab_ads': 'ANNONCES', 'pub_tab_san': 'SANCTUAIRE', 'pub_ads_note': 'Annonces publiques (products_live)', 'pub_neon_border': 'Bordure néon (toute la galerie)', 'pub_san_chat_h': 'CHAT DU SANCTUAIRE', 'pub_san_chat_rules': 'Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.',
             'params_pseudo_lbl': 'MODIFIER PSEUDO', 'params_pseudo_ph': 'Nouveau pseudo', 'params_pseudo_save': 'ENREGISTRER LE PSEUDO',
@@ -4929,7 +5155,7 @@
             'pm_sum_ship': 'Shipping (', 'pm_sum_ship_end': ')', 'pm_sum_prot': 'Spirit Buyer Protection (Fund guarantee)', 'pm_carrier_select': 'Select',
             'pay_title': 'COMPLETE PAYMENT', 'pay_total_lbl': 'Total amount:', 'pay_pick': 'Choose your secure Spirit Infinity payment method:', 'pay_stripe': '💳 CARD (STRIPE)', 'pay_paypal': '🅿️ SECURE PAYPAL', 'pay_footer': 'By choosing a method, funds are held in Spirit escrow until you receive the figure.',
             'prep_ship_h': 'PREPARE SHIPMENT', 'prep_ship_p': 'A buyer has paid — please prepare the shipment.', 'prep_ok': 'GOT IT', 'btn_ok_short': 'OK',
-            'pm_no_title': 'Untitled', 'pm_no_desc': 'No description available.', 'pm_no_image': 'IMAGE NOT AVAILABLE IN LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURE',
+            'pm_no_title': 'Untitled', 'pm_no_desc': 'No description available.', 'pm_chat_h': 'Listing chat', 'pm_chat_rules': 'Do not share off-platform contacts — keep the deal on Spirit.', 'pm_desc_lbl_cond': 'Condition', 'pm_desc_lbl_ref': 'Ref.', 'pm_desc_lbl_note': 'Note', 'pm_no_image': 'IMAGE NOT AVAILABLE IN LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURE',
             'pub_back': '← MARKETPLACE', 'pub_brand': 'Public profile — Spirit Infinity', 'pub_copy_url': 'COPY URL', 'pub_goto_chat': 'GO TO CHAT', 'pub_chg_photo': 'CHANGE PHOTO', 'pub_add_san': '+ SANCTUARY PHOTO', 'pub_follow': 'FOLLOW', 'pub_ia': 'AI score:', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
             'pub_country_lbl': 'Country (public)', 'pub_save': 'SAVE', 'pub_tab_ads': 'LISTINGS', 'pub_tab_san': 'SANCTUARY', 'pub_ads_note': 'Public listings (products_live)', 'pub_neon_border': 'Neon border (whole gallery)', 'pub_san_chat_h': 'SANCTUARY CHAT', 'pub_san_chat_rules': '@, .com domains and phone numbers are blocked — Spirit marketplace only.',
             'params_pseudo_lbl': 'CHANGE USERNAME', 'params_pseudo_ph': 'New username', 'params_pseudo_save': 'SAVE USERNAME',
@@ -5054,7 +5280,7 @@
             'pm_sum_ship': 'Envío (', 'pm_sum_ship_end': ')', 'pm_sum_prot': 'Protección comprador Spirit (garantía de fondos)', 'pm_carrier_select': 'Seleccionar',
             'pay_title': 'FINALIZAR PAGO', 'pay_total_lbl': 'Importe total:', 'pay_pick': 'Elige tu método de pago seguro Spirit Infinity:', 'pay_stripe': '💳 TARJETA (STRIPE)', 'pay_paypal': '🅿️ PAYPAL SEGURO', 'pay_footer': 'Al elegir un método, los fondos quedan en depósito Spirit hasta recibir la figura.',
             'prep_ship_h': 'PREPARAR ENVÍO', 'prep_ship_p': 'Un comprador ha pagado — prepara el envío.', 'prep_ok': 'ENTENDIDO', 'btn_ok_short': 'OK',
-            'pm_no_title': 'Sin título', 'pm_no_desc': 'Sin descripción.', 'pm_no_image': 'IMAGEN NO DISPONIBLE EN LEDGER', 'typ_statue': 'ESTATUA', 'typ_figure': 'FIGURA',
+            'pm_no_title': 'Sin título', 'pm_no_desc': 'Sin descripción.', 'pm_chat_h': 'Chat del anuncio', 'pm_chat_rules': 'No compartas contactos externos — la operación va por Spirit.', 'pm_desc_lbl_cond': 'Estado', 'pm_desc_lbl_ref': 'Ref.', 'pm_desc_lbl_note': 'Info', 'pm_no_image': 'IMAGEN NO DISPONIBLE EN LEDGER', 'typ_statue': 'ESTATUA', 'typ_figure': 'FIGURA',
             'pub_back': '← MARKETPLACE', 'pub_brand': 'Perfil público — Spirit Infinity', 'pub_copy_url': 'COPIAR URL', 'pub_goto_chat': 'IR AL CHAT', 'pub_chg_photo': 'CAMBIAR FOTO', 'pub_add_san': '+ FOTO SANTUARIO', 'pub_follow': 'SEGUIR', 'pub_ia': 'Puntuación IA:', 'pub_likes': 'Me gusta', 'pub_followers': 'Seguidores', 'pub_following': 'Siguiendo',
             'pub_country_lbl': 'País (visible públicamente)', 'pub_save': 'GUARDAR', 'pub_tab_ads': 'ANUNCIOS', 'pub_tab_san': 'SANTUARIO', 'pub_ads_note': 'Anuncios públicos (products_live)', 'pub_neon_border': 'Borde neón (toda la galería)', 'pub_san_chat_h': 'CHAT DEL SANTUARIO', 'pub_san_chat_rules': '@, dominios .com y teléfonos bloqueados — solo marketplace Spirit.',
             'params_pseudo_lbl': 'CAMBIAR USUARIO', 'params_pseudo_ph': 'Nuevo usuario', 'params_pseudo_save': 'GUARDAR USUARIO',
@@ -5179,7 +5405,7 @@
             'pm_sum_ship': '运费（', 'pm_sum_ship_end': '）', 'pm_sum_prot': 'Spirit 买家保护（资金保障）', 'pm_carrier_select': '选择',
             'pay_title': '完成支付', 'pay_total_lbl': '应付总额：', 'pay_pick': '选择 Spirit Infinity 安全支付方式：', 'pay_stripe': '💳 银行卡（STRIPE）', 'pay_paypal': '🅿️ 安全 PayPal', 'pay_footer': '选择支付方式后，资金将由 Spirit 托管，直至你收到手办。',
             'prep_ship_h': '准备发货', 'prep_ship_p': '买家已付款 — 请准备寄送。', 'prep_ok': '知道了', 'btn_ok_short': '确定',
-            'pm_no_title': '无标题', 'pm_no_desc': '暂无描述。', 'pm_no_image': '账本中无可用图片', 'typ_statue': '雕像', 'typ_figure': '手办',
+            'pm_no_title': '无标题', 'pm_no_desc': '暂无描述。', 'pm_chat_h': '商品讨论', 'pm_chat_rules': '请勿交换站外联系方式 — 交易请走 Spirit。', 'pm_desc_lbl_cond': '成色', 'pm_desc_lbl_ref': '货号', 'pm_desc_lbl_note': '备注', 'pm_no_image': '账本中无可用图片', 'typ_statue': '雕像', 'typ_figure': '手办',
             'pub_back': '← 市场', 'pub_brand': '公开资料 — Spirit Infinity', 'pub_copy_url': '复制链接', 'pub_goto_chat': '进入聊天', 'pub_chg_photo': '更换头像', 'pub_add_san': '+ 圣地照片', 'pub_follow': '关注', 'pub_ia': 'AI 评分：', 'pub_likes': '赞', 'pub_followers': '粉丝', 'pub_following': '关注',
             'pub_country_lbl': '国家（公开显示）', 'pub_save': '保存', 'pub_tab_ads': '商品', 'pub_tab_san': '圣地', 'pub_ads_note': '公开上架（products_live）', 'pub_neon_border': '霓虹边框（整组照片）', 'pub_san_chat_h': '圣地聊天', 'pub_san_chat_rules': '@、.com 域名与电话已屏蔽 — 仅限 Spirit 市场。',
             'params_pseudo_lbl': '修改用户名', 'params_pseudo_ph': '新用户名', 'params_pseudo_save': '保存用户名',
@@ -12149,6 +12375,11 @@ async function spiritLoadListingMessagesForProduct(productId) {
         if (!spiritListingChatExpanded && Array.isArray(all) && all.length > compactMax) {
             shown = all.slice(all.length - compactMax);
         }
+        var meN = '';
+        try {
+            if (typeof spiritGetCurrentUserId === 'function' && typeof spiritOwnerId === 'function')
+                meN = spiritNormUid(spiritOwnerId(spiritGetCurrentUserId()));
+        } catch (eMe) {}
         if (shown && shown.length) {
             shown.forEach(function (m) {
                 var show = m.display_text != null ? m.display_text : m.text;
@@ -12157,9 +12388,15 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 var t = spiritChatEscapeHtml(show);
                 var trHint = (typeof spiritT === 'function') ? spiritT('listing_chat_tr_hint') : 'Traduction auto · survol pour l’original';
                 var hint = m._translated
-                    ? '<span class="spirit-listing-chat-tr" style="font-size:0.58rem;color:#777;display:block;margin-top:3px;" title="' + spiritChatEscapeAttr(orig) + '">' + spiritChatEscapeHtml(trHint) + '</span>'
+                    ? '<div class="spirit-san-chat-when spirit-listing-chat-tr" title="' + spiritChatEscapeAttr(orig) + '">' + spiritChatEscapeHtml(trHint) + '</div>'
                     : '';
-                box.innerHTML += '<div class="msg-line"><span class="msg-user">' + u + ':</span><span class="msg-text">' + t + '</span>' + hint + '</div>';
+                var sidN = '';
+                try { sidN = spiritNormUid(m.sender_id || ''); } catch (eSid) {}
+                var isMine = !!(meN && sidN && sidN === meN);
+                var lineClass = 'spirit-san-chat-line ' + (isMine ? 'spirit-san-chat-line--mine' : 'spirit-san-chat-line--other');
+                box.innerHTML += '<div class="' + lineClass + '">' +
+                    '<div class="spirit-san-chat-meta"><span class="who">' + u + '</span></div>' +
+                    '<div class="spirit-san-chat-bubble-stack"><div class="spirit-san-chat-bubble">' + t + '</div>' + hint + '</div></div>';
             });
         }
         var tgl = document.getElementById('chatExpandToggle');
@@ -12176,6 +12413,60 @@ async function spiritLoadListingMessagesForProduct(productId) {
     function spiritFormatListingDescriptionHtml(desc) {
         var raw = String(desc || '').replace(/\r\n/g, '\n');
         if (!raw) return '';
+        function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+        var chipCond = 'État';
+        var chipRef = 'Réf.';
+        var chipNote = 'Info';
+        try {
+            if (typeof spiritT === 'function') {
+                chipCond = spiritT('pm_desc_lbl_cond');
+                chipRef = spiritT('pm_desc_lbl_ref');
+                chipNote = spiritT('pm_desc_lbl_note');
+            }
+        } catch (eTk) {}
+        var metaChips = [];
+        var refBlock = raw.match(/\[\[SPIRIT_REF:([^\]]+)\]\]/);
+        if (refBlock && refBlock[1]) {
+            metaChips.push({ type: 'ref', val: String(refBlock[1]).trim() });
+            raw = raw.replace(/\[\[SPIRIT_REF:[^\]]+\]\]\s*\n*/g, '').trim();
+        }
+        raw = raw.replace(/^\s*ÉTAT\s*:\s*([^\n\r]+)\s*\n?/im, function (_, g1) {
+            var v = String(g1 || '').trim();
+            if (v) metaChips.push({ type: 'cond', val: v });
+            return '';
+        });
+        raw = raw.replace(/^\s*STATE\s*:\s*([^\n\r]+)\s*\n?/im, function (_, g1) {
+            var v = String(g1 || '').trim();
+            if (v) metaChips.push({ type: 'cond', val: v });
+            return '';
+        });
+        for (var pi = 0; pi < 5; pi++) {
+            var mpar = raw.match(/^\s*\(([^)]{1,220})\)\s*\n?/);
+            if (!mpar) break;
+            var inner = String(mpar[1] || '').trim();
+            if (!inner) break;
+            var looksMeta = /réf|ref\.|ref\s|état|etat|neuf|scell|bon\s*état|bon\s*etat|très|tres|moyen|satisfaisant|MMS|DX\d|SKU|mmss|hot\s*toys|\d{2,}[\s\-]*\d|[1-9]\s*\/\s*[124689]/i.test(inner);
+            if (!looksMeta && inner.length > 48) break;
+            if (!looksMeta && inner.length > 24) break;
+            var ty = /réf|^ref\b|SKU|MMS|DX\d|mmss|référence|referencia|reference/i.test(inner) ? 'ref'
+                : (/état|etat|neuf|scell|bon|très|tres|moyen|satisf|excellent|mint|sealed/i.test(inner) ? 'cond' : 'tag');
+            metaChips.push({ type: ty, val: inner });
+            raw = raw.replace(/^\s*\([^)]+\)\s*\n?/, '').trim();
+        }
+        var linesTail = raw.split('\n');
+        if (linesTail.length && String(linesTail[0] || '').trim()) {
+            var firstLine = String(linesTail[0]);
+            var mt = firstLine.match(/^(.+?)\s+\(([^)]{2,120})\)\s*$/);
+            if (mt) {
+                var tailP = String(mt[2] || '').trim();
+                if (/réf|ref|état|etat|neuf|bon|très|tres|MMS|SKU|scell|mint|sealed/i.test(tailP)) {
+                    var tyT = /réf|ref|SKU|MMS|DX\d/i.test(tailP) ? 'ref' : 'cond';
+                    metaChips.push({ type: tyT, val: tailP });
+                    linesTail[0] = String(mt[1] || '').trimEnd();
+                    raw = linesTail.join('\n');
+                }
+            }
+        }
         var diagDateText = '';
         try {
             var mHw = raw.match(/\[\[SPIRIT_HW:([\s\S]*?)\]\]/m);
@@ -12189,7 +12480,6 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 } catch (eJ) {}
             }
         } catch (eM) {}
-        // Retire le bloc technique interne pour ne pas l'afficher à l'acheteur.
         raw = raw.replace(/\n*\[\[SPIRIT_HW:[\s\S]*?\]\]\s*/gm, '\n').trim();
         var safe = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
         var lines = safe.split('\n');
@@ -12202,7 +12492,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (plain.indexOf('DIAGNOSTIC SPIRIT TEHNOLOGIE') >= 0) {
                 isDiag = true;
                 if (diagDateText && !diagDateInjected) {
-                    out.push('<span style="color:var(--spirit-green);font-weight:700;">Date du diagnostic: ' + String(diagDateText).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') + '</span>');
+                    out.push('<span style="color:var(--spirit-green);font-weight:700;">Date du diagnostic: ' + escAttr(diagDateText) + '</span>');
                     diagDateInjected = true;
                 }
             }
@@ -12210,7 +12500,25 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (isDiag) out.push('<span style="color:var(--spirit-green);font-weight:700;">' + (l || '&nbsp;') + '</span>');
             else out.push(l || '&nbsp;');
         }
-        return out.join('<br>');
+        var chipsHtml = '';
+        if (metaChips.length) {
+            chipsHtml = '<div class="spirit-desc-meta-chips">';
+            for (var ci = 0; ci < metaChips.length; ci++) {
+                var c = metaChips[ci];
+                var cls = 'spirit-desc-chip spirit-desc-chip--cond';
+                var kl = escAttr(chipCond);
+                if (c.type === 'ref') {
+                    cls = 'spirit-desc-chip spirit-desc-chip--ref';
+                    kl = escAttr(chipRef);
+                } else if (c.type === 'tag') {
+                    cls = 'spirit-desc-chip spirit-desc-chip--tag';
+                    kl = escAttr(chipNote);
+                }
+                chipsHtml += '<span class="' + cls + '"><span class="spirit-desc-chip-k">' + kl + '</span><span class="spirit-desc-chip-v">' + escAttr(c.val) + '</span></span>';
+            }
+            chipsHtml += '</div>';
+        }
+        return chipsHtml + out.join('<br>');
     }
 
     async function spiritApplyProductModalTexts(item) {
