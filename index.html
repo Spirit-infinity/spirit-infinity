@@ -7651,6 +7651,33 @@ function spiritListingRefForRarity(row) {
     if (m && m[1]) return String(m[1]).trim();
     return '';
 }
+/** Même logique que les cartes marché : compte les annonces « sœurs » une fois la tienne publiée (badge RARE seulement si total = 1). */
+function spiritListingMarketRareAfterPublish(matched, probe) {
+    var rareBrandNameCountMap = {};
+    var rareKeyCountMap = {};
+    (matched || []).forEach(function (it) {
+        var kb = spiritWishlistNormText(it && (it.brand || it.marque) || '');
+        var kt = spiritWishlistNormText(it && (it.title || it.name) || '');
+        if (!kb) return;
+        var kr = spiritWishlistNormText(spiritListingRefForRarity(it) || '');
+        var kbn = 'bn|' + kb + '|' + kt;
+        rareBrandNameCountMap[kbn] = (rareBrandNameCountMap[kbn] || 0) + 1;
+        var kk = 'bnref|' + kb + '|' + kt + '|' + kr;
+        rareKeyCountMap[kk] = (rareKeyCountMap[kk] || 0) + 1;
+    });
+    var pb = spiritWishlistNormText(probe && probe.brand || '');
+    var pt = spiritWishlistNormText(probe && probe.title || '');
+    var pr = spiritWishlistNormText(probe && probe.ref || '');
+    if (!pb) return { clusterAfter: 0, marketRareBadge: false };
+    var kbnP = 'bn|' + pb + '|' + pt;
+    rareBrandNameCountMap[kbnP] = (rareBrandNameCountMap[kbnP] || 0) + 1;
+    var kkP = 'bnref|' + pb + '|' + pt + '|' + pr;
+    rareKeyCountMap[kkP] = (rareKeyCountMap[kkP] || 0) + 1;
+    var rareBnCount = rareBrandNameCountMap[kbnP] || 0;
+    var rareCount = rareBnCount;
+    if (rareBnCount > 1 && pr) rareCount = rareKeyCountMap[kkP] || rareBnCount;
+    return { clusterAfter: rareCount, marketRareBadge: (rareCount === 1) };
+}
 function spiritWishlistDemandMatchesProbe(searchRow, probe) {
     if (!searchRow || !probe) return false;
     var sb = spiritWishlistNormText(searchRow.brand || '');
@@ -7738,9 +7765,12 @@ async function spiritAnalyzePrePublishMarket(probe) {
     else if (ratioPct < 50) out.rarityTier = 'FREQUENT';
     else out.rarityTier = 'COMMUN';
     out.rare = (out.rarityTier === 'RARE');
+    var _mr = spiritListingMarketRareAfterPublish(matched, probe);
+    out.marketRareBadgeAfter = _mr.marketRareBadge;
+    out.marketRareClusterAfter = _mr.clusterAfter;
     return out;
 }
-function spiritShowMarketInsightModal(m, probe, rareTxt) {
+function spiritShowMarketInsightModal(m, probe) {
     return new Promise(function (resolve) {
         try {
             var old = document.getElementById('spiritMarketInsightModal');
@@ -7750,12 +7780,15 @@ function spiritShowMarketInsightModal(m, probe, rareTxt) {
             wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:240000;display:flex;align-items:center;justify-content:center;padding:18px;';
             var box = document.createElement('div');
             box.style.cssText = 'width:min(560px,95vw);background:linear-gradient(180deg,#0b0b0b,#131313);border:1px solid #383838;border-radius:12px;padding:14px;box-shadow:0 18px 60px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,102,0,0.12);color:#eee;';
-            var badgeBg = (rareTxt === 'RARE') ? '#2a1506' : (rareTxt === 'COMMUN' ? '#1b1b1b' : (rareTxt === 'FREQUENT' ? '#1b1f10' : '#1f180d'));
-            var badgeCol = (rareTxt === 'RARE') ? '#ff8a3d' : (rareTxt === 'COMMUN' ? '#c8c8c8' : (rareTxt === 'FREQUENT' ? '#b7db7f' : '#ffbd74'));
+            var marketRare = !!(m && m.marketRareBadgeAfter);
+            var pillTxt = marketRare ? 'RARE' : ('×' + String((m && m.marketRareClusterAfter != null) ? m.marketRareClusterAfter : '?'));
+            var ratioTier = String(m && m.rarityTier || 'INTERMEDIAIRE');
+            var badgeBg = marketRare ? '#2a1506' : (ratioTier === 'COMMUN' ? '#1b1b1b' : (ratioTier === 'FREQUENT' ? '#1b1f10' : '#1f180d'));
+            var badgeCol = marketRare ? '#ff8a3d' : (ratioTier === 'COMMUN' ? '#c8c8c8' : (ratioTier === 'FREQUENT' ? '#b7db7f' : '#ffbd74'));
             box.innerHTML =
                 '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
                 '<div style="font-size:0.9rem;color:#fff;font-weight:800;letter-spacing:0.03em;">ANALYSE MARCHE AVANT PUBLICATION</div>' +
-                '<div style="padding:4px 10px;border-radius:999px;background:' + badgeBg + ';border:1px solid rgba(255,102,0,0.35);color:' + badgeCol + ';font-size:0.62rem;font-weight:800;">' + rareTxt + '</div>' +
+                '<div style="padding:4px 10px;border-radius:999px;background:' + badgeBg + ';border:1px solid rgba(255,102,0,0.35);color:' + badgeCol + ';font-size:0.62rem;font-weight:800;">' + pillTxt + '</div>' +
                 '</div>' +
                 '<div style="margin-top:10px;font-size:0.66rem;color:#cfcfcf;line-height:1.55;">' +
                 '<div><b style="color:#ffb16d;">Figurine</b> : ' + String(probe.title || '—').replace(/</g, '&lt;') + '</div>' +
@@ -7764,7 +7797,8 @@ function spiritShowMarketInsightModal(m, probe, rareTxt) {
                 '<div>Vendeurs actifs : <b style="color:#fff;">' + String(m.sellers) + '</b></div>' +
                 '<div>Prix EUR (min / mediane / max) : <b style="color:#fff;">' + (m.min ? m.min.toFixed(0) : '—') + ' / ' + (m.med ? m.med.toFixed(0) : '—') + ' / ' + (m.max ? m.max.toFixed(0) : '—') + '</b></div>' +
                 '<div>Etat dominant : <b style="color:#fff;">' + String(m.condTop || '—').replace(/</g, '&lt;') + '</b></div>' +
-                '<div>Statut du badge : <b style="color:#fff;">' + String(rareTxt || 'INTERMEDIAIRE') + '</b></div>' +
+                '<div style="margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(0,80,140,0.12);border:1px solid rgba(0,200,255,0.25);">Badge <b>RARE</b> sur le marché (même clé que la grille) <b>après</b> publication : <b style="color:#8be9ff;">' + (marketRare ? 'oui' : 'non') + '</b> — annonces très proches comptées : <b style="color:#fff;">' + String(m.marketRareClusterAfter != null ? m.marketRareClusterAfter : '—') + '</b> (1 seule = badge RARE).</div>' +
+                '<div>Classement ratio offre/demande (Spirit) : <b style="color:#fff;">' + ratioTier + '</b></div>' +
                 '<div>Utilisateurs en demande (wishlist) : <b style="color:#fff;">' + String(m.demand) + '</b></div>' +
                 '<div>Ratio offre/(offre+demande) : <b style="color:#fff;">' + (Number.isFinite(m.rarityRatio) ? m.rarityRatio.toFixed(1) : '0.0') + '%</b></div>' +
                 '</div>' +
@@ -7788,9 +7822,13 @@ function spiritShowMarketInsightModal(m, probe, rareTxt) {
 }
 async function spiritConfirmPublishWithMarketInsight(probe) {
     try {
+        try {
+            if (typeof spiritInvalidateMarketCache === 'function') spiritInvalidateMarketCache();
+            if (typeof fetchMarketplaceFromSupabase === 'function')
+                await fetchMarketplaceFromSupabase({ reset: true, forceNetwork: true, silentLoader: true, forceAux: false });
+        } catch (eRef) {}
         var m = await spiritAnalyzePrePublishMarket(probe);
-        var rareTxt = String(m && m.rarityTier || 'INTERMEDIAIRE');
-        return await spiritShowMarketInsightModal(m, probe, rareTxt);
+        return await spiritShowMarketInsightModal(m, probe);
     } catch (e) {
         return true;
     }
