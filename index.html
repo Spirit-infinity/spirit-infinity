@@ -4429,6 +4429,7 @@
     <p data-key="eval_page_p1" style="font-size:0.68rem;color:#777;margin-top:0;line-height:1.4;">Avis reçus sur ton profil public. Tu peux répondre à chaque commentaire ; la réponse est visible par tous.</p>
     <p data-key="eval_page_p2" style="font-size:0.62rem;color:#666;margin-top:6px;">Pour laisser une note à quelqu’un, utilise le flux après une transaction (fenêtre d’évaluation ou notification).</p>
     <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px;">
+        <button type="button" class="btn-action" style="font-size:0.55rem;padding:6px 12px;background:#1a1020;border:1px solid #446;color:#aac;" onclick="void spiritEvalPurgeOrphanAuthoredEvaluations()" data-key="eval_purge_orphan_btn">Supprimer mes notes orphelines</button>
         <button type="button" class="btn-action" style="font-size:0.55rem;padding:6px 12px;background:#241010;border:1px solid #633;color:#e88;" onclick="void spiritDeleteAllMyReceivedEvaluations()" data-key="eval_clear_all_btn">TOUT EFFACER LE FIL</button>
     </div>
     <div id="evalMyList" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;"></div>
@@ -5072,7 +5073,15 @@
             'eval_hide_all_confirm2': 'Confirmer : vider la liste dans Mon compte (les avis restent en base et sur le profil public).',
             'eval_hidden_ok': 'Avis retiré de cette liste.', 'eval_hide_all_ok': 'Liste Mon compte vidée (avis toujours sur le profil public).', 'eval_hide_err': 'Erreur : ',
             'eval_hide_btn_title': 'Retirer de la liste Mon compte', 'eval_your_reply': 'Ta réponse :', 'eval_reply': 'RÉPONDRE', 'eval_reply_edit': 'MODIFIER LA RÉPONSE',
-            'eval_none_list': 'Aucune évaluation reçue pour le moment.', 'eval_login': 'Connecte-toi pour voir tes avis.', 'eval_loading': 'Chargement…', 'san_add_title': 'Ajouter une photo',
+            'eval_none_list': 'Aucune évaluation reçue pour le moment.', 'eval_login': 'Connecte-toi pour voir tes avis.', 'eval_loading': 'Chargement…',
+            'eval_discard_pending_confirm': 'Retirer cette demande d’évaluation ? (transaction introuvable ou auto-achat corrigé.)',
+            'eval_discard_pending_btn': 'Abandonner',
+            'eval_tx_missing_resume': 'Cette transaction n’existe plus dans le ledger. Retirer la demande d’évaluation ?',
+            'eval_purge_orphan_btn': 'Supprimer mes notes orphelines',
+            'eval_purge_orphan_confirm': 'Supprimer en base toutes les évaluations que TU as rédigées dont la transaction n’existe plus ? (irréversible.)',
+            'eval_purge_orphan_done': 'Lignes supprimées : ',
+            'eval_purge_orphan_err': 'Impossible de nettoyer : ',
+            'san_add_title': 'Ajouter une photo',
             'san_max_15': 'Maximum 15 photos dans le Sanctuaire.', 'san_import_err': 'Import Sanctuaire impossible (bucket / RLS) : '
         },
         'EN': {
@@ -5197,7 +5206,15 @@
             'eval_hide_all_confirm2': 'Confirm: clear the My Account list (reviews remain in the database and on the public profile).',
             'eval_hidden_ok': 'Removed from this list.', 'eval_hide_all_ok': 'My Account list cleared (reviews still on public profile).', 'eval_hide_err': 'Error: ',
             'eval_hide_btn_title': 'Remove from My Account list', 'eval_your_reply': 'Your reply:', 'eval_reply': 'REPLY', 'eval_reply_edit': 'EDIT REPLY',
-            'eval_none_list': 'No reviews received yet.', 'eval_login': 'Sign in to see your reviews.', 'eval_loading': 'Loading…', 'san_add_title': 'Add a photo',
+            'eval_none_list': 'No reviews received yet.', 'eval_login': 'Sign in to see your reviews.', 'eval_loading': 'Loading…',
+            'eval_discard_pending_confirm': 'Remove this pending review request? (Missing transaction or corrected self-purchase.)',
+            'eval_discard_pending_btn': 'Dismiss',
+            'eval_tx_missing_resume': 'This transaction is no longer in the ledger. Remove the review request?',
+            'eval_purge_orphan_btn': 'Delete my orphan reviews',
+            'eval_purge_orphan_confirm': 'Delete from the database every review YOU wrote whose transaction no longer exists? (Cannot undo.)',
+            'eval_purge_orphan_done': 'Rows deleted: ',
+            'eval_purge_orphan_err': 'Cleanup failed: ',
+            'san_add_title': 'Add a photo',
             'san_max_15': 'Maximum 15 photos in the Sanctuary.', 'san_import_err': 'Sanctuary import failed (bucket / RLS): '
         },
         'ES': {
@@ -5322,7 +5339,15 @@
             'eval_hide_all_confirm2': 'Confirmar: vaciar la lista en Mi cuenta (las valoraciones siguen en base y en el perfil público).',
             'eval_hidden_ok': 'Quitada de esta lista.', 'eval_hide_all_ok': 'Lista de Mi cuenta vaciada (valoraciones aún en el perfil público).', 'eval_hide_err': 'Error: ',
             'eval_hide_btn_title': 'Quitar de la lista Mi cuenta', 'eval_your_reply': 'Tu respuesta:', 'eval_reply': 'RESPONDER', 'eval_reply_edit': 'EDITAR RESPUESTA',
-            'eval_none_list': 'Aún no hay valoraciones recibidas.', 'eval_login': 'Inicia sesión para ver tus valoraciones.', 'eval_loading': 'Cargando…', 'san_add_title': 'Añadir una foto',
+            'eval_none_list': 'Aún no hay valoraciones recibidas.', 'eval_login': 'Inicia sesión para ver tus valoraciones.', 'eval_loading': 'Cargando…',
+            'eval_discard_pending_confirm': '¿Quitar esta solicitud de valoración? (Transacción inexistente o autocompra corregida.)',
+            'eval_discard_pending_btn': 'Descartar',
+            'eval_tx_missing_resume': 'Esta transacción ya no está en el ledger. ¿Quitar la solicitud de valoración?',
+            'eval_purge_orphan_btn': 'Borrar mis valoraciones huérfanas',
+            'eval_purge_orphan_confirm': '¿Eliminar de la base todas las valoraciones que TÚ escribiste cuya transacción ya no existe? (Irreversible.)',
+            'eval_purge_orphan_done': 'Filas eliminadas: ',
+            'eval_purge_orphan_err': 'No se pudo limpiar: ',
+            'san_add_title': 'Añadir una foto',
             'san_max_15': 'Máximo 15 fotos en el Santuario.', 'san_import_err': 'Importación al Santuario imposible (bucket / RLS): '
         },
         'ZH': {
@@ -5447,7 +5472,15 @@
             'eval_hide_all_confirm2': '确认：清空我的账户列表（数据库与公开资料中的评价保留）。',
             'eval_hidden_ok': '已从列表移除。', 'eval_hide_all_ok': '我的账户列表已清空（公开资料仍显示评价）。', 'eval_hide_err': '错误：',
             'eval_hide_btn_title': '从我的账户列表移除', 'eval_your_reply': '你的回复：', 'eval_reply': '回复', 'eval_reply_edit': '修改回复',
-            'eval_none_list': '暂无收到的评价。', 'eval_login': '请登录查看你的评价。', 'eval_loading': '加载中…', 'san_add_title': '添加照片',
+            'eval_none_list': '暂无收到的评价。', 'eval_login': '请登录查看你的评价。', 'eval_loading': '加载中…',
+            'eval_discard_pending_confirm': '要移除此待完成的评价请求吗？（交易不存在或已修正自购。）',
+            'eval_discard_pending_btn': '放弃',
+            'eval_tx_missing_resume': '账本中已无此交易。要移除该评价请求吗？',
+            'eval_purge_orphan_btn': '删除无交易的自评',
+            'eval_purge_orphan_confirm': '要从数据库删除你撰写的、且交易已不存在的全部评价吗？（不可恢复。）',
+            'eval_purge_orphan_done': '已删除行数：',
+            'eval_purge_orphan_err': '清理失败：',
+            'san_add_title': '添加照片',
             'san_max_15': '圣地最多 15 张照片。', 'san_import_err': '圣地导入失败（存储桶 / RLS）：'
         }
     };
@@ -22404,7 +22437,7 @@ async function spiritEvalRefreshBadgesIfViewingSelf() {
 async function spiritDeleteMyEvaluation(evalId) {
     evalId = String(evalId != null ? evalId : '').trim();
     if (!evalId) return;
-    var me = spiritNormUid(MY_TEST_ID || '');
+    var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
     if (!me) return;
     function eT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
     if (!(await spiritConfirm(eT('eval_hide_confirm')))) return;
@@ -22421,7 +22454,7 @@ async function spiritDeleteMyEvaluation(evalId) {
     }
 }
 async function spiritDeleteAllMyReceivedEvaluations() {
-    var me = spiritNormUid(MY_TEST_ID || '');
+    var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
     if (!me || !_spirit || spiritEvalTableMissing) return;
     function eT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
     if (!(await spiritConfirm(eT('eval_hide_all_confirm')))) return;
@@ -22572,19 +22605,85 @@ function spiritAutoEvalDismissWithoutSubmitSync() {
         evM.style.setProperty('display', 'none', 'important');
     } catch (e) {}
 }
+async function spiritEvalDiscardPendingContext(p) {
+    if (!p) return;
+    var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
+    var txId = String(p.txId || '').trim();
+    var role = String(p.role || '');
+    spiritEvalPendingRemoveByCtx(p);
+    try { spiritAutoEvalMarkDone(role, txId); } catch (e1) {}
+    try { spiritAutoEvalMarkDone(role === 'buyer' ? 'seller' : 'buyer', txId); } catch (e2) {}
+    if (_spirit && !spiritSanNotifsTableMissing && me && txId) {
+        try {
+            await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).delete().eq('owner_id', me).eq('type', 'evaluation_pending').eq('item_id', txId);
+        } catch (eN) {}
+    }
+    try { spiritEvalRenderPendingInAccountSync(); } catch (eR) {}
+    try { spiritEvalRefreshPendingDotAndPulse(); } catch (eD) {}
+    try { await spiritLoadMyEvaluations(); } catch (eL) {}
+    try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eG) {}
+}
+try { window.spiritEvalDiscardPendingContext = spiritEvalDiscardPendingContext; } catch (eWEd) {}
+async function spiritEvalDiscardPendingByTxRole(txId, role) {
+    var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
+    txId = String(txId || '').trim();
+    role = String(role || '');
+    var list = spiritEvalPendingForUser(me);
+    var p = list.find(function (x) { return String(x.txId || '').trim() === txId && String(x.role || '') === role; });
+    if (!p) return;
+    function eT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
+    if (!(await spiritConfirm(eT('eval_discard_pending_confirm')))) return;
+    await spiritEvalDiscardPendingContext(p);
+}
+try { window.spiritEvalDiscardPendingByTxRole = spiritEvalDiscardPendingByTxRole; } catch (eWE2) {}
+async function spiritEvalPurgeOrphanAuthoredEvaluations() {
+    var me = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '');
+    if (!me || !_spirit || spiritEvalTableMissing) return;
+    function eT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
+    if (!(await spiritConfirm(eT('eval_purge_orphan_confirm')))) return;
+    try {
+        var out = await _spirit.from(SPIRIT_EVAL_TABLE).select('id,transaction_id').eq('author_user_id', me).limit(200);
+        if (out.error) throw out.error;
+        var rows = Array.isArray(out.data) ? out.data : [];
+        var n = 0;
+        for (var i = 0; i < rows.length; i++) {
+            var r = rows[i] || {};
+            var eid = String(r.id != null ? r.id : '').trim();
+            var tid = String(r.transaction_id != null ? r.transaction_id : '').trim();
+            if (!eid || !tid) continue;
+            var chk = await _spirit.from('transactions').select('id').eq('id', tid).maybeSingle();
+            if (!chk.error && chk.data) continue;
+            var del = await _spirit.from(SPIRIT_EVAL_TABLE).delete().eq('id', eid).eq('author_user_id', me);
+            if (!del.error) n++;
+        }
+        alert(String(eT('eval_purge_orphan_done')) + n);
+        await spiritLoadMyEvaluations();
+        try { await spiritPublicApplyBadgesFromRow(null); } catch (eB) {}
+        try { if (typeof spiritRefreshPublicLitigeBlink === 'function') await spiritRefreshPublicLitigeBlink(); } catch (eL2) {}
+    } catch (e) {
+        alert(String(eT('eval_purge_orphan_err')) + (e && e.message ? e.message : e));
+    }
+}
+try { window.spiritEvalPurgeOrphanAuthoredEvaluations = spiritEvalPurgeOrphanAuthoredEvaluations; } catch (eWP) {}
 async function spiritEvalResumePending(txId, role) {
     var me = spiritNormUid(typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID || '');
     if (!me || !_spirit) return;
-    txId = String(txId || '').trim().toLowerCase();
+    txId = String(txId || '').trim();
     role = String(role || '');
     var list = spiritEvalPendingForUser(me);
-    var p = list.find(function (x) { return String(x.txId || '').trim().toLowerCase() === txId && String(x.role || '') === role; });
+    var p = list.find(function (x) { return String(x.txId || '').trim() === txId && String(x.role || '') === role; });
     if (!p) return;
     if (await spiritEvalExistsByAuthor(txId, me)) {
         spiritAutoEvalMarkDone(role, txId);
         spiritEvalPendingRemoveByCtx(p);
         try { spiritEvalRenderPendingInAccountSync(); } catch (e) {}
         try { await spiritLoadMyEvaluations(); } catch (e2) {}
+        return;
+    }
+    var trMiss = await _spirit.from('transactions').select('id').eq('id', String(p.txId || '').trim()).maybeSingle();
+    if (trMiss.error || !trMiss.data) {
+        function eT2(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
+        if (await spiritConfirm(eT2('eval_tx_missing_resume'))) await spiritEvalDiscardPendingContext(p);
         return;
     }
     await spiritAutoEvalOpen({
@@ -22611,10 +22710,13 @@ function spiritEvalRenderPendingInAccountSync() {
             var roleEsc = String(p.role || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
             var pseudoT = String(p.targetPseudo || '—').replace(/</g, '&lt;');
             var roleLbl = String(p.role || '') === 'buyer' ? 'Acheteur' : 'Vendeur';
+            var abandonLbl = (typeof spiritT === 'function') ? spiritT('eval_discard_pending_btn') : 'Abandonner';
             return '<div style="border:1px solid #333;background:#0a0a0a;padding:10px 12px;border-radius:4px;margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;">'
                 + '<div style="font-size:0.65rem;color:#ccc;">' + roleLbl + ' · transaction <span style="color:#888;">' + String(p.txId || '').slice(0, 8) + '…</span><br/>Évaluer : <b style="color:var(--neon-orange);">' + pseudoT + '</b></div>'
+                + '<div style="display:flex;flex-wrap:wrap;gap:8px;">'
                 + '<button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;" onclick="void spiritEvalResumePending(\'' + txEsc + '\',\'' + roleEsc + '\')">Compléter</button>'
-                + '</div>';
+                + '<button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#1a1020;border-color:#446;color:#aac;" onclick="void spiritEvalDiscardPendingByTxRole(\'' + txEsc + '\',\'' + roleEsc + '\')">' + String(abandonLbl).replace(/</g, '&lt;') + '</button>'
+                + '</div></div>';
         }).join('');
 }
 async function spiritEvalProcessExpiredPending() {
