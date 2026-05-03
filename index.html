@@ -7643,40 +7643,24 @@ function spiritListingMatchesPrePublishProbe(listing, probe) {
     }
     return true;
 }
-function spiritListingRefForRarity(row) {
-    var direct = String(row && row.product_reference || '').trim();
-    if (direct) return direct;
-    var desc = String(row && row.description || '');
-    var m = desc.match(/\[\[SPIRIT_REF:([^\]]+)\]\]/);
-    if (m && m[1]) return String(m[1]).trim();
-    return '';
-}
-/** Même logique que les cartes marché : compte les annonces « sœurs » une fois la tienne publiée (badge RARE seulement si total = 1). */
-function spiritListingMarketRareAfterPublish(matched, probe) {
-    var rareBrandNameCountMap = {};
-    var rareKeyCountMap = {};
-    (matched || []).forEach(function (it) {
+/** Même clé que la grille : marque + titre normalisés. Après publication, total = annonces actives même clé + la tienne (RARE seulement si ce total vaut 1). */
+function spiritListingMarketRareAfterPublish(rows, probe) {
+    var pb = spiritWishlistNormText(probe && probe.brand || '');
+    var pt = spiritWishlistNormText(probe && (probe.title || probe.name) || '');
+    if (!pb) return { clusterAfter: 0, marketRareBadge: false };
+    var kbnP = 'bn|' + pb + '|' + pt;
+    var n = 0;
+    (rows || []).forEach(function (it) {
+        var st = String(it && it.status || '').toLowerCase().trim();
+        if (st === 'sold' || st === 'vendu') return;
         var kb = spiritWishlistNormText(it && (it.brand || it.marque) || '');
         var kt = spiritWishlistNormText(it && (it.title || it.name) || '');
         if (!kb) return;
-        var kr = spiritWishlistNormText(spiritListingRefForRarity(it) || '');
-        var kbn = 'bn|' + kb + '|' + kt;
-        rareBrandNameCountMap[kbn] = (rareBrandNameCountMap[kbn] || 0) + 1;
-        var kk = 'bnref|' + kb + '|' + kt + '|' + kr;
-        rareKeyCountMap[kk] = (rareKeyCountMap[kk] || 0) + 1;
+        if ('bn|' + kb + '|' + kt !== kbnP) return;
+        n++;
     });
-    var pb = spiritWishlistNormText(probe && probe.brand || '');
-    var pt = spiritWishlistNormText(probe && probe.title || '');
-    var pr = spiritWishlistNormText(probe && probe.ref || '');
-    if (!pb) return { clusterAfter: 0, marketRareBadge: false };
-    var kbnP = 'bn|' + pb + '|' + pt;
-    rareBrandNameCountMap[kbnP] = (rareBrandNameCountMap[kbnP] || 0) + 1;
-    var kkP = 'bnref|' + pb + '|' + pt + '|' + pr;
-    rareKeyCountMap[kkP] = (rareKeyCountMap[kkP] || 0) + 1;
-    var rareBnCount = rareBrandNameCountMap[kbnP] || 0;
-    var rareCount = rareBnCount;
-    if (rareBnCount > 1 && pr) rareCount = rareKeyCountMap[kkP] || rareBnCount;
-    return { clusterAfter: rareCount, marketRareBadge: (rareCount === 1) };
+    var clusterAfter = n + 1;
+    return { clusterAfter: clusterAfter, marketRareBadge: clusterAfter === 1 };
 }
 function spiritWishlistDemandMatchesProbe(searchRow, probe) {
     if (!searchRow || !probe) return false;
@@ -7765,7 +7749,7 @@ async function spiritAnalyzePrePublishMarket(probe) {
     else if (ratioPct < 50) out.rarityTier = 'FREQUENT';
     else out.rarityTier = 'COMMUN';
     out.rare = (out.rarityTier === 'RARE');
-    var _mr = spiritListingMarketRareAfterPublish(matched, probe);
+    var _mr = spiritListingMarketRareAfterPublish(rows, probe);
     out.marketRareBadgeAfter = _mr.marketRareBadge;
     out.marketRareClusterAfter = _mr.clusterAfter;
     return out;
@@ -7797,7 +7781,7 @@ function spiritShowMarketInsightModal(m, probe) {
                 '<div>Vendeurs actifs : <b style="color:#fff;">' + String(m.sellers) + '</b></div>' +
                 '<div>Prix EUR (min / mediane / max) : <b style="color:#fff;">' + (m.min ? m.min.toFixed(0) : '—') + ' / ' + (m.med ? m.med.toFixed(0) : '—') + ' / ' + (m.max ? m.max.toFixed(0) : '—') + '</b></div>' +
                 '<div>Etat dominant : <b style="color:#fff;">' + String(m.condTop || '—').replace(/</g, '&lt;') + '</b></div>' +
-                '<div style="margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(0,80,140,0.12);border:1px solid rgba(0,200,255,0.25);">Badge <b>RARE</b> sur le marché (même clé que la grille) <b>après</b> publication : <b style="color:#8be9ff;">' + (marketRare ? 'oui' : 'non') + '</b> — annonces très proches comptées : <b style="color:#fff;">' + String(m.marketRareClusterAfter != null ? m.marketRareClusterAfter : '—') + '</b> (1 seule = badge RARE).</div>' +
+                '<div style="margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(0,80,140,0.12);border:1px solid rgba(0,200,255,0.25);">RARE sur le marché (après publication) : <b style="color:#8be9ff;">' + (marketRare ? 'oui' : 'non') + '</b></div>' +
                 '<div>Classement ratio offre/demande (Spirit) : <b style="color:#fff;">' + ratioTier + '</b></div>' +
                 '<div>Utilisateurs en demande (wishlist) : <b style="color:#fff;">' + String(m.demand) + '</b></div>' +
                 '<div>Ratio offre/(offre+demande) : <b style="color:#fff;">' + (Number.isFinite(m.rarityRatio) ? m.rarityRatio.toFixed(1) : '0.0') + '%</b></div>' +
@@ -9694,18 +9678,14 @@ function renderMarket(filteredData = null) {
 
         spiritRenderMarketSig = renderSig;
         var rareBrandNameCountMap = {};
-        var rareKeyCountMap = {};
         dataToRender.forEach(function (it) {
             var stR = String(it && it.status || '').toLowerCase().trim();
             if (stR === 'sold' || stR === 'vendu') return;
             var kb = spiritWishlistNormText(it && (it.brand || it.marque) || '');
-            var kr = spiritWishlistNormText(spiritListingRefForRarity(it) || '');
             var kt = spiritWishlistNormText(it && (it.title || it.name) || '');
             if (!kb) return;
             var kbn = 'bn|' + kb + '|' + kt;
             rareBrandNameCountMap[kbn] = (rareBrandNameCountMap[kbn] || 0) + 1;
-            var kk = 'bnref|' + kb + '|' + kt + '|' + kr;
-            rareKeyCountMap[kk] = (rareKeyCountMap[kk] || 0) + 1;
         });
 
         dataToRender.forEach(item => {
@@ -9773,16 +9753,10 @@ function renderMarket(filteredData = null) {
             const firstTxt = item.is_first_hand ? '1ere main' : 'Multi-mains';
             const displayBrand = String(item.brand || item.marque || '').trim();
             var rareBrandN = spiritWishlistNormText(displayBrand);
-            var rareRefN = spiritWishlistNormText(spiritListingRefForRarity(item) || '');
             var rareTitleN = spiritWishlistNormText(safeTitle || '');
             var rareBnKey = 'bn|' + rareBrandN + '|' + rareTitleN;
             var rareBnCount = rareBrandNameCountMap[rareBnKey] || 0;
-            var rareCount = rareBnCount;
-            if (rareBnCount > 1 && rareRefN) {
-                var rareRefKey = 'bnref|' + rareBrandN + '|' + rareTitleN + '|' + rareRefN;
-                rareCount = rareKeyCountMap[rareRefKey] || rareBnCount;
-            }
-            var rareBadge = (!isSold && rareCount === 1)
+            var rareBadge = (!isSold && rareBnCount === 1)
                 ? '<div style="position:absolute;top:8px;left:8px;z-index:13;padding:4px 8px;border-radius:999px;background:rgba(0,170,255,0.20);border:1px solid rgba(0,200,255,0.85);color:#8be9ff;font-size:0.56rem;font-weight:800;letter-spacing:0.06em;box-shadow:0 0 12px rgba(0,200,255,0.55);">RARE</div>'
                 : '';
             const brandLine = displayBrand
