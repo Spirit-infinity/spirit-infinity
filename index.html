@@ -1327,8 +1327,68 @@
         .forum-recent-pill { font-size: 0.52rem; background: rgba(255,102,0,0.25); color: var(--neon-orange); padding: 2px 8px; border-radius: 3px; font-weight: 800; letter-spacing: 0.06em; }
         .forum-tag { font-size: 0.6rem; background: var(--neon-orange); color: black; padding: 2px 6px; border-radius: 2px; font-weight: bold; }
         #forumModal .modal-content.forum-modal-shell { display: flex; flex-direction: column; max-width: 900px; max-height: 90vh; min-height: min(520px, 85vh); box-sizing: border-box; }
-        #forumContent.forum-content-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: auto; }
-        #forumViewPanel { display: flex; flex-direction: column; flex: 1; min-height: 360px; overflow: auto; }
+        #forumContent.forum-content-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+        #forumViewPanel {
+            display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 14px; overflow: hidden;
+        }
+        #forumModal .spirit-forum-topics-scroll {
+            flex-shrink: 0; max-height: min(38vh, 300px); overflow-y: auto; overflow-x: hidden;
+            padding: 10px 8px 12px; box-sizing: border-box;
+            background: rgba(0,0,0,0.45); border: 1px solid #1e1e24; border-radius: 14px;
+            background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,102,0,0.07), transparent 55%);
+            scrollbar-width: thin; scrollbar-color: rgba(255,102,0,0.45) #111;
+        }
+        #forumModal .spirit-forum-topics-scroll::-webkit-scrollbar { width: 6px; }
+        #forumModal .spirit-forum-topics-scroll::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(255,102,0,0.5), rgba(0,200,255,0.35)); border-radius: 6px;
+        }
+        #forumModal .spirit-forum-chat-stack {
+            flex: 1; min-height: 0; display: flex; flex-direction: column;
+        }
+        #forumModal .spirit-forum-modal-head {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-shrink: 0; gap: 12px; flex-wrap: wrap;
+        }
+        #forumModal .spirit-forum-modal-head h2 {
+            margin: 0; font-size: 0.78rem; letter-spacing: 0.12em; color: #fff;
+            text-shadow: 0 0 20px rgba(255,102,0,0.35);
+        }
+        #forumModal .spirit-forum-scope-bar {
+            font-size: 0.65rem; color: #8a8a8a; padding: 10px 12px; margin: 0 0 10px;
+            align-items: center; gap: 10px; flex-wrap: wrap;
+            background: rgba(0,0,0,0.35); border-radius: 10px; border: 1px solid #222;
+        }
+        #forumModal .spirit-public-san-chat-card .msg-safety-alert {
+            margin-bottom: 10px; text-align: left; font-weight: 600; font-size: 0.62rem; line-height: 1.45;
+            background: rgba(255,51,51,0.08); border: 1px solid rgba(255,80,80,0.45); color: #f0a0a0;
+        }
+        #forumModal .chat-input-area.spirit-san-chat-composer {
+            border-top: none; padding: 0; background: transparent;
+        }
+        #forumModal .spirit-san-chat-msgs .msg-line {
+            display: flex; flex-direction: column; align-items: flex-start; max-width: 94%; margin-bottom: 12px; margin-right: auto;
+        }
+        #forumModal .spirit-san-chat-msgs .msg-line.spirit-forum-op { border-left: none; padding-left: 0; margin-bottom: 14px; }
+        #forumModal .spirit-san-chat-msgs .msg-line .msg-user {
+            font-size: 0.58rem; letter-spacing: 0.04em; color: #7dccb0; font-weight: 800; margin-bottom: 4px; padding: 0 6px;
+        }
+        #forumModal .spirit-san-chat-msgs .msg-line .msg-text {
+            display: block; padding: 10px 14px; border-radius: 16px 16px 16px 5px; line-height: 1.45; word-break: break-word;
+            background: linear-gradient(165deg, rgba(28,32,38,0.95), rgba(12,14,18,0.98));
+            border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+            color: #e8e8e8; font-size: 0.72rem;
+        }
+        #forumModal .spirit-san-chat-msgs .msg-line.spirit-forum-op .msg-text {
+            border-color: rgba(0,220,140,0.42);
+            background: linear-gradient(165deg, rgba(20,42,34,0.95), rgba(10,22,18,0.98));
+            box-shadow: 0 0 18px rgba(0,255,170,0.06), 0 4px 18px rgba(0,0,0,0.35);
+        }
+        #forumModal .forum-acc-section { border-color: rgba(255,102,0,0.22); background: rgba(6,8,12,0.75); }
+        #forumModal .forum-acc-head { background: rgba(18,20,26,0.95); }
+        #forumModal #topicEditor.forum-topic-editor-full {
+            background: linear-gradient(180deg, rgba(14,16,22,0.97) 0%, rgba(6,7,10,0.99) 100%);
+            border: 1px solid rgba(255,102,0,0.38) !important; border-radius: 18px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 12px 40px rgba(0,0,0,0.45), 0 0 22px rgba(255,102,0,0.15);
+        }
         #topicEditor.forum-topic-editor-full { flex: 1; display: none; flex-direction: column; gap: 10px; min-height: 0; background: #111; padding: 16px 20px 20px; border: 1px solid var(--border); box-sizing: border-box; }
         #topicEditor .forum-topic-body-wrap { flex: 1; min-height: 140px; display: flex; flex-direction: column; overflow: hidden; }
         #topicEditor.forum-topic-editor-full textarea#topicBody { flex: 1; min-height: 140px; width: 100%; box-sizing: border-box; resize: vertical; overflow-y: auto; }
@@ -2424,7 +2484,7 @@
         #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-rules {
             margin: 0; font-size: 0.62rem; color: #6a6a6a; line-height: 1.45; max-width: 52rem;
         }
-        #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-card {
+        #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-card, #forumModal .spirit-public-san-chat-card {
             background: linear-gradient(180deg, rgba(14,16,22,0.97) 0%, rgba(6,7,10,0.99) 100%);
             border: 1px solid rgba(255,102,0,0.42); border-radius: 18px;
             padding: 16px 14px 14px;
@@ -2434,6 +2494,9 @@
                 0 0 28px rgba(255,102,0,0.35),
                 0 0 56px rgba(255,102,0,0.12);
             animation: spirit-pub-chat-card-neon 2.8s ease-in-out infinite;
+        }
+        #forumModal .spirit-public-san-chat-card {
+            flex: 1; min-height: 0; display: flex; flex-direction: column; margin-top: 0;
         }
         @keyframes spirit-pub-chat-card-neon {
             0%, 100% {
@@ -2466,22 +2529,34 @@
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-toolbar {
             margin-top: 10px; padding: 10px 12px; background: rgba(0,0,0,0.35); border-radius: 10px; border: 1px solid #222;
         }
-        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs-wrap {
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs-wrap, #forumModal .spirit-san-chat-msgs-wrap {
             margin-top: 12px; padding: 10px 8px; background: rgba(0,0,0,0.45);
             border: 1px solid #1e1e24; border-radius: 14px;
             background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,102,0,0.07), transparent 55%);
         }
-        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs {
+        #forumModal .spirit-san-chat-msgs-wrap {
+            margin-top: 10px; flex: 1; min-height: 0; display: flex; flex-direction: column;
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs, #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs {
             max-height: min(360px, 46vh); margin-bottom: 0; font-size: 0.74rem; padding: 6px 4px;
         }
-        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-composer {
+        #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs {
+            max-height: none; flex: 1; min-height: 120px; overflow-y: auto; overflow-x: hidden;
+            scrollbar-width: thin; scrollbar-color: rgba(255,102,0,0.45) #111;
+        }
+        #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs::-webkit-scrollbar { width: 6px; }
+        #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(255,102,0,0.5), rgba(0,200,255,0.35)); border-radius: 6px;
+        }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-composer, #forumModal .spirit-san-chat-composer {
             display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; margin-top: 12px;
         }
-        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-input {
+        #forumModal .spirit-san-chat-composer { flex-shrink: 0; margin-top: 10px; }
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-input, #forumModal .spirit-san-chat-input {
             flex: 1; min-width: 160px; padding: 12px 14px; background: #0a0c10; border: 1px solid rgba(255,255,255,0.12);
             color: #eee; font-size: 0.78rem; border-radius: 12px;
         }
-        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-composer .btn-action {
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-composer .btn-action, #forumModal .spirit-san-chat-composer .btn-action {
             font-size: 0.68rem; padding: 12px 20px; border-radius: 12px;
             box-shadow: 0 0 20px rgba(255,102,0,0.15);
         }
@@ -3846,26 +3921,32 @@
 <div id="forumModal" class="overlay">
     <div class="modal-content forum-modal-shell" style="text-align:left;">
         <button onclick="closeSpiritMenu()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-shrink:0;">
-            <h2 id="forum-main-title" data-key="forum_title_full" style="margin:0;">FORUM SPIRIT INFINITY</h2>
+        <div class="spirit-forum-modal-head">
+            <h2 id="forum-main-title" data-key="forum_title_full">FORUM SPIRIT INFINITY</h2>
             <button type="button" id="btn-new-topic" class="btn-action" onclick="showTopicEditor()" style="font-size:0.6rem;" data-key="forum_btn_new_topic">+ NOUVEAU SUJET</button>
         </div>
         <div id="forumContent" class="forum-content-wrap">
             <div id="forumViewPanel">
-                <div id="forumList"></div>
-            <div class="chat-container" style="height:250px; flex-shrink:0;">
-                <div class="msg-safety-alert" data-key="forum_safety_alert">SÉCURITÉ : Vente sous le manteau interdite (PayPal Amis = Ban immédiat).</div>
-                <div id="forumChatScopeBar" class="forum-chat-scope" style="display:none; font-size:0.68rem; color:#888; padding:6px 0 8px; border-bottom:1px solid #222; margin-bottom:6px; align-items:center; gap:10px; flex-wrap:wrap;">
-                    <button type="button" class="btn-action" onclick="spiritForumLeaveTopic()" style="font-size:0.55rem; padding:5px 12px; margin:0;" data-key="forum_back_list">← SUJETS</button>
-                    <span id="forumChatScopeTitle" style="color:var(--neon-orange); font-weight:700;"></span>
-                    <button type="button" id="forumTopicDeleteBtn" class="btn-action" onclick="event.stopPropagation(); spiritForumDeleteTopicCurrent();" style="display:none; font-size:0.55rem; padding:5px 12px; margin:0; background:#3a1515; border-color:#822;" data-key="forum_btn_topic_delete">RAZ</button>
+                <div class="spirit-forum-topics-scroll">
+                    <div id="forumList"></div>
                 </div>
-                <div class="chat-messages" id="forumChat"></div>
-                <div class="chat-input-area">
-                    <input type="text" id="forumInput" data-key="forum_chat_ph" placeholder="Discuter avec la communauté...">
-                    <button type="button" class="btn-action" onclick="spiritSendForumMsg()" data-key="forum_chat_send">OK</button>
+                <div class="spirit-forum-chat-stack">
+                    <div class="spirit-public-san-chat-card">
+                        <div class="msg-safety-alert" data-key="forum_safety_alert">SÉCURITÉ : Vente sous le manteau interdite (PayPal Amis = Ban immédiat).</div>
+                        <div id="forumChatScopeBar" class="forum-chat-scope spirit-forum-scope-bar" style="display:none;">
+                            <button type="button" class="btn-action" onclick="spiritForumLeaveTopic()" style="font-size:0.55rem; padding:5px 12px; margin:0;" data-key="forum_back_list">← SUJETS</button>
+                            <span id="forumChatScopeTitle" style="color:var(--neon-orange); font-weight:700;"></span>
+                            <button type="button" id="forumTopicDeleteBtn" class="btn-action" onclick="event.stopPropagation(); spiritForumDeleteTopicCurrent();" style="display:none; font-size:0.55rem; padding:5px 12px; margin:0; background:#3a1515; border-color:#822;" data-key="forum_btn_topic_delete">RAZ</button>
+                        </div>
+                        <div class="spirit-san-chat-msgs-wrap">
+                            <div class="chat-messages spirit-san-chat-msgs" id="forumChat"></div>
+                        </div>
+                        <div class="chat-input-area spirit-san-chat-composer">
+                            <input type="text" id="forumInput" class="spirit-san-chat-input" data-key="forum_chat_ph" placeholder="Discuter avec la communauté...">
+                            <button type="button" class="btn-action" onclick="spiritSendForumMsg()" data-key="forum_chat_send">OK</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
             </div>
             <div id="topicEditor" class="forum-topic-editor-full" style="display:none;">
                 <h3 id="forumTopicEditorTitle" style="color:var(--neon-orange); margin-top:0; flex-shrink:0;" data-key="forum_topic_editor_h3">CRÉER UN NOUVEAU SUJET</h3>
