@@ -17129,14 +17129,16 @@ function spiritSanctuaryTogglePublicChatExpand() {
     }
     var box = document.getElementById('spiritSanctuaryChatMsgs');
     if (box) try { box.scrollTop = box.scrollHeight; } catch (eSc) {}
-    /* Réduit : héros + grille réapparaissent — rester visuellement sur le chat (scroll). */
+    /* Réduit : héros + grille réapparaissent — aligner le chat sans animation (pas de défilement « film »). */
     if (!on) {
         try {
             requestAnimationFrame(function () {
                 var anchor = document.getElementById('spiritPublicSanctuaryChatAnchor');
-                if (anchor && typeof anchor.scrollIntoView === 'function') {
-                    anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                if (!anchor || !sec) return;
+                var rSec = sec.getBoundingClientRect();
+                var rAn = anchor.getBoundingClientRect();
+                var dy = rAn.top - rSec.top - 10;
+                sec.scrollTop = Math.max(0, sec.scrollTop + dy);
             });
         } catch (eSanScroll) {}
     }
