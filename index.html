@@ -735,7 +735,7 @@
         .grid-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; }
         .grid-layout.list-view { display: block; }
         /* CARDS */
-        .card { background: var(--card-bg); border: 1px solid var(--neon-orange); cursor: pointer; position: relative; transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,102,0,0.18), 0 6px 16px rgba(0,0,0,0.45); }
+        .card { background: var(--card-bg); border: 1px solid var(--neon-orange); cursor: pointer; position: relative; isolation: isolate; transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,102,0,0.18), 0 6px 16px rgba(0,0,0,0.45); }
         .card:hover,
         .card:active,
         .card:focus-within { border-color: #ff8a2b; transform: translateY(-3px); box-shadow: 0 0 0 1px rgba(255,138,43,0.5), 0 0 28px rgba(255,102,0,0.5), 0 12px 24px rgba(0,0,0,0.58); }
@@ -750,6 +750,7 @@
         }
         .grid-layout.list-view .card-info { width:100%; min-height:auto; }
         .img-placeholder { width: 100%; height: 200px; background: #050505; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; border-bottom: 1px solid var(--border); text-align: center; padding: 10px; }
+        .card > .img-placeholder { position: relative; z-index: 0; }
         .card-info { padding: 15px; display:flex; flex-direction:column; gap:8px; min-height:150px; }
         .price { font-size: 1.3rem; font-weight: 800; color: white; margin-bottom: 5px; }
         .title { font-size: 0.85rem; color: #ccc; margin-bottom: 0; height: 35px; overflow: hidden; }
@@ -883,7 +884,7 @@
             position: absolute;
             top: 8px;
             left: 8px;
-            z-index: 13;
+            z-index: 50;
             padding: 4px 8px;
             border-radius: 999px;
             background: rgba(0,170,255,0.20);
@@ -910,7 +911,7 @@
             position: absolute;
             top: 8px;
             right: 8px;
-            z-index: 25;
+            z-index: 52;
             display: inline-flex;
             align-items: center;
             gap: 5px;
@@ -1083,7 +1084,7 @@
         }
         /* NOUVEAU STATUT VENDU */
         .card.sold { opacity: 0.5; filter: grayscale(1); }
-        .badge-sold { background: var(--danger); color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); padding: 10px 20px; font-weight: 900; font-size: 1.2rem; border: 3px solid white; z-index: 20; text-transform: uppercase; pointer-events: none; }
+        .badge-sold { background: var(--danger); color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); padding: 10px 20px; font-weight: 900; font-size: 1.2rem; border: 3px solid white; z-index: 56; text-transform: uppercase; pointer-events: none; }
         /* Profil public — annonces vendues (même esprit que .card.sold sur le marché) */
         .spirit-public-ad-card { position: relative; box-sizing: border-box; }
         .spirit-public-ad-card.spirit-public-ad-sold { opacity: 0.5 !important; filter: grayscale(1) !important; }
@@ -1109,7 +1110,7 @@
         #spiritPublicScrollToChatBtn { flex-shrink: 0; align-self: center; font-size: 0.58rem !important; padding: 7px 12px !important; white-space: nowrap; }
         @media (max-width: 900px) {
             .card.sold { opacity: 0.45 !important; filter: grayscale(1) !important; }
-            .card.sold .badge-sold { display: block !important; z-index: 35 !important; }
+            .card.sold .badge-sold { display: block !important; z-index: 60 !important; }
         }
         /* MODALS & OVERLAYS — (c) 2026 Spirit Infinity - Tous droits réservés */
         .modal-content {
@@ -2329,6 +2330,7 @@
         .spirit-img-skeleton {
             position: absolute;
             inset: 0;
+            z-index: 0;
             background: linear-gradient(90deg, #121212 0%, #1f1f1f 45%, #2a2a2a 50%, #1f1f1f 55%, #121212 100%);
             background-size: 200% 100%;
             animation: spirit-shimmer 1.1s ease-in-out infinite;
@@ -2344,7 +2346,7 @@
         }
         .spirit-card-img-wrap img {
             position: relative;
-            z-index: 1;
+            z-index: 0;
             display: block;
             width: 100%;
             height: 100%;
@@ -2442,7 +2444,7 @@
             background: radial-gradient(circle at 30% 28%, #ff6b6b, #b00000 55%, #4a0000);
             border: 2px solid #fff;
             box-shadow: 0 0 0 1px rgba(0,0,0,0.45), 0 2px 10px rgba(255,0,0,0.55);
-            z-index: 28;
+            z-index: 54;
             pointer-events: none;
             display: none;
             animation: spiritLitigeMacaronPulse 1.15s ease-in-out infinite;
@@ -2585,7 +2587,7 @@
         }
         #spiritSanctuaryGrid .spirit-san-add-tile:hover { border-color: var(--neon-orange); box-shadow: 0 0 16px rgba(255,102,0,0.2); }
         #spiritSanctuaryGrid .spirit-san-thumb-wrap {
-            position: relative; overflow: hidden; background: #000;
+            position: relative; overflow: hidden; background: #000; isolation: isolate;
         }
         #spiritSanctuaryGrid.spirit-san-mode-list .spirit-san-thumb-wrap { width: 280px; min-width: 280px; flex-shrink: 0; aspect-ratio: 1 / 1; }
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap {
@@ -2595,6 +2597,8 @@
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap img.spirit-sanctuary-img { flex: 1 1 auto; min-height: 0; }
         #spiritSanctuaryGrid.spirit-san-mode-icons-sm .spirit-san-thumb-wrap { aspect-ratio: 1; }
         #spiritSanctuaryGrid .spirit-san-thumb-wrap img.spirit-sanctuary-img {
+            position: relative;
+            z-index: 0;
             width: 100%; height: 100%; object-fit: cover; display: block; cursor: crosshair;
         }
 
@@ -2638,7 +2642,7 @@
         }
         /* Actions overlay (loupe + corbeille) */
         .spirit-san-action-btn {
-            position: absolute; top: 8px; left: 8px; z-index: 40;
+            position: absolute; top: 8px; left: 8px; z-index: 100;
             width: 32px; height: 32px; border-radius: 6px;
             border: 1px solid rgba(255,102,0,0.45); background: rgba(0,0,0,0.55);
             color: var(--neon-orange); cursor: pointer;
@@ -2980,7 +2984,7 @@
         }
         #spiritAccountSanctuaryGrid .spirit-san-add-tile:hover { border-color: var(--neon-orange); box-shadow: 0 0 16px rgba(255,102,0,0.2); }
         #spiritAccountSanctuaryGrid .spirit-san-thumb-wrap {
-            position: relative; overflow: hidden; background: #000;
+            position: relative; overflow: hidden; background: #000; isolation: isolate;
         }
         #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-thumb-wrap { width: 280px; min-width: 280px; flex-shrink: 0; aspect-ratio: 1 / 1; }
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap {
@@ -2989,6 +2993,8 @@
         }
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-thumb-wrap img.spirit-sanctuary-img { flex: 1 1 auto; min-height: 0; }
         #spiritAccountSanctuaryGrid .spirit-san-thumb-wrap img.spirit-sanctuary-img {
+            position: relative;
+            z-index: 0;
             width: 100%; height: 100%; object-fit: cover; display: block; cursor: crosshair;
         }
 
