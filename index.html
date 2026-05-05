@@ -15240,7 +15240,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         if (typeof _spirit === 'undefined' || !_spirit) { out.textContent = 'Supabase indisponible.'; return; }
         try {
             function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); }
-            var q = await _spirit.from('transactions').select('id,figurine_name,title,amount,currency,status,created_at').order('created_at', { ascending: false }).limit(2500);
+            var q = await _spirit.from('transactions').select('id,figurine_name,listing_title,amount,currency,status,created_at').order('created_at', { ascending: false }).limit(2500);
             if (q.error) throw q.error;
             var rows = Array.isArray(q.data) ? q.data : [];
             var html = '<table class="spirit-ht-bourse-stats-table"><thead><tr style="background:#151515;"><th>Date</th><th>Figurine</th><th>Vente</th><th>3% Spirit</th><th>3% Hot Toys</th><th>Total commissions</th></tr></thead><tbody>';
@@ -15253,7 +15253,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 sumSales += amt; sumSp += sp; sumHt += ht;
                 html += '<tr>'
                     + '<td>' + esc(r.created_at ? new Date(r.created_at).toLocaleString() : '—') + '</td>'
-                    + '<td>' + esc(r.figurine_name || r.title || '—') + '</td>'
+                    + '<td>' + esc(r.figurine_name || r.listing_title || '—') + '</td>'
                     + '<td>' + amt.toFixed(2) + ' ' + esc(r.currency || 'EUR') + '</td>'
                     + '<td>' + sp.toFixed(2) + ' ' + esc(r.currency || 'EUR') + '</td>'
                     + '<td>' + ht.toFixed(2) + ' ' + esc(r.currency || 'EUR') + '</td>'
