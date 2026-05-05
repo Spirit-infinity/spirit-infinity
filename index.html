@@ -2638,7 +2638,7 @@
         }
         /* Actions overlay (loupe + corbeille) */
         .spirit-san-action-btn {
-            position: absolute; top: 8px; left: 8px; z-index: 5;
+            position: absolute; top: 8px; left: 8px; z-index: 40;
             width: 32px; height: 32px; border-radius: 6px;
             border: 1px solid rgba(255,102,0,0.45); background: rgba(0,0,0,0.55);
             color: var(--neon-orange); cursor: pointer;
@@ -4192,11 +4192,11 @@
                 <div id="pBox4" onclick="triggerFile('file4')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 4</div>
                 <div id="pBox5" onclick="triggerFile('file5')" style="background:#111; height:70px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.6rem; cursor:pointer; overflow:hidden;">PHOTO 5</div>
             </div>
-            <input type="file" id="file1" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox1', 0)">
-            <input type="file" id="file2" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox2', 1)">
-            <input type="file" id="file3" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox3', 2)">
-            <input type="file" id="file4" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox4', 3)">
-            <input type="file" id="file5" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" onchange="previewSale(this, 'pBox5', 4)">
+            <input type="file" id="file1" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" multiple onchange="previewSale(this, 'pBox1', 0)">
+            <input type="file" id="file2" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" multiple onchange="previewSale(this, 'pBox2', 1)">
+            <input type="file" id="file3" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" multiple onchange="previewSale(this, 'pBox3', 2)">
+            <input type="file" id="file4" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" multiple onchange="previewSale(this, 'pBox4', 3)">
+            <input type="file" id="file5" style="display:none" accept="image/*,.heic,.heif,image/heic,image/heif" multiple onchange="previewSale(this, 'pBox5', 4)">
             <div id="diag-link" style="background:rgba(0,255,170,0.1); padding:8px; border:1px solid var(--spirit-green); margin-bottom:6px; display:none;">
                 <span style="color:var(--spirit-green); font-size:0.8rem;" data-key="cert_diag_ok">✓ Auto-diagnostic Puce Spirit lié à cette annonce</span>
             </div>
@@ -13287,19 +13287,32 @@ async function spiritLoadListingMessagesForProduct(productId) {
 
     function triggerFile(id) { document.getElementById(id).click(); }
     async function previewSale(input, boxId, index) {
-        if (!input.files || !input.files[0]) return;
-        var raw = input.files[0];
+        if (!input || !input.files || !input.files.length) return;
+        var files = Array.prototype.slice.call(input.files || []);
         var conv = (typeof window !== 'undefined' && typeof window.spiritMaybeConvertToWebp === 'function')
             ? window.spiritMaybeConvertToWebp
             : (typeof spiritMaybeConvertToWebp === 'function' ? spiritMaybeConvertToWebp : null);
-        var prep = conv ? await conv(raw, { forceWebp: true }) : { file: raw };
-        var finalFile = prep && prep.file ? prep.file : raw;
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            document.getElementById(boxId).innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
-            previewPhotos[index] = e.target.result;
-        };
-        reader.readAsDataURL(finalFile);
+        for (var i = 0; i < files.length; i++) {
+            var targetIndex = Number(index) + i;
+            if (targetIndex < 0 || targetIndex > 4) break;
+            var targetBox = document.getElementById('pBox' + String(targetIndex + 1));
+            if (!targetBox) continue;
+            var raw = files[i];
+            var prep = conv ? await conv(raw, { forceWebp: true }) : { file: raw };
+            var finalFile = prep && prep.file ? prep.file : raw;
+            await new Promise(function (resolve) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var src = e && e.target ? e.target.result : '';
+                    targetBox.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;">';
+                    previewPhotos[targetIndex] = src;
+                    resolve();
+                };
+                reader.onerror = function () { resolve(); };
+                reader.readAsDataURL(finalFile);
+            });
+        }
+        try { input.value = ''; } catch (eReset) {}
     }
     try { window.previewSale = previewSale; window.triggerFile = triggerFile; } catch (ePs) {}
 
