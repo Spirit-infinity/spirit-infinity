@@ -4861,6 +4861,11 @@
                     <select id="spiritHotToysAdminAnalyseMonth" style="padding:6px 8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.62rem;"></select>
                     <button type="button" class="btn-action" style="font-size:0.6rem;padding:7px 12px;" onclick="spiritHotToysAdminLoadBourseAnalyse()">Charger / rafraîchir</button>
                 </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;">
+                    <input id="spiritHotToysAdminAnalyseFig" type="text" placeholder="Filtre figurine" style="padding:6px 8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.62rem;min-width:160px;">
+                    <input id="spiritHotToysAdminAnalyseBrand" type="text" placeholder="Filtre marque" style="padding:6px 8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.62rem;min-width:140px;">
+                    <input id="spiritHotToysAdminAnalyseRef" type="text" placeholder="Filtre réf." style="padding:6px 8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.62rem;min-width:120px;">
+                </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;">
                     <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#1a3040;border-color:#3a6a8a;color:#9fd4ff;" onclick="spiritHotToysAdminExportBoursePdf('spiritHotToysAdminBourseAnalyseOut','Bourse Analyse — recherches utilisateurs')">Exporter PDF</button>
                     <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#2a2222;border-color:#553;color:#caa;" onclick="spiritHotToysAdminResetBourseSection('spiritHotToysAdminBourseAnalyseOut')">Remise à zéro</button>
@@ -14987,13 +14992,41 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 return spiritHotToysAdminMonthKeyFromDate(d) === monthKey;
             });
             var gmap = Object.create(null);
-            function norm(v) { return String(v || '').trim().toLowerCase(); }
+            function norm(v) {
+                return String(v || '')
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            }
+            var fFig = norm((document.getElementById('spiritHotToysAdminAnalyseFig') || {}).value || '');
+            var fBrand = norm((document.getElementById('spiritHotToysAdminAnalyseBrand') || {}).value || '');
+            var fRef = norm((document.getElementById('spiritHotToysAdminAnalyseRef') || {}).value || '');
+            function pretty(v) {
+                var s = String(v || '').replace(/\s+/g, ' ').trim();
+                if (!s) return '—';
+                return s.charAt(0).toUpperCase() + s.slice(1);
+            }
             fRows.forEach(function (r) {
-                var brand = String(r && r.brand || '').trim() || '—';
-                var name = String(r && r.name_query || '').trim() || '—';
-                var ref = String(r && r.ref_query || '').trim() || '—';
-                var key = norm(brand) + '|' + norm(name) + '|' + norm(ref);
-                if (!gmap[key]) gmap[key] = { brand: brand, name: name, ref: ref, users: {}, countUsers: 0, sumPrice: 0, countPrice: 0 };
+                var brandRaw = String(r && r.brand || '').trim();
+                var nameRaw = String(r && r.name_query || '').trim();
+                var refRaw = String(r && r.ref_query || '').trim();
+                var brandN = norm(brandRaw);
+                var nameN = norm(nameRaw);
+                var refN = norm(refRaw);
+                var key = brandN + '|' + nameN + '|' + refN;
+                if (!gmap[key]) gmap[key] = {
+                    brand: pretty(brandRaw),
+                    name: pretty(nameRaw),
+                    ref: pretty(refRaw),
+                    brandN: brandN,
+                    nameN: nameN,
+                    refN: refN,
+                    users: {},
+                    countUsers: 0,
+                    sumPrice: 0,
+                    countPrice: 0
+                };
                 var u = String(r && r.user_id || '').trim();
                 if (u && !gmap[key].users[u]) {
                     gmap[key].users[u] = true;
@@ -15010,6 +15043,14 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 g.avgPrice = g.countPrice ? (g.sumPrice / g.countPrice) : 0;
                 return g;
             });
+            if (fFig || fBrand || fRef) {
+                list = list.filter(function (g) {
+                    if (fFig && g.nameN.indexOf(fFig) === -1) return false;
+                    if (fBrand && g.brandN.indexOf(fBrand) === -1) return false;
+                    if (fRef && g.refN.indexOf(fRef) === -1) return false;
+                    return true;
+                });
+            }
             list.sort(function (a, b) {
                 if (b.countUsers !== a.countUsers) return b.countUsers - a.countUsers;
                 return b.avgPrice - a.avgPrice;
