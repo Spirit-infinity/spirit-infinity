@@ -4815,6 +4815,7 @@
                 <button type="button" class="btn-action spirit-ht-admin-tab active" data-htab="preco" onclick="spiritHotToysAdminSetTab('preco')" style="font-size:0.62rem;padding:8px 12px;">Précommandes (contenu)</button>
                 <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="bourse" onclick="spiritHotToysAdminSetTab('bourse')" style="font-size:0.62rem;padding:8px 12px;">Bourse (ventes & litiges)</button>
                 <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="bourse_analyse" onclick="spiritHotToysAdminSetTab('bourse_analyse')" style="font-size:0.62rem;padding:8px 12px;">Bourse (Analyse)</button>
+                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="revenue" onclick="spiritHotToysAdminSetTab('revenue')" style="font-size:0.62rem;padding:8px 12px;">Revenue</button>
             </div>
             <div id="spiritHotToysAdminTabPreco">
                 <p style="font-size:0.65rem;color:#888;margin:0 0 10px;">Modifie les textes et URLs d’images ; enregistrement local (navigateur). Puis ouvre la page précommandes pour vérifier.</p>
@@ -4832,8 +4833,10 @@
                 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;">
                     <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#1a3040;border-color:#3a6a8a;color:#9fd4ff;" onclick="spiritHotToysAdminExportBoursePdf('spiritHotToysAdminBourseStats','Synthèse du mois — Bourse Spirit')">Exporter PDF</button>
                     <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#2a2222;border-color:#553;color:#caa;" onclick="spiritHotToysAdminResetBourseSection('spiritHotToysAdminBourseStats')">Remise à zéro</button>
+                    <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#1a2336;border-color:#38527a;color:#b9d7ff;" onclick="spiritHotToysAdminToggleMonthCompare()">Comparaison mois / mois</button>
                 </div>
                 <div id="spiritHotToysAdminBourseStats" style="color:#ccc;overflow-x:auto;width:100%;border:1px solid #2a2a2a;border-radius:4px;padding:10px;box-sizing:border-box;background:#080808;margin-bottom:14px;"></div>
+                <div id="spiritHotToysAdminBourseMonthCompare" style="display:none;color:#ccc;overflow-x:auto;width:100%;border:1px solid #2a2a2a;border-radius:4px;padding:10px;box-sizing:border-box;background:#07090c;margin-bottom:14px;"></div>
                 <h4 style="font-size:0.7rem;color:#dba;margin:0 0 6px;font-weight:700;">Classement figurines (Top 5 du mois)</h4>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;">
                     <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#1f2733;border-color:#3a6a8a;color:#9fd4ff;" onclick="spiritHotToysAdminExportBoursePdf('spiritHotToysAdminBourseTop5','Top 5 figurines — Bourse Spirit')">Exporter PDF</button>
@@ -4865,13 +4868,29 @@
                     <input id="spiritHotToysAdminAnalyseFig" type="text" placeholder="Filtre figurine" style="padding:6px 8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.62rem;min-width:160px;">
                     <input id="spiritHotToysAdminAnalyseBrand" type="text" placeholder="Filtre marque" style="padding:6px 8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.62rem;min-width:140px;">
                     <input id="spiritHotToysAdminAnalyseRef" type="text" placeholder="Filtre réf." style="padding:6px 8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.62rem;min-width:120px;">
+                    <input id="spiritHotToysAdminAnalyseCountry" type="text" placeholder="Filtre pays" style="padding:6px 8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.62rem;min-width:120px;">
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;">
                     <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#1a3040;border-color:#3a6a8a;color:#9fd4ff;" onclick="spiritHotToysAdminExportBoursePdf('spiritHotToysAdminBourseAnalyseOut','Bourse Analyse — recherches utilisateurs')">Exporter PDF</button>
                     <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#2a2222;border-color:#553;color:#caa;" onclick="spiritHotToysAdminResetBourseSection('spiritHotToysAdminBourseAnalyseOut')">Remise à zéro</button>
                 </div>
                 <div id="spiritHotToysAdminBourseAnalyseOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(56vh,620px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#060606;"></div>
+                <h4 style="font-size:0.7rem;color:#9fd4ff;margin:14px 0 6px;font-weight:700;">Top demandes (figurine / marque / réf / pays)</h4>
+                <div id="spiritHotToysAdminBourseAnalyseCountryOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(40vh,420px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#05080b;"></div>
+                <h4 style="font-size:0.7rem;color:#cfcfa0;margin:14px 0 6px;font-weight:700;">Wishlist -> vente : délai moyen</h4>
+                <div id="spiritHotToysAdminBourseAnalyseDelayOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(40vh,420px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#080806;"></div>
+                <h4 style="font-size:0.7rem;color:#dcb38f;margin:14px 0 6px;font-weight:700;">Wishlist vs achats (combien ajoutent, combien achètent, délai)</h4>
+                <div id="spiritHotToysAdminBourseAnalyseConvOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(40vh,420px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#0a0705;"></div>
                 <div id="spiritHotToysAdminBourseAnalyseArchives" style="margin-top:10px;font-size:0.6rem;color:#888;border-top:1px solid #222;padding-top:8px;"></div>
+            </div>
+            <div id="spiritHotToysAdminTabRevenue" style="display:none;">
+                <p style="font-size:0.62rem;color:#888;margin:0 0 8px;line-height:1.45;">Toutes les ventes du market avec commissions : <b>3%</b> Spirit + <b>3%</b> Hot Toys.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;">
+                    <button type="button" class="btn-action" style="font-size:0.62rem;padding:8px 14px;" onclick="spiritHotToysAdminLoadRevenue()">Charger / rafraîchir</button>
+                    <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#1a3040;border-color:#3a6a8a;color:#9fd4ff;" onclick="spiritHotToysAdminExportBoursePdf('spiritHotToysAdminRevenueOut','Revenue market — commissions')">Exporter PDF</button>
+                    <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#2a2222;border-color:#553;color:#caa;" onclick="spiritHotToysAdminResetBourseSection('spiritHotToysAdminRevenueOut')">Remise à zéro</button>
+                </div>
+                <div id="spiritHotToysAdminRevenueOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(60vh,640px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#060606;"></div>
             </div>
         </div>
     </div>
@@ -14529,7 +14548,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
     function spiritHotToysAdminSetTab(which) {
         which = String(which || 'preco');
         if (which === 'litiges') which = 'bourse';
-        var map = { preco: 'spiritHotToysAdminTabPreco', bourse: 'spiritHotToysAdminTabBourse', bourse_analyse: 'spiritHotToysAdminTabBourseAnalyse' };
+        var map = { preco: 'spiritHotToysAdminTabPreco', bourse: 'spiritHotToysAdminTabBourse', bourse_analyse: 'spiritHotToysAdminTabBourseAnalyse', revenue: 'spiritHotToysAdminTabRevenue' };
         Object.keys(map).forEach(function (w) {
             var pane = document.getElementById(map[w]);
             var tabBtn = document.querySelector('.spirit-ht-admin-tab[data-htab="' + w + '"]');
@@ -14539,6 +14558,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
         });
         if (which === 'bourse_analyse') {
             try { spiritHotToysAdminLoadBourseAnalyse(); } catch (eAnaAuto) {}
+        } else if (which === 'revenue') {
+            try { spiritHotToysAdminLoadRevenue(); } catch (eRevAuto) {}
         }
     }
 
@@ -14972,26 +14993,23 @@ async function spiritLoadListingMessagesForProduct(productId) {
 
     async function spiritHotToysAdminLoadBourseAnalyse() {
         var out = document.getElementById('spiritHotToysAdminBourseAnalyseOut');
+        var outCountry = document.getElementById('spiritHotToysAdminBourseAnalyseCountryOut');
+        var outDelay = document.getElementById('spiritHotToysAdminBourseAnalyseDelayOut');
+        var outConv = document.getElementById('spiritHotToysAdminBourseAnalyseConvOut');
         if (!out) return;
         out.innerHTML = 'Chargement…';
+        if (outCountry) outCountry.innerHTML = 'Chargement…';
+        if (outDelay) outDelay.innerHTML = 'Chargement…';
+        if (outConv) outConv.innerHTML = 'Chargement…';
         if (typeof _spirit === 'undefined' || !_spirit) {
             out.textContent = 'Supabase indisponible.';
+            if (outCountry) outCountry.textContent = 'Supabase indisponible.';
+            if (outDelay) outDelay.textContent = 'Supabase indisponible.';
+            if (outConv) outConv.textContent = 'Supabase indisponible.';
             return;
         }
         try {
-            var q = await _spirit
-                .from('spirit_wishlist_searches')
-                .select('user_id,brand,name_query,ref_query,price_max,created_at')
-                .order('created_at', { ascending: false })
-                .limit(4000);
-            if (q.error) throw q.error;
-            var rows = Array.isArray(q.data) ? q.data : [];
-            var monthKey = spiritHotToysAdminFillAnalyseMonthSelect(rows);
-            var fRows = rows.filter(function (r) {
-                var d = r && r.created_at ? new Date(r.created_at) : null;
-                return spiritHotToysAdminMonthKeyFromDate(d) === monthKey;
-            });
-            var gmap = Object.create(null);
+            function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); }
             function normBase(v) {
                 return String(v || '')
                     .toLowerCase()
@@ -15000,104 +15018,256 @@ async function spiritLoadListingMessagesForProduct(productId) {
                     .replace(/\s+/g, ' ')
                     .trim();
             }
-            function normBrand(v) {
-                return normBase(v)
-                    .replace(/[^a-z0-9 ]+/g, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-            }
-            function normRef(v) {
-                return normBase(v)
-                    .replace(/[^a-z0-9]+/g, '');
-            }
-            function normName(v) {
-                return normBase(v)
-                    .replace(/[^a-z0-9 ]+/g, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-            }
-            var fFig = normName((document.getElementById('spiritHotToysAdminAnalyseFig') || {}).value || '');
-            var fBrand = normBrand((document.getElementById('spiritHotToysAdminAnalyseBrand') || {}).value || '');
-            var fRef = normRef((document.getElementById('spiritHotToysAdminAnalyseRef') || {}).value || '');
+            function normBrand(v) { return normBase(v).replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+            function normRef(v) { return normBase(v).replace(/[^a-z0-9]+/g, ''); }
+            function normName(v) { return normBase(v).replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+            function normCountry(v) { return normBase(v).replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
             function pretty(v) {
                 var s = String(v || '').replace(/\s+/g, ' ').trim();
                 if (!s) return '—';
                 return s.charAt(0).toUpperCase() + s.slice(1);
             }
+            function msToHuman(ms) {
+                var m = Number(ms);
+                if (!Number.isFinite(m) || m < 0) return '—';
+                var h = Math.round(m / 36e5);
+                if (h < 24) return h + ' h';
+                var d = Math.round(h / 24);
+                return d + ' j';
+            }
+
+            var q = await _spirit
+                .from('spirit_wishlist_searches')
+                .select('id,user_id,brand,name_query,ref_query,price_max,zone_query,created_at')
+                .order('created_at', { ascending: false })
+                .limit(5000);
+            if (q.error) throw q.error;
+            var rows = Array.isArray(q.data) ? q.data : [];
+            var monthKey = spiritHotToysAdminFillAnalyseMonthSelect(rows);
+            var fRows = rows.filter(function (r) {
+                var d = r && r.created_at ? new Date(r.created_at) : null;
+                return spiritHotToysAdminMonthKeyFromDate(d) === monthKey;
+            });
+            var fFig = normName((document.getElementById('spiritHotToysAdminAnalyseFig') || {}).value || '');
+            var fBrand = normBrand((document.getElementById('spiritHotToysAdminAnalyseBrand') || {}).value || '');
+            var fRef = normRef((document.getElementById('spiritHotToysAdminAnalyseRef') || {}).value || '');
+            var fCountry = normCountry((document.getElementById('spiritHotToysAdminAnalyseCountry') || {}).value || '');
+
+            var gmap = Object.create(null);
             fRows.forEach(function (r) {
                 var brandRaw = String(r && r.brand || '').trim();
                 var nameRaw = String(r && r.name_query || '').trim();
                 var refRaw = String(r && r.ref_query || '').trim();
+                var countryRaw = String(r && r.zone_query || '').trim();
                 var brandN = normBrand(brandRaw);
                 var nameN = normName(nameRaw);
                 var refN = normRef(refRaw);
+                var countryN = normCountry(countryRaw);
                 var key = brandN + '|' + nameN + '|' + refN;
                 if (!gmap[key]) gmap[key] = {
-                    brand: pretty(brandRaw),
-                    name: pretty(nameRaw),
-                    ref: pretty(refRaw),
-                    brandN: brandN,
-                    nameN: nameN,
-                    refN: refN,
-                    users: {},
-                    countUsers: 0,
-                    sumPrice: 0,
-                    countPrice: 0
+                    brand: pretty(brandRaw), name: pretty(nameRaw), ref: pretty(refRaw),
+                    brandN: brandN, nameN: nameN, refN: refN, users: {}, countUsers: 0,
+                    sumPrice: 0, countPrice: 0
                 };
                 var u = String(r && r.user_id || '').trim();
-                if (u && !gmap[key].users[u]) {
-                    gmap[key].users[u] = true;
-                    gmap[key].countUsers += 1;
-                }
+                if (u && !gmap[key].users[u]) { gmap[key].users[u] = true; gmap[key].countUsers += 1; }
                 var p = Number(r && r.price_max);
-                if (Number.isFinite(p) && p > 0) {
-                    gmap[key].sumPrice += p;
-                    gmap[key].countPrice += 1;
-                }
+                if (Number.isFinite(p) && p > 0) { gmap[key].sumPrice += p; gmap[key].countPrice += 1; }
             });
             var list = Object.keys(gmap).map(function (k) {
-                var g = gmap[k];
-                g.avgPrice = g.countPrice ? (g.sumPrice / g.countPrice) : 0;
-                return g;
+                var g = gmap[k]; g.avgPrice = g.countPrice ? (g.sumPrice / g.countPrice) : 0; return g;
+            }).filter(function (g) {
+                if (fFig && g.nameN.indexOf(fFig) === -1) return false;
+                if (fBrand && g.brandN.indexOf(fBrand) === -1) return false;
+                if (fRef && g.refN.indexOf(fRef) === -1) return false;
+                return true;
             });
-            if (fFig || fBrand || fRef) {
-                list = list.filter(function (g) {
-                    if (fFig && g.nameN.indexOf(fFig) === -1) return false;
-                    if (fBrand && g.brandN.indexOf(fBrand) === -1) return false;
-                    if (fRef && g.refN.indexOf(fRef) === -1) return false;
-                    return true;
-                });
-            }
-            list.sort(function (a, b) {
-                if (b.countUsers !== a.countUsers) return b.countUsers - a.countUsers;
-                return b.avgPrice - a.avgPrice;
-            });
+            list.sort(function (a, b) { if (b.countUsers !== a.countUsers) return b.countUsers - a.countUsers; return b.avgPrice - a.avgPrice; });
             var label = spiritHotToysAdminBuildMonthLabel(monthKey);
-            var html = '<p style="margin:0 0 8px;color:#aaa;font-size:0.65rem;">Mois analysé : <b>' + label.replace(/</g, '&lt;') + '</b> · ' + fRows.length + ' recherche(s) utilisateur.</p>';
+            var html = '<p style="margin:0 0 8px;color:#aaa;font-size:0.65rem;">Mois analysé : <b>' + esc(label) + '</b> · ' + fRows.length + ' recherche(s) utilisateur.</p>';
             html += '<table class="spirit-ht-bourse-stats-table"><thead><tr style="background:#151515;"><th>#</th><th>Utilisateurs</th><th>Figurine</th><th>Réf.</th><th>Marque</th><th>Prix moyen recherché</th></tr></thead><tbody>';
-            if (!list.length) {
-                html += '<tr><td colspan="6" style="color:#888;">Aucune recherche enregistrée pour ce mois.</td></tr>';
-            } else {
-                list.forEach(function (g, idx) {
-                    html += '<tr>'
-                        + '<td>' + (idx + 1) + '</td>'
-                        + '<td>' + g.countUsers + '</td>'
-                        + '<td>' + String(g.name).replace(/</g, '&lt;') + '</td>'
-                        + '<td>' + String(g.ref).replace(/</g, '&lt;') + '</td>'
-                        + '<td>' + String(g.brand).replace(/</g, '&lt;') + '</td>'
-                        + '<td>' + (g.avgPrice ? (Math.round(g.avgPrice) + ' €') : '—') + '</td>'
-                        + '</tr>';
-                });
-            }
+            if (!list.length) html += '<tr><td colspan="6" style="color:#888;">Aucune recherche enregistrée pour ce mois.</td></tr>';
+            else list.forEach(function (g, idx) {
+                html += '<tr><td>' + (idx + 1) + '</td><td>' + g.countUsers + '</td><td>' + esc(g.name) + '</td><td>' + esc(g.ref) + '</td><td>' + esc(g.brand) + '</td><td>' + (g.avgPrice ? (Math.round(g.avgPrice) + ' €') : '—') + '</td></tr>';
+            });
             html += '</tbody></table>';
             out.innerHTML = html;
+
+            // Tableau demandes par pays
+            var cmap = Object.create(null);
+            fRows.forEach(function (r) {
+                var brandRaw = String(r && r.brand || '').trim();
+                var nameRaw = String(r && r.name_query || '').trim();
+                var refRaw = String(r && r.ref_query || '').trim();
+                var countryRaw = String(r && r.zone_query || '').trim() || '—';
+                var brandN = normBrand(brandRaw), nameN = normName(nameRaw), refN = normRef(refRaw), countryN = normCountry(countryRaw);
+                if (fFig && nameN.indexOf(fFig) === -1) return;
+                if (fBrand && brandN.indexOf(fBrand) === -1) return;
+                if (fRef && refN.indexOf(fRef) === -1) return;
+                if (fCountry && countryN.indexOf(fCountry) === -1) return;
+                var key = brandN + '|' + nameN + '|' + refN + '|' + countryN;
+                if (!cmap[key]) cmap[key] = { brand: pretty(brandRaw), name: pretty(nameRaw), ref: pretty(refRaw), country: pretty(countryRaw), users: {} };
+                var u = String(r && r.user_id || '').trim();
+                if (u) cmap[key].users[u] = true;
+            });
+            var clist = Object.keys(cmap).map(function (k) {
+                var c = cmap[k]; c.countUsers = Object.keys(c.users).length; return c;
+            }).sort(function (a, b) { return b.countUsers - a.countUsers; });
+            var cHtml = '<table class="spirit-ht-bourse-stats-table"><thead><tr style="background:#151515;"><th>#</th><th>Utilisateurs</th><th>Figurine</th><th>Réf.</th><th>Marque</th><th>Pays</th></tr></thead><tbody>';
+            if (!clist.length) cHtml += '<tr><td colspan="6" style="color:#888;">Aucune ligne (filtres trop stricts ?).</td></tr>';
+            else clist.forEach(function (c, i) { cHtml += '<tr><td>' + (i + 1) + '</td><td>' + c.countUsers + '</td><td>' + esc(c.name) + '</td><td>' + esc(c.ref) + '</td><td>' + esc(c.brand) + '</td><td>' + esc(c.country) + '</td></tr>'; });
+            cHtml += '</tbody></table>';
+            if (outCountry) outCountry.innerHTML = cHtml;
+
+            // Délai wishlist -> vente par figurine/réf/marque
+            var txQ = await _spirit.from('transactions').select('id,buyer_id,product_id,figurine_name,title,product_reference,created_at').order('created_at', { ascending: false }).limit(4000);
+            var txRows = (txQ && !txQ.error && Array.isArray(txQ.data)) ? txQ.data : [];
+            var salesMap = Object.create(null);
+            txRows.forEach(function (t) {
+                var bN = normBrand('');
+                var nN = normName(t && (t.figurine_name || t.title) || '');
+                var rN = normRef(t && t.product_reference || '');
+                var sKey = bN + '|' + nN + '|' + rN;
+                if (!salesMap[sKey]) salesMap[sKey] = [];
+                var ts = t && t.created_at ? new Date(t.created_at).getTime() : 0;
+                if (ts) salesMap[sKey].push(ts);
+            });
+            Object.keys(salesMap).forEach(function (k) { salesMap[k].sort(function (a, b) { return a - b; }); });
+            var delayMap = Object.create(null);
+            fRows.forEach(function (r) {
+                var brandN = normBrand(r && r.brand || '');
+                var nameN = normName(r && r.name_query || '');
+                var refN = normRef(r && r.ref_query || '');
+                if (fFig && nameN.indexOf(fFig) === -1) return;
+                if (fBrand && brandN.indexOf(fBrand) === -1) return;
+                if (fRef && refN.indexOf(fRef) === -1) return;
+                var key = brandN + '|' + nameN + '|' + refN;
+                var reqTs = r && r.created_at ? new Date(r.created_at).getTime() : 0;
+                var soldTs = (salesMap[key] || []).find(function (x) { return x >= reqTs; });
+                if (!soldTs || !reqTs) return;
+                if (!delayMap[key]) delayMap[key] = { brand: pretty(r.brand), name: pretty(r.name_query), ref: pretty(r.ref_query), n: 0, sum: 0 };
+                delayMap[key].n += 1;
+                delayMap[key].sum += (soldTs - reqTs);
+            });
+            var dList = Object.keys(delayMap).map(function (k) { var d = delayMap[k]; d.avgMs = d.n ? d.sum / d.n : 0; return d; })
+                .sort(function (a, b) { return a.avgMs - b.avgMs; });
+            var dHtml = '<table class="spirit-ht-bourse-stats-table"><thead><tr style="background:#151515;"><th>#</th><th>Figurine</th><th>Réf.</th><th>Marque</th><th>Cas</th><th>Délai moyen vente</th></tr></thead><tbody>';
+            if (!dList.length) dHtml += '<tr><td colspan="6" style="color:#888;">Aucun rapprochement wishlist -> vente trouvé.</td></tr>';
+            else dList.forEach(function (d, i) { dHtml += '<tr><td>' + (i + 1) + '</td><td>' + esc(d.name) + '</td><td>' + esc(d.ref) + '</td><td>' + esc(d.brand) + '</td><td>' + d.n + '</td><td>' + msToHuman(d.avgMs) + '</td></tr>'; });
+            dHtml += '</tbody></table>';
+            if (outDelay) outDelay.innerHTML = dHtml;
+
+            // Wishlist ajout -> achat (favorites)
+            var favQ = await _spirit.from('favorites').select('user_id,product_id,created_at').order('created_at', { ascending: false }).limit(8000);
+            var favRows = (favQ && !favQ.error && Array.isArray(favQ.data)) ? favQ.data : [];
+            var txByUserProd = Object.create(null);
+            txRows.forEach(function (t) {
+                var u = String(t && t.buyer_id || '').trim();
+                var p = Number(t && t.product_id);
+                var ts = t && t.created_at ? new Date(t.created_at).getTime() : 0;
+                if (!u || !Number.isFinite(p) || !ts) return;
+                var k = u + '|' + p;
+                if (!txByUserProd[k] || ts < txByUserProd[k]) txByUserProd[k] = ts;
+            });
+            var convMap = Object.create(null);
+            favRows.forEach(function (f) {
+                var u = String(f && f.user_id || '').trim();
+                var p = Number(f && f.product_id);
+                var ft = f && f.created_at ? new Date(f.created_at).getTime() : 0;
+                if (!u || !Number.isFinite(p) || !ft) return;
+                var prod = txRows.find(function (t) { return Number(t && t.product_id) === p; }) || {};
+                var brandN = normBrand('');
+                var nameN = normName(prod.figurine_name || prod.title || '');
+                var refN = normRef(prod.product_reference || '');
+                if (fFig && nameN.indexOf(fFig) === -1) return;
+                if (fBrand && brandN.indexOf(fBrand) === -1) return;
+                if (fRef && refN.indexOf(fRef) === -1) return;
+                var gk = brandN + '|' + nameN + '|' + refN;
+                if (!convMap[gk]) convMap[gk] = { brand: pretty(''), name: pretty(prod.figurine_name || prod.title), ref: pretty(prod.product_reference), wlUsers: {}, buyUsers: {}, delaySum: 0, delayN: 0 };
+                convMap[gk].wlUsers[u] = true;
+                var buyTs = txByUserProd[u + '|' + p];
+                if (buyTs && buyTs >= ft) {
+                    convMap[gk].buyUsers[u] = true;
+                    convMap[gk].delaySum += (buyTs - ft);
+                    convMap[gk].delayN += 1;
+                }
+            });
+            var cvList = Object.keys(convMap).map(function (k) {
+                var c = convMap[k];
+                c.wl = Object.keys(c.wlUsers).length;
+                c.buy = Object.keys(c.buyUsers).length;
+                c.avgMs = c.delayN ? (c.delaySum / c.delayN) : 0;
+                return c;
+            }).sort(function (a, b) { return b.wl - a.wl; });
+            var cvHtml = '<table class="spirit-ht-bourse-stats-table"><thead><tr style="background:#151515;"><th>#</th><th>Figurine</th><th>Réf.</th><th>Ajouts wishlist</th><th>Acheteurs</th><th>Taux achat</th><th>Délai moyen</th></tr></thead><tbody>';
+            if (!cvList.length) cvHtml += '<tr><td colspan="7" style="color:#888;">Pas assez de données favorites/transactions.</td></tr>';
+            else cvList.forEach(function (c, i) {
+                var rate = c.wl ? ((c.buy / c.wl) * 100) : 0;
+                cvHtml += '<tr><td>' + (i + 1) + '</td><td>' + esc(c.name) + '</td><td>' + esc(c.ref) + '</td><td>' + c.wl + '</td><td>' + c.buy + '</td><td>' + rate.toFixed(1) + '%</td><td>' + (c.delayN ? msToHuman(c.avgMs) : '—') + '</td></tr>';
+            });
+            cvHtml += '</tbody></table>';
+            if (outConv) outConv.innerHTML = cvHtml;
+
             spiritHotToysAdminArchiveBourseAnalyseMonth(monthKey, label, html);
             spiritHotToysAdminRenderBourseAnalyseArchivesList();
+        } catch (e) {
+            var err = '<span style="color:#f66;">' + String(e && e.message ? e.message : e).replace(/</g, '&lt;') + '</span>';
+            out.innerHTML = err;
+            if (outCountry) outCountry.innerHTML = err;
+            if (outDelay) outDelay.innerHTML = err;
+            if (outConv) outConv.innerHTML = err;
+        }
+    }
+    try { window.spiritHotToysAdminLoadBourseAnalyse = spiritHotToysAdminLoadBourseAnalyse; } catch (eAnaLoadWin) {}
+
+    var spiritHotToysAdminBourseMonthCmpHtml = '';
+    function spiritHotToysAdminToggleMonthCompare() {
+        var box = document.getElementById('spiritHotToysAdminBourseMonthCompare');
+        if (!box) return;
+        if (box.style.display === 'none' || !box.style.display) {
+            if (spiritHotToysAdminBourseMonthCmpHtml) box.innerHTML = spiritHotToysAdminBourseMonthCmpHtml;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+    try { window.spiritHotToysAdminToggleMonthCompare = spiritHotToysAdminToggleMonthCompare; } catch (eCmpWin) {}
+
+    async function spiritHotToysAdminLoadRevenue() {
+        var out = document.getElementById('spiritHotToysAdminRevenueOut');
+        if (!out) return;
+        out.innerHTML = 'Chargement…';
+        if (typeof _spirit === 'undefined' || !_spirit) { out.textContent = 'Supabase indisponible.'; return; }
+        try {
+            function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); }
+            var q = await _spirit.from('transactions').select('id,figurine_name,title,amount,currency,status,created_at').order('created_at', { ascending: false }).limit(2500);
+            if (q.error) throw q.error;
+            var rows = Array.isArray(q.data) ? q.data : [];
+            var html = '<table class="spirit-ht-bourse-stats-table"><thead><tr style="background:#151515;"><th>Date</th><th>Figurine</th><th>Vente</th><th>3% Spirit</th><th>3% Hot Toys</th><th>Total commissions</th></tr></thead><tbody>';
+            var sumSales = 0, sumSp = 0, sumHt = 0;
+            rows.forEach(function (r) {
+                var amt = Number(r && r.amount || 0);
+                if (!Number.isFinite(amt) || amt <= 0) return;
+                var sp = amt * 0.03;
+                var ht = amt * 0.03;
+                sumSales += amt; sumSp += sp; sumHt += ht;
+                html += '<tr>'
+                    + '<td>' + esc(r.created_at ? new Date(r.created_at).toLocaleString() : '—') + '</td>'
+                    + '<td>' + esc(r.figurine_name || r.title || '—') + '</td>'
+                    + '<td>' + amt.toFixed(2) + ' ' + esc(r.currency || 'EUR') + '</td>'
+                    + '<td>' + sp.toFixed(2) + ' ' + esc(r.currency || 'EUR') + '</td>'
+                    + '<td>' + ht.toFixed(2) + ' ' + esc(r.currency || 'EUR') + '</td>'
+                    + '<td>' + (sp + ht).toFixed(2) + ' ' + esc(r.currency || 'EUR') + '</td>'
+                    + '</tr>';
+            });
+            html += '</tbody></table>';
+            html += '<p style="margin-top:10px;color:#9fdfbf;font-weight:700;">Ventes: ' + sumSales.toFixed(2) + ' | Commission Spirit (3%): ' + sumSp.toFixed(2) + ' | Commission Hot Toys (3%): ' + sumHt.toFixed(2) + '</p>';
+            out.innerHTML = html;
         } catch (e) {
             out.innerHTML = '<span style="color:#f66;">' + String(e && e.message ? e.message : e).replace(/</g, '&lt;') + '</span>';
         }
     }
-    try { window.spiritHotToysAdminLoadBourseAnalyse = spiritHotToysAdminLoadBourseAnalyse; } catch (eAnaLoadWin) {}
+    try { window.spiritHotToysAdminLoadRevenue = spiritHotToysAdminLoadRevenue; } catch (eRevWin) {}
 
     async function spiritHotToysAdminResetBourseSection(boxId) {
         var el = document.getElementById(boxId);
@@ -15143,6 +15313,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
             var t0 = new Date(y, mo, 1).getTime();
             var t1 = new Date(y, mo + 1, 0, 23, 59, 59, 999).getTime();
             var monthLabel = now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+            var prevStart = new Date(y, mo - 1, 1).getTime();
+            var prevEnd = new Date(y, mo, 0, 23, 59, 59, 999).getTime();
             var groups = Object.create(null);
             var figMap = Object.create(null);
             var byBrand = Object.create(null);
@@ -15174,6 +15346,25 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 byBrand[bk].sumEur += eur;
                 byBrand[bk].count += 1;
             });
+            var curCount = 0, prevCount = 0, curEur = 0, prevEur = 0;
+            rows.forEach(function (r) {
+                var ts = r && r.created_at ? new Date(r.created_at).getTime() : 0;
+                if (!ts) return;
+                var eur = typeof spiritTransactionAmountEUR === 'function' ? spiritTransactionAmountEUR(r) : (Number(r.amount) || 0);
+                if (ts >= t0 && ts <= t1) { curCount += 1; curEur += eur; }
+                else if (ts >= prevStart && ts <= prevEnd) { prevCount += 1; prevEur += eur; }
+            });
+            var prevLabel = new Date(y, mo - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+            spiritHotToysAdminBourseMonthCmpHtml =
+                '<table class="spirit-ht-bourse-stats-table"><thead><tr style="background:#151515;"><th>Période</th><th>Ventes</th><th>Total EUR</th></tr></thead><tbody>'
+                + '<tr><td>' + esc(monthLabel) + '</td><td>' + curCount + '</td><td>' + curEur.toFixed(2) + ' €</td></tr>'
+                + '<tr><td>' + esc(prevLabel) + '</td><td>' + prevCount + '</td><td>' + prevEur.toFixed(2) + ' €</td></tr>'
+                + '</tbody></table>'
+                + '<p style="margin-top:8px;color:#9ab;font-size:0.62rem;">Évolution ventes: ' + (curCount - prevCount) + ' | Évolution total EUR: ' + (curEur - prevEur).toFixed(2) + ' €</p>';
+            try {
+                var cmpBox = document.getElementById('spiritHotToysAdminBourseMonthCompare');
+                if (cmpBox && cmpBox.style.display !== 'none') cmpBox.innerHTML = spiritHotToysAdminBourseMonthCmpHtml;
+            } catch (eCmpSet) {}
             var list = Object.keys(groups).map(function (k) {
                 var g = groups[k];
                 g.avg = g.count ? g.sumEur / g.count : 0;
