@@ -14992,16 +14992,33 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 return spiritHotToysAdminMonthKeyFromDate(d) === monthKey;
             });
             var gmap = Object.create(null);
-            function norm(v) {
+            function normBase(v) {
                 return String(v || '')
                     .toLowerCase()
                     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[\u00A0\u2000-\u200D\u202F\u205F\u3000]/g, ' ')
                     .replace(/\s+/g, ' ')
                     .trim();
             }
-            var fFig = norm((document.getElementById('spiritHotToysAdminAnalyseFig') || {}).value || '');
-            var fBrand = norm((document.getElementById('spiritHotToysAdminAnalyseBrand') || {}).value || '');
-            var fRef = norm((document.getElementById('spiritHotToysAdminAnalyseRef') || {}).value || '');
+            function normBrand(v) {
+                return normBase(v)
+                    .replace(/[^a-z0-9 ]+/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            }
+            function normRef(v) {
+                return normBase(v)
+                    .replace(/[^a-z0-9]+/g, '');
+            }
+            function normName(v) {
+                return normBase(v)
+                    .replace(/[^a-z0-9 ]+/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            }
+            var fFig = normName((document.getElementById('spiritHotToysAdminAnalyseFig') || {}).value || '');
+            var fBrand = normBrand((document.getElementById('spiritHotToysAdminAnalyseBrand') || {}).value || '');
+            var fRef = normRef((document.getElementById('spiritHotToysAdminAnalyseRef') || {}).value || '');
             function pretty(v) {
                 var s = String(v || '').replace(/\s+/g, ' ').trim();
                 if (!s) return '—';
@@ -15011,9 +15028,9 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 var brandRaw = String(r && r.brand || '').trim();
                 var nameRaw = String(r && r.name_query || '').trim();
                 var refRaw = String(r && r.ref_query || '').trim();
-                var brandN = norm(brandRaw);
-                var nameN = norm(nameRaw);
-                var refN = norm(refRaw);
+                var brandN = normBrand(brandRaw);
+                var nameN = normName(nameRaw);
+                var refN = normRef(refRaw);
                 var key = brandN + '|' + nameN + '|' + refN;
                 if (!gmap[key]) gmap[key] = {
                     brand: pretty(brandRaw),
