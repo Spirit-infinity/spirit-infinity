@@ -4814,6 +4814,7 @@
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;border-bottom:1px solid #222;padding-bottom:10px;">
                 <button type="button" class="btn-action spirit-ht-admin-tab active" data-htab="preco" onclick="spiritHotToysAdminSetTab('preco')" style="font-size:0.62rem;padding:8px 12px;">Précommandes (contenu)</button>
                 <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="bourse" onclick="spiritHotToysAdminSetTab('bourse')" style="font-size:0.62rem;padding:8px 12px;">Bourse (ventes & litiges)</button>
+                <button type="button" class="btn-action spirit-ht-admin-tab" data-htab="bourse_analyse" onclick="spiritHotToysAdminSetTab('bourse_analyse')" style="font-size:0.62rem;padding:8px 12px;">Bourse (Analyse)</button>
             </div>
             <div id="spiritHotToysAdminTabPreco">
                 <p style="font-size:0.65rem;color:#888;margin:0 0 10px;">Modifie les textes et URLs d’images ; enregistrement local (navigateur). Puis ouvre la page précommandes pour vérifier.</p>
@@ -4852,6 +4853,20 @@
                 </div>
                 <div id="spiritHotToysAdminBourseOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(52vh,560px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#060606;"></div>
                 <div id="spiritHotToysAdminBourseArchives" style="margin-top:10px;font-size:0.6rem;color:#888;border-top:1px solid #222;padding-top:8px;"></div>
+            </div>
+            <div id="spiritHotToysAdminTabBourseAnalyse" style="display:none;">
+                <p style="font-size:0.62rem;color:#888;margin:0 0 8px;line-height:1.45;">Analyse des <b>listes d’envie / recherches</b> par mois : nombre d’utilisateurs, figurine, référence, marque, prix moyen recherché.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;">
+                    <label for="spiritHotToysAdminAnalyseMonth" style="font-size:0.62rem;color:#aaa;">Mois</label>
+                    <select id="spiritHotToysAdminAnalyseMonth" style="padding:6px 8px;background:#111;border:1px solid #333;color:#ddd;font-size:0.62rem;"></select>
+                    <button type="button" class="btn-action" style="font-size:0.6rem;padding:7px 12px;" onclick="spiritHotToysAdminLoadBourseAnalyse()">Charger / rafraîchir</button>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;">
+                    <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#1a3040;border-color:#3a6a8a;color:#9fd4ff;" onclick="spiritHotToysAdminExportBoursePdf('spiritHotToysAdminBourseAnalyseOut','Bourse Analyse — recherches utilisateurs')">Exporter PDF</button>
+                    <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#2a2222;border-color:#553;color:#caa;" onclick="spiritHotToysAdminResetBourseSection('spiritHotToysAdminBourseAnalyseOut')">Remise à zéro</button>
+                </div>
+                <div id="spiritHotToysAdminBourseAnalyseOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(56vh,620px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#060606;"></div>
+                <div id="spiritHotToysAdminBourseAnalyseArchives" style="margin-top:10px;font-size:0.6rem;color:#888;border-top:1px solid #222;padding-top:8px;"></div>
             </div>
         </div>
     </div>
@@ -14509,7 +14524,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
     function spiritHotToysAdminSetTab(which) {
         which = String(which || 'preco');
         if (which === 'litiges') which = 'bourse';
-        var map = { preco: 'spiritHotToysAdminTabPreco', bourse: 'spiritHotToysAdminTabBourse' };
+        var map = { preco: 'spiritHotToysAdminTabPreco', bourse: 'spiritHotToysAdminTabBourse', bourse_analyse: 'spiritHotToysAdminTabBourseAnalyse' };
         Object.keys(map).forEach(function (w) {
             var pane = document.getElementById(map[w]);
             var tabBtn = document.querySelector('.spirit-ht-admin-tab[data-htab="' + w + '"]');
@@ -14517,6 +14532,9 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (pane) pane.style.display = show ? 'block' : 'none';
             if (tabBtn) tabBtn.classList.toggle('active', show);
         });
+        if (which === 'bourse_analyse') {
+            try { spiritHotToysAdminLoadBourseAnalyse(); } catch (eAnaAuto) {}
+        }
     }
 
     function spiritHotToysAdminRenderPrecoEditor() {
@@ -14785,6 +14803,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
     }
 
     var SPIRIT_HT_BOURSE_ARCHIVE_KEY = 'spirit_ht_bourse_archives_v1';
+    var SPIRIT_HT_BOURSE_ANALYSE_ARCHIVE_KEY = 'spirit_ht_bourse_analyse_archives_v1';
 
     function spiritHotToysAdminReadBourseArchives() {
         try {
@@ -14858,6 +14877,169 @@ async function spiritLoadListingMessagesForProduct(productId) {
         }
     }
     try { window.spiritHotToysAdminRestoreBourseArchive = spiritHotToysAdminRestoreBourseArchive; } catch (eArchWin) {}
+
+    function spiritHotToysAdminReadBourseAnalyseArchives() {
+        try {
+            var raw = localStorage.getItem(SPIRIT_HT_BOURSE_ANALYSE_ARCHIVE_KEY) || '';
+            if (!raw) return {};
+            var obj = JSON.parse(raw);
+            return (obj && typeof obj === 'object') ? obj : {};
+        } catch (e) {
+            return {};
+        }
+    }
+    function spiritHotToysAdminWriteBourseAnalyseArchives(data) {
+        try { localStorage.setItem(SPIRIT_HT_BOURSE_ANALYSE_ARCHIVE_KEY, JSON.stringify(data || {})); } catch (e) {}
+    }
+    function spiritHotToysAdminArchiveBourseAnalyseMonth(monthKey, monthLabel, htmlContent) {
+        if (!monthKey) return;
+        var map = spiritHotToysAdminReadBourseAnalyseArchives();
+        map[monthKey] = { label: String(monthLabel || monthKey), html: String(htmlContent || '') };
+        spiritHotToysAdminWriteBourseAnalyseArchives(map);
+    }
+    function spiritHotToysAdminRestoreBourseAnalyseArchive(monthKey) {
+        var map = spiritHotToysAdminReadBourseAnalyseArchives();
+        var a = map[monthKey];
+        if (!a) return;
+        var out = document.getElementById('spiritHotToysAdminBourseAnalyseOut');
+        if (out) out.innerHTML = a.html || '';
+    }
+    function spiritHotToysAdminRenderBourseAnalyseArchivesList() {
+        var host = document.getElementById('spiritHotToysAdminBourseAnalyseArchives');
+        if (!host) return;
+        var map = spiritHotToysAdminReadBourseAnalyseArchives();
+        var keys = Object.keys(map).sort().reverse();
+        if (!keys.length) {
+            host.innerHTML = '<span style="color:#555;">Aucune archive analyse pour le moment.</span>';
+            return;
+        }
+        var html = '<div style="margin-bottom:4px;color:#aaa;">Archives Bourse (Analyse) :</div>';
+        html += '<div style="display:flex;flex-direction:column;gap:4px;max-height:120px;overflow:auto;">';
+        keys.forEach(function (k) {
+            var a = map[k] || {};
+            var label = a.label || k;
+            html += '<div style="display:flex;align-items:center;gap:6px;">'
+                + '<span style="min-width:120px;color:#ccc;">' + String(label).replace(/</g, '&lt;') + '</span>'
+                + '<button type="button" class="btn-action" style="font-size:0.55rem;padding:3px 6px;background:#161f25;border-color:#355;color:#cfe5ff;" onclick="spiritHotToysAdminRestoreBourseAnalyseArchive(\'' + k.replace(/'/g, '\\\'') + '\')">Ouvrir</button>'
+                + '</div>';
+        });
+        html += '</div>';
+        host.innerHTML = html;
+    }
+    try { window.spiritHotToysAdminRestoreBourseAnalyseArchive = spiritHotToysAdminRestoreBourseAnalyseArchive; } catch (eAnaWin) {}
+
+    function spiritHotToysAdminMonthKeyFromDate(d) {
+        if (!(d instanceof Date) || isNaN(d.getTime())) return '';
+        return String(d.getFullYear()) + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    }
+    function spiritHotToysAdminBuildMonthLabel(key) {
+        try {
+            var m = /^(\d{4})-(\d{2})$/.exec(String(key || ''));
+            if (!m) return String(key || '—');
+            var y = Number(m[1]);
+            var mo = Number(m[2]) - 1;
+            var dt = new Date(y, mo, 1);
+            return dt.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+        } catch (e) {
+            return String(key || '—');
+        }
+    }
+    function spiritHotToysAdminFillAnalyseMonthSelect(rows) {
+        var sel = document.getElementById('spiritHotToysAdminAnalyseMonth');
+        if (!sel) return '';
+        var months = Object.create(null);
+        (rows || []).forEach(function (r) {
+            var d = r && r.created_at ? new Date(r.created_at) : null;
+            var mk = spiritHotToysAdminMonthKeyFromDate(d);
+            if (mk) months[mk] = true;
+        });
+        var arch = spiritHotToysAdminReadBourseAnalyseArchives();
+        Object.keys(arch).forEach(function (k) { months[k] = true; });
+        var keys = Object.keys(months).sort().reverse();
+        if (!keys.length) keys = [spiritHotToysAdminMonthKeyFromDate(new Date())];
+        var prev = String(sel.value || '');
+        sel.innerHTML = keys.map(function (k) {
+            return '<option value="' + k.replace(/"/g, '&quot;') + '">' + spiritHotToysAdminBuildMonthLabel(k).replace(/</g, '&lt;') + '</option>';
+        }).join('');
+        if (prev && keys.indexOf(prev) >= 0) sel.value = prev;
+        return String(sel.value || keys[0] || '');
+    }
+
+    async function spiritHotToysAdminLoadBourseAnalyse() {
+        var out = document.getElementById('spiritHotToysAdminBourseAnalyseOut');
+        if (!out) return;
+        out.innerHTML = 'Chargement…';
+        if (typeof _spirit === 'undefined' || !_spirit) {
+            out.textContent = 'Supabase indisponible.';
+            return;
+        }
+        try {
+            var q = await _spirit
+                .from('spirit_wishlist_searches')
+                .select('user_id,brand,name_query,ref_query,price_max,created_at')
+                .order('created_at', { ascending: false })
+                .limit(4000);
+            if (q.error) throw q.error;
+            var rows = Array.isArray(q.data) ? q.data : [];
+            var monthKey = spiritHotToysAdminFillAnalyseMonthSelect(rows);
+            var fRows = rows.filter(function (r) {
+                var d = r && r.created_at ? new Date(r.created_at) : null;
+                return spiritHotToysAdminMonthKeyFromDate(d) === monthKey;
+            });
+            var gmap = Object.create(null);
+            function norm(v) { return String(v || '').trim().toLowerCase(); }
+            fRows.forEach(function (r) {
+                var brand = String(r && r.brand || '').trim() || '—';
+                var name = String(r && r.name_query || '').trim() || '—';
+                var ref = String(r && r.ref_query || '').trim() || '—';
+                var key = norm(brand) + '|' + norm(name) + '|' + norm(ref);
+                if (!gmap[key]) gmap[key] = { brand: brand, name: name, ref: ref, users: {}, countUsers: 0, sumPrice: 0, countPrice: 0 };
+                var u = String(r && r.user_id || '').trim();
+                if (u && !gmap[key].users[u]) {
+                    gmap[key].users[u] = true;
+                    gmap[key].countUsers += 1;
+                }
+                var p = Number(r && r.price_max);
+                if (Number.isFinite(p) && p > 0) {
+                    gmap[key].sumPrice += p;
+                    gmap[key].countPrice += 1;
+                }
+            });
+            var list = Object.keys(gmap).map(function (k) {
+                var g = gmap[k];
+                g.avgPrice = g.countPrice ? (g.sumPrice / g.countPrice) : 0;
+                return g;
+            });
+            list.sort(function (a, b) {
+                if (b.countUsers !== a.countUsers) return b.countUsers - a.countUsers;
+                return b.avgPrice - a.avgPrice;
+            });
+            var label = spiritHotToysAdminBuildMonthLabel(monthKey);
+            var html = '<p style="margin:0 0 8px;color:#aaa;font-size:0.65rem;">Mois analysé : <b>' + label.replace(/</g, '&lt;') + '</b> · ' + fRows.length + ' recherche(s) utilisateur.</p>';
+            html += '<table class="spirit-ht-bourse-stats-table"><thead><tr style="background:#151515;"><th>#</th><th>Utilisateurs</th><th>Figurine</th><th>Réf.</th><th>Marque</th><th>Prix moyen recherché</th></tr></thead><tbody>';
+            if (!list.length) {
+                html += '<tr><td colspan="6" style="color:#888;">Aucune recherche enregistrée pour ce mois.</td></tr>';
+            } else {
+                list.forEach(function (g, idx) {
+                    html += '<tr>'
+                        + '<td>' + (idx + 1) + '</td>'
+                        + '<td>' + g.countUsers + '</td>'
+                        + '<td>' + String(g.name).replace(/</g, '&lt;') + '</td>'
+                        + '<td>' + String(g.ref).replace(/</g, '&lt;') + '</td>'
+                        + '<td>' + String(g.brand).replace(/</g, '&lt;') + '</td>'
+                        + '<td>' + (g.avgPrice ? (Math.round(g.avgPrice) + ' €') : '—') + '</td>'
+                        + '</tr>';
+                });
+            }
+            html += '</tbody></table>';
+            out.innerHTML = html;
+            spiritHotToysAdminArchiveBourseAnalyseMonth(monthKey, label, html);
+            spiritHotToysAdminRenderBourseAnalyseArchivesList();
+        } catch (e) {
+            out.innerHTML = '<span style="color:#f66;">' + String(e && e.message ? e.message : e).replace(/</g, '&lt;') + '</span>';
+        }
+    }
+    try { window.spiritHotToysAdminLoadBourseAnalyse = spiritHotToysAdminLoadBourseAnalyse; } catch (eAnaLoadWin) {}
 
     async function spiritHotToysAdminResetBourseSection(boxId) {
         var el = document.getElementById(boxId);
