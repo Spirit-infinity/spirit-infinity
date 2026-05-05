@@ -4833,6 +4833,12 @@
                     <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#2a2222;border-color:#553;color:#caa;" onclick="spiritHotToysAdminResetBourseSection('spiritHotToysAdminBourseStats')">Remise à zéro</button>
                 </div>
                 <div id="spiritHotToysAdminBourseStats" style="color:#ccc;overflow-x:auto;width:100%;border:1px solid #2a2a2a;border-radius:4px;padding:10px;box-sizing:border-box;background:#080808;margin-bottom:14px;"></div>
+                <h4 style="font-size:0.7rem;color:#dba;margin:0 0 6px;font-weight:700;">Classement figurines (Top 5 du mois)</h4>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;">
+                    <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#1f2733;border-color:#3a6a8a;color:#9fd4ff;" onclick="spiritHotToysAdminExportBoursePdf('spiritHotToysAdminBourseTop5','Top 5 figurines — Bourse Spirit')">Exporter PDF</button>
+                    <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#221b26;border-color:#553;color:#caa;" onclick="spiritHotToysAdminResetBourseSection('spiritHotToysAdminBourseTop5')">Remise à zéro</button>
+                </div>
+                <div id="spiritHotToysAdminBourseTop5" style="color:#ccc;overflow-x:auto;width:100%;border:1px solid #2a2a2a;border-radius:4px;padding:10px;box-sizing:border-box;background:#06060a;margin-bottom:14px;"></div>
                 <h4 style="font-size:0.7rem;color:#ff8888;margin:0 0 6px;font-weight:700;">Litiges (tous statuts)</h4>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px;">
                     <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#1a3040;border-color:#3a6a8a;color:#9fd4ff;" onclick="spiritHotToysAdminExportBoursePdf('spiritHotToysAdminBourseLitigesOut','Litiges — Bourse Spirit')">Exporter PDF</button>
@@ -14795,14 +14801,15 @@ async function spiritLoadListingMessagesForProduct(productId) {
             localStorage.setItem(SPIRIT_HT_BOURSE_ARCHIVE_KEY, JSON.stringify(data || {}));
         } catch (e) {}
     }
-    function spiritHotToysAdminArchiveBourseMonth(monthKey, monthLabel, statsHtml, litHtml, journalHtml) {
+    function spiritHotToysAdminArchiveBourseMonth(monthKey, monthLabel, statsHtml, litHtml, journalHtml, topHtml) {
         if (!monthKey || !monthLabel) return;
         var map = spiritHotToysAdminReadBourseArchives();
         map[monthKey] = {
             label: String(monthLabel),
             statsHtml: String(statsHtml || ''),
             litHtml: String(litHtml || ''),
-            journalHtml: String(journalHtml || '')
+            journalHtml: String(journalHtml || ''),
+            topHtml: String(topHtml || '')
         };
         spiritHotToysAdminWriteBourseArchives(map);
     }
@@ -14816,7 +14823,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             return;
         }
         keys.sort().reverse();
-        var html = '<div style="margin-bottom:4px;color:#aaa;">Archives mensuelles (synthèse / litiges / journal) :</div>';
+        var html = '<div style="margin-bottom:4px;color:#aaa;">Archives mensuelles (synthèse / litiges / journal / top 5) :</div>';
         html += '<div style="display:flex;flex-direction:column;gap:4px;max-height:120px;overflow:auto;">';
         keys.forEach(function (k) {
             var a = map[k] || {};
@@ -14826,6 +14833,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 + '<button type="button" class="btn-action" style="font-size:0.55rem;padding:3px 6px;background:#121a1f;border-color:#244;color:#9fd4ff;" onclick="spiritHotToysAdminRestoreBourseArchive(\'' + k.replace(/'/g, '\\\'') + '\',\'stats\')">Synthèse</button>'
                 + '<button type="button" class="btn-action" style="font-size:0.55rem;padding:3px 6px;background:#201214;border-color:#533;color:#f7b;" onclick="spiritHotToysAdminRestoreBourseArchive(\'' + k.replace(/'/g, '\\\'') + '\',\'litiges\')">Litiges</button>'
                 + '<button type="button" class="btn-action" style="font-size:0.55rem;padding:3px 6px;background:#181818;border-color:#444;color:#ddd;" onclick="spiritHotToysAdminRestoreBourseArchive(\'' + k.replace(/'/g, '\\\'') + '\',\'journal\')">Journal</button>'
+                + '<button type="button" class="btn-action" style="font-size:0.55rem;padding:3px 6px;background:#1b1b24;border-color:#445;color:#cfe5ff;" onclick="spiritHotToysAdminRestoreBourseArchive(\'' + k.replace(/'/g, '\\\'') + '\',\'top\')">Top 5</button>'
                 + '</div>';
         });
         html += '</div>';
@@ -14844,6 +14852,9 @@ async function spiritLoadListingMessagesForProduct(productId) {
         } else if (section === 'journal') {
             var jb = document.getElementById('spiritHotToysAdminBourseOut');
             if (jb) jb.innerHTML = a.journalHtml || '';
+        } else if (section === 'top') {
+            var tb = document.getElementById('spiritHotToysAdminBourseTop5');
+            if (tb) tb.innerHTML = a.topHtml || '';
         }
     }
     try { window.spiritHotToysAdminRestoreBourseArchive = spiritHotToysAdminRestoreBourseArchive; } catch (eArchWin) {}
@@ -14859,17 +14870,20 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var box = document.getElementById('spiritHotToysAdminBourseOut');
         var statsBox = document.getElementById('spiritHotToysAdminBourseStats');
         var litBox = document.getElementById('spiritHotToysAdminBourseLitigesOut');
+        var topBox = document.getElementById('spiritHotToysAdminBourseTop5');
         if (!box) return;
         function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;'); }
         var loading = 'Chargement…';
         box.innerHTML = loading;
         if (statsBox) statsBox.innerHTML = loading;
         if (litBox) litBox.innerHTML = loading;
+        if (topBox) topBox.innerHTML = loading;
         if (typeof _spirit === 'undefined' || !_spirit) {
             var na = 'Supabase indisponible.';
             box.textContent = na;
             if (statsBox) statsBox.textContent = na;
             if (litBox) litBox.textContent = na;
+            if (topBox) topBox.textContent = na;
             return;
         }
         try {
@@ -14890,6 +14904,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             var t1 = new Date(y, mo + 1, 0, 23, 59, 59, 999).getTime();
             var monthLabel = now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
             var groups = Object.create(null);
+            var figMap = Object.create(null);
             var byBrand = Object.create(null);
             rows.forEach(function (r) {
                 if (!spiritHotToysAdminTxInMonthForStats(r, t0, t1)) return;
@@ -14900,6 +14915,20 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 if (!groups[gkey]) groups[gkey] = { brand: bs.brand, name: name, count: 0, sumEur: 0 };
                 groups[gkey].count += 1;
                 groups[gkey].sumEur += eur;
+                var refRaw = '';
+                try {
+                    refRaw = String(r.product_reference || '').trim();
+                    if (!refRaw) {
+                        var pid = spiritParseFavoriteProductId(r && r.product_id);
+                        var pr = (pid != null && prodMap && prodMap[pid]) ? (prodMap[pid].product_reference || prodMap[pid].ref || '') : '';
+                        refRaw = String(pr || '').trim();
+                    }
+                } catch (eRefFig) { refRaw = ''; }
+                var ref = refRaw || '—';
+                var fkey = bs.brand.toLowerCase() + '\n' + name.toLowerCase() + '\n' + ref.toLowerCase();
+                if (!figMap[fkey]) figMap[fkey] = { brand: bs.brand, name: name, ref: ref, count: 0, sumEur: 0 };
+                figMap[fkey].count += 1;
+                figMap[fkey].sumEur += eur;
                 var bk = bs.brand.toLowerCase();
                 if (!byBrand[bk]) byBrand[bk] = { brand: bs.brand, sumEur: 0, count: 0 };
                 byBrand[bk].sumEur += eur;
@@ -14939,6 +14968,37 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 statHtml += '<p style="margin-top:6px;color:#666;font-size:0.6rem;">Exclut annulations / remboursements et transactions avec <b>litige ouvert</b>. Basé sur les ' + rows.length + ' dernières transactions (limite 900).</p>';
                 statsBox.innerHTML = statHtml;
             }
+            if (topBox) {
+                var figs = Object.keys(figMap).map(function (k) {
+                    var f = figMap[k];
+                    f.avg = f.count ? f.sumEur / f.count : 0;
+                    return f;
+                });
+                figs.sort(function (a, b) {
+                    if (b.count !== a.count) return b.count - a.count;
+                    return b.sumEur - a.sumEur;
+                });
+                var top5 = figs.slice(0, 5);
+                var topHtml = '<p style="margin:0 0 6px;color:#aaa;font-size:0.65rem;">Top 5 figurines du mois (par nombre de ventes, puis total EUR).</p>';
+                topHtml += '<table class="spirit-ht-bourse-stats-table"><thead><tr style="background:#151515;"><th>#</th><th>Marque</th><th>Réf.</th><th>Figurine</th><th>Ventes (mois)</th><th>Prix moyen</th><th>Total EUR</th></tr></thead><tbody>';
+                if (!top5.length) {
+                    topHtml += '<tr><td colspan="7" style="color:#888;">Aucune vente éligible pour établir un classement.</td></tr>';
+                } else {
+                    top5.forEach(function (f, idx) {
+                        topHtml += '<tr>'
+                            + '<td>' + (idx + 1) + '</td>'
+                            + '<td>' + esc(f.brand) + '</td>'
+                            + '<td>' + esc(f.ref) + '</td>'
+                            + '<td>' + esc(f.name) + '</td>'
+                            + '<td>' + f.count + '</td>'
+                            + '<td>' + Math.round(f.avg) + ' €</td>'
+                            + '<td>' + f.sumEur.toFixed(2) + ' €</td>'
+                            + '</tr>';
+                    });
+                }
+                topHtml += '</tbody></table>';
+                topBox.innerHTML = topHtml;
+            }
             spiritHotToysAdminRenderLitigesInto(litBox, rows, pmap, esc);
             var thStyle = 'text-align:left;padding:8px 7px;border:1px solid #333;font-size:0.68rem;';
             var tdStyle = 'padding:7px;border:1px solid #222;font-size:0.68rem;';
@@ -14971,7 +15031,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 monthLabel,
                 statsBox ? statsBox.innerHTML : '',
                 litBox ? litBox.innerHTML : '',
-                box ? box.innerHTML : ''
+                box ? box.innerHTML : '',
+                topBox ? topBox.innerHTML : ''
             );
             spiritHotToysAdminRenderBourseArchivesList();
         } catch (e) {
