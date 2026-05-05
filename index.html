@@ -4845,6 +4845,7 @@
                     <button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 12px;background:#2a2222;border-color:#553;color:#caa;" onclick="spiritHotToysAdminResetBourseSection('spiritHotToysAdminBourseOut')">Remise à zéro</button>
                 </div>
                 <div id="spiritHotToysAdminBourseOut" style="color:#ccc;overflow-x:auto;overflow-y:auto;max-height:min(52vh,560px);width:100%;-webkit-overflow-scrolling:touch;border:1px solid #2a2a2a;border-radius:4px;padding:8px;box-sizing:border-box;background:#060606;"></div>
+                <div id="spiritHotToysAdminBourseArchives" style="margin-top:10px;font-size:0.6rem;color:#888;border-top:1px solid #222;padding-top:8px;"></div>
             </div>
         </div>
     </div>
@@ -14777,6 +14778,76 @@ async function spiritLoadListingMessagesForProduct(productId) {
         }, 300);
     }
 
+    var SPIRIT_HT_BOURSE_ARCHIVE_KEY = 'spirit_ht_bourse_archives_v1';
+
+    function spiritHotToysAdminReadBourseArchives() {
+        try {
+            var raw = localStorage.getItem(SPIRIT_HT_BOURSE_ARCHIVE_KEY) || '';
+            if (!raw) return {};
+            var obj = JSON.parse(raw);
+            return (obj && typeof obj === 'object') ? obj : {};
+        } catch (e) {
+            return {};
+        }
+    }
+    function spiritHotToysAdminWriteBourseArchives(data) {
+        try {
+            localStorage.setItem(SPIRIT_HT_BOURSE_ARCHIVE_KEY, JSON.stringify(data || {}));
+        } catch (e) {}
+    }
+    function spiritHotToysAdminArchiveBourseMonth(monthKey, monthLabel, statsHtml, litHtml, journalHtml) {
+        if (!monthKey || !monthLabel) return;
+        var map = spiritHotToysAdminReadBourseArchives();
+        map[monthKey] = {
+            label: String(monthLabel),
+            statsHtml: String(statsHtml || ''),
+            litHtml: String(litHtml || ''),
+            journalHtml: String(journalHtml || '')
+        };
+        spiritHotToysAdminWriteBourseArchives(map);
+    }
+    function spiritHotToysAdminRenderBourseArchivesList() {
+        var host = document.getElementById('spiritHotToysAdminBourseArchives');
+        if (!host) return;
+        var map = spiritHotToysAdminReadBourseArchives();
+        var keys = Object.keys(map);
+        if (!keys.length) {
+            host.innerHTML = '<span style="color:#555;">Aucune archive encore enregistrée. Chaque chargement de la bourse sauvegarde le mois courant ici.</span>';
+            return;
+        }
+        keys.sort().reverse();
+        var html = '<div style="margin-bottom:4px;color:#aaa;">Archives mensuelles (synthèse / litiges / journal) :</div>';
+        html += '<div style="display:flex;flex-direction:column;gap:4px;max-height:120px;overflow:auto;">';
+        keys.forEach(function (k) {
+            var a = map[k] || {};
+            var label = a.label || k;
+            html += '<div style="display:flex;align-items:center;gap:6px;">'
+                + '<span style="min-width:120px;color:#ccc;">' + String(label).replace(/</g, '&lt;') + '</span>'
+                + '<button type="button" class="btn-action" style="font-size:0.55rem;padding:3px 6px;background:#121a1f;border-color:#244;color:#9fd4ff;" onclick="spiritHotToysAdminRestoreBourseArchive(\'' + k.replace(/'/g, '\\\'') + '\',\'stats\')">Synthèse</button>'
+                + '<button type="button" class="btn-action" style="font-size:0.55rem;padding:3px 6px;background:#201214;border-color:#533;color:#f7b;" onclick="spiritHotToysAdminRestoreBourseArchive(\'' + k.replace(/'/g, '\\\'') + '\',\'litiges\')">Litiges</button>'
+                + '<button type="button" class="btn-action" style="font-size:0.55rem;padding:3px 6px;background:#181818;border-color:#444;color:#ddd;" onclick="spiritHotToysAdminRestoreBourseArchive(\'' + k.replace(/'/g, '\\\'') + '\',\'journal\')">Journal</button>'
+                + '</div>';
+        });
+        html += '</div>';
+        host.innerHTML = html;
+    }
+    function spiritHotToysAdminRestoreBourseArchive(monthKey, section) {
+        var map = spiritHotToysAdminReadBourseArchives();
+        var a = map[monthKey];
+        if (!a) return;
+        if (section === 'stats') {
+            var sb = document.getElementById('spiritHotToysAdminBourseStats');
+            if (sb) sb.innerHTML = a.statsHtml || '';
+        } else if (section === 'litiges') {
+            var lb = document.getElementById('spiritHotToysAdminBourseLitigesOut');
+            if (lb) lb.innerHTML = a.litHtml || '';
+        } else if (section === 'journal') {
+            var jb = document.getElementById('spiritHotToysAdminBourseOut');
+            if (jb) jb.innerHTML = a.journalHtml || '';
+        }
+    }
+    try { window.spiritHotToysAdminRestoreBourseArchive = spiritHotToysAdminRestoreBourseArchive; } catch (eArchWin) {}
+
     async function spiritHotToysAdminResetBourseSection(boxId) {
         var el = document.getElementById(boxId);
         if (!el) return;
@@ -14893,6 +14964,16 @@ async function spiritLoadListingMessagesForProduct(productId) {
                     + '</tr>';
             }).join('');
             box.innerHTML = head + body + '</tbody></table><p style="margin-top:10px;color:#666;font-size:0.62rem;">' + rows.length + ' ligne(s). Colonnes <code>marque</code> / <code>brand</code> / <code>product_id</code> / <code>product_kind</code> sur <code>transactions</code> : optionnelles (ajoute-les en SQL si besoin).</p>';
+
+            // Archive du mois courant dans un « classeur » local (admin seulement, navigateur).
+            spiritHotToysAdminArchiveBourseMonth(
+                String(y) + '-' + String(mo + 1).padStart(2, '0'),
+                monthLabel,
+                statsBox ? statsBox.innerHTML : '',
+                litBox ? litBox.innerHTML : '',
+                box ? box.innerHTML : ''
+            );
+            spiritHotToysAdminRenderBourseArchivesList();
         } catch (e) {
             var errHtml = '<span style="color:#f66;">' + esc(String(e && e.message ? e.message : e)) + '</span><p style="color:#888;font-size:0.62rem;margin-top:8px;">Les politiques RLS de <code>transactions</code> limitent souvent la lecture aux parties prenantes. Pour un vrai back-office, prévoir un rôle <code>service_role</code> via Edge Function.</p>';
             box.innerHTML = errHtml;
