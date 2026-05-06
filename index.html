@@ -4102,6 +4102,10 @@
                 <h2 id="pTitle">Titre</h2>
                 <div id="pOrigin" style="font-size:0.8rem; color:var(--neon-orange); margin-bottom:10px;"></div>
                 <div id="pBadge" class="badge" style="position:relative; top:0; left:0; display:inline-block; margin-bottom:10px;"></div>
+                <div id="pCtWrap" style="display:none;margin:0 0 10px;">
+                    <button type="button" id="btnCtOpen" class="btn-action" style="font-size:0.62rem;padding:6px 12px;background:#101720;border-color:#2e5d86;color:#9fd4ff;">CT (Contrôle technique)</button>
+                    <div id="pCtPanel" style="display:none;margin-top:8px;padding:8px 10px;border:1px solid #2b3f52;background:rgba(10,20,30,0.55);font-size:0.62rem;color:#c8d8e6;line-height:1.45;border-radius:4px;"></div>
+                </div>
                 <div id="pDescBox" style="margin-bottom:15px;"></div>
                 <div id="pNegotiatedNote" data-key="pm_negotiated_note" style="display:none;font-size:0.62rem;color:#6cf;margin:-4px 0 10px 0;line-height:1.35;padding:6px 8px;border:1px solid rgba(0,200,255,0.35);background:rgba(0,80,120,0.12);">Prix convenu — visible uniquement entre le vendeur et l’acheteur concerné. Sur le marché, le prix public reste affiché pour les autres.</div>
                 
@@ -11937,6 +11941,14 @@ async function enregistrerVente(method) {
             }
         }
         if (ins && ins.error) throw ins.error;
+        try {
+            await spiritCtRecordSaleEventFromCheckout(
+                selectedProduct,
+                buyerIdTxt || String(MY_TEST_ID || '').trim(),
+                sellerIdTxt || String(selectedProduct.owner_id || selectedProduct.owner || '').trim(),
+                Number(prixFigurine || 0)
+            );
+        } catch (eCtSale) {}
 
         let figSoldErr = null;
         var pidNum = spiritParseFavoriteProductId(selectedProduct && (selectedProduct.id != null ? selectedProduct.id : selectedProduct.product_id));
@@ -12682,6 +12694,125 @@ async function spiritLoadListingMessagesForProduct(productId) {
     }
     try { window.spiritRetranslateOpenProductListing = spiritRetranslateOpenProductListing; } catch (eW) {}
 
+    var SPIRIT_CT_EVENTS_LS_KEY = 'spirit_ct_events_v1';
+    function spiritCtNorm(v) {
+        return String(v || '')
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+    function spiritCtRefFromDesc(desc) {
+        var d = String(desc || '');
+        var m = d.match(/\[\[SPIRIT_REF:([^\]]+)\]\]/i);
+        return m && m[1] ? String(m[1]).trim() : '';
+    }
+    function spiritCtFigureKey(item) {
+        item = item || {};
+        var brand = spiritCtNorm(item.brand || item.marque || '');
+        var title = spiritCtNorm(item.title || item.name || item.figurine_name || '');
+        var ref = spiritCtNorm(item.product_reference || spiritCtRefFromDesc(item.description || item.desc || ''));
+        if (!brand && !title) return '';
+        return 'ct|' + brand + '|' + title + '|' + ref;
+    }
+    function spiritCtReadEventsLocal() {
+        try {
+            var raw = localStorage.getItem(SPIRIT_CT_EVENTS_LS_KEY) || '[]';
+            var arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : [];
+        } catch (e) { return []; }
+    }
+    function spiritCtWriteEventsLocal(rows) {
+        try { localStorage.setItem(SPIRIT_CT_EVENTS_LS_KEY, JSON.stringify(Array.isArray(rows) ? rows : [])); } catch (e) {}
+    }
+    async function spiritCtRecordSaleEventFromCheckout(item, buyerId, sellerId, amountEur) {
+        try {
+            var key = spiritCtFigureKey(item);
+            if (!key) return;
+            var evt = {
+                figure_key: key,
+                brand: String(item && (item.brand || item.marque) || '').trim(),
+                title: String(item && (item.title || item.name || item.figurine_name) || '').trim(),
+                ref: String(item && (item.product_reference || spiritCtRefFromDesc(item.description || item.desc || '')) || '').trim(),
+                seller_id: String(sellerId || '').trim(),
+                buyer_id: String(buyerId || '').trim(),
+                sale_amount_eur: Number(amountEur || 0) || 0,
+                is_smoke_free: !!(item && item.is_smoke_free),
+                is_light_protect: !!(item && item.is_light_protect),
+                is_first_hand: !!(item && item.is_first_hand),
+                created_at: new Date().toISOString()
+            };
+            var all = spiritCtReadEventsLocal();
+            all.push(evt);
+            spiritCtWriteEventsLocal(all);
+            try {
+                if (_spirit) await _spirit.from('spirit_figure_ct_events').insert([evt]);
+            } catch (eSup) {}
+        } catch (e) {}
+    }
+    function spiritCtMaskPseudoLike(s) {
+        var v = String(s || '').trim();
+        if (!v) return '—';
+        if (v.length <= 3) return v.charAt(0) + '**';
+        if (v.length <= 5) return v.slice(0, 2) + '**' + v.slice(-1);
+        return v.slice(0, 3) + '***' + v.slice(-2);
+    }
+    async function spiritCtResolvePseudo(uid) {
+        uid = String(uid || '').trim();
+        if (!uid) return '';
+        try {
+            if (typeof spiritFetchOwnerPseudo === 'function') {
+                var p = await spiritFetchOwnerPseudo(uid);
+                if (p && String(p).trim()) return String(p).trim();
+            }
+        } catch (e) {}
+        return typeof spiritDefaultLabelFromUid === 'function' ? spiritDefaultLabelFromUid(uid) : uid;
+    }
+    async function spiritRenderCtForProduct(item) {
+        var wrap = document.getElementById('pCtWrap');
+        var btn = document.getElementById('btnCtOpen');
+        var panel = document.getElementById('pCtPanel');
+        if (!wrap || !btn || !panel) return;
+        var key = spiritCtFigureKey(item);
+        if (!key) { wrap.style.display = 'none'; return; }
+        wrap.style.display = 'block';
+        panel.style.display = 'none';
+        panel.innerHTML = '<span style="color:#8aa;">Chargement CT...</span>';
+        var rows = spiritCtReadEventsLocal().filter(function (r) { return String(r && r.figure_key || '') === key; });
+        rows.sort(function (a, b) { return new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); });
+        var html = '';
+        if (!rows.length) {
+            html = '<div>Aucun historique CT interne pour cette figurine.</div>';
+        } else {
+            var first = rows[0];
+            var last = rows[rows.length - 1];
+            var owners = {};
+            rows.forEach(function (r) { if (r.seller_id) owners[r.seller_id] = true; if (r.buyer_id) owners[r.buyer_id] = true; });
+            var hands = Object.keys(owners).length;
+            var firstDate = first.created_at ? new Date(first.created_at).toLocaleDateString('fr-FR') : '—';
+            var smokeTxt = last.is_smoke_free ? 'Non-fumeur' : 'Fumeur';
+            var lightTxt = last.is_light_protect ? 'À l’abri de la lumière' : 'Exposé à la lumière';
+            var curSmoke = !!(item && item.is_smoke_free);
+            var curLight = !!(item && item.is_light_protect);
+            var consistency = (curSmoke === !!last.is_smoke_free && curLight === !!last.is_light_protect)
+                ? '<span style="color:#8fe39d;">Cohérent avec le dernier historique</span>'
+                : '<span style="color:#ffb37e;">Différence avec le dernier historique</span>';
+            var sellerPseudo = await spiritCtResolvePseudo(last.seller_id || '');
+            var buyerPseudo = await spiritCtResolvePseudo(last.buyer_id || '');
+            html = ''
+                + '<div><b>CT interne</b> · première vente site: <b>' + firstDate + '</b></div>'
+                + '<div>Nombre de mains (interne): <b>' + hands + '</b></div>'
+                + '<div>Dernier état connu: <b>' + smokeTxt + '</b> · <b>' + lightTxt + '</b></div>'
+                + '<div>Dernier transfert: ' + spiritCtMaskPseudoLike(sellerPseudo) + ' -> ' + spiritCtMaskPseudoLike(buyerPseudo) + '</div>'
+                + '<div style="margin-top:6px;">' + consistency + '</div>';
+        }
+        panel.innerHTML = html;
+        btn.onclick = function () {
+            panel.style.display = (panel.style.display === 'none' || !panel.style.display) ? 'block' : 'none';
+        };
+    }
+
  async function openProduct(item) {
         item = Object.assign({}, item);
         try {
@@ -12754,6 +12885,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         const displayCountry = item.origin_country || item.country || "France";
         const displayCond = item.cond || "Certifié Spirit";
         document.getElementById('pOrigin').innerText = displayCountry + " | " + displayCond;
+        try { await spiritRenderCtForProduct(item); } catch (eCtR) {}
         
         // CORRECTION : Supabase utilise 'ship_size' au lieu de 'shipSize'
         document.getElementById('pSizeLabel').innerText = item.ship_size || item.shipSize || "Moyen";
