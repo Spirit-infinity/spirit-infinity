@@ -939,6 +939,35 @@
             filter: drop-shadow(0 0 8px rgba(255, 102, 0, 1)) drop-shadow(0 0 18px rgba(255, 102, 0, 0.7));
         }
         .spirit-card-fav-btn.spirit-fav-flash .spirit-fav-count { color: var(--neon-orange); }
+        /* Marché — la zone photo ne doit pas recouvrir fav / badges / étiquettes (clone « Mes annonces » inclus) */
+        #marketplaceSection .card > .img-placeholder,
+        #marketStatuesView .card > .img-placeholder {
+            z-index: 0;
+        }
+        #marketplaceSection .card .spirit-card-img-wrap,
+        #marketStatuesView .card .spirit-card-img-wrap {
+            z-index: 0;
+        }
+        #marketplaceSection .card .spirit-card-img-wrap img,
+        #marketStatuesView .card .spirit-card-img-wrap img {
+            z-index: 0 !important;
+        }
+        #marketplaceSection .card > button.spirit-card-fav-btn,
+        #marketStatuesView .card > button.spirit-card-fav-btn {
+            z-index: 92 !important;
+        }
+        #marketplaceSection .card > .spirit-rare-badge,
+        #marketStatuesView .card > .spirit-rare-badge {
+            z-index: 88 !important;
+        }
+        #marketplaceSection .card > .spirit-market-litige-macaron,
+        #marketStatuesView .card > .spirit-market-litige-macaron {
+            z-index: 86 !important;
+        }
+        #marketplaceSection .card > .badge-sold,
+        #marketStatuesView .card > .badge-sold {
+            z-index: 94 !important;
+        }
         #btn-liste-envie { position: relative; }
         #btn-favoris-recus { position: relative; }
         #btn-dashboard { position: relative; }
@@ -1772,13 +1801,18 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            cursor: zoom-out;
+            cursor: default;
         }
         #lightbox img {
             max-width: 90%;
             max-height: 90%;
             border: 2px solid var(--neon-orange);
             box-shadow: 0 0 30px rgba(255, 102, 0, 0.3);
+            position: relative;
+            z-index: 1;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-drag: none;
         }
         #lightbox .spirit-prod-lightbox-nav {
             position: absolute;
@@ -1798,6 +1832,29 @@
         }
         #lightbox .spirit-prod-lightbox-nav.spirit-prod-lightbox-prev { left: 18px; }
         #lightbox .spirit-prod-lightbox-nav.spirit-prod-lightbox-next { right: 18px; }
+        #lightbox .spirit-prod-lightbox-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 200010;
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 102, 0, 0.55);
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+            font-size: 22px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+        #lightbox .spirit-prod-lightbox-close:hover {
+            border-color: rgba(255, 102, 0, 0.95);
+            box-shadow: 0 0 16px rgba(255, 102, 0, 0.5);
+        }
         /* SANCTUARY LIGHTBOX (FULL SCREEN) */
         #spiritSanctuaryLightbox {
             display: none;
@@ -2299,9 +2356,24 @@
             box-sizing: border-box;
             margin: 0 auto;
         }
+        #productModal .modal-content button.spirit-pm-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 200;
+            background: rgba(8, 8, 8, 0.92) !important;
+            border: 1px solid #444 !important;
+            border-radius: 6px;
+            width: 42px;
+            height: 42px;
+            line-height: 1;
+            pointer-events: auto;
+        }
         #productModal #pGallery {
             overflow: visible;
             min-height: 200px;
+            position: relative;
+            z-index: 0;
         }
         .spirit-market-loader {
             grid-column: 1 / -1;
@@ -4065,7 +4137,7 @@
 
 <div id="productModal" class="overlay">
     <div class="modal-content" style="max-width:900px;text-align:left;">
-        <button onclick="closeModals()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer; font-size:1.2rem;">✕</button>
+        <button type="button" class="spirit-pm-close" onclick="closeModals()" aria-label="Fermer" style="color:white; cursor:pointer; font-size:1.2rem;">✕</button>
         <div style="display:flex; gap:30px; flex-wrap:wrap;">
             <div style="flex:1; min-width:300px;">
                 <div id="pGallery" style="background:#111; min-height:350px; border:1px solid #333; margin-bottom:15px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; overflow:hidden;"></div>
@@ -4929,7 +5001,8 @@
     </div>
 </div>
 
-<div id="lightbox" onclick="this.style.setProperty('display','none','important')">
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Aperçu photo" onclick="spiritProductLightboxBackdropClick(event)">
+    <button type="button" class="spirit-prod-lightbox-close" aria-label="Fermer" onclick="spiritProductLightboxClose(event)">✕</button>
     <button type="button" class="spirit-prod-lightbox-nav spirit-prod-lightbox-prev" aria-label="Image précédente" onclick="spiritProductLightboxPrev(event)">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6" />
@@ -9819,7 +9892,7 @@ function renderMarket(filteredData = null) {
 
             // owner_id : déjà résolu dans `oid` (plus haut).
             const isMine = oid !== '' && oid === String(MY_TEST_ID).trim();
-            const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.5); color:#0f0; font-size:10px; padding:2px 6px; border:1px solid #0f0; border-radius:2px; z-index:10; font-weight:bold;">MES ANNONCES</div>` : '';
+            const ownerTag = isMine ? `<div style="position:absolute; bottom:5px; right:5px; background:rgba(0,255,100,0.5); color:#0f0; font-size:10px; padding:2px 6px; border:1px solid #0f0; border-radius:2px; z-index:75; font-weight:bold;">MES ANNONCES</div>` : '';
             const sellerLabelText = isMine && typeof currentUser !== 'undefined' && String(currentUser).trim()
                 ? String(currentUser).trim()
                 : spiritDefaultLabelFromUid(oid);
@@ -12964,7 +13037,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 mainSk.style.display = 'block';
                 main.src = u;
                 main.onclick = function () {
-                    try { window.spiritProductGalleryIndex = i; } catch (eIx2) {}
+                    try { window.spiritProductGalleryIndex = window.spiritGalleryIndex; } catch (eIx2) {}
                     zoomImg(u);
                 };
                 cap.textContent = (window.spiritGalleryIndex + 1) + ' / ' + window.spiritGalleryUrls.length;
@@ -21136,6 +21209,55 @@ function spiritProductLightboxNext(ev) {
         spiritProductLightboxRenderAtIndex();
     } catch (e) {}
 }
+
+function spiritProductLightboxBackdropClick(e) {
+    try {
+        if (!e || e.target !== e.currentTarget) return;
+        var lb = document.getElementById('lightbox');
+        if (lb) lb.style.setProperty('display', 'none', 'important');
+    } catch (e0) {}
+}
+function spiritProductLightboxClose(e) {
+    try { if (e && e.stopPropagation) e.stopPropagation(); } catch (e1) {}
+    try {
+        var lb = document.getElementById('lightbox');
+        if (lb) lb.style.setProperty('display', 'none', 'important');
+    } catch (e2) {}
+}
+
+(function spiritProductLightboxBindSwipeOnce() {
+    try {
+        var lbImg = document.getElementById('lightbox-img');
+        if (!lbImg || lbImg.dataset.spiritLbSwipe === '1') return;
+        lbImg.dataset.spiritLbSwipe = '1';
+        var sx = 0, sy = 0;
+        lbImg.addEventListener('touchstart', function (ev) {
+            try {
+                var t = ev.touches && ev.touches[0];
+                if (!t) return;
+                sx = t.clientX;
+                sy = t.clientY;
+            } catch (eT) {}
+        }, { passive: true });
+        lbImg.addEventListener('touchend', function (ev) {
+            try {
+                var t = ev.changedTouches && ev.changedTouches[0];
+                if (!t) return;
+                var dx = t.clientX - sx;
+                var dy = t.clientY - sy;
+                if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
+                var arr = Array.isArray(window.spiritProductGalleryUrls) ? window.spiritProductGalleryUrls.filter(Boolean) : [];
+                if (arr.length < 2) return;
+                if (dx < 0) spiritProductLightboxNext(ev);
+                else spiritProductLightboxPrev(ev);
+            } catch (eE) {}
+        }, { passive: true });
+    } catch (eBind) {}
+})();
+try {
+    window.spiritProductLightboxBackdropClick = spiritProductLightboxBackdropClick;
+    window.spiritProductLightboxClose = spiritProductLightboxClose;
+} catch (eExp) {}
 
 // ======= SANCTUARY LIGHTBOX (full screen navigation) =======
 var spiritSanctuaryLightboxImages = [];
