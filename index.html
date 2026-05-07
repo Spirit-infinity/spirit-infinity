@@ -131,7 +131,7 @@
             transform: translateY(-52%);
             color: rgba(255, 255, 255, 0.22);
             font-size: 11px;
-            pointer-events: none;
+            pointer-events: auto;
         }
         .menu-center button:hover,
         .menu-center button.active {
@@ -4809,7 +4809,7 @@
             <div class="support-card">
                 <h4>Litige & Livraison</h4>
                 <p>Colis non reçu ou endommagé ? Notre assurance couvre 100% de la valeur déclarée. Déclenchez un litige sous 24h après réception pour bloquer les fonds au séquestre.</p>
-                <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem;" onclick="alert('Ouverture du gestionnaire de litiges...')">OUVRIR UN LITIGE</button>
+                <button class="btn-action" style="background:var(--danger); color:white; font-size:0.6rem;" onclick="spiritOpenDisputeComposer('support')">OUVRIR UN LITIGE</button>
             </div>
             <div class="support-card">
                 <h4>Sécurité des Fonds (Escrow)</h4>
@@ -9857,7 +9857,7 @@ function renderMarket(filteredData = null) {
             const soldBadge = isSold ? '<div class="badge-sold">VENDU</div>' : '';
             const oidLitEsc = oidNormLit ? String(oidNormLit).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '') : '';
             const litigeBadge = oidNormLit
-                ? '<div class="spirit-market-litige-macaron" data-seller-litige="' + oidLitEsc + '" title="Litige ouvert sur une vente de ce vendeur" role="img" aria-label="Litige en cours sur ce vendeur"></div>'
+                ? '<button type="button" class="spirit-market-litige-macaron" data-target-litige="' + oidLitEsc + '" onclick="event.stopPropagation();spiritOpenPublicDisputeInfoForUser(\'' + oidLitEsc + '\')" title="Litige ouvert (cliquer pour voir l’explication)" aria-label="Litige en cours (voir explication)"></button>'
                 : '';
             const favNum = spiritFavoriteProductId(item);
             const favKey = favNum != null ? String(favNum) : '';
@@ -9966,7 +9966,7 @@ function renderMarket(filteredData = null) {
                         var oidN = typeof spiritNormUid === 'function' ? spiritNormUid(oid) : String(oid || '').trim().toLowerCase();
                         var hasLit = await spiritHasOpenLitigeForUser(oid);
                         document.querySelectorAll('.spirit-market-litige-macaron').forEach(function (el) {
-                            var a = typeof spiritNormUid === 'function' ? spiritNormUid(el.getAttribute('data-seller-litige') || '') : String(el.getAttribute('data-seller-litige') || '').trim().toLowerCase();
+                            var a = typeof spiritNormUid === 'function' ? spiritNormUid(el.getAttribute('data-target-litige') || '') : String(el.getAttribute('data-target-litige') || '').trim().toLowerCase();
                             if (a === oidN) el.classList.toggle('spirit-litige-macaron-on', !!hasLit);
                         });
                     } catch (eL) {}
@@ -10157,7 +10157,7 @@ async function loadMySales() {
 
                             <div style="margin-top:15px; display:flex; gap:10px;">
                                 <button onclick="generateSpiritLabel('${tr.id}')" style="flex:1; background:var(--neon-orange); color:black; font-weight:bold; border:none; padding:10px; cursor:pointer; text-transform:uppercase; font-size:0.7rem;">📦 Générer Bordereau</button>
-                                <button onclick="openDispute('${tr.id}')" style="background:transparent; color:#555; border:1px solid #333; padding:10px; cursor:pointer; font-size:0.7rem;">LITIGE</button>
+                                <button onclick="openSellerDispute('${tr.id}')" style="background:transparent; color:#555; border:1px solid #333; padding:10px; cursor:pointer; font-size:0.7rem;">LITIGE</button>
                             </div>
                         </div>
                     </div>
@@ -14968,28 +14968,76 @@ async function spiritLoadListingMessagesForProduct(productId) {
         return Number.isFinite(Number(r.amount));
     }
 
+    function spiritHotToysAdminReadDisputeRegistry() {
+        try {
+            var raw = localStorage.getItem('spirit_disputes_registry_v1') || '[]';
+            var arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+            return [];
+        }
+    }
+    function spiritHotToysAdminWriteDisputeRegistry(list) {
+        try { localStorage.setItem('spirit_disputes_registry_v1', JSON.stringify(Array.isArray(list) ? list : [])); } catch (e) {}
+    }
     function spiritHotToysAdminRenderLitigesInto(litBox, rows, pmap, esc) {
         if (!litBox) return;
         var litRows = (rows || []).filter(function (r) { return /litige/i.test(String(r && r.status || '')); });
-        if (!litRows.length) {
+        var regRows = spiritHotToysAdminReadDisputeRegistry();
+        var merged = [];
+        var seen = {};
+        litRows.forEach(function (r) {
+            var k = 'tx:' + String(r && r.id || '');
+            seen[k] = true;
+            merged.push({ type: 'tx', tx: r });
+        });
+        (regRows || []).forEach(function (r) {
+            var txId = String((r && r.transaction_id) || '').trim();
+            var k = txId ? ('tx:' + txId) : ('reg:' + String(r && r.id || ''));
+            if (seen[k]) return;
+            seen[k] = true;
+            merged.push({ type: 'registry', reg: r });
+        });
+        merged.sort(function (a, b) {
+            var da = new Date((a.type === 'tx' ? (a.tx && a.tx.created_at) : (a.reg && a.reg.created_at)) || 0).getTime();
+            var db = new Date((b.type === 'tx' ? (b.tx && b.tx.created_at) : (b.reg && b.reg.created_at)) || 0).getTime();
+            return db - da;
+        });
+        if (!merged.length) {
             litBox.innerHTML = '<p style="color:#888;">Aucune transaction avec « litige » dans le statut (ou RLS masque les lignes).</p>';
             return;
         }
-        litBox.innerHTML = litRows.map(function (r) {
-            var buyer = pmap[String(r.buyer_id || '').trim()] || String(r.buyer_id || '—');
-            var seller = pmap[String(r.seller_id || '').trim()] || String(r.seller_id || '—');
-            var desc = r.dispute_note || r.litige_description || r.dispute_text || r.dispute_reason || '';
-            var img = String(r.image_url || r.img1 || '').trim();
-            var openTag = (typeof spiritTransactionLitigeIsOpenStatus === 'function' && spiritTransactionLitigeIsOpenStatus(r && r.status))
+        litBox.innerHTML = merged.map(function (entry) {
+            var r = entry.type === 'tx' ? entry.tx : null;
+            var reg = entry.type === 'registry' ? entry.reg : null;
+            var txId = String((r && r.id) || (reg && reg.transaction_id) || '—');
+            var buyer = pmap[String((r && r.buyer_id) || (reg && reg.buyer_id) || '').trim()] || String((reg && reg.buyer_pseudo) || (r && r.buyer_id) || '—');
+            var seller = pmap[String((r && r.seller_id) || (reg && reg.seller_id) || '').trim()] || String((reg && reg.seller_pseudo) || (r && r.seller_id) || '—');
+            var desc = (r && (r.dispute_note || r.litige_description || r.dispute_text || r.dispute_reason)) || (reg && reg.reason) || '';
+            var img = String((r && (r.image_url || r.img1)) || '').trim();
+            var statusTxt = String((r && r.status) || ((reg && reg.status === 'closed') ? 'LITIGE CLOS' : 'LITIGE OUVERT'));
+            var isOpen = r
+                ? (typeof spiritTransactionLitigeIsOpenStatus === 'function' && spiritTransactionLitigeIsOpenStatus(r && r.status))
+                : !(reg && reg.status === 'closed');
+            var openTag = isOpen
                 ? '<span style="color:#f66;font-weight:700;"> [ouvert]</span>' : '<span style="color:#6a8;font-weight:700;"> [clos / résolu]</span>';
-            var imgBlock = img ? '<div style="margin:8px 0;"><img src="' + esc(img) + '" alt="" style="max-width:220px;max-height:160px;border:1px solid #444;" loading="lazy" /></div>' : '<p style="color:#555;font-size:0.6rem;">Pas d’image dans le ledger pour ce litige (champs optionnels).</p>';
+            var imgBlock = img ? '<div style="margin:8px 0;"><img src="' + esc(img) + '" alt="" style="max-width:220px;max-height:160px;border:1px solid #444;" loading="lazy" /></div>' : '';
+            var source = String((reg && reg.source) || (r ? 'achat/vente' : 'support')).toUpperCase();
+            var createdAt = (r && r.created_at) || (reg && reg.created_at) || '';
+            var dateTxt = createdAt ? new Date(createdAt).toLocaleString('fr-FR') : '—';
+            var closeBtn = isOpen
+                ? '<button type="button" class="btn-action" style="font-size:0.58rem;padding:5px 10px;background:#1a2a1a;border-color:#385a38;color:#9fdfbf;" onclick="spiritAdminCloseDispute(\'' + esc(txId) + '\',\'' + esc(String((reg && reg.id) || '')) + '\')">Clore le litige</button>'
+                : '';
             return '<div style="border:1px solid #333;padding:12px;margin-bottom:12px;border-radius:4px;background:#0c0c0c;">' +
-                '<div style="color:#f66;font-size:0.68rem;">TX #' + esc(r.id) + ' · ' + esc(r.status) + openTag + '</div>' +
-                '<div style="margin-top:6px;font-size:0.65rem;color:#ccc;"><b>Produit :</b> ' + esc(r.figurine_name || '—') + ' · <b>Montant :</b> ' + esc(String(r.amount != null ? r.amount : '—')) + '</div>' +
-                '<div style="margin-top:6px;font-size:0.65rem;color:#aaa;"><b>Acheteur :</b> ' + esc(buyer) + ' <span style="color:#555;">(' + esc(String(r.buyer_id || '')) + ')</span></div>' +
-                '<div style="margin-top:4px;font-size:0.65rem;color:#aaa;"><b>Vendeur :</b> ' + esc(seller) + ' <span style="color:#555;">(' + esc(String(r.seller_id || '')) + ')</span></div>' +
+                '<div style="color:#f66;font-size:0.68rem;">TX #' + esc(txId) + ' · ' + esc(statusTxt) + openTag + '</div>' +
+                '<div style="margin-top:6px;font-size:0.65rem;color:#999;"><b>Source :</b> ' + esc(source) + ' · <b>Date :</b> ' + esc(dateTxt) + '</div>' +
+                '<div style="margin-top:6px;font-size:0.65rem;color:#ccc;"><b>Produit :</b> ' + esc((r && r.figurine_name) || 'Support') + ' · <b>Montant :</b> ' + esc(String(r && r.amount != null ? r.amount : '—')) + '</div>' +
+                '<div style="margin-top:6px;font-size:0.65rem;color:#aaa;"><b>Acheteur :</b> ' + esc(buyer) + '</div>' +
+                '<div style="margin-top:4px;font-size:0.65rem;color:#aaa;"><b>Vendeur :</b> ' + esc(seller) + '</div>' +
                 '<div style="margin-top:8px;font-size:0.65rem;color:#ddd;"><b>Description / notes :</b> ' + esc(desc || '—') + '</div>' +
-                imgBlock + '</div>';
+                (imgBlock || '<p style="color:#555;font-size:0.6rem;">Pas d’image liée.</p>') +
+                '<div style="margin-top:8px;">' + closeBtn + '</div>' +
+                '</div>';
         }).join('');
     }
 
@@ -18599,34 +18647,71 @@ function spiritTransactionLitigeIsOpenStatus(status) {
 async function spiritFetchOpenLitigesForUser(uid) {
     uid = spiritNormUid(uid || '');
     if (!uid || !_spirit) return [];
+    var outRows = [];
     try {
         var out = await _spirit.from('transactions')
             .select('id,created_at,status,title,amount,seller_id,buyer_id,seller_name,buyer_name')
             .eq('seller_id', uid)
             .order('created_at', { ascending: false })
             .limit(200);
-        if (out.error) throw out.error;
-        var rows = Array.isArray(out.data) ? out.data : [];
-        return rows.filter(function (r) {
-            return spiritTransactionLitigeIsOpenStatus(r && r.status);
+        if (!out.error) outRows = Array.isArray(out.data) ? out.data : [];
+    } catch (e) {}
+    var regAll = [];
+    var regRows = [];
+    try {
+        regAll = spiritReadDisputeRegistry() || [];
+        regRows = (regAll || []).filter(function (r) {
+            var target = spiritNormUid((r && r.target_user_id) || '');
+            var st = String((r && r.status) || '').toLowerCase();
+            return target === uid && st !== 'closed';
+        }).map(function (r) {
+            return {
+                id: r.transaction_id || r.id,
+                created_at: r.created_at,
+                status: 'LITIGE OUVERT',
+                title: 'Transaction',
+                amount: null,
+                seller_id: r.seller_id || '',
+                buyer_id: r.buyer_id || '',
+                seller_name: r.seller_pseudo || '',
+                buyer_name: r.buyer_pseudo || '',
+                dispute_reason: r.reason || '',
+                dispute_source: r.source || 'support'
+            };
         });
-    } catch (e) {
-        return [];
-    }
+    } catch (eReg) {}
+    var txRows = outRows.filter(function (r) {
+        if (!spiritTransactionLitigeIsOpenStatus(r && r.status)) return false;
+        var txId = String(r && r.id || '').trim();
+        if (!txId) return true;
+        var regTx = (regAll || []).find(function (x) { return String((x && x.transaction_id) || '').trim() === txId; });
+        if (!regTx) return true;
+        var target = spiritNormUid((regTx && regTx.target_user_id) || '');
+        if (!target) return true;
+        return target === uid;
+    });
+    var all = txRows.concat(regRows);
+    return all.filter(function (r) {
+        var rid = String(r && r.id || '').trim();
+        return !!rid;
+    }).filter(function (r, idx, arr) {
+        var rid = String(r && r.id || '').trim();
+        return arr.findIndex(function (x) { return String(x && x.id || '').trim() === rid; }) === idx;
+    });
 }
-async function spiritOpenLitigePage() {
-    if (!spiritPublicViewUserId) return;
+async function spiritOpenPublicDisputeInfoForUser(uid) {
+    uid = spiritNormUid(uid || '');
+    if (!uid) return;
     var root = document.getElementById('spiritLitigeModal');
     var title = document.getElementById('spiritLitigeTitle');
     var list = document.getElementById('spiritLitigeList');
     if (!root || !title || !list) return;
-    title.textContent = 'Litiges en cours';
+    title.textContent = 'Litiges visibles';
     list.innerHTML = '<div style="font-size:0.7rem;color:#888;">Chargement...</div>';
     root.style.setProperty('display', 'block', 'important');
-    var uid = spiritNormUid(spiritPublicViewUserId || '');
     var rows = await spiritFetchOpenLitigesForUser(uid);
     if (!rows.length) {
-        list.innerHTML = '<div style="font-size:0.72rem;color:#6f6;">Aucun litige en cours.</div>';
+        list.innerHTML = '<div style="font-size:0.72rem;color:#6f6;">Aucun litige visible.</div>';
         return;
     }
     list.innerHTML = rows.map(function (r) {
@@ -18640,14 +18725,20 @@ async function spiritOpenLitigePage() {
         var amtTxt = Number.isFinite(amt) ? (amt.toFixed(2) + ' EUR') : '—';
         var d = (r && r.created_at) ? new Date(r.created_at) : null;
         var dt = (d && !isNaN(d.getTime())) ? d.toLocaleString() : '—';
+        var reason = String((r && (r.dispute_reason || r.dispute_note || r.litige_description || r.dispute_text || r.dispute_reason)) || 'Aucune explication fournie.').replace(/</g, '&lt;');
         return '<div style="border:1px solid #5b1a1a;background:#140909;padding:10px;">'
             + '<div style="font-size:0.64rem;color:#f2a4a4;font-weight:800;">LITIGE EN COURS - TX #' + String(r && r.id || '—') + '</div>'
             + '<div style="font-size:0.72rem;color:#ddd;margin-top:4px;">' + t + '</div>'
             + '<div style="font-size:0.62rem;color:#aaa;margin-top:4px;">Vendeur: ' + sp + ' | Acheteur: ' + bp + '</div>'
             + '<div style="font-size:0.62rem;color:#aaa;margin-top:2px;">Montant: ' + amtTxt + ' | Statut: ' + st + '</div>'
+            + '<div style="font-size:0.62rem;color:#ffd7d7;margin-top:6px;"><b>Raison:</b> ' + reason + '</div>'
             + '<div style="font-size:0.58rem;color:#777;margin-top:2px;">Ouvert le: ' + dt + '</div>'
             + '</div>';
     }).join('');
+}
+async function spiritOpenLitigePage() {
+    if (!spiritPublicViewUserId) return;
+    return spiritOpenPublicDisputeInfoForUser(spiritPublicViewUserId);
 }
 async function spiritReplyToEvaluation(evalId) {
     evalId = String(evalId != null ? evalId : '').trim();
@@ -22545,26 +22636,162 @@ function renderTransactionList(container, data, error, type) {
  * On met à jour uniquement le statut pour éviter l'erreur de colonne manquante
  */
 async function openDispute(transactionId) {
-    if (!(await spiritConfirm("⚠️ Voulez-vous ouvrir un litige sur cette figurine ? Les fonds seront gelés."))) return;
+    return spiritOpenDisputeComposer('achat', transactionId);
+}
 
+function spiritReadDisputeRegistry() {
     try {
-        const { error } = await _spirit
-            .from('transactions')
-            .update({ status: 'LITIGE OUVERT' }) // On ne change que le status ici
-            .eq('id', transactionId);
-
-        if (error) throw error;
-
-        alert("⚖️ LITIGE OUVERT : Le séquestre est bloqué. L'équipe Spirit Infinity va analyser les preuves.");
-        loadMyPurchases(); // Rafraîchit l'affichage
-        try { if (typeof loadMySales === 'function') loadMySales(); } catch (eSales2) {}
+        var raw = localStorage.getItem('spirit_disputes_registry_v1') || '[]';
+        var arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+        return [];
+    }
+}
+function spiritWriteDisputeRegistry(rows) {
+    try { localStorage.setItem('spirit_disputes_registry_v1', JSON.stringify(Array.isArray(rows) ? rows : [])); } catch (e) {}
+}
+function spiritGetCurrentPseudoSafe() {
+    var p = '';
+    try { p = String(currentUser || '').trim(); } catch (e) {}
+    if (!p || p.toUpperCase() === 'VISITEUR') p = 'VISITEUR';
+    return p;
+}
+function spiritUpsertDisputeRegistryEntry(payload) {
+    var rows = spiritReadDisputeRegistry();
+    var txId = String((payload && payload.transaction_id) || '').trim();
+    var replaced = false;
+    rows = rows.map(function (r) {
+        if (!txId) return r;
+        if (String((r && r.transaction_id) || '').trim() === txId) {
+            replaced = true;
+            return Object.assign({}, r, payload);
+        }
+        return r;
+    });
+    if (!replaced) rows.unshift(payload);
+    spiritWriteDisputeRegistry(rows);
+}
+function spiritOpenDisputeComposer(source, transactionId) {
+    var modal = document.getElementById('spiritDisputeComposerModal');
+    var txt = document.getElementById('spiritDisputeReasonInput');
+    var tx = document.getElementById('spiritDisputeTxInput');
+    var src = document.getElementById('spiritDisputeSourceInput');
+    if (!modal || !txt || !tx || !src) {
+        alert('Formulaire litige indisponible.');
+        return;
+    }
+    src.value = String(source || 'support').toUpperCase();
+    tx.value = String(transactionId || '').trim();
+    txt.value = '';
+    modal.style.setProperty('display', 'block', 'important');
+}
+function openSellerDispute(transactionId) {
+    return spiritOpenDisputeComposer('vente', transactionId);
+}
+async function spiritSubmitDisputeComposer() {
+    var modal = document.getElementById('spiritDisputeComposerModal');
+    var txtEl = document.getElementById('spiritDisputeReasonInput');
+    var txEl = document.getElementById('spiritDisputeTxInput');
+    var srcEl = document.getElementById('spiritDisputeSourceInput');
+    var reason = String((txtEl && txtEl.value) || '').trim();
+    var source = String((srcEl && srcEl.value) || 'support').trim().toLowerCase();
+    var txId = String((txEl && txEl.value) || '').trim();
+    if (reason.length < 8) {
+        alert('Merci de détailler la raison du litige (min 8 caractères).');
+        return;
+    }
+    var meRaw = (typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : window.MY_TEST_ID || MY_TEST_ID) || '';
+    var me = spiritNormUid(meRaw);
+    if (!me) {
+        alert('Connecte-toi pour ouvrir un litige.');
+        return;
+    }
+    if (source === 'achat' && txId) {
+        if (!(await spiritConfirm("⚠️ Voulez-vous ouvrir un litige sur cette figurine ? Les fonds seront gelés."))) return;
+    }
+    try {
+        var txInfo = null;
+        if (txId && _spirit) {
+            var trLoad = await _spirit.from('transactions').select('id,buyer_id,seller_id,buyer_name,seller_name,status').eq('id', txId).maybeSingle();
+            if (trLoad.error) throw trLoad.error;
+            txInfo = trLoad.data || null;
+        }
+        if ((source === 'achat' || source === 'vente') && txId && _spirit) {
+            var upd = await _spirit.from('transactions').update({ status: 'LITIGE OUVERT' }).eq('id', txId);
+            if (upd.error) throw upd.error;
+        }
+        var openerId = me;
+        var openerPseudo = spiritGetCurrentPseudoSafe();
+        var buyerId = (txInfo && txInfo.buyer_id) || me;
+        var sellerId = (txInfo && txInfo.seller_id) || '';
+        var buyerPseudo = (txInfo && txInfo.buyer_name) || '';
+        var sellerPseudo = (txInfo && txInfo.seller_name) || '';
+        var targetId = '';
+        if (source === 'vente') targetId = spiritNormUid(buyerId || '');
+        else if (source === 'achat') targetId = spiritNormUid(sellerId || '');
+        if (!targetId && txInfo) {
+            var bN = spiritNormUid(buyerId || '');
+            var sN = spiritNormUid(sellerId || '');
+            targetId = (openerId === bN) ? sN : ((openerId === sN) ? bN : sN);
+        }
+        var entry = {
+            id: 'disp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7),
+            source: source || 'support',
+            transaction_id: txId || '',
+            reason: reason,
+            created_at: new Date().toISOString(),
+            status: 'open',
+            opener_user_id: openerId,
+            opener_pseudo: openerPseudo,
+            target_user_id: targetId || '',
+            buyer_id: buyerId || '',
+            seller_id: sellerId || '',
+            buyer_pseudo: buyerPseudo || ((spiritNormUid(buyerId || '') === openerId) ? openerPseudo : ''),
+            seller_pseudo: sellerPseudo || ((spiritNormUid(sellerId || '') === openerId) ? openerPseudo : '')
+        };
+        spiritUpsertDisputeRegistryEntry(entry);
+        alert("⚖️ LITIGE OUVERT : Le dossier est enregistré dans l'admin.");
+        if (modal) modal.style.setProperty('display', 'none', 'important');
+        try { if (typeof loadMyPurchases === 'function') loadMyPurchases(); } catch (eP) {}
+        try { if (typeof loadMySales === 'function') loadMySales(); } catch (eS) {}
         try { if (typeof checkGlobalNotifications === 'function') checkGlobalNotifications().catch(function () {}); } catch (eN4) {}
         try { if (typeof spiritSyncAccountNotificationPulse === 'function') spiritSyncAccountNotificationPulse(); } catch (eN5) {}
     } catch (err) {
-        console.error("Erreur Ledger:", err.message);
-        alert("Erreur lors de l'ouverture : " + err.message);
+        console.error("Erreur Ledger:", err && err.message ? err.message : err);
+        alert("Erreur lors de l'ouverture : " + (err && err.message ? err.message : err));
     }
 }
+async function spiritAdminCloseDispute(transactionId, registryId) {
+    var txId = String(transactionId || '').trim();
+    var regId = String(registryId || '').trim();
+    if (!(await spiritConfirm('Clore ce litige ?'))) return;
+    try {
+        if (txId && txId !== '—' && _spirit) {
+            var upd = await _spirit.from('transactions').update({ status: 'LITIGE CLOS' }).eq('id', txId);
+            if (upd.error) throw upd.error;
+        }
+        var rows = spiritReadDisputeRegistry();
+        rows = rows.map(function (r) {
+            var sameReg = regId && String((r && r.id) || '') === regId;
+            var sameTx = txId && String((r && r.transaction_id) || '') === txId;
+            if (!sameReg && !sameTx) return r;
+            return Object.assign({}, r, { status: 'closed', closed_at: new Date().toISOString() });
+        });
+        spiritWriteDisputeRegistry(rows);
+        alert('Litige clôturé.');
+        try { if (typeof spiritHotToysAdminLoadBourse === 'function') spiritHotToysAdminLoadBourse(); } catch (eR) {}
+        try { if (typeof loadMyPurchases === 'function') loadMyPurchases(); } catch (eP) {}
+        try { if (typeof loadMySales === 'function') loadMySales(); } catch (eS) {}
+    } catch (e) {
+        alert('Erreur clôture litige : ' + (e && e.message ? e.message : e));
+    }
+}
+try { window.spiritOpenDisputeComposer = spiritOpenDisputeComposer; } catch (eOpenDisp) {}
+try { window.spiritSubmitDisputeComposer = spiritSubmitDisputeComposer; } catch (eSubDisp) {}
+try { window.spiritAdminCloseDispute = spiritAdminCloseDispute; } catch (eCloseDisp) {}
+try { window.spiritOpenPublicDisputeInfoForUser = spiritOpenPublicDisputeInfoForUser; } catch (ePubDisp) {}
+try { window.openSellerDispute = openSellerDispute; } catch (eSellDisp) {}
 
 /**
  * Retirer le litige (acheteur uniquement) : repasse en séquestre actif.
@@ -23287,12 +23514,29 @@ function showLedgerModal() {
 async function spiritHasOpenLitigeForUser(uid) {
     uid = spiritNormUid(uid || '');
     if (!uid || !_spirit) return false;
+    var reg = [];
+    try {
+        reg = spiritReadDisputeRegistry() || [];
+        var hasTargeted = (reg || []).some(function (r) {
+            var st = String((r && r.status) || '').toLowerCase();
+            if (st === 'closed') return false;
+            return spiritNormUid((r && r.target_user_id) || '') === uid;
+        });
+        if (hasTargeted) return true;
+    } catch (eReg) {}
     try {
         var out = await _spirit.from('transactions').select('id,status').eq('seller_id', uid).order('created_at', { ascending: false }).limit(200);
         if (out.error) throw out.error;
         var rows = Array.isArray(out.data) ? out.data : [];
         return rows.some(function (r) {
-            return spiritTransactionLitigeIsOpenStatus(r && r.status);
+            if (!spiritTransactionLitigeIsOpenStatus(r && r.status)) return false;
+            var txId = String(r && r.id || '').trim();
+            if (!txId) return true;
+            var regTx = (reg || []).find(function (x) { return String((x && x.transaction_id) || '').trim() === txId; });
+            if (!regTx) return true;
+            var target = spiritNormUid((regTx && regTx.target_user_id) || '');
+            if (!target) return true;
+            return target === uid;
         });
     } catch (e) {
         return false;
@@ -24014,6 +24258,26 @@ function closeModals() {
         <button type="button" onclick="document.getElementById('spiritLitigeModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
         <h3 id="spiritLitigeTitle" style="margin-top:0;color:#ff6666;">Litiges</h3>
         <div id="spiritLitigeList" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;"></div>
+    </div>
+</div>
+<div id="spiritDisputeComposerModal" class="overlay" style="display:none;">
+    <div class="modal-content" style="max-width:700px;text-align:left;">
+        <button type="button" onclick="document.getElementById('spiritDisputeComposerModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
+        <h3 style="margin-top:0;color:#ff6666;">Ouvrir un litige</h3>
+        <p style="font-size:0.68rem;color:#aaa;">Décris précisément le problème. Le litige est ajouté au menu admin avec date, raison et pseudos.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Source</label>
+                <input id="spiritDisputeSourceInput" type="text" readonly />
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">ID transaction (si achat/vente)</label>
+                <input id="spiritDisputeTxInput" type="text" readonly />
+            </div>
+        </div>
+        <label style="font-size:0.62rem;color:#888;display:block;margin-top:10px;">Raison du litige</label>
+        <textarea id="spiritDisputeReasonInput" maxlength="1200" placeholder="Explique la raison du litige..." style="min-height:120px;"></textarea>
+        <button type="button" class="btn-action" style="margin-top:12px;background:#3a0f0f;border-color:#7a2a2a;color:#ffb3b3;" onclick="spiritSubmitDisputeComposer()">ENREGISTRER LE LITIGE</button>
     </div>
 </div>
 <div id="spiritAutoEvalModal" class="overlay" style="display:none;z-index:100350 !important;" onclick="spiritAutoEvalOnOverlayClick(event)">
