@@ -15025,12 +15025,22 @@ async function spiritLoadListingMessagesForProduct(productId) {
             var source = String((reg && reg.source) || (r ? 'achat/vente' : 'support')).toUpperCase();
             var createdAt = (r && r.created_at) || (reg && reg.created_at) || '';
             var dateTxt = createdAt ? new Date(createdAt).toLocaleString('fr-FR') : '—';
+            var openerUid = spiritNormUid((reg && reg.opener_user_id) || '');
+            var targetUid = spiritNormUid((reg && reg.target_user_id) || '');
+            var buyerUid = spiritNormUid((r && r.buyer_id) || (reg && reg.buyer_id) || '');
+            var sellerUid = spiritNormUid((r && r.seller_id) || (reg && reg.seller_id) || '');
+            var sensTxt = 'Sens non précisé';
+            if (targetUid && buyerUid && targetUid === buyerUid) sensTxt = 'Litige contre acheteur';
+            else if (targetUid && sellerUid && targetUid === sellerUid) sensTxt = 'Litige contre vendeur';
+            else if (openerUid && buyerUid && openerUid === buyerUid) sensTxt = 'Ouvert par acheteur';
+            else if (openerUid && sellerUid && openerUid === sellerUid) sensTxt = 'Ouvert par vendeur';
             var closeBtn = isOpen
                 ? '<button type="button" class="btn-action" style="font-size:0.58rem;padding:5px 10px;background:#1a2a1a;border-color:#385a38;color:#9fdfbf;" onclick="spiritAdminCloseDispute(\'' + esc(txId) + '\',\'' + esc(String((reg && reg.id) || '')) + '\')">Clore le litige</button>'
                 : '';
             return '<div style="border:1px solid #333;padding:12px;margin-bottom:12px;border-radius:4px;background:#0c0c0c;">' +
                 '<div style="color:#f66;font-size:0.68rem;">TX #' + esc(txId) + ' · ' + esc(statusTxt) + openTag + '</div>' +
                 '<div style="margin-top:6px;font-size:0.65rem;color:#999;"><b>Source :</b> ' + esc(source) + ' · <b>Date :</b> ' + esc(dateTxt) + '</div>' +
+                '<div style="margin-top:4px;font-size:0.62rem;color:#ffb8b8;"><b>Sens :</b> ' + esc(sensTxt) + '</div>' +
                 '<div style="margin-top:6px;font-size:0.65rem;color:#ccc;"><b>Produit :</b> ' + esc((r && r.figurine_name) || 'Support') + ' · <b>Montant :</b> ' + esc(String(r && r.amount != null ? r.amount : '—')) + '</div>' +
                 '<div style="margin-top:6px;font-size:0.65rem;color:#aaa;"><b>Acheteur :</b> ' + esc(buyer) + '</div>' +
                 '<div style="margin-top:4px;font-size:0.65rem;color:#aaa;"><b>Vendeur :</b> ' + esc(seller) + '</div>' +
