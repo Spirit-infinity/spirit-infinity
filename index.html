@@ -10630,6 +10630,61 @@ function spiritCatalogImageDisplayUrl(rawUrl) {
     }
 }
 try { window.spiritCatalogImageDisplayUrl = spiritCatalogImageDisplayUrl; } catch (eCatImgDisp) {}
+function spiritCatalogImageCandidateUrls(rawUrl) {
+    var orig = String(rawUrl || '').trim();
+    if (!orig) return [];
+    var out = [];
+    var p1 = spiritCatalogImageDisplayUrl(orig);
+    if (p1) out.push(p1);
+    if (/^https?:\/\//i.test(orig)) {
+        out.push('https://wsrv.nl/?url=' + encodeURIComponent(orig.replace(/^https?:\/\//i, '')) + '&w=1200&fit=contain');
+        out.push(orig);
+    }
+    var seen = Object.create(null);
+    return out.filter(function (u) {
+        var k = String(u || '').trim();
+        if (!k || seen[k]) return false;
+        seen[k] = 1;
+        return true;
+    });
+}
+async function spiritPickFirstLoadableImageUrl(urls) {
+    var list = Array.isArray(urls) ? urls.filter(Boolean) : [];
+    if (!list.length) return '';
+    async function canLoad(u) {
+        return new Promise(function (resolve) {
+            var done = false;
+            var img = new Image();
+            var to = setTimeout(function () {
+                if (done) return;
+                done = true;
+                try { img.src = ''; } catch (e0) {}
+                resolve(false);
+            }, 5000);
+            img.onload = function () {
+                if (done) return;
+                done = true;
+                clearTimeout(to);
+                resolve(true);
+            };
+            img.onerror = function () {
+                if (done) return;
+                done = true;
+                clearTimeout(to);
+                resolve(false);
+            };
+            img.referrerPolicy = 'no-referrer';
+            img.src = u;
+        });
+    }
+    for (var i = 0; i < list.length; i++) {
+        var ok = false;
+        try { ok = await canLoad(list[i]); } catch (e1) { ok = false; }
+        if (ok) return list[i];
+    }
+    return list[list.length - 1] || '';
+}
+try { window.spiritPickFirstLoadableImageUrl = spiritPickFirstLoadableImageUrl; } catch (eCatImgPick) {}
 
     function chooseMethod(m) {
         currentMethod = m;
@@ -11317,7 +11372,13 @@ async function publierAnnonce() {
     var sellerPhotoCount = photoUrls.length;
     var catalogPhotoPos = 0;
     if (catalogOfficialImage) {
-        var catalogDisplayImage = spiritCatalogImageDisplayUrl(catalogOfficialImage);
+        var catalogDisplayImage = '';
+        try {
+            var cands = spiritCatalogImageCandidateUrls(catalogOfficialImage);
+            catalogDisplayImage = await spiritPickFirstLoadableImageUrl(cands);
+        } catch (ePickCat) {
+            catalogDisplayImage = spiritCatalogImageDisplayUrl(catalogOfficialImage);
+        }
         var hasAlready = photoUrls.some(function (u) { return String(u || '').trim() === String(catalogOfficialImage).trim(); });
         if (!hasAlready && catalogDisplayImage) {
             photoUrls.push(catalogDisplayImage); // Toujours en fin: 3->4e, 4->5e, 5->6e.
