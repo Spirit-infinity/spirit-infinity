@@ -10616,6 +10616,20 @@ async function spiritFindCatalogOfficialImageForPublish(brand, reference) {
     return '';
 }
 try { window.spiritFindCatalogOfficialImageForPublish = spiritFindCatalogOfficialImageForPublish; } catch (eCatImgFn) {}
+function spiritCatalogImageDisplayUrl(rawUrl) {
+    var u = String(rawUrl || '').trim();
+    if (!u) return '';
+    if (/^data:image\//i.test(u)) return u;
+    if (!/^https?:\/\//i.test(u)) return '';
+    // Fallback anti-hotlink: proxy image public pour afficher l'image catalogue en annonce.
+    try {
+        var clean = u.replace(/^https?:\/\//i, '');
+        return 'https://images.weserv.nl/?url=' + encodeURIComponent(clean) + '&w=1200&fit=contain';
+    } catch (eProxy) {
+        return u;
+    }
+}
+try { window.spiritCatalogImageDisplayUrl = spiritCatalogImageDisplayUrl; } catch (eCatImgDisp) {}
 
     function chooseMethod(m) {
         currentMethod = m;
@@ -11303,9 +11317,10 @@ async function publierAnnonce() {
     var sellerPhotoCount = photoUrls.length;
     var catalogPhotoPos = 0;
     if (catalogOfficialImage) {
+        var catalogDisplayImage = spiritCatalogImageDisplayUrl(catalogOfficialImage);
         var hasAlready = photoUrls.some(function (u) { return String(u || '').trim() === String(catalogOfficialImage).trim(); });
-        if (!hasAlready) {
-            photoUrls.push(catalogOfficialImage); // Toujours en fin: 3->4e, 4->5e, 5->6e.
+        if (!hasAlready && catalogDisplayImage) {
+            photoUrls.push(catalogDisplayImage); // Toujours en fin: 3->4e, 4->5e, 5->6e.
             catalogPhotoPos = sellerPhotoCount + 1;
         }
     }
