@@ -10569,6 +10569,54 @@ function spiritAttachCatalogAssistEvents() {
     }
 }
 
+async function spiritFindCatalogOfficialImageForPublish(brand, reference) {
+    var b = String(brand || '').trim();
+    var r = String(reference || '').trim();
+    if (!_spirit || !b || !r) return '';
+    var rNorm = typeof spiritNormalizeCatalogSearch === 'function' ? spiritNormalizeCatalogSearch(r) : String(r).toLowerCase();
+    try {
+        if (window.spiritSelectedCatalogRow) {
+            var sel = window.spiritSelectedCatalogRow;
+            var selRefNorm = typeof spiritNormalizeCatalogSearch === 'function' ? spiritNormalizeCatalogSearch(sel.ref_code || '') : String(sel.ref_code || '').toLowerCase();
+            var selBrandNorm = typeof spiritNormalizeCatalogSearch === 'function' ? spiritNormalizeCatalogSearch(sel.brand || '') : String(sel.brand || '').toLowerCase();
+            var bNorm = typeof spiritNormalizeCatalogSearch === 'function' ? spiritNormalizeCatalogSearch(b) : String(b).toLowerCase();
+            if (selRefNorm === rNorm && (!selBrandNorm || selBrandNorm === bNorm)) {
+                var imgSel = String(sel.official_image_url || '').trim();
+                if (imgSel) return imgSel;
+            }
+        }
+    } catch (eSel) {}
+    try {
+        var q = await _spirit.from('products_catalog')
+            .select('brand,ref_code,official_image_url')
+            .eq('brand', b)
+            .eq('ref_code', r)
+            .limit(1);
+        if (!q.error && Array.isArray(q.data) && q.data.length) {
+            var img = String((q.data[0] && q.data[0].official_image_url) || '').trim();
+            if (img) return img;
+        }
+    } catch (eQ1) {}
+    try {
+        var q2 = await _spirit.from('products_catalog')
+            .select('brand,ref_code,official_image_url')
+            .eq('ref_code', r)
+            .limit(25);
+        if (!q2.error && Array.isArray(q2.data) && q2.data.length) {
+            var bNorm2 = typeof spiritNormalizeCatalogSearch === 'function' ? spiritNormalizeCatalogSearch(b) : String(b).toLowerCase();
+            for (var i = 0; i < q2.data.length; i++) {
+                var row = q2.data[i] || {};
+                var rb = typeof spiritNormalizeCatalogSearch === 'function' ? spiritNormalizeCatalogSearch(row.brand || '') : String(row.brand || '').toLowerCase();
+                if (rb && bNorm2 && rb !== bNorm2) continue;
+                var img2 = String(row.official_image_url || '').trim();
+                if (img2) return img2;
+            }
+        }
+    } catch (eQ2) {}
+    return '';
+}
+try { window.spiritFindCatalogOfficialImageForPublish = spiritFindCatalogOfficialImageForPublish; } catch (eCatImgFn) {}
+
     function chooseMethod(m) {
         currentMethod = m;
         document.getElementById('stepMethod').style.display = 'none';
@@ -11241,6 +11289,29 @@ async function publierAnnonce() {
     var photoUrls = (typeof previewPhotos !== 'undefined' && Array.isArray(previewPhotos))
         ? previewPhotos.filter(function (p) { return p != null && String(p).trim() !== ''; })
         : [];
+    if (photoUrls.length < 3) {
+        alert('Minimum 3 photos vendeur requises pour publier une annonce.');
+        return;
+    }
+    var catalogOfficialImage = '';
+    try {
+        var refForCatalog = String((document.getElementById('inputReference') && document.getElementById('inputReference').value) || '').trim();
+        if (brand && refForCatalog) {
+            catalogOfficialImage = await spiritFindCatalogOfficialImageForPublish(brand, refForCatalog);
+        }
+    } catch (eCatRef) {}
+    var sellerPhotoCount = photoUrls.length;
+    var catalogPhotoPos = 0;
+    if (catalogOfficialImage) {
+        var hasAlready = photoUrls.some(function (u) { return String(u || '').trim() === String(catalogOfficialImage).trim(); });
+        if (!hasAlready) {
+            photoUrls.push(catalogOfficialImage); // Toujours en fin: 3->4e, 4->5e, 5->6e.
+            catalogPhotoPos = sellerPhotoCount + 1;
+        }
+    }
+    if (catalogPhotoPos > 0) {
+        desc += '\n\n[PHOTO OFFICIELLE CATALOGUE AJOUTÉE EN POSITION ' + String(catalogPhotoPos) + ' — image de référence visuelle.]';
+    }
     var ownerIdPub = String((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : MY_TEST_ID) || '').trim();
     var listingFolderKey = uuidVal;
     if (typeof editingId !== 'undefined' && editingId != null && String(editingId).trim() !== '') {
@@ -11296,6 +11367,10 @@ async function publierAnnonce() {
         origin_country: saleOriginCountry,
         country: saleOriginCountry
     };
+    try {
+        var pubRef = String((document.getElementById('inputReference') && document.getElementById('inputReference').value) || '').trim();
+        if (pubRef) newItem.product_reference = pubRef;
+    } catch (ePubRefAssign) {}
 
     try {
         if (!_spirit) {
@@ -11333,6 +11408,10 @@ async function publierAnnonce() {
                 origin_country: saleOriginCountry,
                 country: saleOriginCountry
             };
+            try {
+                var pubRefUpd = String((document.getElementById('inputReference') && document.getElementById('inputReference').value) || '').trim();
+                if (pubRefUpd) updateRow.product_reference = pubRefUpd;
+            } catch (ePubRefUpd) {}
             if (photoUrls.length > 0) {
                 updateRow.image_url = photoUrls.length === 1 ? photoUrls[0] : JSON.stringify(photoUrls);
             }
@@ -24797,3 +24876,44 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
     window.spiritActivateDetectedMac = spiritActivateDetectedMac;
     window.spiritReleaseMyCurrentDevice = spiritReleaseMyCurrentDevice;
     window.spiritShowMySpiritCollection = spiritShowMySpiritCollection;
+    spiritAttachDetectionOnPanelOpen();
+  } catch (e) {}
+})();
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
