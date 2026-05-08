@@ -21539,6 +21539,7 @@ var spiritProductLightboxZoom = 1;
 var spiritProductLightboxPanX = 0;
 var spiritProductLightboxPanY = 0;
 var spiritProductLightboxDrag = null;
+var spiritProductLightboxPinch = null;
 function spiritProductLightboxApplyZoom() {
     try {
         var img = document.getElementById('lightbox-img');
@@ -21559,6 +21560,7 @@ function spiritProductLightboxResetZoom() {
     spiritProductLightboxPanX = 0;
     spiritProductLightboxPanY = 0;
     spiritProductLightboxDrag = null;
+    spiritProductLightboxPinch = null;
     spiritProductLightboxApplyZoom();
 }
 
@@ -21570,6 +21572,21 @@ function spiritProductLightboxResetZoom() {
         var sx = 0, sy = 0;
         lbImg.addEventListener('touchstart', function (ev) {
             try {
+                if (ev.touches && ev.touches.length >= 2) {
+                    var t1s = ev.touches[0];
+                    var t2s = ev.touches[1];
+                    var dxs = t2s.clientX - t1s.clientX;
+                    var dys = t2s.clientY - t1s.clientY;
+                    var ds = Math.sqrt(dxs * dxs + dys * dys) || 1;
+                    spiritProductLightboxPinch = {
+                        startDist: ds,
+                        startZoom: spiritProductLightboxZoom,
+                        midX: (t1s.clientX + t2s.clientX) / 2,
+                        midY: (t1s.clientY + t2s.clientY) / 2
+                    };
+                    spiritProductLightboxDrag = null;
+                    return;
+                }
                 var t = ev.touches && ev.touches[0];
                 if (!t) return;
                 sx = t.clientX;
@@ -21581,6 +21598,34 @@ function spiritProductLightboxResetZoom() {
         }, { passive: true });
         lbImg.addEventListener('touchmove', function (ev) {
             try {
+                if (ev.touches && ev.touches.length >= 2) {
+                    var t1m = ev.touches[0];
+                    var t2m = ev.touches[1];
+                    var dxm = t2m.clientX - t1m.clientX;
+                    var dym = t2m.clientY - t1m.clientY;
+                    var dm = Math.sqrt(dxm * dxm + dym * dym) || 1;
+                    if (!spiritProductLightboxPinch) {
+                        spiritProductLightboxPinch = {
+                            startDist: dm,
+                            startZoom: spiritProductLightboxZoom,
+                            midX: (t1m.clientX + t2m.clientX) / 2,
+                            midY: (t1m.clientY + t2m.clientY) / 2
+                        };
+                    }
+                    var nextZ = spiritProductLightboxPinch.startZoom * (dm / Math.max(1, spiritProductLightboxPinch.startDist));
+                    if (nextZ < 1) nextZ = 1;
+                    if (nextZ > 6) nextZ = 6;
+                    spiritProductLightboxZoom = nextZ;
+                    var midX = (t1m.clientX + t2m.clientX) / 2;
+                    var midY = (t1m.clientY + t2m.clientY) / 2;
+                    spiritProductLightboxPanX += (midX - spiritProductLightboxPinch.midX);
+                    spiritProductLightboxPanY += (midY - spiritProductLightboxPinch.midY);
+                    spiritProductLightboxPinch.midX = midX;
+                    spiritProductLightboxPinch.midY = midY;
+                    spiritProductLightboxApplyZoom();
+                    ev.preventDefault();
+                    return;
+                }
                 if (spiritProductLightboxZoom <= 1.01 || !spiritProductLightboxDrag || !spiritProductLightboxDrag.touch) return;
                 var t = ev.touches && ev.touches[0];
                 if (!t) return;
@@ -21596,6 +21641,8 @@ function spiritProductLightboxResetZoom() {
         }, { passive: false });
         lbImg.addEventListener('touchend', function (ev) {
             try {
+                if (ev.touches && ev.touches.length >= 2) return;
+                spiritProductLightboxPinch = null;
                 if (spiritProductLightboxZoom > 1.01 && spiritProductLightboxDrag && spiritProductLightboxDrag.touch) {
                     spiritProductLightboxDrag = null;
                     return;
