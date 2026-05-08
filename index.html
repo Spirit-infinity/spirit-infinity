@@ -21574,10 +21574,32 @@ function spiritProductLightboxResetZoom() {
                 if (!t) return;
                 sx = t.clientX;
                 sy = t.clientY;
+                if (spiritProductLightboxZoom > 1.01) {
+                    spiritProductLightboxDrag = { x: t.clientX, y: t.clientY, touch: true };
+                }
             } catch (eT) {}
         }, { passive: true });
+        lbImg.addEventListener('touchmove', function (ev) {
+            try {
+                if (spiritProductLightboxZoom <= 1.01 || !spiritProductLightboxDrag || !spiritProductLightboxDrag.touch) return;
+                var t = ev.touches && ev.touches[0];
+                if (!t) return;
+                var dx = t.clientX - spiritProductLightboxDrag.x;
+                var dy = t.clientY - spiritProductLightboxDrag.y;
+                spiritProductLightboxDrag.x = t.clientX;
+                spiritProductLightboxDrag.y = t.clientY;
+                spiritProductLightboxPanX += dx;
+                spiritProductLightboxPanY += dy;
+                spiritProductLightboxApplyZoom();
+                ev.preventDefault();
+            } catch (eTm) {}
+        }, { passive: false });
         lbImg.addEventListener('touchend', function (ev) {
             try {
+                if (spiritProductLightboxZoom > 1.01 && spiritProductLightboxDrag && spiritProductLightboxDrag.touch) {
+                    spiritProductLightboxDrag = null;
+                    return;
+                }
                 var t = ev.changedTouches && ev.changedTouches[0];
                 if (!t) return;
                 var dx = t.clientX - sx;
