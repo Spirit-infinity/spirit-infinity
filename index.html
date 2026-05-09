@@ -13038,6 +13038,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
     function spiritCtWriteEventsLocal(rows) {
         try { localStorage.setItem(SPIRIT_CT_EVENTS_LS_KEY, JSON.stringify(Array.isArray(rows) ? rows : [])); } catch (e) {}
     }
+    /* spirit_figure_ct_events : colonnes optionnelles CT (SQL) — voir migration 20260509_spirit_figure_ct_events_listing_extras.sql
+       has_art_box, has_shipper, has_loose_joints (déjà en localStorage si insert Supabase échoue). */
     async function spiritCtRecordSaleEventFromCheckout(item, buyerId, sellerId, amountEur) {
         try {
             var key = spiritCtFigureKey(item);
@@ -13053,6 +13055,9 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 is_smoke_free: !!(item && item.is_smoke_free),
                 is_light_protect: !!(item && item.is_light_protect),
                 is_first_hand: !!(item && item.is_first_hand),
+                has_art_box: !!(item && item.has_art_box),
+                has_shipper: !!(item && item.has_shipper),
+                has_loose_joints: !!(item && item.has_loose_joints),
                 created_at: new Date().toISOString()
             };
             var all = spiritCtReadEventsLocal();
@@ -13105,9 +13110,24 @@ async function spiritLoadListingMessagesForProduct(productId) {
             var firstDate = first.created_at ? new Date(first.created_at).toLocaleDateString('fr-FR') : '—';
             var smokeTxt = last.is_smoke_free ? 'Non-fumeur' : 'Fumeur';
             var lightTxt = last.is_light_protect ? 'À l’abri de la lumière' : 'Exposé à la lumière';
+            function ctChip(kYes, kNo, v) {
+                return (!!v)
+                    ? ((typeof spiritT === 'function') ? spiritT(kYes) : kYes)
+                    : ((typeof spiritT === 'function') ? spiritT(kNo) : kNo);
+            }
+            var artTxt = ctChip('market_chip_artbox_yes', 'market_chip_artbox_no', last.has_art_box);
+            var shipTxt = ctChip('market_chip_shipper_yes', 'market_chip_shipper_no', last.has_shipper);
+            var looseTxt = ctChip('market_chip_loose_yes', 'market_chip_loose_no', last.has_loose_joints);
             var curSmoke = !!(item && item.is_smoke_free);
             var curLight = !!(item && item.is_light_protect);
-            var consistency = (curSmoke === !!last.is_smoke_free && curLight === !!last.is_light_protect)
+            var curArt = !!(item && item.has_art_box);
+            var curShip = !!(item && item.has_shipper);
+            var curLoose = !!(item && item.has_loose_joints);
+            var lastArt = !!last.has_art_box;
+            var lastShip = !!last.has_shipper;
+            var lastLoose = !!last.has_loose_joints;
+            var consistency = (curSmoke === !!last.is_smoke_free && curLight === !!last.is_light_protect
+                && curArt === lastArt && curShip === lastShip && curLoose === lastLoose)
                 ? '<span style="color:#8fe39d;">Cohérent avec le dernier historique</span>'
                 : '<span style="color:#ffb37e;">Différence avec le dernier historique</span>';
             var sellerPseudo = await spiritCtResolvePseudo(last.seller_id || '');
@@ -13115,7 +13135,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             html = ''
                 + '<div><b>CT interne</b> · première vente site: <b>' + firstDate + '</b></div>'
                 + '<div>Nombre de mains (interne): <b>' + hands + '</b></div>'
-                + '<div>Dernier état connu: <b>' + smokeTxt + '</b> · <b>' + lightTxt + '</b></div>'
+                + '<div>Dernier état connu: <b>' + smokeTxt + '</b> · <b>' + lightTxt + '</b> · <b>' + artTxt + '</b> · <b>' + shipTxt + '</b> · <b>' + looseTxt + '</b></div>'
                 + '<div>Dernier transfert: ' + spiritCtMaskPseudoLike(sellerPseudo) + ' -> ' + spiritCtMaskPseudoLike(buyerPseudo) + '</div>'
                 + '<div style="margin-top:6px;">' + consistency + '</div>';
         }
