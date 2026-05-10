@@ -23638,7 +23638,11 @@ async function fetchMarketplaceFromSupabase(opts) {
     var prevSigStale = null;
     var prevHasMoreStale = false;
     if (opts.staleRefresh && !append && opts.reset !== false) {
-        prevSigStale = spiritMarketRowsSig(b.rows);
+        /* Comparer seulement la 1ère page (= ce que cette requête range recharge). Sinon la signature
+           « toutes les lignes » ne matche jamais si l’utilisateur a « chargé plus » → re-render forcé qui fait sauter la page. */
+        var _psStaleHdr = SPIRIT_MARKET_PAGE_SIZE;
+        var _headRowsStale = Array.isArray(b.rows) ? b.rows.slice(0, _psStaleHdr) : [];
+        prevSigStale = spiritMarketRowsSig(_headRowsStale);
         prevHasMoreStale = !!b.hasMore;
     }
 
@@ -23678,7 +23682,9 @@ async function fetchMarketplaceFromSupabase(opts) {
         }
     }
 
-    if (!append && opts.reset !== false) {
+    /* Pendant un staleRefresh on ne vide pas tout de suite les lignes / la grille évite décalage brutal
+       (accueil + marketplace) jusqu’à ce que le réseau prouve un changement sur la première page. */
+    if (!append && opts.reset !== false && !opts.staleRefresh) {
         b.rows = [];
         spiritRenderMarketSig = '';
     }
