@@ -10541,7 +10541,20 @@ function spiritRenderCatalogRefSuggestions(items) {
                 row.style.background = 'transparent';
                 row.style.color = '#d8d8d8';
             };
-            row.onclick = function () { spiritSelectCatalogRefSuggestion(it); };
+            row.onmousedown = function (ev) {
+                // Sélection au mousedown pour éviter le blur/input race qui peut rouvrir la liste.
+                if (ev) {
+                    try { ev.preventDefault(); } catch (ePd) {}
+                    try { ev.stopPropagation(); } catch (eSp) {}
+                }
+                spiritSelectCatalogRefSuggestion(it);
+            };
+            row.onclick = function (ev) {
+                if (ev) {
+                    try { ev.preventDefault(); } catch (ePd2) {}
+                    try { ev.stopPropagation(); } catch (eSp2) {}
+                }
+            };
             dd.appendChild(row);
         }
     });
