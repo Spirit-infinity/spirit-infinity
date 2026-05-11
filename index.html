@@ -7014,6 +7014,15 @@ function spiritFavoriteProductId(item) {
     var n = Number(item.id);
     return (typeof n === 'number' && isFinite(n) && !isNaN(n)) ? n : null;
 }
+/** ID numérique `products_live` pour hydratation / CT : `id`, sinon `product_id`, sinon `id` texte numérique (certaines vues marché). */
+function spiritProductsLiveNumericId(item) {
+    if (!item) return null;
+    var fp = spiritFavoriteProductId(item);
+    if (fp != null) return fp;
+    var p2 = spiritParseFavoriteProductId(item.product_id);
+    if (p2 != null) return p2;
+    return spiritParseFavoriteProductId(item.id);
+}
 /** Toujours l’ID session courant (texte), aligné sur MY_TEST_ID — pas window seul (évite un user_id obsolète après switchUser). */
 function spiritGetCurrentUserId() {
     try {
@@ -13500,7 +13509,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             return true;
         });
     }
-    async function spiritCtFetchEventsFromSupabase(figureKey, traceId) {
+    async function spiritCtFetchEventsFromSupabase(figureKey, traceId, productId) {
         if (!_spirit) return [];
         var acc = [];
         try {
@@ -13512,6 +13521,11 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (tid) {
                 var q2 = await _spirit.from('spirit_figure_ct_events').select('*').eq('trace_id', tid).order('created_at', { ascending: true }).limit(260);
                 if (!q2.error && Array.isArray(q2.data)) acc = acc.concat(q2.data);
+            }
+            var pid = productId != null && Number.isFinite(Number(productId)) ? Number(productId) : null;
+            if (pid != null) {
+                var q3 = await _spirit.from('spirit_figure_ct_events').select('*').eq('product_id', pid).order('created_at', { ascending: true }).limit(260);
+                if (!q3.error && Array.isArray(q3.data)) acc = acc.concat(q3.data);
             }
         } catch (e) {}
         return spiritCtDedupeCtEventRows(acc);
@@ -13564,9 +13578,16 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 description: ''
             });
             if (!key) return;
+            var tidResolved = payload.trace_id ? String(payload.trace_id).trim() : '';
+            if (!tidResolved && typeof _spirit !== 'undefined' && _spirit && payload.product_id != null && Number.isFinite(Number(payload.product_id))) {
+                try {
+                    var trRow = await _spirit.from('products_live').select('spirit_trace_id').eq('id', Number(payload.product_id)).maybeSingle();
+                    if (!trRow.error && trRow.data && trRow.data.spirit_trace_id) tidResolved = String(trRow.data.spirit_trace_id).trim();
+                } catch (eTrL) {}
+            }
             var evt = {
                 figure_key: key,
-                trace_id: payload.trace_id ? String(payload.trace_id).trim() : null,
+                trace_id: tidResolved || null,
                 product_id: payload.product_id != null && Number.isFinite(Number(payload.product_id)) ? Number(payload.product_id) : null,
                 event_type: 'listed',
                 brand: String(payload.brand || '').trim(),
@@ -13588,8 +13609,15 @@ async function spiritLoadListingMessagesForProduct(productId) {
             allL.push(evt);
             spiritCtWriteEventsLocal(allL);
             try {
-                if (_spirit) await _spirit.from('spirit_figure_ct_events').insert([evt]);
-            } catch (eSup2) {}
+                if (_spirit) {
+                    var insCtL = await _spirit.from('spirit_figure_ct_events').insert([evt]);
+                    if (insCtL && insCtL.error) {
+                        try { console.warn('[SPIRIT CT] insert listed:', insCtL.error.message || insCtL.error); } catch (eLg) {}
+                    }
+                }
+            } catch (eSup2) {
+                try { console.warn('[SPIRIT CT] insert listed exception:', eSup2 && eSup2.message ? eSup2.message : eSup2); } catch (eLg2) {}
+            }
         } catch (e) {}
     }
     try { window.spiritCtRecordListingListedEvent = spiritCtRecordListingListedEvent; } catch (eCtLWin) {}
@@ -13618,12 +13646,25 @@ async function spiritLoadListingMessagesForProduct(productId) {
         if (!wrap || !btn || !panel) return;
         var key = spiritCtFigureKey(item);
         var traceOpen = item && item.spirit_trace_id ? String(item.spirit_trace_id).trim() : '';
+        var pidOpen = typeof spiritProductsLiveNumericId === 'function' ? spiritProductsLiveNumericId(item) : spiritFavoriteProductId(item);
+        if (!traceOpen && pidOpen != null && typeof _spirit !== 'undefined' && _spirit) {
+            try {
+                var _trPm = await _spirit.from('products_live').select('spirit_trace_id').eq('id', pidOpen).maybeSingle();
+                if (!_trPm.error && _trPm.data && _trPm.data.spirit_trace_id) {
+                    var _txPm = String(_trPm.data.spirit_trace_id).trim();
+                    if (_txPm) {
+                        traceOpen = _txPm;
+                        try { item.spirit_trace_id = _txPm; } catch (eMut) {}
+                    }
+                }
+            } catch (eTrPm) {}
+        }
         if (!key && !traceOpen) {
             wrap.style.display = 'none';
             try { btn.classList.remove('spirit-ct-btn-blink'); } catch (eB0) {}
             return;
         }
-        var remoteRows = await spiritCtFetchEventsFromSupabase(key, traceOpen);
+        var remoteRows = await spiritCtFetchEventsFromSupabase(key, traceOpen, pidOpen);
         var localRows = spiritCtReadEventsLocal().filter(function (r) {
             if (!r) return false;
             if (key && String(r.figure_key || '') === key) return true;
@@ -13715,39 +13756,6 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 + '</div>');
             for (var ri = 0; ri < rows.length; ri++) {
                 var r = rows[ri];
-                if (ri > 0) {
-                    var prevR = rows[ri - 1];
-                    var deltaParts = [];
-                    if (ctFumeurOuiNon(prevR) !== ctFumeurOuiNon(r)) {
-                        deltaParts.push('Fumeur <b>' + escCtHtml(ctFumeurOuiNon(prevR)) + '</b> → <b>' + escCtHtml(ctFumeurOuiNon(r)) + '</b>');
-                    }
-                    if (ctFirstHandLabel(prevR) !== ctFirstHandLabel(r)) {
-                        deltaParts.push('Main <b>' + escCtHtml(ctFirstHandLabel(prevR)) + '</b> → <b>' + escCtHtml(ctFirstHandLabel(r)) + '</b>');
-                    }
-                    if (ctYnTri(prevR && prevR.has_shipper) !== ctYnTri(r && r.has_shipper)) {
-                        deltaParts.push('Carton brun <b>' + escCtHtml(ctYnTri(prevR && prevR.has_shipper)) + '</b> → <b>' + escCtHtml(ctYnTri(r && r.has_shipper)) + '</b>');
-                    }
-                    if (ctYnTri(prevR && prevR.has_art_box) !== ctYnTri(r && r.has_art_box)) {
-                        deltaParts.push('Art box <b>' + escCtHtml(ctYnTri(prevR && prevR.has_art_box)) + '</b> → <b>' + escCtHtml(ctYnTri(r && r.has_art_box)) + '</b>');
-                    }
-                    if (ctYnTri(prevR && prevR.has_loose_joints) !== ctYnTri(r && r.has_loose_joints)) {
-                        deltaParts.push('Articul. lâches <b>' + escCtHtml(ctYnTri(prevR && prevR.has_loose_joints)) + '</b> → <b>' + escCtHtml(ctYnTri(r && r.has_loose_joints)) + '</b>');
-                    }
-                    if (ctYnTri(prevR && prevR.is_light_protect) !== ctYnTri(r && r.is_light_protect)) {
-                        deltaParts.push('À l’abri lumière <b>' + escCtHtml(ctYnTri(prevR && prevR.is_light_protect)) + '</b> → <b>' + escCtHtml(ctYnTri(r && r.is_light_protect)) + '</b>');
-                    }
-                    if (ctYnTri(prevR && prevR.has_complete_accessories) !== ctYnTri(r && r.has_complete_accessories)) {
-                        deltaParts.push('Accessoires <b>' + escCtHtml(ctYnTri(prevR && prevR.has_complete_accessories)) + '</b> → <b>' + escCtHtml(ctYnTri(r && r.has_complete_accessories)) + '</b>');
-                    }
-                    if (deltaParts.length) {
-                        parts.push(
-                            '<div style="font-size:0.58rem;color:#8fe39d;margin:6px 0 2px 4px;padding:5px 10px;background:rgba(32,72,48,0.35);border-radius:5px;border-left:3px solid #8fe39d;line-height:1.45;">'
-                            + '<span style="font-weight:700;">Δ</span> entre l’étape #' + ri + ' et #' + (ri + 1) + ' : '
-                            + deltaParts.join(' · ')
-                            + '</div>'
-                        );
-                    }
-                }
                 var dtr = r && r.created_at
                     ? new Date(r.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })
                     : '—';
@@ -13824,7 +13832,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 .trim();
         } catch (eLgxOpen) {}
         try {
-            var _pidVid = spiritFavoriteProductId(item);
+            var _pidVid = typeof spiritProductsLiveNumericId === 'function' ? spiritProductsLiveNumericId(item) : spiritFavoriteProductId(item);
             var _needVid = _pidVid != null && typeof _spirit !== 'undefined' && _spirit && !('listing_video_url' in item);
             var _needTrace = _pidVid != null && typeof _spirit !== 'undefined' && _spirit
                 && (!item.spirit_trace_id || String(item.spirit_trace_id).trim() === '');
