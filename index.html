@@ -1241,20 +1241,23 @@
                 border-radius: 6px;
                 margin-bottom: 6px;
                 transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease, text-shadow 0.22s ease;
-                /* Inactif : orange discret */
-                color: rgba(255, 160, 100, 0.72) !important;
-                border-color: rgba(255, 102, 0, 0.18);
-                background: rgba(255, 102, 0, 0.03);
-                box-shadow: none;
-                text-shadow: none;
+                color: #fff !important;
+                border-color: rgba(255, 102, 0, 0.35);
+                background: radial-gradient(circle at 0 0, rgba(255,102,0,0.16), transparent 60%) #050505;
+                box-shadow:
+                    0 0 0 1px rgba(255, 102, 0, 0.28),
+                    0 0 18px rgba(255, 102, 0, 0.22);
+                text-shadow: 0 0 7px rgba(255, 160, 100, 0.6);
             }
             #accountModal .dash-nav button.active {
-                /* Actif : orange néon plus lumineux */
-                color: #ffb366 !important;
-                border-color: rgba(255, 102, 0, 0.65);
-                background: rgba(255, 102, 0, 0.14);
-                box-shadow: 0 0 0 1px rgba(255, 102, 0, 0.2), 0 0 18px rgba(255, 102, 0, 0.12);
-                text-shadow: 0 0 14px rgba(255, 140, 60, 0.35);
+                color: #fff !important;
+                border-color: rgba(255, 187, 102, 0.98);
+                background: radial-gradient(circle at 0 0, rgba(255,153,51,0.28), transparent 60%) #070707;
+                box-shadow:
+                    0 0 0 1px rgba(255, 187, 102, 0.7),
+                    0 0 30px rgba(255, 153, 51, 0.75),
+                    0 0 70px rgba(255, 102, 0, 0.55);
+                text-shadow: 0 0 12px rgba(255, 210, 150, 0.95);
             }
             #accountModal .dash-nav button::after {
                 content: '';
@@ -1325,8 +1328,38 @@
         }
         .dash-container { display: grid; grid-template-columns: 250px 1fr; gap: 30px; min-height: 70vh; }
         .dash-nav { border-right: 1px solid #222; padding-right: 20px; }
-        .dash-nav button { width: 100%; text-align: left; padding: 15px; background: none; border: 1px solid transparent; color: #777; cursor: pointer; margin-bottom: 10px; transition: 0.3s; font-weight: bold; }
-        .dash-nav button.active { border-color: var(--neon-orange); color: white; background: rgba(255,102,0,0.05); }
+        .dash-nav button {
+            width: 100%;
+            text-align: left;
+            padding: 15px;
+            background: radial-gradient(circle at 0 0, rgba(255,102,0,0.12), transparent 58%) #050505;
+            border: 1px solid rgba(255, 102, 0, 0.35);
+            color: #fff;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: 0.25s ease;
+            font-weight: bold;
+            box-shadow:
+                0 0 0 1px rgba(255, 102, 0, 0.25),
+                0 0 16px rgba(255, 102, 0, 0.18);
+            text-shadow: 0 0 6px rgba(255, 140, 80, 0.45);
+        }
+        .dash-nav button:hover {
+            border-color: rgba(255, 153, 51, 0.85);
+            box-shadow:
+                0 0 0 1px rgba(255, 153, 51, 0.35),
+                0 0 22px rgba(255, 153, 51, 0.32);
+        }
+        .dash-nav button.active {
+            border-color: rgba(255, 187, 102, 0.95);
+            color: #fff;
+            background: radial-gradient(circle at 0 0, rgba(255,153,51,0.24), transparent 60%) #070707;
+            box-shadow:
+                0 0 0 1px rgba(255, 187, 102, 0.55),
+                0 0 30px rgba(255, 153, 51, 0.65),
+                0 0 60px rgba(255, 102, 0, 0.5);
+            text-shadow: 0 0 10px rgba(255, 200, 140, 0.9);
+        }
         .showroom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .showroom-item { background: #111; border: 1px solid #222; padding: 10px; border-radius: 4px; text-align: center; }
         .stat-banner { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
