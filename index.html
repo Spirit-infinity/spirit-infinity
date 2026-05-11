@@ -13482,6 +13482,19 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 vEl.setAttribute('controls', '');
                 vEl.setAttribute('playsinline', '');
                 vEl.setAttribute('preload', 'metadata');
+                try {
+                    vEl.setAttribute('controlsList', 'nodownload noplaybackrate');
+                } catch (eCl) {}
+                try {
+                    vEl.disablePictureInPicture = true;
+                } catch (ePip) {}
+                try {
+                    vEl.addEventListener('contextmenu', function (ev) {
+                        try {
+                            ev.preventDefault();
+                        } catch (eCm) {}
+                    });
+                } catch (eCtx) {}
                 vEl.src = vidUrl;
                 vEl.style.cssText = 'width:100%;max-height:280px;background:#000;border:1px solid #333;border-radius:4px;';
                 vidWrap.appendChild(vidLbl);
@@ -25361,16 +25374,3 @@ function closeModals() {
         <button onclick="document.getElementById('labelPreview').style.display='none'" style="background:#ff4444; color:white; border:none; cursor:pointer; font-weight:bold; padding:8px 12px; border-radius:4px;">✕ FERMER</button>
     </div>
     <div id="labelContent" style="background:white; padding:10px; border-radius:4px; color:black;"></div>
-    <div style="margin-top:20px; text-align:center;">
-        <button onclick="window.print()" style="background:white; color:black; padding:12px; border:none; font-weight:bold; cursor:pointer; width:100%; border-radius:4px; text-transform:uppercase;">🖨️ Imprimer</button>
-    </div>
-</div>
-
-<div id="spiritBadgeCommentsModal" class="overlay" style="display:none;">
-    <div class="modal-content" style="max-width:760px;text-align:left;">
-        <button type="button" onclick="document.getElementById('spiritBadgeCommentsModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
-        <h3 id="spiritBadgeCommentsTitle" style="margin-top:0;color:var(--neon-orange);">Commentaires</h3>
-        <div id="spiritBadgeCommentsList" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;"></div>
-    </div>
-</div>
-<div id="spiritLitigeModal" class="overlay" style="display:none;">
