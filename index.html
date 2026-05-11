@@ -11457,7 +11457,8 @@ async function publierAnnonce() {
     var photoUrls = (typeof previewPhotos !== 'undefined' && Array.isArray(previewPhotos))
         ? previewPhotos.filter(function (p) { return p != null && String(p).trim() !== ''; })
         : [];
-    if (photoUrls.length < 3) {
+    var isEditingListing = (typeof editingId !== 'undefined' && editingId != null && String(editingId).trim() !== '');
+    if (photoUrls.length < 3 && !isEditingListing) {
         alert('Minimum 3 photos vendeur requises pour publier une annonce.');
         return;
     }
