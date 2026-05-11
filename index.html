@@ -19295,6 +19295,15 @@ async function spiritStorageUploadPublic(bucket, path, file) {
     var pub = _spirit.storage.from(bucket).getPublicUrl(finalPath);
     return pub.data.publicUrl;
 }
+/** iOS / Android / navigateur mobile — TUS + File « galerie » cassent souvent (ProgressEvent / fichier illisible). */
+function spiritIsMobileLikeUa() {
+    try {
+        var ua = String(typeof navigator !== 'undefined' ? navigator.userAgent || '' : '');
+        if (/iPhone|iPad|iPod|Android|Mobile|IEMobile|BlackBerry/i.test(ua)) return true;
+        if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0 && /Macintosh|Windows NT/i.test(ua)) return true;
+    } catch (eM) {}
+    return false;
+}
 /** Ref projet (sous-domaine) pour l’hôte Storage TUS : https://REF.storage.supabase.co */
 function spiritSupabaseProjectRef() {
     try {
@@ -19455,7 +19464,7 @@ async function spiritStorageUploadVideoPublicRest(bucket, pathStr, file, mime) {
         return await spiritStorageUploadVideoPublicRestXHR(url, buf, mime, token, bucket, pathStr);
     }
 }
-/** Upload vidéo : TUS si > 6 Mo, sinon SDK + REST (fetch/XHR). */
+/** Upload vidéo : TUS si > 6 Mo (desktop uniquement), sinon SDK + REST (fetch/XHR). Mobile : snapshot mémoire, pas de TUS. */
 async function spiritStorageUploadVideoPublic(bucket, path, blob, fileHint) {
     if (!_spirit) throw new Error('Supabase indisponible');
     var mime = (blob && blob.type) ? String(blob.type) : 'video/mp4';
@@ -19465,8 +19474,18 @@ async function spiritStorageUploadVideoPublic(bucket, path, blob, fileHint) {
     var pathStr = String(path);
     var uploadOpts = { upsert: true, contentType: mime, cacheControl: '3600' };
     var lastMsg = '';
+    var mobileLike = typeof spiritIsMobileLikeUa === 'function' && spiritIsMobileLikeUa();
+    if (mobileLike && file && file.size > 0) {
+        try {
+            var snapBuf = await file.arrayBuffer();
+            var baseName = (file.name && String(file.name).split(/[/\\]/).pop()) || hint.replace(/[^a-zA-Z0-9._-]/g, '_') || 'listing.mp4';
+            file = new File([snapBuf], baseName.replace(/[^a-zA-Z0-9._-]/g, '_'), { type: mime });
+        } catch (eSnap) {
+            lastMsg = 'snapshot: ' + (eSnap && eSnap.message ? String(eSnap.message) : String(eSnap));
+        }
+    }
     var tusThreshold = 6 * 1024 * 1024;
-    if (file.size > tusThreshold) {
+    if (file.size > tusThreshold && !mobileLike) {
         try {
             return await spiritStorageUploadVideoTus(bucket, pathStr, file, mime);
         } catch (eTus) {
