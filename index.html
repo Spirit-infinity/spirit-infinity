@@ -11506,7 +11506,17 @@ async function publierAnnonce() {
     var listingVideoUrl = null;
     if (typeof spiritCertVideoBlob !== 'undefined' && spiritCertVideoBlob && spiritCertVideoBlob.size > 0) {
         if (spiritCertVideoBlob.size > SPIRIT_LISTING_VIDEO_MAX_BYTES) {
-            alert('Vidéo trop lourde (max ~12 Mo). Ré-enregistre plus court ou avec moins de lumière.');
+            try {
+                if (typeof spiritCertCompressListingVideo === 'function') {
+                    var _vf = spiritCertVideoBlob instanceof File
+                        ? spiritCertVideoBlob
+                        : new File([spiritCertVideoBlob], 'listing.mp4', { type: 'video/mp4' });
+                    spiritCertVideoBlob = await spiritCertCompressListingVideo(_vf, SPIRIT_LISTING_VIDEO_MAX_SEC);
+                }
+            } catch (ePubV) {}
+        }
+        if (spiritCertVideoBlob.size > SPIRIT_LISTING_VIDEO_MAX_BYTES) {
+            alert('Vidéo trop lourde (max ~12 Mo) même après compression. Réessaie avec une vidéo plus courte ou filme en 1080p / 720p.');
             return;
         }
         if (typeof _spirit === 'undefined' || !_spirit || !ownerIdPub) {
@@ -18707,6 +18717,8 @@ async function spiritStorageUploadVideoPublic(bucket, path, blob, fileHint) {
 }
 var SPIRIT_LISTING_VIDEO_MAX_SEC = 20;
 var SPIRIT_LISTING_VIDEO_MAX_BYTES = 12 * 1024 * 1024;
+/** Au-dessus de ce poids on tente ffmpeg (souvent > 12 Mo en sortie d’un téléphone 4K). */
+var SPIRIT_LISTING_VIDEO_COMPRESS_IF_BYTES = 10 * 1024 * 1024;
 /** ffmpeg.wasm (chargement fainéant depuis jsDelivr) — une seule instance. */
 var spiritFfmpegInstance = null;
 var spiritFfmpegLoadPromise = null;
@@ -18731,8 +18743,7 @@ async function spiritCertEnsureFfmpegWASM() {
     return await spiritFfmpegLoadPromise;
 }
 /**
- * Ré-encode en MP4 H.264 léger (max maxSec s, sans piste audio).
- * Peut échouer sur très vieux navigateurs ou mémoire insuffisante (mobile faible).
+ * Ré-encode en MP4 (max maxSec s, sans audio). Plusieurs passes jusqu’à ≤ SPIRIT_LISTING_VIDEO_MAX_BYTES.
  */
 async function spiritCertCompressListingVideo(file, maxSec) {
     var ffmpeg = await spiritCertEnsureFfmpegWASM();
@@ -18750,45 +18761,59 @@ async function spiritCertCompressListingVideo(file, maxSec) {
     var inName = 'in.' + ext;
     await ffmpeg.writeFile(inName, await fetchFile(file));
     var t = Math.max(1, Math.min(Number(maxSec) || SPIRIT_LISTING_VIDEO_MAX_SEC, SPIRIT_LISTING_VIDEO_MAX_SEC));
-    var argsH264 = [
-        '-i', inName,
-        '-t', String(t),
-        '-an',
-        '-c:v', 'libx264',
-        '-preset', 'veryfast',
-        '-crf', '33',
-        '-vf', 'scale=min(720,iw):-2',
-        '-movflags', '+faststart',
-        '-threads', '1',
-        'out.mp4'
+    var attempts = [
+        { type: 'h264', crf: '30', scale: 'min(720,iw):-2' },
+        { type: 'h264', crf: '34', scale: 'min(540,iw):-2' },
+        { type: 'h264', crf: '38', scale: 'min(480,iw):-2' },
+        { type: 'mpeg4', bv: '600k', scale: 'min(480,iw):-2' },
+        { type: 'mpeg4', bv: '400k', scale: 'min(426,iw):-2' },
+        { type: 'mpeg4', bv: '280k', scale: 'min(360,iw):-2' }
     ];
-    var argsMpeg4 = [
-        '-i', inName,
-        '-t', String(t),
-        '-an',
-        '-c:v', 'mpeg4',
-        '-b:v', '850k',
-        '-vf', 'scale=min(640,iw):-2',
-        '-movflags', '+faststart',
-        '-threads', '1',
-        'out.mp4'
-    ];
-    var okEnc = false;
-    try {
+    for (var ai = 0; ai < attempts.length; ai++) {
         try { await ffmpeg.deleteFile('out.mp4'); } catch (eDel0) {}
-        var code1 = await ffmpeg.exec(argsH264);
-        okEnc = code1 === 0;
-    } catch (eH264) {
-        okEnc = false;
+        var a = attempts[ai];
+        var args;
+        if (a.type === 'h264') {
+            args = [
+                '-i', inName,
+                '-t', String(t),
+                '-an',
+                '-c:v', 'libx264',
+                '-preset', 'veryfast',
+                '-crf', a.crf,
+                '-vf', 'scale=' + a.scale,
+                '-movflags', '+faststart',
+                '-threads', '1',
+                'out.mp4'
+            ];
+        } else {
+            args = [
+                '-i', inName,
+                '-t', String(t),
+                '-an',
+                '-c:v', 'mpeg4',
+                '-b:v', a.bv,
+                '-vf', 'scale=' + a.scale,
+                '-movflags', '+faststart',
+                '-threads', '1',
+                'out.mp4'
+            ];
+        }
+        var ok = false;
+        try {
+            var code = await ffmpeg.exec(args);
+            ok = code === 0;
+        } catch (eExec) {
+            ok = false;
+        }
+        if (!ok) continue;
+        var data = await ffmpeg.readFile('out.mp4');
+        var u8 = data instanceof Uint8Array ? data : new Uint8Array(data);
+        if (u8.length > 0 && u8.length <= SPIRIT_LISTING_VIDEO_MAX_BYTES) {
+            return new File([u8], 'listing_spirit.mp4', { type: 'video/mp4' });
+        }
     }
-    if (!okEnc) {
-        try { await ffmpeg.deleteFile('out.mp4'); } catch (eDel1) {}
-        var code2 = await ffmpeg.exec(argsMpeg4);
-        if (code2 !== 0) throw new Error('ffmpeg');
-    }
-    var data = await ffmpeg.readFile('out.mp4');
-    var u8 = data instanceof Uint8Array ? data : new Uint8Array(data);
-    return new File([u8], 'listing_spirit.mp4', { type: 'video/mp4' });
+    throw new Error('compress');
 }
 async function spiritMaybeUploadListingVideoBlob(ownerId, folderKey, blob) {
     if (!ownerId || !folderKey || !blob || !blob.size) return null;
@@ -18886,7 +18911,7 @@ async function spiritCertVideoOnFileInputChange(input) {
         return;
     }
     var workFile = f;
-    if (f.size > SPIRIT_LISTING_VIDEO_MAX_BYTES) {
+    if (f.size > SPIRIT_LISTING_VIDEO_COMPRESS_IF_BYTES) {
         spiritCertVideoSetStatus(tFn('cert_video_compressing'));
         try {
             workFile = await spiritCertCompressListingVideo(f, Math.min(dur, SPIRIT_LISTING_VIDEO_MAX_SEC));
