@@ -13511,20 +13511,42 @@ async function spiritLoadListingMessagesForProduct(productId) {
     }
     async function spiritCtFetchEventsFromSupabase(figureKey, traceId, productId) {
         if (!_spirit) return [];
+        var fk = figureKey && String(figureKey).trim() ? String(figureKey).trim() : null;
+        var tid = traceId && String(traceId).trim() ? String(traceId).trim() : null;
+        var pid = productId != null && Number.isFinite(Number(productId)) ? Number(productId) : null;
+        try {
+            var rpc = await _spirit.rpc('spirit_ct_events_for_view', {
+                p_product_id: pid,
+                p_trace: tid || null,
+                p_figure_key: fk || null
+            });
+            if (!rpc.error && Array.isArray(rpc.data) && rpc.data.length > 0) {
+                return spiritCtDedupeCtEventRows(rpc.data);
+            }
+            if (rpc && rpc.error) {
+                try {
+                    var rmsg = String(rpc.error.message || rpc.error.details || rpc.error.code || '');
+                    if (rmsg.indexOf('spirit_ct_events_for_view') === -1 && rmsg.indexOf('Could not find') === -1 && rmsg.indexOf('42883') === -1) {
+                        console.warn('[SPIRIT CT] rpc spirit_ct_events_for_view:', rpc.error);
+                    }
+                } catch (eRw) {}
+            }
+        } catch (eRpc) {}
         var acc = [];
         try {
-            if (figureKey && String(figureKey).trim()) {
-                var q1 = await _spirit.from('spirit_figure_ct_events').select('*').eq('figure_key', String(figureKey).trim()).order('created_at', { ascending: true }).limit(260);
+            if (fk) {
+                var q1 = await _spirit.from('spirit_figure_ct_events').select('*').eq('figure_key', fk).order('created_at', { ascending: true }).limit(260);
+                if (q1.error) try { console.warn('[SPIRIT CT] select figure_key:', q1.error); } catch (e1) {}
                 if (!q1.error && Array.isArray(q1.data)) acc = acc.concat(q1.data);
             }
-            var tid = traceId && String(traceId).trim();
             if (tid) {
                 var q2 = await _spirit.from('spirit_figure_ct_events').select('*').eq('trace_id', tid).order('created_at', { ascending: true }).limit(260);
+                if (q2.error) try { console.warn('[SPIRIT CT] select trace_id:', q2.error); } catch (e2) {}
                 if (!q2.error && Array.isArray(q2.data)) acc = acc.concat(q2.data);
             }
-            var pid = productId != null && Number.isFinite(Number(productId)) ? Number(productId) : null;
             if (pid != null) {
                 var q3 = await _spirit.from('spirit_figure_ct_events').select('*').eq('product_id', pid).order('created_at', { ascending: true }).limit(260);
+                if (q3.error) try { console.warn('[SPIRIT CT] select product_id:', q3.error); } catch (e3) {}
                 if (!q3.error && Array.isArray(q3.data)) acc = acc.concat(q3.data);
             }
         } catch (e) {}
@@ -13540,6 +13562,12 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 ? spiritParseFavoriteProductId(item && (item.id != null ? item.id : item.product_id))
                 : null;
             var traceSale = item && item.spirit_trace_id ? String(item.spirit_trace_id).trim() : '';
+            if (!traceSale && typeof _spirit !== 'undefined' && _spirit && pidSale != null) {
+                try {
+                    var trSale = await _spirit.from('products_live').select('spirit_trace_id').eq('id', Number(pidSale)).maybeSingle();
+                    if (!trSale.error && trSale.data && trSale.data.spirit_trace_id) traceSale = String(trSale.data.spirit_trace_id).trim();
+                } catch (eTrS) {}
+            }
             var evt = {
                 figure_key: key,
                 trace_id: traceSale || null,
@@ -13564,8 +13592,15 @@ async function spiritLoadListingMessagesForProduct(productId) {
             all.push(evt);
             spiritCtWriteEventsLocal(all);
             try {
-                if (_spirit) await _spirit.from('spirit_figure_ct_events').insert([evt]);
-            } catch (eSup) {}
+                if (_spirit) {
+                    var insCtS = await _spirit.from('spirit_figure_ct_events').insert([evt]);
+                    if (insCtS && insCtS.error) {
+                        try { console.warn('[SPIRIT CT] insert sale:', insCtS.error.message || insCtS.error); } catch (eLs) {}
+                    }
+                }
+            } catch (eSup) {
+                try { console.warn('[SPIRIT CT] insert sale exception:', eSup && eSup.message ? eSup.message : eSup); } catch (eLs2) {}
+            }
         } catch (e) {}
     }
     async function spiritCtRecordListingListedEvent(payload) {
@@ -13669,6 +13704,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             if (!r) return false;
             if (key && String(r.figure_key || '') === key) return true;
             if (traceOpen && String(r.trace_id || '').trim() === traceOpen) return true;
+            if (pidOpen != null && r.product_id != null && Number(r.product_id) === Number(pidOpen)) return true;
             return false;
         });
         var rows = spiritCtDedupeCtEventRows(localRows.concat(remoteRows));
