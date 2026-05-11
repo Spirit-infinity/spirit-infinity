@@ -904,6 +904,15 @@
             animation: spirit-rare-badge-blink 1.1s ease-in-out infinite;
             box-shadow: 0 0 14px rgba(0,200,255,0.5);
         }
+        /* CT : tout l’historique scrollable sur mobile (évite coupure / « pas la suite »). */
+        #productModal #pCtPanel {
+            max-height: min(52vh, 520px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            box-sizing: border-box;
+        }
         .badge-coa {
             background: rgba(0, 0, 0, 0.55);
             color: #39ff14;
@@ -13445,19 +13454,51 @@ async function spiritLoadListingMessagesForProduct(productId) {
     function spiritCtWriteEventsLocal(rows) {
         try { localStorage.setItem(SPIRIT_CT_EVENTS_LS_KEY, JSON.stringify(Array.isArray(rows) ? rows : [])); } catch (e) {}
     }
+    /** Clé sémantique : même événement copié local + Supabase (id côté serveur seulement) partage la même clé. */
+    function spiritCtSecondaryDedupeKey(r) {
+        if (!r) return '';
+        var ts = new Date(r.created_at || 0).getTime();
+        var tsMs = Number.isFinite(ts) ? ts : 0;
+        var pid = r.product_id != null && Number.isFinite(Number(r.product_id)) ? String(Number(r.product_id)) : '';
+        return [
+            tsMs,
+            String(r.event_type || 'sale').toLowerCase(),
+            String(r.seller_id || '').trim(),
+            String(r.buyer_id || '').trim(),
+            String(r.figure_key || '').trim(),
+            pid,
+            String(r.trace_id || '').trim()
+        ].join('|');
+    }
     function spiritCtDedupeCtEventRows(rows) {
-        var seen = Object.create(null);
-        var out = [];
-        if (!Array.isArray(rows)) return out;
+        if (!Array.isArray(rows)) return [];
+        var bySec = Object.create(null);
         rows.forEach(function (r) {
             if (!r) return;
-            var idk = (r.id != null && String(r.id).trim() !== '') ? ('id:' + String(r.id)) : '';
-            var k = idk || (String(r.created_at || '') + '|' + String(r.seller_id || '') + '|' + String(r.buyer_id || '') + '|' + String(r.event_type || 'sale') + '|' + String(r.figure_key || ''));
-            if (seen[k]) return;
-            seen[k] = true;
-            out.push(r);
+            var sec = spiritCtSecondaryDedupeKey(r);
+            var idk = (r.id != null && String(r.id).trim() !== '') ? String(r.id).trim() : '';
+            var existing = bySec[sec];
+            if (!existing) {
+                bySec[sec] = r;
+                return;
+            }
+            var hasIdNew = !!idk;
+            var exId = existing.id != null && String(existing.id).trim() !== '';
+            if (hasIdNew && !exId) bySec[sec] = r;
         });
-        return out;
+        var out = Object.keys(bySec).map(function (k) { return bySec[k]; });
+        out.sort(function (a, b) {
+            return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        });
+        var seenId = Object.create(null);
+        return out.filter(function (r) {
+            if (!r) return false;
+            if (r.id == null || String(r.id).trim() === '') return true;
+            var ik = 'id:' + String(r.id).trim();
+            if (seenId[ik]) return false;
+            seenId[ik] = true;
+            return true;
+        });
     }
     async function spiritCtFetchEventsFromSupabase(figureKey, traceId) {
         if (!_spirit) return [];
@@ -13590,7 +13631,6 @@ async function spiritLoadListingMessagesForProduct(productId) {
             return false;
         });
         var rows = spiritCtDedupeCtEventRows(localRows.concat(remoteRows));
-        rows.sort(function (a, b) { return new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); });
         if (!rows.length) {
             wrap.style.display = 'none';
             try { btn.classList.remove('spirit-ct-btn-blink'); } catch (eB1) {}
@@ -13662,6 +13702,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 }
             }
             var traceShort = traceOpen ? (String(traceOpen).replace(/[^a-f0-9-]/gi, '').slice(0, 8) + '…') : '';
+            var ref0 = rows[0];
             var parts = [];
             parts.push('<div><b>CT — chronologie</b> <span style="font-size:0.58rem;color:#7a92ac;font-weight:400;">(local + serveur)</span></div>');
             parts.push('<div style="font-size:0.62rem;color:#7a92ac;margin:4px 0 8px;">Lignée Spirit Trace : <code style="font-size:0.58rem;">' + escCtHtml(traceShort || 'clé figurine') + '</code> · ' + rows.length + ' événement(s) · ' + hands + ' intervenant(s)</div>');
@@ -13719,14 +13760,19 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 var whoLine = ev === 'listed'
                     ? ('Vendeur affiché : <b>' + escCtHtml(sp) + '</b>')
                     : ('<b>' + escCtHtml(sp) + '</b> → <b>' + escCtHtml(bp) + '</b>');
+                function ctDetailSeg(label, curS, refS) {
+                    var inner = label + ' : <b>' + escCtHtml(curS) + '</b>';
+                    if (ri > 0 && curS !== refS) return '<span style="color:#8fe39d;font-weight:700;">' + inner + '</span>';
+                    return inner;
+                }
                 var detail = ''
-                    + 'Main : <b>' + escCtHtml(ctFirstHandLabel(r)) + '</b>'
-                    + ' · Fumeur : <b>' + escCtHtml(ctFumeurOuiNon(r)) + '</b>'
-                    + ' · Carton brun : <b>' + escCtHtml(ctYnTri(r ? r.has_shipper : null)) + '</b>'
-                    + ' · Art box : <b>' + escCtHtml(ctYnTri(r ? r.has_art_box : null)) + '</b>'
-                    + ' · Articul. lâches : <b>' + escCtHtml(ctYnTri(r ? r.has_loose_joints : null)) + '</b>'
-                    + ' · À l’abri de la lumière : <b>' + escCtHtml(ctYnTri(r ? r.is_light_protect : null)) + '</b>'
-                    + ' · Accessoires complets : <b>' + escCtHtml(ctYnTri(r ? r.has_complete_accessories : null)) + '</b>';
+                    + ctDetailSeg('Main', ctFirstHandLabel(r), ctFirstHandLabel(ref0))
+                    + ' · ' + ctDetailSeg('Fumeur', ctFumeurOuiNon(r), ctFumeurOuiNon(ref0))
+                    + ' · ' + ctDetailSeg('Carton brun', ctYnTri(r ? r.has_shipper : null), ctYnTri(ref0 ? ref0.has_shipper : null))
+                    + ' · ' + ctDetailSeg('Art box', ctYnTri(r ? r.has_art_box : null), ctYnTri(ref0 ? ref0.has_art_box : null))
+                    + ' · ' + ctDetailSeg('Articul. lâches', ctYnTri(r ? r.has_loose_joints : null), ctYnTri(ref0 ? ref0.has_loose_joints : null))
+                    + ' · ' + ctDetailSeg('À l’abri de la lumière', ctYnTri(r ? r.is_light_protect : null), ctYnTri(ref0 ? ref0.is_light_protect : null))
+                    + ' · ' + ctDetailSeg('Accessoires complets', ctYnTri(r ? r.has_complete_accessories : null), ctYnTri(ref0 ? ref0.has_complete_accessories : null));
                 parts.push(
                     '<div style="border-left:2px solid rgba(159,212,255,0.5);padding:8px 0 10px 12px;margin:10px 0;background:rgba(12,20,32,0.65);border-radius:6px;">'
                     + '<div style="font-size:0.7rem;color:#9fd4ff;font-weight:700;">#' + (ri + 1) + ' · ' + escCtHtml(dtr) + '</div>'
@@ -13779,16 +13825,20 @@ async function spiritLoadListingMessagesForProduct(productId) {
         } catch (eLgxOpen) {}
         try {
             var _pidVid = spiritFavoriteProductId(item);
-            if (
-                _pidVid != null &&
-                typeof _spirit !== 'undefined' &&
-                _spirit &&
-                !('listing_video_url' in item)
-            ) {
-                var _rowVid = await _spirit.from('products_live').select('listing_video_url').eq('id', _pidVid).maybeSingle();
+            var _needVid = _pidVid != null && typeof _spirit !== 'undefined' && _spirit && !('listing_video_url' in item);
+            var _needTrace = _pidVid != null && typeof _spirit !== 'undefined' && _spirit
+                && (!item.spirit_trace_id || String(item.spirit_trace_id).trim() === '');
+            if (_needVid || _needTrace) {
+                var _selPm = (_needVid && _needTrace) ? 'listing_video_url,spirit_trace_id'
+                    : (_needTrace ? 'spirit_trace_id' : 'listing_video_url');
+                var _rowVid = await _spirit.from('products_live').select(_selPm).eq('id', _pidVid).maybeSingle();
                 if (!_rowVid.error && _rowVid.data) {
-                    item.listing_video_url = _rowVid.data.listing_video_url;
-                } else {
+                    if (_needVid && 'listing_video_url' in _rowVid.data) item.listing_video_url = _rowVid.data.listing_video_url;
+                    if (_needTrace && _rowVid.data.spirit_trace_id) {
+                        var _tid = String(_rowVid.data.spirit_trace_id).trim();
+                        if (_tid) item.spirit_trace_id = _tid;
+                    }
+                } else if (_needVid) {
                     item.listing_video_url = null;
                 }
             }
