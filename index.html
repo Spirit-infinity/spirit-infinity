@@ -18708,16 +18708,214 @@ async function spiritStorageUploadPublic(bucket, path, file) {
     var pub = _spirit.storage.from(bucket).getPublicUrl(finalPath);
     return pub.data.publicUrl;
 }
-/** Upload vidéo sans conversion WebP (ne pas passer par spiritStorageUploadPublic). */
+/** Ref projet (sous-domaine) pour l’hôte Storage TUS : https://REF.storage.supabase.co */
+function spiritSupabaseProjectRef() {
+    try {
+        var u = String(typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '');
+        var m = u.match(/https?:\/\/([a-z0-9-]+)\.supabase\.co/i);
+        return m ? m[1] : '';
+    } catch (eRef) {
+        return '';
+    }
+}
+/**
+ * Upload vidéo > ~6 Mo via TUS (chunks 6 Mo, hôte storage dédié) — recommandé par Supabase pour fiabilité.
+ * @see https://supabase.com/docs/guides/storage/uploads/resumable-uploads
+ */
+async function spiritStorageUploadVideoTus(bucket, pathStr, file, mime) {
+    var ref = spiritSupabaseProjectRef();
+    if (!ref) throw new Error('TUS: ref projet introuvable (SUPABASE_URL)');
+    var endpoint = 'https://' + ref + '.storage.supabase.co/storage/v1/upload/resumable';
+    var token = SUPABASE_KEY;
+    try {
+        var s2 = await _spirit.auth.getSession();
+        if (s2 && s2.data && s2.data.session && s2.data.session.access_token) {
+            token = s2.data.session.access_token;
+        }
+    } catch (eTok) {}
+    var mod = await import('https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/+esm');
+    var Upload = mod.Upload;
+    if (typeof Upload !== 'function' && mod.default) {
+        Upload = mod.default.Upload || mod.default;
+    }
+    if (typeof Upload !== 'function') throw new Error('TUS: tus-js-client (Upload) introuvable');
+    return await new Promise(function (resolve, reject) {
+        var upload = new Upload(file, {
+            endpoint: endpoint,
+            retryDelays: [0, 2000, 5000, 10000, 20000],
+            headers: {
+                authorization: 'Bearer ' + token,
+                apikey: SUPABASE_KEY,
+                'x-upsert': 'true'
+            },
+            uploadDataDuringCreation: true,
+            removeFingerprintOnSuccess: true,
+            metadata: {
+                bucketName: String(bucket),
+                objectName: pathStr,
+                contentType: mime,
+                cacheControl: '3600'
+            },
+            chunkSize: 6 * 1024 * 1024,
+            onError: function (err) {
+                reject(err && err.message ? err : new Error(String(err)));
+            },
+            onSuccess: function () {
+                try {
+                    resolve(_spirit.storage.from(bucket).getPublicUrl(pathStr).data.publicUrl);
+                } catch (eG) {
+                    reject(eG);
+                }
+            }
+        });
+        upload
+            .findPreviousUploads()
+            .then(function (previousUploads) {
+                if (previousUploads && previousUploads.length) {
+                    upload.resumeFromPreviousUpload(previousUploads[0]);
+                }
+                upload.start();
+            })
+            .catch(reject);
+    });
+}
+function spiritStorageUploadVideoPublicRestXHR(url, buf, mime, token, bucket, pathStr) {
+    return new Promise(function (resolve, reject) {
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+            xhr.setRequestHeader('apikey', SUPABASE_KEY);
+            xhr.setRequestHeader('Content-Type', mime);
+            xhr.setRequestHeader('x-upsert', 'true');
+            xhr.setRequestHeader('cache-control', 'max-age=3600');
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        resolve(_spirit.storage.from(bucket).getPublicUrl(pathStr).data.publicUrl);
+                    } catch (eU) {
+                        reject(eU);
+                    }
+                } else {
+                    reject(
+                        new Error(
+                            'Storage XHR ' +
+                                xhr.status +
+                                ' ' +
+                                String(xhr.responseText || '').slice(0, 280)
+                        )
+                    );
+                }
+            };
+            xhr.onerror = function () {
+                reject(new Error('XHR réseau'));
+            };
+            xhr.send(buf instanceof ArrayBuffer ? buf : new Uint8Array(buf));
+        } catch (eX) {
+            reject(eX);
+        }
+    });
+}
+/**
+ * POST direct sur /storage/v1/object/… (même auth que le SDK). fetch puis XHR si fetch lève (ex. failed to fetch).
+ */
+async function spiritStorageUploadVideoPublicRest(bucket, pathStr, file, mime) {
+    if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_KEY === 'undefined') {
+        throw new Error('SUPABASE_URL / SUPABASE_KEY manquants');
+    }
+    var token = SUPABASE_KEY;
+    try {
+        var s2 = await _spirit.auth.getSession();
+        if (s2 && s2.data && s2.data.session && s2.data.session.access_token) {
+            token = s2.data.session.access_token;
+        }
+    } catch (eTok) {}
+    var base = String(SUPABASE_URL).replace(/\/+$/, '');
+    var encPath = String(pathStr)
+        .split('/')
+        .filter(function (x) {
+            return x.length > 0;
+        })
+        .map(function (seg) {
+            return encodeURIComponent(seg);
+        })
+        .join('/');
+    var url = base + '/storage/v1/object/' + encodeURIComponent(String(bucket)) + '/' + encPath;
+    var buf = file instanceof Blob ? await file.arrayBuffer() : file;
+    try {
+        var res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer ' + token,
+                apikey: SUPABASE_KEY,
+                'Content-Type': mime,
+                'x-upsert': 'true',
+                'cache-control': 'max-age=3600'
+            },
+            body: buf,
+            mode: 'cors',
+            credentials: 'omit'
+        });
+        if (!res.ok) {
+            var errText = '';
+            try {
+                errText = await res.text();
+            } catch (eTxt) {}
+            throw new Error('Storage HTTP ' + res.status + (errText ? ' ' + errText.slice(0, 280) : ''));
+        }
+        return _spirit.storage.from(bucket).getPublicUrl(pathStr).data.publicUrl;
+    } catch (eFetch) {
+        return await spiritStorageUploadVideoPublicRestXHR(url, buf, mime, token, bucket, pathStr);
+    }
+}
+/** Upload vidéo : TUS si > 6 Mo, sinon SDK + REST (fetch/XHR). */
 async function spiritStorageUploadVideoPublic(bucket, path, blob, fileHint) {
     if (!_spirit) throw new Error('Supabase indisponible');
     var mime = (blob && blob.type) ? String(blob.type) : 'video/mp4';
     if (mime.indexOf('video/') !== 0) mime = 'video/mp4';
     var hint = String(fileHint || 'listing_video.mp4');
     var file = blob instanceof File ? blob : new File([blob], hint.replace(/[^a-zA-Z0-9._-]/g, '_'), { type: mime });
-    var up = await _spirit.storage.from(bucket).upload(String(path), file, { upsert: true, contentType: mime });
-    if (up.error) throw up.error;
-    return _spirit.storage.from(bucket).getPublicUrl(String(path)).data.publicUrl;
+    var pathStr = String(path);
+    var uploadOpts = { upsert: true, contentType: mime, cacheControl: '3600' };
+    var lastMsg = '';
+    var tusThreshold = 6 * 1024 * 1024;
+    if (file.size > tusThreshold) {
+        try {
+            return await spiritStorageUploadVideoTus(bucket, pathStr, file, mime);
+        } catch (eTus) {
+            lastMsg = 'TUS: ' + (eTus && eTus.message ? String(eTus.message) : String(eTus));
+        }
+    }
+    for (var ai = 0; ai < 2; ai++) {
+        if (ai > 0) {
+            await new Promise(function (r) {
+                setTimeout(r, 700);
+            });
+            try {
+                if (_spirit.auth && typeof _spirit.auth.refreshSession === 'function') {
+                    await _spirit.auth.refreshSession();
+                }
+            } catch (eRf) {}
+        }
+        try {
+            var bodyForSdk = ai === 0 ? file : await file.arrayBuffer();
+            var up = await _spirit.storage.from(bucket).upload(pathStr, bodyForSdk, uploadOpts);
+            if (!up.error) {
+                return _spirit.storage.from(bucket).getPublicUrl(pathStr).data.publicUrl;
+            }
+            var sdkErr = (up.error && (up.error.message || JSON.stringify(up.error))) || 'upload refusé';
+            lastMsg = lastMsg ? lastMsg + ' | SDK: ' + sdkErr : 'SDK: ' + sdkErr;
+        } catch (eSdk) {
+            var sdkMsg = eSdk && eSdk.message ? String(eSdk.message) : String(eSdk);
+            lastMsg = lastMsg ? lastMsg + ' | SDK: ' + sdkMsg : 'SDK: ' + sdkMsg;
+        }
+    }
+    try {
+        return await spiritStorageUploadVideoPublicRest(bucket, pathStr, file, mime);
+    } catch (eRest) {
+        var m2 = eRest && eRest.message ? String(eRest.message) : String(eRest);
+        throw new Error(lastMsg ? lastMsg + ' | ' + m2 : m2);
+    }
 }
 var SPIRIT_LISTING_VIDEO_MAX_SEC = 20;
 /** Plafond upload annonce (Mo) — au-dessus : compression navigateur ou refus. */
@@ -25176,121 +25374,3 @@ function closeModals() {
     </div>
 </div>
 <div id="spiritLitigeModal" class="overlay" style="display:none;">
-    <div class="modal-content" style="max-width:760px;text-align:left;">
-        <button type="button" onclick="document.getElementById('spiritLitigeModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
-        <h3 id="spiritLitigeTitle" style="margin-top:0;color:#ff6666;">Litiges</h3>
-        <div id="spiritLitigeList" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;"></div>
-    </div>
-</div>
-<div id="spiritDisputeComposerModal" class="overlay" style="display:none;">
-    <div class="modal-content" style="max-width:700px;text-align:left;">
-        <button type="button" onclick="document.getElementById('spiritDisputeComposerModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
-        <h3 style="margin-top:0;color:#ff6666;">Ouvrir un litige</h3>
-        <p style="font-size:0.68rem;color:#aaa;">Décris précisément le problème. Le litige est ajouté au menu admin avec date, raison et pseudos.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div>
-                <label style="font-size:0.62rem;color:#888;">Source</label>
-                <input id="spiritDisputeSourceInput" type="text" readonly />
-            </div>
-            <div>
-                <label style="font-size:0.62rem;color:#888;">ID transaction (si achat/vente)</label>
-                <input id="spiritDisputeTxInput" type="text" readonly />
-            </div>
-        </div>
-        <label style="font-size:0.62rem;color:#888;display:block;margin-top:10px;">Raison du litige</label>
-        <textarea id="spiritDisputeReasonInput" maxlength="1200" placeholder="Explique la raison du litige..." style="min-height:120px;"></textarea>
-        <button type="button" class="btn-action" style="margin-top:12px;background:#3a0f0f;border-color:#7a2a2a;color:#ffb3b3;" onclick="spiritSubmitDisputeComposer()">ENREGISTRER LE LITIGE</button>
-    </div>
-</div>
-<div id="spiritAutoEvalModal" class="overlay" style="display:none;z-index:100350 !important;" onclick="spiritAutoEvalOnOverlayClick(event)">
-    <div class="modal-content" style="max-width:620px;text-align:left;">
-        <button type="button" onclick="spiritAutoEvalClose()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
-        <h3 style="margin-top:0;color:var(--neon-orange);">Évaluation transaction</h3>
-        <p style="font-size:0.66rem;color:#f3bf89;border-left:2px solid var(--neon-orange);padding-left:8px;">
-            Acheteur : note la vente (transaction) et la livraison. Vendeur : note l’achat. Si tu fermes sans envoyer, l’évaluation sera rappelée dans Mon compte → Évaluations ; au-delà de 48 h sans réponse, 5★ seront enregistrées automatiquement et un message t’en informera.
-        </p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div>
-                <label style="font-size:0.62rem;color:#888;">Ton pseudo</label>
-                <input id="spiritAutoEvalAuthorPseudo" type="text" readonly />
-            </div>
-            <div>
-                <label style="font-size:0.62rem;color:#888;">Pseudo à évaluer</label>
-                <input id="spiritAutoEvalPseudo" type="text" readonly />
-            </div>
-            <div style="grid-column:1/-1;">
-                <label style="font-size:0.62rem;color:#888;">Type d’évaluation (fixé selon ton rôle)</label>
-                <select id="spiritAutoEvalCategory" onchange="spiritAutoEvalSyncDeliveryBlock()">
-                    <option value="achat">Achat (vue acheteur)</option>
-                    <option value="vente">Vente (vue vendeur)</option>
-                    <option value="livraison">Livraison</option>
-                </select>
-            </div>
-            <div>
-                <label style="font-size:0.62rem;color:#888;">Note vente / achat /5</label>
-                <div id="spiritAutoEvalStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetStars(1)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetStars(2)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetStars(3)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetStars(4)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetStars(5)">☆</button>
-                </div>
-                <input id="spiritAutoEvalStars" type="hidden" value="5" />
-            </div>
-            <div>
-                <label style="font-size:0.62rem;color:#888;">Transaction</label>
-                <input id="spiritAutoEvalTx" type="text" readonly />
-            </div>
-        </div>
-        <label style="font-size:0.62rem;color:#888;display:block;margin-top:10px;">Commentaire (vente ou achat)</label>
-        <textarea id="spiritAutoEvalComment" placeholder="Ton commentaire sur la transaction (optionnel)…"></textarea>
-        <div id="spiritAutoEvalBuyerLivraisonWrap" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #222;">
-            <div id="spiritAutoEvalDeliveryStarsBlock">
-                <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:6px;">Livraison — note /5</label>
-                <div id="spiritAutoEvalDeliveryStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetDeliveryStars(1)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetDeliveryStars(2)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetDeliveryStars(3)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetDeliveryStars(4)">☆</button>
-                    <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetDeliveryStars(5)">☆</button>
-                </div>
-                <input id="spiritAutoEvalDeliveryStars" type="hidden" value="5" />
-            </div>
-            <div style="margin-top:8px;">
-                <label style="font-size:0.62rem;color:#888;">Colis bien protégé ?</label>
-                <select id="spiritAutoEvalDeliverySafe">
-                    <option value="oui">Oui</option>
-                    <option value="non">Non</option>
-                </select>
-            </div>
-            <label style="font-size:0.62rem;color:#888;display:block;margin-top:8px;">Commentaire livraison</label>
-            <textarea id="spiritAutoEvalDeliveryComment" placeholder="Ton commentaire sur la livraison (optionnel)…" style="min-height:52px;"></textarea>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-            <button type="button" class="btn-action" style="font-size:0.6rem;" onclick="spiritAutoEvalSubmit()">ENVOYER L'ÉVALUATION</button>
-            <button type="button" class="btn-action" style="font-size:0.6rem;background:#222;border:1px solid #444;color:#bbb;" onclick="spiritAutoEvalClose()">FERMER</button>
-        </div>
-        <div id="spiritAutoEvalStatus" style="font-size:0.64rem;color:#888;margin-top:8px;"></div>
-    </div>
-</div>
-
-<script>
-if ('serviceWorker' in navigator && window.isSecureContext) {
-  window.addEventListener('load', function () {
-    try {
-      var _sw = new URL('sw.js', window.location.href).href;
-      navigator.serviceWorker.register(_sw).catch(function () {});
-    } catch (e) {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
-    }
-  });
-}
-</script>
-
-<script>
-// (c) 2026 Spirit Infinity - Tous droits réservés
-(function () {
-  function spiritSplitFees(price) {
-    var p = Number(price || 0);
-    if (!Number.isFinite(p) || p < 0) p = 0;
-    var total = p * 0.08;
