@@ -5942,7 +5942,8 @@
     var spiritUserFavoriteSet = new Set();
     var spiritFavoriteCountMap = {};
     /* Cache marketplace (localStorage visiteur) : TTL + invalidation sur vente/publication. */
-    var SPIRIT_MARKET_LS_KEY = 'spirit_v1_market_bucket';
+    /** v2 : invalide l’ancien cache sans `listing_video_url` ; la signature des lignes inclut la présence vidéo. */
+    var SPIRIT_MARKET_LS_KEY = 'spirit_v2_market_bucket';
     var SPIRIT_MARKET_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
     var SPIRIT_MY_ADS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
     function spiritMyAdsCacheKey(uid) {
@@ -6857,7 +6858,17 @@ function spiritMarketCacheWrite(key, rows, hasMore) {
 }
 function spiritMarketRowsSig(rows) {
     rows = Array.isArray(rows) ? rows : [];
-    return rows.map(function (r) { return String(r && r.id != null ? r.id : ''); }).join('|') + '#' + rows.length;
+    return (
+        rows
+            .map(function (r) {
+                if (!r) return '';
+                var hasVid = String(r.listing_video_url || '').trim() ? '1' : '0';
+                return String(r.id != null ? r.id : '') + ':' + hasVid;
+            })
+            .join('|') +
+        '#' +
+        rows.length
+    );
 }
 /** Favoris / notifs / annonces : ne pas enchaîner 3 requêtes à chaque fetch marketplace. */
 function spiritMarketFetchAuxThrottled(opts) {
@@ -13277,6 +13288,22 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 .replace(/\n{3,}/g, '\n\n')
                 .trim();
         } catch (eLgxOpen) {}
+        try {
+            var _pidVid = spiritFavoriteProductId(item);
+            if (
+                _pidVid != null &&
+                typeof _spirit !== 'undefined' &&
+                _spirit &&
+                !('listing_video_url' in item)
+            ) {
+                var _rowVid = await _spirit.from('products_live').select('listing_video_url').eq('id', _pidVid).maybeSingle();
+                if (!_rowVid.error && _rowVid.data) {
+                    item.listing_video_url = _rowVid.data.listing_video_url;
+                } else {
+                    item.listing_video_url = null;
+                }
+            }
+        } catch (eFillVid) {}
         if (typeof spiritIsListingStatusSold === 'function' && spiritIsListingStatusSold(item)) {
             var meOpen = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : (typeof MY_TEST_ID !== 'undefined' ? MY_TEST_ID : '')) || '');
             var oidOpen = typeof spiritOwnerId === 'function' ? spiritOwnerId(item.owner_id) : String(item.owner_id || '').trim().toLowerCase();
