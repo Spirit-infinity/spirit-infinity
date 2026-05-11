@@ -6907,8 +6907,10 @@ function spiritMarketRowsSig(rows) {
         rows
             .map(function (r) {
                 if (!r) return '';
+                var st = String(r.status || '').trim().toLowerCase();
+                var isSold = (st === 'sold' || st === 'vendu') ? '1' : '0';
                 var hasVid = String(r.listing_video_url || '').trim() ? '1' : '0';
-                return String(r.id != null ? r.id : '') + ':' + hasVid;
+                return String(r.id != null ? r.id : '') + ':' + isSold + ':' + hasVid;
             })
             .join('|') +
         '#' +
