@@ -1360,6 +1360,18 @@
                 0 0 60px rgba(255, 102, 0, 0.5);
             text-shadow: 0 0 10px rgba(255, 200, 140, 0.9);
         }
+        /* Evite que le bouton de fermeture ✕ passe derrière le menu latéral dash-nav. */
+        #accountModal .modal-content > button {
+            z-index: 50000 !important;
+        }
+        #accountModal .dash-nav {
+            position: relative;
+            z-index: 1;
+        }
+        #accountModal .dash-content {
+            position: relative;
+            z-index: 2;
+        }
         .showroom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .showroom-item { background: #111; border: 1px solid #222; padding: 10px; border-radius: 4px; text-align: center; }
         .stat-banner { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
@@ -25435,3 +25447,590 @@ function closeModals() {
         <button onclick="document.getElementById('labelPreview').style.display='none'" style="background:#ff4444; color:white; border:none; cursor:pointer; font-weight:bold; padding:8px 12px; border-radius:4px;">✕ FERMER</button>
     </div>
     <div id="labelContent" style="background:white; padding:10px; border-radius:4px; color:black;"></div>
+    <div style="margin-top:20px; text-align:center;">
+        <button onclick="window.print()" style="background:white; color:black; padding:12px; border:none; font-weight:bold; cursor:pointer; width:100%; border-radius:4px; text-transform:uppercase;">🖨️ Imprimer</button>
+    </div>
+</div>
+
+<div id="spiritBadgeCommentsModal" class="overlay" style="display:none;">
+    <div class="modal-content" style="max-width:760px;text-align:left;">
+        <button type="button" onclick="document.getElementById('spiritBadgeCommentsModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
+        <h3 id="spiritBadgeCommentsTitle" style="margin-top:0;color:var(--neon-orange);">Commentaires</h3>
+        <div id="spiritBadgeCommentsList" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;"></div>
+    </div>
+</div>
+<div id="spiritLitigeModal" class="overlay" style="display:none;">
+    <div class="modal-content" style="max-width:760px;text-align:left;">
+        <button type="button" onclick="document.getElementById('spiritLitigeModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
+        <h3 id="spiritLitigeTitle" style="margin-top:0;color:#ff6666;">Litiges</h3>
+        <div id="spiritLitigeList" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;"></div>
+    </div>
+</div>
+<div id="spiritDisputeComposerModal" class="overlay" style="display:none;">
+    <div class="modal-content" style="max-width:700px;text-align:left;">
+        <button type="button" onclick="document.getElementById('spiritDisputeComposerModal').style.setProperty('display','none','important')" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
+        <h3 style="margin-top:0;color:#ff6666;">Ouvrir un litige</h3>
+        <p style="font-size:0.68rem;color:#aaa;">Décris précisément le problème. Le litige est ajouté au menu admin avec date, raison et pseudos.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Source</label>
+                <input id="spiritDisputeSourceInput" type="text" readonly />
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">ID transaction (si achat/vente)</label>
+                <input id="spiritDisputeTxInput" type="text" readonly />
+            </div>
+        </div>
+        <label style="font-size:0.62rem;color:#888;display:block;margin-top:10px;">Raison du litige</label>
+        <textarea id="spiritDisputeReasonInput" maxlength="1200" placeholder="Explique la raison du litige..." style="min-height:120px;"></textarea>
+        <button type="button" class="btn-action" style="margin-top:12px;background:#3a0f0f;border-color:#7a2a2a;color:#ffb3b3;" onclick="spiritSubmitDisputeComposer()">ENREGISTRER LE LITIGE</button>
+    </div>
+</div>
+<div id="spiritAutoEvalModal" class="overlay" style="display:none;z-index:100350 !important;" onclick="spiritAutoEvalOnOverlayClick(event)">
+    <div class="modal-content" style="max-width:620px;text-align:left;">
+        <button type="button" onclick="spiritAutoEvalClose()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#aaa;cursor:pointer;">✕</button>
+        <h3 style="margin-top:0;color:var(--neon-orange);">Évaluation transaction</h3>
+        <p style="font-size:0.66rem;color:#f3bf89;border-left:2px solid var(--neon-orange);padding-left:8px;">
+            Acheteur : note la vente (transaction) et la livraison. Vendeur : note l’achat. Si tu fermes sans envoyer, l’évaluation sera rappelée dans Mon compte → Évaluations ; au-delà de 48 h sans réponse, 5★ seront enregistrées automatiquement et un message t’en informera.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Ton pseudo</label>
+                <input id="spiritAutoEvalAuthorPseudo" type="text" readonly />
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Pseudo à évaluer</label>
+                <input id="spiritAutoEvalPseudo" type="text" readonly />
+            </div>
+            <div style="grid-column:1/-1;">
+                <label style="font-size:0.62rem;color:#888;">Type d’évaluation (fixé selon ton rôle)</label>
+                <select id="spiritAutoEvalCategory" onchange="spiritAutoEvalSyncDeliveryBlock()">
+                    <option value="achat">Achat (vue acheteur)</option>
+                    <option value="vente">Vente (vue vendeur)</option>
+                    <option value="livraison">Livraison</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Note vente / achat /5</label>
+                <div id="spiritAutoEvalStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetStars(1)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetStars(2)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetStars(3)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetStars(4)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetStars(5)">☆</button>
+                </div>
+                <input id="spiritAutoEvalStars" type="hidden" value="5" />
+            </div>
+            <div>
+                <label style="font-size:0.62rem;color:#888;">Transaction</label>
+                <input id="spiritAutoEvalTx" type="text" readonly />
+            </div>
+        </div>
+        <label style="font-size:0.62rem;color:#888;display:block;margin-top:10px;">Commentaire (vente ou achat)</label>
+        <textarea id="spiritAutoEvalComment" placeholder="Ton commentaire sur la transaction (optionnel)…"></textarea>
+        <div id="spiritAutoEvalBuyerLivraisonWrap" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #222;">
+            <div id="spiritAutoEvalDeliveryStarsBlock">
+                <label style="font-size:0.62rem;color:#888;display:block;margin-bottom:6px;">Livraison — note /5</label>
+                <div id="spiritAutoEvalDeliveryStarsRow" style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button type="button" class="btn-action spirit-auto-star" data-star="1" onclick="spiritAutoEvalSetDeliveryStars(1)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="2" onclick="spiritAutoEvalSetDeliveryStars(2)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="3" onclick="spiritAutoEvalSetDeliveryStars(3)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="4" onclick="spiritAutoEvalSetDeliveryStars(4)">☆</button>
+                    <button type="button" class="btn-action spirit-auto-star" data-star="5" onclick="spiritAutoEvalSetDeliveryStars(5)">☆</button>
+                </div>
+                <input id="spiritAutoEvalDeliveryStars" type="hidden" value="5" />
+            </div>
+            <div style="margin-top:8px;">
+                <label style="font-size:0.62rem;color:#888;">Colis bien protégé ?</label>
+                <select id="spiritAutoEvalDeliverySafe">
+                    <option value="oui">Oui</option>
+                    <option value="non">Non</option>
+                </select>
+            </div>
+            <label style="font-size:0.62rem;color:#888;display:block;margin-top:8px;">Commentaire livraison</label>
+            <textarea id="spiritAutoEvalDeliveryComment" placeholder="Ton commentaire sur la livraison (optionnel)…" style="min-height:52px;"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+            <button type="button" class="btn-action" style="font-size:0.6rem;" onclick="spiritAutoEvalSubmit()">ENVOYER L'ÉVALUATION</button>
+            <button type="button" class="btn-action" style="font-size:0.6rem;background:#222;border:1px solid #444;color:#bbb;" onclick="spiritAutoEvalClose()">FERMER</button>
+        </div>
+        <div id="spiritAutoEvalStatus" style="font-size:0.64rem;color:#888;margin-top:8px;"></div>
+    </div>
+</div>
+
+<script>
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', function () {
+    try {
+      var _sw = new URL('sw.js', window.location.href).href;
+      navigator.serviceWorker.register(_sw).catch(function () {});
+    } catch (e) {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
+  });
+}
+</script>
+
+<script>
+// (c) 2026 Spirit Infinity - Tous droits réservés
+(function () {
+  function spiritSplitFees(price) {
+    var p = Number(price || 0);
+    if (!Number.isFinite(p) || p < 0) p = 0;
+    var total = p * 0.08;
+    return {
+      creator_fee: +(p * 0.03).toFixed(2),
+      firm_fee: +(p * 0.03).toFixed(2),
+      bank_fee: +(p * 0.02).toFixed(2),
+      buyer_protection_total: +total.toFixed(2),
+      seller_net: +(p - total).toFixed(2)
+    };
+  }
+
+  async function spiritCheckDeviceStatus(macAddress) {
+    var mac = String(macAddress || '').trim().toUpperCase();
+    if (!mac) return { ok: false, reason: 'missing_mac', data: null };
+    if (!_spirit || !_spirit.from) return { ok: false, reason: 'supabase_unavailable', data: null };
+    var r = await _spirit
+      .from('ledger_items')
+      .select('mac_address,owner_user_id,device_status,last_seen')
+      .eq('mac_address', mac)
+      .maybeSingle();
+    if (r.error) return { ok: false, reason: 'query_error', error: r.error, data: null };
+    if (!r.data) return { ok: true, reason: 'not_found', data: null };
+    return { ok: true, reason: 'found', data: r.data };
+  }
+
+  async function spiritClaimDevice(macAddress) {
+    var mac = String(macAddress || '').trim().toUpperCase();
+    if (!mac) return { ok: false, reason: 'missing_mac' };
+    if (!_spirit || !_spirit.from) return { ok: false, reason: 'supabase_unavailable' };
+    var uid = '';
+    try {
+      var u = await _spirit.auth.getUser();
+      uid = String(u && u.data && u.data.user && u.data.user.id || '').trim();
+    } catch (e) {}
+    if (!uid) return { ok: false, reason: 'not_authenticated' };
+
+    var chk = await spiritCheckDeviceStatus(mac);
+    if (!chk.ok) return chk;
+    if (chk.data && chk.data.owner_user_id && String(chk.data.owner_user_id).trim() !== uid) {
+      return { ok: false, reason: 'already_owned', data: chk.data };
+    }
+
+    var payload = {
+      owner_user_id: uid,
+      device_status: 'actif',
+      last_seen: new Date().toISOString()
+    };
+    var up = await _spirit
+      .from('ledger_items')
+      .update(payload)
+      .eq('mac_address', mac)
+      .is('owner_user_id', null)
+      .select('mac_address,owner_user_id')
+      .maybeSingle();
+    if (up && up.error) {
+      if (String(up.error.message || '').toLowerCase().indexOf('0 rows') >= 0) {
+        return { ok: false, reason: 'already_claimed' };
+      }
+      return { ok: false, reason: 'update_error', error: up.error };
+    }
+    if (!up || !up.data) {
+      return { ok: false, reason: 'already_claimed' };
+    }
+    try {
+      localStorage.setItem('spirit_mac_address', mac);
+      window.currentMacAddress = mac;
+    } catch (eLs) {}
+    return { ok: true, reason: 'claimed', mac_address: mac };
+  }
+
+  async function spiritReleaseDevice(macAddress) {
+    var mac = String(macAddress || '').trim().toUpperCase();
+    if (!mac || !_spirit) return { ok: false, reason: 'invalid' };
+    var uid = '';
+    try {
+      var u = await _spirit.auth.getUser();
+      uid = String(u && u.data && u.data.user && u.data.user.id || '').trim();
+    } catch (e) {}
+    if (!uid) return { ok: false, reason: 'not_authenticated' };
+    var up = await _spirit
+      .from('ledger_items')
+      .update({ owner_user_id: null, device_status: 'libéré', last_seen: new Date().toISOString() })
+      .eq('mac_address', mac)
+      .eq('owner_user_id', uid);
+    if (up.error) return { ok: false, reason: 'release_error', error: up.error };
+    return { ok: true, reason: 'released' };
+  }
+
+  function spiritPairingSuccessRate(total, claimed) {
+    total = Number(total || 0);
+    claimed = Number(claimed || 0);
+    if (!total || total < 0) return 0;
+    return Math.max(0, Math.min(100, +(claimed * 100 / total).toFixed(1)));
+  }
+
+  function spiritEnsureDetectionUi() {
+    var host = document.getElementById('ledgerModal');
+    if (!host || document.getElementById('spiritDeviceDetectCard')) return;
+    var card = document.createElement('div');
+    card.id = 'spiritDeviceDetectCard';
+    card.style.cssText = 'margin-top:14px;padding:12px;border:1px solid rgba(255,102,0,0.45);background:#0b0b0b;border-radius:4px;';
+    card.innerHTML =
+      '<div style="font-size:0.72rem;color:#ff6600;font-weight:800;letter-spacing:1px;">DÉTECTION DE MATÉRIEL</div>' +
+      '<div id="spiritDetectStatus" style="font-size:0.62rem;color:#aaa;margin-top:6px;">Scan réseau en attente...</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
+      '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="void spiritScanNetworkDevices()">SCANNER LES SPIRIT TEHNOLOGIE</button>' +
+      '<button type="button" id="spiritBtnShowCollection" data-spirit-action="show-collection" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#121212;border:1px solid rgba(255,102,0,0.45);color:#ffb07a;" onclick="void spiritShowMySpiritCollection()">VOIR MA COLLECTION HOT TOYS SPIRIT INFINITY</button>' +
+      '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#1b0f0f;border:1px solid #804;color:#ff9a9a;" onclick="void spiritReleaseMyCurrentDevice()">LIBÉRER LA FIGURINE</button>' +
+      '</div>' +
+      '<div id="spiritDetectList" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;"></div>' +
+      '<div id="spiritPairingRate" style="font-size:0.6rem;color:#888;margin-top:8px;"></div>';
+    var modalContent = host.querySelector('.modal-content');
+    if (modalContent) modalContent.appendChild(card);
+    try {
+      var bCol = document.getElementById('spiritBtnShowCollection');
+      if (bCol) bCol.addEventListener('click', function () {
+        try {
+          var st = document.getElementById('spiritDetectStatus');
+          if (st) st.textContent = 'Ouverture de la collection...';
+        } catch (eSt) {}
+        void spiritShowMySpiritCollection();
+      });
+    } catch (eB) {}
+  }
+
+  function spiritOpenDetectedModal(mac) {
+    var id = 'spiritDeviceDetectedModal';
+    var m = document.getElementById(id);
+    if (!m) {
+      m = document.createElement('div');
+      m.id = id;
+      m.className = 'overlay';
+      m.style.cssText = 'display:none;';
+      m.innerHTML =
+        '<div class="modal-content" style="max-width:520px;border:1px solid rgba(255,102,0,0.6);background:#0a0a0a;">' +
+        '<h2 style="color:#ff6600;font-size:1rem;">Nouvelle figurine détectée !</h2>' +
+        '<p id="spiritDetectedMacTxt" style="font-size:0.72rem;color:#bbb;">MAC: —</p>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+        '<button type="button" class="btn-action" onclick="void spiritConfirmClaimFromModal()">Activer ma figurine</button>' +
+        '<button type="button" class="btn-action" style="background:#222;border:1px solid #444;color:#bbb;" onclick="document.getElementById(\'spiritDeviceDetectedModal\').style.display=\'none\'">Fermer</button>' +
+        '</div></div>';
+      document.body.appendChild(m);
+    }
+    m.dataset.mac = mac;
+    var txt = document.getElementById('spiritDetectedMacTxt');
+    if (txt) txt.textContent = 'MAC: ' + mac;
+    try {
+      m.style.setProperty('display', 'flex', 'important');
+      m.style.setProperty('z-index', '200120', 'important');
+    } catch (eDisp) {
+      m.style.display = 'flex';
+    }
+  }
+
+  async function spiritScanNetworkDevices() {
+    try {
+      spiritEnsureDetectionUi();
+      var status = document.getElementById('spiritDetectStatus');
+      var list = document.getElementById('spiritDetectList');
+      if (status) status.textContent = 'Scan en cours...';
+      if (list) list.innerHTML = '';
+      if (!_spirit) {
+        if (status) status.textContent = 'Supabase indisponible.';
+        return;
+      }
+
+      var rows = [];
+      var tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      var qRecent = await _spirit
+        .from('ledger_items')
+        .select('mac_address,owner_user_id,last_seen,device_status')
+        .gte('last_seen', tenMinAgo)
+        .is('owner_user_id', null)
+        .order('last_seen', { ascending: false })
+        .limit(30);
+
+      if (qRecent.error) {
+        if (status) status.textContent = 'Erreur scan (récent): ' + (qRecent.error.message || qRecent.error);
+      } else {
+        rows = Array.isArray(qRecent.data) ? qRecent.data : [];
+      }
+
+      // Fallback: si rien en "récent", on montre aussi les non-assignées plus anciennes.
+      if (!rows.length) {
+        var qAny = await _spirit
+          .from('ledger_items')
+          .select('mac_address,owner_user_id,last_seen,device_status')
+          .is('owner_user_id', null)
+          .order('last_seen', { ascending: false })
+          .limit(30);
+        if (!qAny.error && Array.isArray(qAny.data)) rows = qAny.data;
+      }
+
+      if (status) status.textContent = rows.length ? (rows.length + ' figurine(s) détectée(s).') : 'Aucune nouvelle figurine détectée.';
+      if (list) {
+        list.innerHTML = rows.map(function (r) {
+          var mac = String(r.mac_address || '').trim();
+          return '<div style="border:1px solid #2b2b2b;background:#111;padding:8px;border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
+            '<div style="font-size:0.62rem;color:#ccc;">' + mac + '<br><span style="color:#777;">vu: ' + String(r.last_seen || '—') + '</span></div>' +
+            '<button type="button" class="btn-action" style="font-size:0.58rem;padding:6px 10px;" onclick="void spiritActivateDetectedMac(\'' + mac.replace(/'/g, '') + '\')">Activer</button>' +
+            '</div>';
+        }).join('');
+      }
+
+      var claimedCount = 0;
+      try {
+        var own = await _spirit.from('ledger_items').select('mac_address', { count: 'exact', head: true }).not('owner_user_id', 'is', null);
+        claimedCount = Number(own && own.count || 0);
+      } catch (eCount) {}
+      var total = rows.length + claimedCount;
+      var rate = spiritPairingSuccessRate(total, claimedCount);
+      var rateEl = document.getElementById('spiritPairingRate');
+      if (rateEl) rateEl.textContent = 'Taux de réussite théorique appairage: ' + rate + '%';
+    } catch (e) {
+      var st = document.getElementById('spiritDetectStatus');
+      if (st) st.textContent = 'Erreur scan: ' + String(e && e.message ? e.message : e);
+      console.warn('[SPIRIT] spiritScanNetworkDevices', e);
+    }
+  }
+
+  async function spiritConfirmClaimFromModal() {
+    var m = document.getElementById('spiritDeviceDetectedModal');
+    var mac = m ? String(m.dataset.mac || '').trim() : '';
+    if (!mac) return;
+    var out = await spiritClaimDevice(mac);
+    if (!out.ok) {
+      var msg = 'Impossible d\'activer: ' + String(out.reason || 'erreur');
+      try {
+        var st = document.getElementById('spiritDetectStatus');
+        if (st) st.textContent = msg;
+      } catch (eSt) {}
+      alert(msg);
+      return;
+    }
+    if (m) m.style.display = 'none';
+    try { await refreshSpiritPanneauHardwareUI({ skipFetch: false }); } catch (e) {}
+    try { await spiritScanNetworkDevices(); } catch (e2) {}
+    alert('Figurine activée: ' + mac);
+  }
+
+  async function spiritActivateDetectedMac(mac) {
+    mac = String(mac || '').trim();
+    if (!mac) return;
+    var out = await spiritClaimDevice(mac);
+    if (!out.ok) {
+      var msg = 'Impossible d\'activer: ' + String(out.reason || 'erreur');
+      try {
+        var st = document.getElementById('spiritDetectStatus');
+        if (st) st.textContent = msg;
+      } catch (eSt) {}
+      alert(msg);
+      return;
+    }
+    try {
+      localStorage.setItem('spirit_mac_address', mac);
+      window.currentMacAddress = mac;
+    } catch (eLs) {}
+    try { await refreshSpiritPanneauHardwareUI({ skipFetch: false }); } catch (eR) {}
+    try { await spiritScanNetworkDevices(); } catch (e2) {}
+    alert('Figurine activée: ' + mac);
+  }
+
+  async function spiritReleaseMyCurrentDevice() {
+    var mac = '';
+    try { mac = String(localStorage.getItem('spirit_mac_address') || '').trim(); } catch (e) {}
+    if (!mac) {
+      try { mac = spiritResolveCurrentMacAddress(); } catch (e2) {}
+    }
+    if (!mac) {
+      alert('Aucune MAC active.');
+      return;
+    }
+    if (!(await spiritConfirm('Confirmer la libération de cette figurine pour revente ?'))) return;
+    var r = await spiritReleaseDevice(mac);
+    if (!r.ok) {
+      alert('Libération impossible: ' + String(r.reason || 'erreur'));
+      return;
+    }
+    alert('Figurine libérée: ' + mac);
+    try { localStorage.removeItem('spirit_mac_address'); } catch (eRm) {}
+    try { window.currentMacAddress = ''; } catch (eW) {}
+    try { await spiritScanNetworkDevices(); } catch (e3) {}
+  }
+
+  async function spiritShowMySpiritCollection() {
+    try {
+    var id = 'spiritMyCollectionModal';
+    var m = document.getElementById(id);
+    if (!m) {
+      m = document.createElement('div');
+      m.id = id;
+      m.className = 'overlay';
+      m.style.cssText = 'display:none;position:fixed;inset:0;z-index:200300;background:rgba(0,0,0,0.78);align-items:center;justify-content:center;padding:18px;overflow:auto;';
+      m.innerHTML =
+        '<div class="modal-content" style="max-width:760px;width:min(760px,95vw);border:1px solid rgba(255,102,0,0.6);background:#0a0a0a;display:block !important;position:relative;z-index:200301;">' +
+        '<h2 style="color:#ff6600;font-size:1rem;">Ma collection Hot Toys Spirit Infinity</h2>' +
+        '<div id="spiritMyCollectionList" style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto;"></div>' +
+        '<div style="display:flex;justify-content:flex-end;margin-top:10px;"><button type="button" class="btn-action" style="background:#222;border:1px solid #444;color:#bbb;" onclick="document.getElementById(\'spiritMyCollectionModal\').style.display=\'none\'">Fermer</button></div>' +
+        '</div>';
+      document.body.appendChild(m);
+    }
+    var box = document.getElementById('spiritMyCollectionList');
+    try {
+      m.style.setProperty('display', 'flex', 'important');
+      m.style.setProperty('position', 'fixed', 'important');
+      m.style.setProperty('inset', '0', 'important');
+      m.style.setProperty('z-index', '200300', 'important');
+      m.style.setProperty('background', 'rgba(0,0,0,0.78)', 'important');
+      m.style.setProperty('align-items', 'center', 'important');
+      m.style.setProperty('justify-content', 'center', 'important');
+    } catch (eDisp) { m.style.display = 'flex'; }
+    if (box) box.innerHTML = '<div style="font-size:0.68rem;color:#888;">Chargement de ta collection…</div>';
+
+    if (!_spirit) {
+      if (box) box.innerHTML = '<div style="font-size:0.68rem;color:#e7a8a8;">Supabase indisponible.</div>';
+      return;
+    }
+    var uid = '';
+    try {
+      var u = await _spirit.auth.getUser();
+      uid = String(u && u.data && u.data.user && u.data.user.id || '').trim();
+    } catch (eU) {}
+    if (!uid) {
+      if (box) box.innerHTML = '<div style="font-size:0.68rem;color:#e7a8a8;">Connecte-toi pour voir ta collection.</div>';
+      return;
+    }
+
+    var rows = [];
+    var q = await _spirit
+      .from('ledger_items')
+      .select('mac_address,device_status,last_seen,battery_health,chip_health,neon_low_hours,neon_high_hours,figurine_led_hours')
+      .eq('owner_user_id', uid)
+      .order('last_seen', { ascending: false })
+      .limit(200);
+    if (!q.error && Array.isArray(q.data)) rows = q.data;
+
+    // Fallback: au moins la figurine active courante si le mapping owner_user_id n'est pas encore en place.
+    if (!rows.length) {
+      var mac = '';
+      try { mac = String(localStorage.getItem('spirit_mac_address') || '').trim(); } catch (eMac) {}
+      if (!mac) {
+        try { if (typeof spiritResolveCurrentMacAddress === 'function') mac = spiritResolveCurrentMacAddress(); } catch (eMac2) {}
+      }
+      if (mac) {
+        var qm = await _spirit
+          .from('ledger_items')
+          .select('mac_address,device_status,last_seen,battery_health,chip_health,neon_low_hours,neon_high_hours,figurine_led_hours')
+          .eq('mac_address', mac)
+          .maybeSingle();
+        if (!qm.error && qm.data) rows = [qm.data];
+      }
+    }
+
+    if (box) {
+      box.innerHTML = rows.length ? rows.map(function (r) {
+        return '<div style="border:1px solid #2b2b2b;background:#111;padding:10px;border-radius:4px;">' +
+          '<div style="font-size:0.66rem;color:#ffb07a;font-weight:700;">MAC: ' + String(r.mac_address || '—') + '</div>' +
+          '<div style="font-size:0.62rem;color:#bbb;margin-top:4px;">Statut: ' + String(r.device_status || '—') + ' · Batterie: ' + String(r.battery_health != null ? r.battery_health : '—') + '% · Puce: ' + String(r.chip_health || '—') + '</div>' +
+          '<div style="font-size:0.6rem;color:#888;margin-top:3px;">Néon bas ' + String(r.neon_low_hours || 0) + 'h · Néon haut ' + String(r.neon_high_hours || 0) + 'h · Figurine ' + String(r.figurine_led_hours || 0) + 'h</div>' +
+          '<div style="font-size:0.58rem;color:#666;margin-top:3px;">Vu: ' + String(r.last_seen || '—') + '</div>' +
+          '</div>';
+      }).join('') : '<div style="font-size:0.68rem;color:#888;">Aucune figurine Spirit Tehnologie liée à ton compte.</div>';
+    }
+    } catch (e) {
+      console.warn('[SPIRIT] spiritShowMySpiritCollection', e);
+      alert('Impossible d’ouvrir la collection: ' + (e && e.message ? e.message : e));
+    }
+  }
+
+  function spiritAttachDetectionOnPanelOpen() {
+    var orig = window.showLedgerModal;
+    if (typeof orig !== 'function' || orig.__spiritDetectionWrapped) return;
+    var wrap = function () {
+      var out = orig.apply(this, arguments);
+      setTimeout(function () {
+        try { spiritEnsureDetectionUi(); } catch (eU) {}
+        try { void spiritScanNetworkDevices(); } catch (eS) {}
+      }, 150);
+      return out;
+    };
+    wrap.__spiritDetectionWrapped = true;
+    window.showLedgerModal = wrap;
+  }
+
+  try {
+    document.addEventListener('DOMContentLoaded', function () {
+      try { spiritEnsureDetectionUi(); } catch (e0) {}
+      try {
+        document.addEventListener('click', function (ev) {
+          var t = ev && ev.target ? ev.target : null;
+          if (!t || typeof t.closest !== 'function') return;
+          var btn = t.closest('[data-spirit-action="show-collection"]');
+          if (!btn) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+          try {
+            var st = document.getElementById('spiritDetectStatus');
+            if (st) st.textContent = 'Ouverture de la collection...';
+          } catch (eSt) {}
+          void spiritShowMySpiritCollection();
+        }, true);
+      } catch (eDel) {}
+    });
+  } catch (eD) {}
+
+  try {
+    window.spiritSplitFees = spiritSplitFees;
+    window.spiritCheckDeviceStatus = spiritCheckDeviceStatus;
+    window.spiritClaimDevice = spiritClaimDevice;
+    window.spiritReleaseDevice = spiritReleaseDevice;
+    window.spiritPairingSuccessRate = spiritPairingSuccessRate;
+    window.spiritScanNetworkDevices = spiritScanNetworkDevices;
+    window.spiritOpenDetectedModal = spiritOpenDetectedModal;
+    window.spiritConfirmClaimFromModal = spiritConfirmClaimFromModal;
+    window.spiritActivateDetectedMac = spiritActivateDetectedMac;
+    window.spiritReleaseMyCurrentDevice = spiritReleaseMyCurrentDevice;
+    window.spiritShowMySpiritCollection = spiritShowMySpiritCollection;
+    spiritAttachDetectionOnPanelOpen();
+  } catch (e) {}
+})();
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
