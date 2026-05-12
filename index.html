@@ -13806,7 +13806,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
                     : ('<b>' + escCtHtml(sp) + '</b> → <b>' + escCtHtml(bp) + '</b>');
                 function ctDetailSeg(label, curS, refS) {
                     var inner = label + ' : <b>' + escCtHtml(curS) + '</b>';
-                    if (ri > 0 && curS !== refS) return '<span style="color:#8fe39d;font-weight:700;">' + inner + '</span>';
+                    if (ri > 0 && curS !== refS) return '<span style="color:var(--neon-orange);font-weight:700;">' + inner + '</span>';
                     return inner;
                 }
                 var detail = ''
@@ -13841,7 +13841,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             var consistency = (curSmoke === !!last.is_smoke_free && curLight === !!last.is_light_protect
                 && curArt === lastArt && curShip === lastShip && curLoose === lastLoose && curAccess === lastAccess
                 && curFirst === lastFirst)
-                ? '<span style="color:#8fe39d;">Cohérent avec la dernière entrée CT</span>'
+                ? '<span style="color:var(--neon-orange);">Cohérent avec la dernière entrée CT</span>'
                 : '<span style="color:#ffb37e;">État annonce actuelle ≠ dernière entrée CT (vérifie la fiche)</span>';
             parts.push('<div style="margin-top:10px;font-size:0.62rem;border-top:1px solid rgba(159,212,255,0.2);padding-top:8px;">' + consistency + '</div>');
             html = parts.join('');
