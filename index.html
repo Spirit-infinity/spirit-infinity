@@ -6621,6 +6621,9 @@ function spiritApplySaleCatOptions(statueMode) {
             }
         }
     }
+    if (statueMode && (!el.value || String(el.value).trim() === '')) {
+        el.value = 'statue-autre';
+    }
     if (typeof spiritApplyI18nToContainer === 'function') spiritApplyI18nToContainer(el);
 }
 
@@ -11550,6 +11553,9 @@ async function publierAnnonce() {
     const scoreIA = parseInt(document.getElementById('stepFinish').dataset.lastScore, 10) || 0;
     const category = document.getElementById('saleCat') ? document.getElementById('saleCat').value : '';
     const normalizedCat = normalizeSpiritCat(category);
+    /* Rubrique marché : colonne `cat` = figurine | statue. En mode Statue il faut toujours statue (sinon saleCat vide après changement de méthode → normalizeSpiritCat('') → figurine). */
+    var productsLiveCat = normalizedCat;
+    if (typeof currentMethod !== 'undefined' && currentMethod === 'statue') productsLiveCat = 'statue';
     const brand = document.getElementById('saleBrand') ? document.getElementById('saleBrand').value : '';
     const isSmokeFree = !!(document.getElementById('saleSmokeFree') && document.getElementById('saleSmokeFree').checked);
     const isLightProtect = !!(document.getElementById('saleLightProtect') && document.getElementById('saleLightProtect').checked);
@@ -11771,7 +11777,7 @@ async function publierAnnonce() {
         owner_id: ownerIdPub,
         image_url: imageUrlPayload,
         category: category || 'Collection',
-        cat: normalizedCat,
+        cat: productsLiveCat,
         brand: brand || 'Spirit Infinity',
         ship_size: shipSize,
         status: 'available',
@@ -11815,7 +11821,7 @@ async function publierAnnonce() {
                 description: desc,
                 ia_score: scoreIA || 0,
                 category: category || 'Collection',
-                cat: normalizedCat,
+                cat: productsLiveCat,
                 brand: brand || 'Spirit Infinity',
                 ship_size: shipSize,
                 status: 'available',
