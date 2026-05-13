@@ -1943,6 +1943,8 @@
             align-items: center;
         }
         #spiritSanctuaryLightbox img {
+            position: relative;
+            z-index: 1;
             max-width: 92vw;
             max-height: 92vh;
             object-fit: contain;
@@ -1951,6 +1953,8 @@
         }
         .spirit-san-lightbox-close,
         .spirit-san-lightbox-nav {
+            z-index: 12;
+            pointer-events: auto;
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
@@ -1975,6 +1979,7 @@
         .spirit-san-lightbox-nav.spirit-san-lightbox-prev { left: 18px; }
         .spirit-san-lightbox-nav.spirit-san-lightbox-next { right: 18px; }
         .spirit-san-lightbox-close {
+            z-index: 14;
             top: 18px;
             right: 18px;
             transform: none;
@@ -5118,13 +5123,13 @@
 </div>
 
 <div id="spiritSanctuaryLightbox" onclick="spiritSanctuaryLightboxOnOverlayClick(event)">
-    <button type="button" class="spirit-san-lightbox-nav spirit-san-lightbox-prev" aria-label="Image précédente" onclick="spiritProductLightboxPrev(event)">
+    <button type="button" class="spirit-san-lightbox-nav spirit-san-lightbox-prev" aria-label="Image précédente" onclick="spiritSanctuaryLightboxPrev(event)">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6" />
         </svg>
     </button>
     <img id="spiritSanctuaryLightbox-img" src="" alt="" style="display:block;" />
-    <button type="button" class="spirit-san-lightbox-nav spirit-san-lightbox-next" aria-label="Image suivante" onclick="spiritProductLightboxNext(event)">
+    <button type="button" class="spirit-san-lightbox-nav spirit-san-lightbox-next" aria-label="Image suivante" onclick="spiritSanctuaryLightboxNext(event)">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9 18l6-6-6-6" />
         </svg>
@@ -15446,6 +15451,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             'certifModal',
             'labelPreview',
             'lightbox',
+            'spiritSanctuaryLightbox',
             'spiritPublicProfileSection',
             'spiritHotToysAdminOverlay'
         ].forEach(function (id) {
@@ -23637,6 +23643,67 @@ function spiritSanctuaryLightboxNext(ev) {
     if (img) img.src = spiritSanctuaryLightboxImages[spiritSanctuaryLightboxIndex];
 }
 
+function spiritSanctuaryLightboxIsOpen() {
+    try {
+        var lb = document.getElementById('spiritSanctuaryLightbox');
+        if (!lb) return false;
+        var d = window.getComputedStyle(lb).display;
+        return d === 'flex';
+    } catch (e) {
+        return false;
+    }
+}
+
+function spiritSanctuaryLightboxOnDocumentKeydown(ev) {
+    try {
+        if (!ev || !spiritSanctuaryLightboxIsOpen()) return;
+        var k = ev.key || '';
+        if (k === 'ArrowLeft') {
+            ev.preventDefault();
+            spiritSanctuaryLightboxPrev(ev);
+        } else if (k === 'ArrowRight') {
+            ev.preventDefault();
+            spiritSanctuaryLightboxNext(ev);
+        } else if (k === 'Escape') {
+            ev.preventDefault();
+            spiritSanctuaryLightboxClose();
+        }
+    } catch (eK) {}
+}
+
+(function spiritSanctuaryLightboxBindSwipeAndKeysOnce() {
+    try {
+        document.addEventListener('keydown', spiritSanctuaryLightboxOnDocumentKeydown, true);
+    } catch (eDoc) {}
+    try {
+        var sanImg = document.getElementById('spiritSanctuaryLightbox-img');
+        if (!sanImg || sanImg.dataset.spiritSanLbSwipe === '1') return;
+        sanImg.dataset.spiritSanLbSwipe = '1';
+        var sx = 0, sy = 0;
+        sanImg.addEventListener('touchstart', function (ev) {
+            try {
+                var t = ev.touches && ev.touches[0];
+                if (!t) return;
+                sx = t.clientX;
+                sy = t.clientY;
+            } catch (eTs) {}
+        }, { passive: true });
+        sanImg.addEventListener('touchend', function (ev) {
+            try {
+                var t = ev.changedTouches && ev.changedTouches[0];
+                if (!t) return;
+                var dx = t.clientX - sx;
+                var dy = t.clientY - sy;
+                if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
+                var len = spiritSanctuaryLightboxImages.length;
+                if (len < 2) return;
+                if (dx < 0) spiritSanctuaryLightboxNext(ev);
+                else spiritSanctuaryLightboxPrev(ev);
+            } catch (eTe) {}
+        }, { passive: true });
+    } catch (eBind) {}
+})();
+
 function spiritShowHeroHome() {
     try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
     var market = document.getElementById('marketplaceSection');
@@ -23645,7 +23712,7 @@ function spiritShowHeroHome() {
     [
         'ledgerModal', 'forumModal', 'accountModal', 'securityModal',
         'precommandes-hot-toys', 'supportModal', 'registerModal',
-        'productModal', 'paymentModal', 'certifModal', 'labelPreview', 'lightbox', 'spiritPublicProfileSection',
+        'productModal', 'paymentModal', 'certifModal', 'labelPreview', 'lightbox', 'spiritSanctuaryLightbox', 'spiritPublicProfileSection',
         'spiritHotToysAdminOverlay'
     ].forEach(function (id) {
         var n = document.getElementById(id);
@@ -25746,7 +25813,7 @@ function showLedgerModal() {
         [
             'marketplaceSection', 'forumModal', 'accountModal', 'securityModal',
             'precommandes-hot-toys', 'supportModal', 'registerModal',
-            'productModal', 'paymentModal', 'certifModal', 'labelPreview', 'lightbox'
+            'productModal', 'paymentModal', 'certifModal', 'labelPreview', 'lightbox', 'spiritSanctuaryLightbox'
         ].forEach(function (hid) {
             var n = document.getElementById(hid);
             if (n) n.style.setProperty('display', 'none', 'important');
