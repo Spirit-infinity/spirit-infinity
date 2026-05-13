@@ -13556,6 +13556,54 @@ async function spiritLoadListingMessagesForProduct(productId) {
     function spiritCtTraceNorm(t) {
         return String(t || '').trim().toLowerCase();
     }
+    /** Une annonce = une ligne « fiche vendeur » CT : fusionne local/serveur et republications. */
+    function spiritCtListedLogicalKey(r) {
+        if (!r || String(r.event_type || '').toLowerCase() !== 'listed') return '';
+        var pid = r.product_id != null && Number.isFinite(Number(r.product_id)) ? Number(r.product_id) : null;
+        if (pid != null) return 'listed|pid|' + String(pid);
+        var tid = spiritCtTraceNorm(r.trace_id);
+        var fk = String(r.figure_key || '').trim();
+        var sk = '';
+        try {
+            sk = typeof spiritNormUid === 'function' ? spiritNormUid(String(r.seller_id || '')) : '';
+        } catch (eSk) {}
+        if (!sk) sk = String(r.seller_id || '').trim().toLowerCase();
+        return 'listed|trace|' + tid + '|' + sk + '|' + fk;
+    }
+    function spiritCtPickBetterCtRow(a, b) {
+        if (!a) return b;
+        if (!b) return a;
+        var aId = a.id != null && String(a.id).trim() !== '';
+        var bId = b.id != null && String(b.id).trim() !== '';
+        if (bId && !aId) return b;
+        if (aId && !bId) return a;
+        var ta = new Date(a.created_at || 0).getTime();
+        var tb = new Date(b.created_at || 0).getTime();
+        return tb >= ta ? b : a;
+    }
+    /** Réduit les événements listed au plus un par annonce (évite 2× « Vendeur affiché » identique). */
+    function spiritCtMergeDuplicateListedEvents(rows) {
+        if (!Array.isArray(rows) || !rows.length) return rows || [];
+        var non = [];
+        var byKey = Object.create(null);
+        for (var i = 0; i < rows.length; i++) {
+            var r = rows[i];
+            if (!r) continue;
+            if (String(r.event_type || '').toLowerCase() !== 'listed') {
+                non.push(r);
+                continue;
+            }
+            var lk = spiritCtListedLogicalKey(r);
+            if (!lk) {
+                non.push(r);
+                continue;
+            }
+            if (!byKey[lk]) byKey[lk] = r;
+            else byKey[lk] = spiritCtPickBetterCtRow(byKey[lk], r);
+        }
+        var merged = Object.keys(byKey).map(function (k) { return byKey[k]; });
+        return non.concat(merged);
+    }
     /** Clé sémantique : même événement local + Supabase ; seconde arrondie évite doublon ms différentes. */
     function spiritCtSecondaryDedupeKey(r) {
         if (!r) return '';
@@ -13593,7 +13641,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
         });
         var seenId = Object.create(null);
-        return out.filter(function (r) {
+        var filt = out.filter(function (r) {
             if (!r) return false;
             if (r.id == null || String(r.id).trim() === '') return true;
             var ik = 'id:' + String(r.id).trim();
@@ -13601,6 +13649,11 @@ async function spiritLoadListingMessagesForProduct(productId) {
             seenId[ik] = true;
             return true;
         });
+        filt = spiritCtMergeDuplicateListedEvents(filt);
+        filt.sort(function (a, b) {
+            return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        });
+        return filt;
     }
     async function spiritCtFetchEventsFromSupabase(figureKey, traceId, productId) {
         if (!_spirit) return [];
@@ -13735,6 +13788,13 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 created_at: new Date().toISOString()
             };
             var allL = spiritCtReadEventsLocal();
+            var lkEvt = spiritCtListedLogicalKey(evt);
+            if (lkEvt) {
+                allL = allL.filter(function (x) {
+                    if (!x || String(x.event_type || '').toLowerCase() !== 'listed') return true;
+                    return spiritCtListedLogicalKey(x) !== lkEvt;
+                });
+            }
             allL.push(evt);
             spiritCtWriteEventsLocal(allL);
             try {
