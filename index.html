@@ -10543,7 +10543,8 @@ function spiritNormalizeCatalogSearch(s) {
     }
 }
 function spiritCatalogSearchEscapeLike(s) {
-    return String(s || '').replace(/[%_]/g, '');
+    /* Retire wildcards LIKE + virgule (casse le filtre .or() PostgREST si la saisie contient « , »). */
+    return String(s || '').replace(/[%_,]/g, '');
 }
 function spiritGetSaleBrandForCatalogSearch() {
     var sel = document.getElementById('saleBrand');
@@ -10556,17 +10557,30 @@ async function spiritFetchCatalogRefSuggestions(queryText, brand, maxRows) {
     if (q.length < 2) return [];
     var qLike = '%' + spiritCatalogSearchEscapeLike(q) + '%';
     var lim = Math.max(3, Math.min(20, Number(maxRows) || 8));
-    try {
+    var bSel = String(brand || '').trim();
+    var skipBrand = !bSel || bSel.toLowerCase() === 'autre';
+    async function fetchCatalogRows(withBrandIlike) {
         var req = _spirit
             .from('products_catalog')
             .select('brand,ref_code,model_name')
             .or('model_name.ilike.' + qLike + ',ref_code.ilike.' + qLike)
             .limit(250);
-        var b = String(brand || '').trim();
-        if (b && b.toLowerCase() !== 'autre') req = req.eq('brand', b);
+        if (withBrandIlike && bSel) {
+            var bPat = '%' + spiritCatalogSearchEscapeLike(bSel) + '%';
+            req = req.ilike('brand', bPat);
+        }
         var out = await req;
         if (out.error) return [];
-        var rows = out.data || [];
+        return Array.isArray(out.data) ? out.data : [];
+    }
+    try {
+        var rows = [];
+        if (!skipBrand) {
+            rows = await fetchCatalogRows(true);
+        }
+        if (!rows.length) {
+            rows = await fetchCatalogRows(false);
+        }
         var scored = [];
         var nQ = spiritNormalizeCatalogSearch(q);
         rows.forEach(function (r) {
@@ -10579,7 +10593,12 @@ async function spiritFetchCatalogRefSuggestions(queryText, brand, maxRows) {
             var sc = 0;
             if (nName.indexOf(nQ) >= 0) sc += 8;
             if (nRef.indexOf(nQ) >= 0) sc += 12;
-            if (b && b2 && spiritNormalizeCatalogSearch(b2) === spiritNormalizeCatalogSearch(b)) sc += 4;
+            if (bSel && b2) {
+                var nbSel = spiritNormalizeCatalogSearch(bSel);
+                var nb2 = spiritNormalizeCatalogSearch(b2);
+                if (nb2 === nbSel) sc += 6;
+                else if (nb2.indexOf(nbSel) >= 0 || nbSel.indexOf(nb2) >= 0) sc += 3;
+            }
             sc += Math.max(0, 5 - Math.floor(Math.min(name.length, 100) / 24));
             scored.push({ score: sc, brand: b2, ref_code: ref, model_name: name });
         });
@@ -10669,8 +10688,11 @@ function spiritSelectCatalogRefSuggestion(it) {
 }
 async function spiritSuggestCatalogRefsFromTitle() {
     var titleEl = document.getElementById('inputTitle');
-    if (!titleEl) return;
-    var q = String(titleEl.value || '').trim();
+    var refEl = document.getElementById('inputReference');
+    var qTitle = String(titleEl && titleEl.value || '').trim();
+    var qRef = String(refEl && refEl.value || '').trim();
+    /* Référence (SKU) souvent plus discriminante que le titre ; sinon nom figurine / statue. */
+    var q = qRef.length >= 2 ? qRef : qTitle;
     if (q.length < 2) {
         spiritRenderCatalogRefSuggestions([]);
         return;
@@ -10703,7 +10725,9 @@ function spiritAttachCatalogAssistEvents() {
         r.addEventListener('input', function () {
             var dd = document.getElementById('certRefDropdown');
             if (dd && dd.children.length) dd.style.display = 'block';
+            void spiritSuggestCatalogRefsFromTitle();
         });
+        r.addEventListener('blur', function () { void spiritSuggestCatalogRefsFromTitle(); });
         r.addEventListener('change', function () {
             var cur = spiritNormalizeCatalogSearch(r.value || '');
             var lst = Array.isArray(window.spiritLastCatalogRefSuggestions) ? window.spiritLastCatalogRefSuggestions : [];
