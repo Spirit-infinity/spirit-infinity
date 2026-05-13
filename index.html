@@ -5075,7 +5075,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
 
 <section id="precommandes-hot-toys" class="overlay">
 <div style="padding: 40px; background: #050505; color: white; position: relative;">
-    <button type="button" onclick="closeSpiritMenu()" style="position:absolute; top:16px; right:16px; background:#111; border:1px solid var(--neon-orange); color:var(--neon-orange); cursor:pointer; font-weight:bold; padding:8px 14px; font-size:0.7rem;">✕ ACCUEIL</button>
+    <button type="button" onclick="closeSpiritMenu()" style="position:absolute; top:max(16px, env(safe-area-inset-top, 0px)); right:max(16px, env(safe-area-inset-right, 0px)); background:#111; border:1px solid var(--neon-orange); color:var(--neon-orange); cursor:pointer; font-weight:bold; padding:8px 14px; font-size:0.7rem;" aria-label="Fermer les précommandes Hot Toys">Fermer</button>
     <h1 style="color: #ff6600; text-align: center; text-shadow: 0 0 10px #ff6600;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1>
     <p style="text-align:center; color:#444; margin:0 0 18px 0;">(c) 2026 Spirit Infinity - Tous droits réservés</p>
     <div class="hottoys-grid">
@@ -10248,7 +10248,7 @@ function renderMarket(filteredData = null) {
             const brandLine = displayBrand
                 ? `<div class="spirit-card-brand" style="font-size:0.62rem;color:#c9a77a;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">${displayBrand.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')}</div>`
                 : '';
-            const hasSpiritTechReport = rawDescCard.indexOf('DIAGNOSTIC SPIRIT TEHNOLOGIE') >= 0;
+            const hasSpiritTechReport = rawDescCard.indexOf('DIAGNOSTIC SPIRIT TECHNOLOGIE') >= 0 || rawDescCard.indexOf('DIAGNOSTIC SPIRIT TEHNOLOGIE') >= 0;
             let spiritTechReportLine = '';
             if (hasSpiritTechReport) {
                 var chipLine = '';
@@ -10256,7 +10256,7 @@ function renderMarket(filteredData = null) {
                     var mDiag = /- Puce:\s*([^\n\r]+)/i.exec(rawDescCard);
                     if (mDiag && mDiag[1]) chipLine = String(mDiag[1]).trim();
                 } catch (eDiag) {}
-                spiritTechReportLine = `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(0,255,170,0.45);background:rgba(0,255,170,0.08);color:var(--spirit-green);font-size:0.62rem;font-weight:700;line-height:1.35;">✓ RAPPORT SPIRIT TEHNOLOGIE${chipLine ? ' · ' + chipLine.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') : ''}</div>`;
+                spiritTechReportLine = `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(0,255,170,0.45);background:rgba(0,255,170,0.08);color:var(--spirit-green);font-size:0.62rem;font-weight:700;line-height:1.35;">✓ RAPPORT SPIRIT TECHNOLOGIE${chipLine ? ' · ' + chipLine.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') : ''}</div>`;
             }
             card.innerHTML = `
                 ${soldBadge}
@@ -11768,7 +11768,7 @@ async function publierAnnonce() {
             var hw = (typeof window !== 'undefined' && window.spiritLastHardwareCheck) ? window.spiritLastHardwareCheck : null;
             if (hw) {
                 var hwLines = [
-                    'DIAGNOSTIC SPIRIT TEHNOLOGIE',
+                    'DIAGNOSTIC SPIRIT TECHNOLOGIE',
                     '- Puce: ' + String(hw.chip_health || 'INCONNU'),
                     '- Batterie: ' + String(hw.battery_health != null ? hw.battery_health : '0') + '% (' + String(hw.battery_voltage != null ? hw.battery_voltage : '—') + 'V)',
                     '- Néon bas: ' + (hw.neon_low_active ? 'ACTIF' : 'INACTIF') + ' · ' + String(hw.neon_low_hours || 0) + 'h',
@@ -13584,7 +13584,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         for (var i = 0; i < lines.length; i++) {
             var l = lines[i];
             var plain = String(l || '').trim().toUpperCase();
-            if (plain.indexOf('DIAGNOSTIC SPIRIT TEHNOLOGIE') >= 0) {
+            if (plain.indexOf('DIAGNOSTIC SPIRIT TECHNOLOGIE') >= 0 || plain.indexOf('DIAGNOSTIC SPIRIT TEHNOLOGIE') >= 0) {
                 isDiag = true;
                 if (diagDateText && !diagDateInjected) {
                     out.push('<span style="color:var(--spirit-green);font-weight:700;">Date du diagnostic: ' + escAttr(diagDateText) + '</span>');
@@ -16161,7 +16161,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
     }
     function spiritHotToysPrecoFullSectionInner() {
         var grid = spiritHotToysPrecoBuildGridHtml(spiritHotToysPrecoGetCards());
-        return '<button type="button" onclick="closeSpiritMenu()" style="position:fixed;top:20px;right:20px;z-index:10050;background:#111;border:1px solid #ff6600;color:#ff6600;cursor:pointer;font-weight:bold;padding:10px 16px;font-size:0.7rem;">✕ ACCUEIL</button>\n<div style="padding:clamp(14px,4vw,24px); background:#050505; color:white; min-height:100dvh; box-sizing:border-box; width:100%;">\n    <p style="text-align:center; color:#444; margin:0 0 18px 0;">(c) 2026 Spirit Infinity - Tous droits réservés</p>\n    <h1 style="color:#ff6600; text-align:center;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1>\n    <div class="hottoys-grid">' + grid + '</div>\n</div>';
+        return '<button type="button" onclick="closeSpiritMenu()" style="position:fixed;top:max(20px, env(safe-area-inset-top, 0px));right:max(20px, env(safe-area-inset-right, 0px));z-index:10050;background:#111;border:1px solid #ff6600;color:#ff6600;cursor:pointer;font-weight:bold;padding:10px 16px;font-size:0.7rem;" aria-label="Fermer les précommandes Hot Toys">Fermer</button>\n<div style="padding:clamp(14px,4vw,24px); padding-top:max(clamp(14px,4vw,24px), calc(12px + env(safe-area-inset-top, 0px))); background:#050505; color:white; min-height:100dvh; box-sizing:border-box; width:100%;">\n    <p style="text-align:center; color:#444; margin:0 0 18px 0;">(c) 2026 Spirit Infinity - Tous droits réservés</p>\n    <h1 style="color:#ff6600; text-align:center;">(c) 2026 Spirit Infinity - Nouveautés Hot Toys</h1>\n    <div class="hottoys-grid">' + grid + '</div>\n</div>';
     }
 
     function spiritRefreshHotToysAdminNav() {
@@ -21844,9 +21844,10 @@ async function spiritSanctuaryRender(ctx) {
             }
             var meta = document.createElement('div');
             meta.className = 'spirit-san-meta';
-            var descSaved = document.createElement('div');
+            var descSaved = null;
             var hasDescList = String(it.desc || '').trim().length > 0;
             if (isPublicVisitor) {
+                descSaved = document.createElement('div');
                 if (hasDescList) {
                     descSaved.textContent = String(it.desc || '').trim();
                     descSaved.style.cssText = 'margin-top:10px;font-size:0.92rem;line-height:1.45;color:#ececec;word-break:break-word;font-weight:600;';
@@ -21854,38 +21855,38 @@ async function spiritSanctuaryRender(ctx) {
                     descSaved.style.display = 'none';
                     descSaved.textContent = '';
                 }
-            } else {
+            } else if (!isOwner) {
+                descSaved = document.createElement('div');
                 descSaved.style.cssText = 'margin-top:6px;font-size:0.65rem;color:#9ca3af;word-break:break-word;';
                 descSaved.textContent = String(it.desc || '').trim() || sanT('san_desc_none');
             }
             if (!isPublicVisitor) {
                 meta.appendChild(document.createTextNode(sanT('san_work_prefix') + (idx + 1)));
-                var inp = document.createElement('input');
-                inp.type = 'text';
-                inp.value = it.desc || '';
-                inp.placeholder = sanT('san_desc_ph');
-                inp.disabled = !isOwner;
-                var descSaveTmrList = null;
-                function saveSanctuaryDescList() {
-                    if (!rowId || typeof _spirit === 'undefined' || !_spirit || !isOwner) return;
-                    var v = String(inp.value != null ? inp.value : '');
-                    void _spirit.from('sanctuary_items').update({ description: v }).eq('id', String(rowId)).then(function (res) {
-                        if (res && res.error && typeof console !== 'undefined' && console.warn) console.warn('[SPIRIT] Sanctuaire description', res.error.message || res.error);
+                if (isOwner) {
+                    var inp = document.createElement('input');
+                    inp.type = 'text';
+                    inp.value = it.desc || '';
+                    inp.placeholder = sanT('san_desc_ph');
+                    var descSaveTmrList = null;
+                    function saveSanctuaryDescList() {
+                        if (!rowId || typeof _spirit === 'undefined' || !_spirit || !isOwner) return;
+                        var v = String(inp.value != null ? inp.value : '');
+                        void _spirit.from('sanctuary_items').update({ description: v }).eq('id', String(rowId)).then(function (res) {
+                            if (res && res.error && typeof console !== 'undefined' && console.warn) console.warn('[SPIRIT] Sanctuaire description', res.error.message || res.error);
+                        });
+                        try { it.desc = v; } catch (eItD) {}
+                        spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
+                    }
+                    inp.onchange = saveSanctuaryDescList;
+                    inp.onblur = saveSanctuaryDescList;
+                    inp.addEventListener('input', function () {
+                        if (descSaveTmrList) clearTimeout(descSaveTmrList);
+                        descSaveTmrList = setTimeout(saveSanctuaryDescList, 550);
                     });
-                    try { it.desc = v; } catch (eItD) {}
-                    descSaved.textContent = String(v).trim() || sanT('san_desc_none');
-                    spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
+                    meta.appendChild(inp);
                 }
-                inp.onchange = saveSanctuaryDescList;
-                inp.onblur = saveSanctuaryDescList;
-                inp.addEventListener('input', function () {
-                    descSaved.textContent = String(inp.value || '').trim() || sanT('san_desc_none');
-                    if (descSaveTmrList) clearTimeout(descSaveTmrList);
-                    descSaveTmrList = setTimeout(saveSanctuaryDescList, 550);
-                });
-                meta.appendChild(inp);
             }
-            meta.appendChild(descSaved);
+            if (descSaved) meta.appendChild(descSaved);
             meta.appendChild(socialUi.overlay);
             meta.appendChild(socialUi.commentsToggle);
             meta.appendChild(socialUi.commentsPanel);
@@ -22003,21 +22004,23 @@ async function spiritSanctuaryRender(ctx) {
                 wrap.appendChild(selMini);
             }
 
-            var descEl = document.createElement('div');
-            descEl.className = 'spirit-san-icons-desc';
             var hasDescIcons = String(it.desc || '').trim().length > 0;
             if (isPublicVisitor) {
+                var descEl = document.createElement('div');
+                descEl.className = 'spirit-san-icons-desc';
                 if (hasDescIcons) {
                     descEl.textContent = String(it.desc || '').trim();
                     descEl.style.cssText = 'font-size:0.9rem;line-height:1.42;color:#ececec;margin-top:10px;word-break:break-word;font-weight:600;';
                 } else {
                     descEl.style.display = 'none';
                 }
-            } else {
-                descEl.textContent = String(it.desc || '').trim() || sanT('san_desc_none');
-            }
-            cell.appendChild(descEl);
-            if (isOwner) {
+                cell.appendChild(descEl);
+            } else if (!isOwner) {
+                var descElRo = document.createElement('div');
+                descElRo.className = 'spirit-san-icons-desc';
+                descElRo.textContent = String(it.desc || '').trim() || sanT('san_desc_none');
+                cell.appendChild(descElRo);
+            } else if (isOwner) {
                 var descInp = document.createElement('input');
                 descInp.type = 'text';
                 descInp.value = String(it.desc || '');
@@ -22031,13 +22034,11 @@ async function spiritSanctuaryRender(ctx) {
                         if (res && res.error && typeof console !== 'undefined' && console.warn) console.warn('[SPIRIT] Sanctuaire description', res.error.message || res.error);
                     });
                     try { it.desc = v; } catch (eItI) {}
-                    descEl.textContent = String(v).trim() || sanT('san_desc_none');
                     spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
                 }
                 descInp.onchange = saveSanctuaryDescIcons;
                 descInp.onblur = saveSanctuaryDescIcons;
                 descInp.addEventListener('input', function () {
-                    descEl.textContent = String(descInp.value || '').trim() || sanT('san_desc_none');
                     if (descSaveTmrIcons) clearTimeout(descSaveTmrIcons);
                     descSaveTmrIcons = setTimeout(saveSanctuaryDescIcons, 550);
                 });
@@ -25915,7 +25916,7 @@ async function refreshSpiritPanneauHardwareUI(opts) {
             spiritSetLedgerStatusText('[ STATUT : ERREUR LECTURE LEDGER (RLS/API) ]', false);
         }
     } else if (!macID) {
-        spiritSetLedgerStatusText('[ STATUT : MAC SPIRIT TEHNOLOGIE MANQUANTE ]', false);
+        spiritSetLedgerStatusText('[ STATUT : MAC SPIRIT TECHNOLOGIE MANQUANTE ]', false);
     }
 
     const usageLbl = (typeof window.spiritT === 'function') ? window.spiritT('ledger_usage_hours_label') : "Heures d'utilisation";
@@ -26938,7 +26939,7 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
       '<div style="font-size:0.72rem;color:#ff6600;font-weight:800;letter-spacing:1px;">DÉTECTION DE MATÉRIEL</div>' +
       '<div id="spiritDetectStatus" style="font-size:0.62rem;color:#aaa;margin-top:6px;">Scan réseau en attente...</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
-      '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="void spiritScanNetworkDevices()">SCANNER LES SPIRIT TEHNOLOGIE</button>' +
+      '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;" onclick="void spiritScanNetworkDevices()">SCANNER LES APPAREILS SPIRIT</button>' +
       '<button type="button" id="spiritBtnShowCollection" data-spirit-action="show-collection" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#121212;border:1px solid rgba(255,102,0,0.45);color:#ffb07a;" onclick="void spiritShowMySpiritCollection()">VOIR MA COLLECTION HOT TOYS SPIRIT INFINITY</button>' +
       '<button type="button" class="btn-action" style="font-size:0.6rem;padding:8px 12px;background:#1b0f0f;border:1px solid #804;color:#ff9a9a;" onclick="void spiritReleaseMyCurrentDevice()">LIBÉRER LA FIGURINE</button>' +
       '</div>' +
@@ -27194,7 +27195,7 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
           '<div style="font-size:0.6rem;color:#888;margin-top:3px;">Néon bas ' + String(r.neon_low_hours || 0) + 'h · Néon haut ' + String(r.neon_high_hours || 0) + 'h · Figurine ' + String(r.figurine_led_hours || 0) + 'h</div>' +
           '<div style="font-size:0.58rem;color:#666;margin-top:3px;">Vu: ' + String(r.last_seen || '—') + '</div>' +
           '</div>';
-      }).join('') : '<div style="font-size:0.68rem;color:#888;">Aucune figurine Spirit Tehnologie liée à ton compte.</div>';
+      }).join('') : '<div style="font-size:0.68rem;color:#888;">Aucune figurine Spirit Technologie liée à ton compte.</div>';
     }
     } catch (e) {
       console.warn('[SPIRIT] spiritShowMySpiritCollection', e);
