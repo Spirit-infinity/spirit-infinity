@@ -1726,10 +1726,12 @@
         }
         #forumModal .spirit-forum-welcome-details {
             margin: 0 0 10px;
-            padding: 8px 10px;
+            padding: 8px 10px 10px;
             border: 1px solid rgba(255,102,0,0.28);
             border-radius: 8px;
             background: rgba(8,10,14,0.88);
+            min-width: 0;
+            box-sizing: border-box;
         }
         #forumModal .spirit-forum-welcome-details summary {
             cursor: pointer;
@@ -1742,12 +1744,24 @@
         #forumModal .spirit-forum-welcome-details summary::-webkit-details-marker { display: none; }
         #forumModal .spirit-forum-welcome-body {
             margin-top: 8px;
-            max-height: min(42vh, 300px);
+            max-height: min(50vh, 380px);
+            overflow-x: hidden;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
             white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            word-break: break-word;
             font-size: 0.62rem;
             color: #c8c8c8;
-            line-height: 1.48;
+            line-height: 1.5;
+            padding: 2px 6px 22px 2px;
+            box-sizing: border-box;
+        }
+        @media (min-width: 901px) {
+            #forumModal .spirit-forum-welcome-body {
+                max-height: min(58vh, 520px);
+            }
         }
         #forumModal .chat-input-area.spirit-san-chat-composer {
             border-top: none; padding: 0; background: transparent;
