@@ -2763,6 +2763,7 @@
         #spiritSanctuaryGrid.spirit-san-mode-list { display: flex; flex-direction: column; gap: 16px; }
         #spiritSanctuaryGrid.spirit-san-mode-list .spirit-san-card {
             display: flex; flex-direction: column; gap: 16px; align-items: stretch; background: #0a0a0a; border: 1px solid #222; padding: 12px;
+            border-radius: 18px;
         }
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
@@ -2791,6 +2792,71 @@
             align-self: flex-start;
         }
         #spiritSanctuaryGrid .spirit-san-add-tile:hover { border-color: var(--neon-orange); box-shadow: 0 0 16px rgba(255,102,0,0.2); }
+        #spiritSanctuaryGrid .spirit-san-thumb-wrap,
+        #spiritAccountSanctuaryGrid .spirit-san-thumb-wrap {
+            border: 2px solid var(--san-thumb-neon, #ff6600);
+            border-radius: 16px;
+            box-sizing: border-box;
+        }
+        .spirit-san-social-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .spirit-san-social-btn {
+            flex: 1 1 120px;
+            min-height: 40px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            border: 1px solid var(--san-neon-soft, rgba(255, 102, 0, 0.45));
+            background: linear-gradient(180deg, rgba(22, 20, 18, 0.92) 0%, rgba(6, 6, 6, 0.88) 100%);
+            color: #ddd;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease, transform 0.12s ease;
+        }
+        .spirit-san-social-btn:hover {
+            transform: translateY(-1px);
+            border-color: var(--san-neon, #ff6600);
+        }
+        .spirit-san-social-btn--liked {
+            border-color: var(--san-neon, #ff6600) !important;
+            color: var(--san-neon, #ff6600);
+            box-shadow: 0 0 14px var(--san-neon-glow, rgba(255, 102, 0, 0.35));
+        }
+        .spirit-san-comments-openbtn {
+            margin-top: 10px;
+            width: 100%;
+            text-align: left;
+            padding: 11px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--san-neon-soft, rgba(255, 102, 0, 0.35));
+            background: linear-gradient(165deg, rgba(32, 24, 18, 0.96) 0%, #11100e 55%, #0a0908 100%);
+            color: #ececec;
+            font-size: 0.62rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 0 0 1px var(--san-neon-ring, rgba(255, 102, 0, 0.12)), 0 12px 28px rgba(0, 0, 0, 0.45), 0 0 22px var(--san-neon-haze, rgba(255, 102, 0, 0.12));
+        }
+        .spirit-san-comments-openbtn__label {
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .spirit-san-comments-openbtn__ic {
+            color: var(--san-neon, #ff6600);
+            font-weight: 900;
+            font-size: 0.9rem;
+            line-height: 1;
+        }
         #spiritSanctuaryGrid .spirit-san-thumb-wrap {
             position: relative; overflow: hidden; background: #000; isolation: isolate;
         }
@@ -2822,6 +2888,7 @@
             background: #090909;
             border: 1px solid #1b1b1b;
             padding: 10px;
+            border-radius: 16px;
         }
         #spiritSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-icons-desc {
             font-size: 0.75rem;
@@ -3232,6 +3299,7 @@
             line-height: 1.45;
             color: #ddd;
             word-break: break-word;
+            white-space: pre-wrap;
         }
         .spirit-san-com-to {
             font-size: 0.58rem;
@@ -3349,6 +3417,7 @@
         #spiritAccountSanctuaryGrid.spirit-san-mode-list { display: flex; flex-direction: column; gap: 16px; }
         #spiritAccountSanctuaryGrid.spirit-san-mode-list .spirit-san-card {
             display: flex; flex-direction: column; gap: 16px; align-items: stretch; background: #0a0a0a; border: 1px solid #222; padding: 12px;
+            border-radius: 18px;
         }
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
@@ -3404,6 +3473,7 @@
             background: #090909;
             border: 1px solid #1b1b1b;
             padding: 10px;
+            border-radius: 16px;
         }
         #spiritAccountSanctuaryGrid.spirit-san-mode-icons-lg .spirit-san-icons-desc {
             font-size: 0.75rem;
@@ -18181,11 +18251,23 @@ function spiritSanctuaryParseStoredCommentText(raw) {
     return { parentId: null, text: s };
 }
 
-async function spiritSanctuaryLoadSocialCache(ownerId, itemIds, viewerId) {
-    spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
+async function spiritSanctuaryLoadSocialCache(ownerId, itemIds, viewerId, merge) {
+    merge = !!merge;
+    if (!merge) {
+        spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
+    }
     if (!spiritSanSocialCanUseSupabase()) return spiritSanctuarySocialCache;
     var ids = (itemIds || []).map(function (x) { return String(x || '').trim(); }).filter(Boolean);
     if (!ids.length) return spiritSanctuarySocialCache;
+    if (merge) {
+        ids.forEach(function (iid) {
+            try {
+                delete spiritSanctuarySocialCache.likesByItem[iid];
+                delete spiritSanctuarySocialCache.commentsByItem[iid];
+                delete spiritSanctuarySocialCache.myLikes[iid];
+            } catch (eClr) {}
+        });
+    }
     try {
         var lk = await _spirit.from(SPIRIT_SAN_LIKES_TABLE).select('item_id,user_id').in('item_id', ids);
         if (!lk.error && Array.isArray(lk.data)) {
@@ -18437,53 +18519,69 @@ function spiritSanctuaryActivityUnreadSince(feed, sinceTs) {
     });
     return n;
 }
+async function spiritSanctuaryCountUnreadSocialAlerts(uidRaw, uidN) {
+    uidN = spiritNormUid(uidN);
+    if (!uidN || !spiritSanSocialCanUseSupabase()) return 0;
+    var cacheKey = String(uidN || '');
+    var now = Date.now();
+    try {
+        if (spiritSanSocialUnreadCache.key === cacheKey && spiritSanSocialUnreadCache.val >= 0 && (now - spiritSanSocialUnreadCache.ts) < 4000) {
+            return spiritSanSocialUnreadCache.val;
+        }
+    } catch (eCk) {}
+    var ownerCandidates = [String(uidRaw || '').trim(), uidN].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+    var c = 0;
+    var notifErr = false;
+    if (!spiritSanNotifsTableMissing) {
+        try {
+            var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).in('owner_id', ownerCandidates).eq('is_read', false);
+            if (q && q.error) {
+                spiritSanNotifsMarkMissingIf404(q.error);
+                notifErr = true;
+            } else {
+                c = Number((q && q.count) || 0);
+            }
+        } catch (eCount) {
+            spiritSanNotifsMarkMissingIf404(eCount);
+            notifErr = true;
+        }
+    }
+    try {
+        var feed = await spiritSanctuaryFetchSocialActivityFeed(uidN);
+        var fcTsDot = spiritSanctuaryGetFeedClearedTs();
+        if (fcTsDot > 0 && Array.isArray(feed)) {
+            feed = feed.filter(function (r) {
+                if (!r) return false;
+                var tt = new Date(r.created_at || 0).getTime();
+                return Number.isFinite(tt) && tt > fcTsDot;
+            });
+        }
+        var since = spiritSanctuaryGetActivityLastSeenTs();
+        var aUn = spiritSanctuaryActivityUnreadSince(feed, since);
+        if (notifErr || spiritSanNotifsTableMissing) c = aUn;
+        else if (c > 0) { /* garde le compteur notifs */ }
+        else c = aUn;
+    } catch (eFeed) { /* ignore */ }
+    try {
+        spiritSanSocialUnreadCache = { ts: now, key: cacheKey, val: c };
+    } catch (eW) {}
+    return c;
+}
 function spiritSanctuaryRefreshMessagesDot() {
     var uid = '';
     try { uid = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : (typeof spiritSocialActorUid === 'function' ? spiritSocialActorUid() : String(spiritGetCurrentUserId() || '').trim()); } catch (e) {}
     var uidN = spiritNormUid(uid);
-    var ownerCandidates = [String(uid || '').trim(), uidN].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
     var dot = document.getElementById('messages-tab-dot');
-    if (!dot) { try { spiritSyncAccountNotificationPulse(); } catch (ePm0) {} return; }
     if (!uidN || !spiritSanSocialCanUseSupabase()) {
-        spiritSetNotifDotVisible(dot, false);
+        if (dot) spiritSetNotifDotVisible(dot, false);
         try { spiritSyncAccountNotificationPulse(); } catch (ePm1) {}
+        void spiritUpdateNavSanctuaryDot();
         return;
     }
     void (async function () {
         try {
-            var c = 0;
-            var notifErr = false;
-            if (!spiritSanNotifsTableMissing) {
-                try {
-                    var q = await _spirit.from(SPIRIT_SAN_NOTIFS_TABLE).select('id', { count: 'exact', head: true }).in('owner_id', ownerCandidates).eq('is_read', false);
-                    if (q && q.error) {
-                        spiritSanNotifsMarkMissingIf404(q.error);
-                        notifErr = true;
-                    } else {
-                        c = Number((q && q.count) || 0);
-                    }
-                } catch (eCount) {
-                    spiritSanNotifsMarkMissingIf404(eCount);
-                    notifErr = true;
-                }
-            }
-            try {
-                var feed = await spiritSanctuaryFetchSocialActivityFeed(uidN);
-                var fcTsDot = spiritSanctuaryGetFeedClearedTs();
-                if (fcTsDot > 0 && Array.isArray(feed)) {
-                    feed = feed.filter(function (r) {
-                        if (!r) return false;
-                        var tt = new Date(r.created_at || 0).getTime();
-                        return Number.isFinite(tt) && tt > fcTsDot;
-                    });
-                }
-                var since = spiritSanctuaryGetActivityLastSeenTs();
-                var aUn = spiritSanctuaryActivityUnreadSince(feed, since);
-                if (notifErr || spiritSanNotifsTableMissing) c = aUn;
-                else if (c > 0) { /* garde le compteur notifs */ }
-                else c = aUn;
-            } catch (eFeed) { /* ignore */ }
-            spiritSetNotifDotVisible(dot, c > 0);
+            var c = await spiritSanctuaryCountUnreadSocialAlerts(uid, uidN);
+            if (dot) spiritSetNotifDotVisible(dot, c > 0);
             if (c > 0 && c > Number(spiritSanctuaryLastUnreadMsgCount || 0) && typeof spiritSanctuaryShowToast === 'function') {
                 var _tTit = (typeof spiritT === 'function') ? spiritT('msg_toast_san_title') : 'Sanctuaire';
                 var _tBody = (typeof spiritT === 'function') ? String(spiritT('msg_toast_san_body')).replace(/\{n\}/g, String(c)) : (String(c) + ' nouvelle(s) alerte(s) likes/commentaires.');
@@ -18492,6 +18590,7 @@ function spiritSanctuaryRefreshMessagesDot() {
             spiritSanctuaryLastUnreadMsgCount = c;
         } finally {
             try { spiritSyncAccountNotificationPulse(); } catch (ePm2) {}
+            void spiritUpdateNavSanctuaryDot();
         }
     })();
 }
@@ -18706,8 +18805,20 @@ function spiritSanctuaryOpenCommentsModal(opts) {
             scroll.appendChild(wrap);
         });
     }
-    paintList();
-    syncReplyBar();
+    scroll.innerHTML = '';
+    var ld = document.createElement('div');
+    ld.className = 'spirit-san-com-empty';
+    ld.textContent = (typeof spiritT === 'function') ? spiritT('pub_ad_loading') : '…';
+    scroll.appendChild(ld);
+    void (async function () {
+        try {
+            if (spiritSanSocialCanUseSupabase() && itemId) {
+                await spiritSanctuaryLoadSocialCache(ownerId, [itemId], actorId || '', true);
+            }
+        } catch (eRf) {}
+        paintList();
+        syncReplyBar();
+    })();
     if (!actorId) {
         ta.disabled = true;
         ta.placeholder = sanTfn('san_login_comment');
@@ -19193,6 +19304,10 @@ try {
 
 var SPIRIT_SAN_LAST_SEEN_LS = 'spirit_san_msg_activity_last_seen_ts';
 var SPIRIT_SAN_FEED_CLEARED_LS = 'spirit_san_msg_feed_cleared_ts';
+var spiritSanSocialUnreadCache = { ts: 0, key: '', val: -1 };
+function spiritSanctuaryInvalidateSocialUnreadCache() {
+    try { spiritSanSocialUnreadCache = { ts: 0, key: '', val: -1 }; } catch (eInv0) {}
+}
 function spiritSanctuaryGetFeedClearedTs() {
     try {
         var t = parseInt(localStorage.getItem(SPIRIT_SAN_FEED_CLEARED_LS) || '0', 10);
@@ -19201,6 +19316,7 @@ function spiritSanctuaryGetFeedClearedTs() {
 }
 function spiritSanctuarySetFeedClearedNow() {
     try { localStorage.setItem(SPIRIT_SAN_FEED_CLEARED_LS, String(Date.now())); } catch (e) {}
+    try { spiritSanctuaryInvalidateSocialUnreadCache(); } catch (eInv) {}
 }
 function spiritSanctuaryGetActivityLastSeenTs() {
     try {
@@ -19210,6 +19326,7 @@ function spiritSanctuaryGetActivityLastSeenTs() {
 }
 function spiritSanctuarySetActivityLastSeenNow() {
     try { localStorage.setItem(SPIRIT_SAN_LAST_SEEN_LS, String(Date.now())); } catch (e) {}
+    try { spiritSanctuaryInvalidateSocialUnreadCache(); } catch (eInv2) {}
 }
 function spiritSanctuaryActivityDedupeKey(n) {
     var t = new Date(n && n.created_at ? n.created_at : 0).getTime();
@@ -22173,10 +22290,15 @@ async function spiritSanctuaryRender(ctx) {
         var neonSoft = spiritSanctuaryNeonToRgba(neonHex, 0.5);
         var neonGlow = spiritSanctuaryNeonToRgba(neonHex, 0.35);
         var overlay = document.createElement('div');
-        overlay.style.cssText = 'display:flex;gap:6px;margin-top:8px;';
+        overlay.className = 'spirit-san-social-bar';
+        try {
+            overlay.style.setProperty('--san-neon', neonBorder);
+            overlay.style.setProperty('--san-neon-soft', neonSoft);
+            overlay.style.setProperty('--san-neon-glow', neonGlow);
+        } catch (eSb) {}
         var bLike = document.createElement('button');
         bLike.type = 'button';
-        bLike.style.cssText = 'flex:1;padding:5px 8px;background:rgba(0,0,0,0.6);border:1px solid ' + (likedByMe ? neonBorder : neonSoft) + ';color:' + (likedByMe ? neonBorder : '#ddd') + ';font-size:0.62rem;cursor:pointer;box-shadow:' + (likedByMe ? '0 0 10px ' + neonGlow : 'none') + ';';
+        bLike.className = 'spirit-san-social-btn spirit-san-social-btn--like' + (likedByMe ? ' spirit-san-social-btn--liked' : '');
         bLike.textContent = '♥ ' + likes.length;
         bLike.title = sanT('san_like_title');
         bLike.onclick = async function (e) {
@@ -22189,7 +22311,7 @@ async function spiritSanctuaryRender(ctx) {
         };
         var bCom = document.createElement('button');
         bCom.type = 'button';
-        bCom.style.cssText = 'padding:5px 8px;min-width:62px;background:rgba(0,0,0,0.6);border:1px solid ' + neonBorder + ';color:#ddd;font-size:0.62rem;cursor:pointer;box-shadow:0 0 8px ' + neonGlow + ';';
+        bCom.className = 'spirit-san-social-btn spirit-san-social-btn--comments';
         bCom.textContent = '💬 ' + comments.length;
         bCom.title = sanT('san_comment_title');
         bCom.onclick = function (e) {
@@ -22211,9 +22333,14 @@ async function spiritSanctuaryRender(ctx) {
         commentsPanel.style.cssText = 'display:none;height:0;overflow:hidden;margin:0;padding:0;border:0;';
         var commentsToggle = document.createElement('button');
         commentsToggle.type = 'button';
-        commentsToggle.className = 'spirit-san-comments-toggle';
-        commentsToggle.style.cssText = 'margin-top:8px;width:100%;text-align:left;padding:10px 12px;background:linear-gradient(165deg,rgba(32,24,18,0.98) 0%,#11100e 55%,#0a0908 100%);border:1px solid ' + neonSoft + ';color:#ececec;font-size:0.62rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;border-radius:8px;box-shadow:0 0 0 1px ' + spiritSanctuaryNeonToRgba(neonHex, 0.15) + ',0 0 20px ' + spiritSanctuaryNeonToRgba(neonHex, 0.14) + ';';
-        commentsToggle.innerHTML = '<span style="font-weight:900;letter-spacing:0.08em;text-transform:uppercase;">' + String(sanT('san_comments_toggle')).replace(/</g, '') + ' · ' + comments.length + '</span><span style="color:' + neonBorder + ';font-weight:900;font-size:0.85rem;line-height:1;">⧉</span>';
+        commentsToggle.className = 'spirit-san-comments-toggle spirit-san-comments-openbtn';
+        try {
+            commentsToggle.style.setProperty('--san-neon', neonBorder);
+            commentsToggle.style.setProperty('--san-neon-soft', neonSoft);
+            commentsToggle.style.setProperty('--san-neon-ring', spiritSanctuaryNeonToRgba(neonHex, 0.15));
+            commentsToggle.style.setProperty('--san-neon-haze', spiritSanctuaryNeonToRgba(neonHex, 0.14));
+        } catch (eTg) {}
+        commentsToggle.innerHTML = '<span class="spirit-san-comments-openbtn__label">' + String(sanT('san_comments_toggle')).replace(/</g, '') + ' · ' + comments.length + '</span><span class="spirit-san-comments-openbtn__ic">⧉</span>';
         commentsToggle.onclick = function (ev) {
             ev.stopPropagation();
             spiritSanctuaryOpenCommentsModal({
@@ -22250,8 +22377,10 @@ async function spiritSanctuaryRender(ctx) {
         var rowId = it.id;
         var wrap = document.createElement('div');
         wrap.className = 'spirit-san-thumb-wrap';
-        wrap.style.border = '3px solid ' + neon;
-        wrap.style.boxShadow = '0 0 14px ' + neon + '44';
+        try {
+            wrap.style.setProperty('--san-thumb-neon', neon);
+            wrap.style.boxShadow = '0 12px 32px rgba(0,0,0,0.55), 0 0 22px ' + neon + '44';
+        } catch (eNeonW) {}
         var img = document.createElement('img');
         img.className = 'spirit-sanctuary-img';
         img.src = it.src || '';
@@ -22369,8 +22498,10 @@ async function spiritSanctuaryRender(ctx) {
                         var c = stSel.value;
                         void (async function () {
                             await _spirit.from('sanctuary_items').update({ neon_color: c }).eq('id', String(rowId));
-                            wrap.style.border = '3px solid ' + c;
-                            wrap.style.boxShadow = '0 0 14px ' + c + '44';
+                            try {
+                                wrap.style.setProperty('--san-thumb-neon', c);
+                                wrap.style.boxShadow = '0 12px 32px rgba(0,0,0,0.55), 0 0 22px ' + c + '44';
+                            } catch (eNeonL) {}
                             spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
                         })();
                     };
@@ -22457,8 +22588,10 @@ async function spiritSanctuaryRender(ctx) {
                         var c = selMini.value;
                         void (async function () {
                             await _spirit.from('sanctuary_items').update({ neon_color: c }).eq('id', String(rowId));
-                            wrap.style.border = '3px solid ' + c;
-                            wrap.style.boxShadow = '0 0 14px ' + c + '44';
+                            try {
+                                wrap.style.setProperty('--san-thumb-neon', c);
+                                wrap.style.boxShadow = '0 12px 32px rgba(0,0,0,0.55), 0 0 22px ' + c + '44';
+                            } catch (eNeonL) {}
                             spiritSanctuaryItemsCacheInvalidate(spiritSanctuaryUid(ctx));
                         })();
                     };
@@ -23826,21 +23959,29 @@ async function spiritUpdateNavSanctuaryDot() {
             }
             /* Pastille + pulse comme les offres : messages reçus non lus (même hors onglet Sanctuaire — tab-sanctuary absent du DOM). */
             var rid = String(resolvedMe);
-            var show = false;
+            var showChat = false;
             var qc = await _spirit.from('sanctuary_chat')
                 .select('id', { count: 'exact', head: true })
                 .eq('recipient_id', rid)
                 .eq('is_read', false);
             if (qc && !qc.error && qc.count != null) {
-                show = Number(qc.count) > 0;
+                showChat = Number(qc.count) > 0;
             } else {
                 var q1 = await _spirit.from('sanctuary_chat')
                     .select('id')
                     .eq('recipient_id', rid)
                     .eq('is_read', false)
                     .limit(1);
-                show = !!(q1 && !q1.error && q1.data && q1.data.length > 0);
+                showChat = !!(q1 && !q1.error && q1.data && q1.data.length > 0);
             }
+            var showSocial = false;
+            try {
+                if (spiritSanSocialCanUseSupabase()) {
+                    var sc = await spiritSanctuaryCountUnreadSocialAlerts(String(me), spiritNormUid(resolvedMe));
+                    showSocial = Number(sc) > 0;
+                }
+            } catch (eSocDot) {}
+            var show = showChat || showSocial;
             spiritSetNotifDotVisible(dot, show, 'block');
             spiritSetNotifDotVisible(fix, show, 'block');
         } catch (e) {
