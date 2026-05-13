@@ -11031,18 +11031,32 @@ async function spiritCertRunSpiritEyesCoherence(model, images, title, reference,
     var bundle = spiritCertExpandUserBundle(title + ' ' + reference + ' ' + description + extraBundle);
     var tokens = spiritCertExtractIaTokens(bundle);
     var hits = spiritCertTokenHitsCorpus(tokens, corpus);
-    var figurineRx = /(toy|figure|figurine|doll|statue|statuette|bust|sculpture|mask|helmet|armor|armour|robot|mecha|miniature|model|collectible|comic|plastic|figur|diecast|poncho|vestment|breastplate|cuirass|shield|sword|weapon|toyshop)/;
+    var statueModeCo = typeof currentMethod !== 'undefined' && currentMethod === 'statue';
+    /* MobileNet/ImageNet parle rarement de « statue » ; on élargit les indices visuels acceptés en mode statue. */
+    var figurineRx = statueModeCo
+        ? /(toy|figure|figurine|doll|statue|statuette|bust|sculpture|mask|helmet|armor|armour|robot|mecha|miniature|model|collectible|comic|plastic|figur|diecast|poncho|vestment|breastplate|cuirass|shield|sword|weapon|toyshop|pedestal|plinth|bronze|ceramic|pottery|vase|urn|goblet|pitcher|jar|altar|throne|mannequin|wig|cloak|cape|military uniform)/
+        : /(toy|figure|figurine|doll|statue|statuette|bust|sculpture|mask|helmet|armor|armour|robot|mecha|miniature|model|collectible|comic|plastic|figur|diecast|poncho|vestment|breastplate|cuirass|shield|sword|weapon|toyshop)/;
     var figurineOk = figurineRx.test(corpus);
     var tokenCount = tokens.length;
     var coherent = false;
-    var statueModeCo = typeof currentMethod !== 'undefined' && currentMethod === 'statue';
-    if (avgProb < 0.028 && !figurineOk) coherent = false;
-    else if (tokenCount === 0) coherent = figurineOk && avgProb >= 0.06;
+    var catalogAnchor = false;
+    try {
+        var cr = window.spiritSelectedCatalogRow;
+        catalogAnchor = statueModeCo && cr && typeof cr === 'object' && (String(cr.ref_code || '').trim() || String(cr.model_name || '').trim());
+    } catch (eCatA) {}
+    /* Réf + texte remplis : la ref SKU ne matche jamais ImageNet — on ne pénalise pas si l’image ressemble quand même à un objet de collection. */
+    var refTrim = String(reference || '').trim();
+    var userTextSubstantial = String(title || '').trim().length >= 4 && refTrim.length >= 3;
+    if (catalogAnchor && !fraudHit) {
+        coherent = true;
+    } else if (avgProb < (statueModeCo ? 0.018 : 0.028) && !figurineOk) coherent = false;
+    else if (tokenCount === 0) coherent = figurineOk && avgProb >= (statueModeCo ? 0.045 : 0.06);
     else {
-        var minH = Math.max(1, Math.ceil(tokenCount * (statueModeCo ? 0.14 : 0.2)));
+        var minH = Math.max(1, Math.ceil(tokenCount * (statueModeCo ? 0.09 : 0.2)));
         if (hits >= minH) coherent = true;
         else if (figurineOk && hits >= 1) coherent = true;
-        else if (figurineOk && avgProb >= 0.11) coherent = true;
+        else if (figurineOk && avgProb >= (statueModeCo ? 0.07 : 0.11)) coherent = true;
+        else if (statueModeCo && userTextSubstantial && hits >= 1 && avgProb >= 0.032) coherent = true;
     }
     var summary = topLabels.join(' · ');
     if (!coherent) return { ok: false, kind: 'mismatch', label: summary, preds: allPreds, hits: hits, tokenCount: tokenCount, avgProb: avgProb };
