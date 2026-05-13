@@ -2695,6 +2695,49 @@
             color: var(--neon-orange);
             text-shadow: 0 0 14px rgba(255, 102, 0, 0.55), 0 0 32px rgba(255, 102, 0, 0.22);
         }
+        .spirit-sanctuary-friends-wrap {
+            max-width: 420px;
+            margin: -6px auto 20px;
+            text-align: center;
+        }
+        .spirit-sanctuary-friends-legend {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 0.6rem;
+            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .spirit-sanctuary-friends-legend .spirit-san-legend-amis { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.28); }
+        .spirit-sanctuary-friends-legend .spirit-san-legend-abo { color: #00ccff; text-shadow: 0 0 10px rgba(0, 204, 255, 0.28); }
+        .spirit-sanctuary-friends-legend .spirit-san-legend-sep { color: #555; font-weight: 400; letter-spacing: 0; }
+        .spirit-sanctuary-friends-label {
+            display: block;
+            font-size: 0.58rem;
+            letter-spacing: 0.12em;
+            color: #777;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+        .spirit-sanctuary-friends-select {
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
+            display: block;
+            padding: 10px 12px;
+            font-size: 0.72rem;
+            background: linear-gradient(180deg, #0c1214 0%, #060a0c 100%);
+            border: 1px solid rgba(0, 180, 220, 0.4);
+            color: #e4f8ff;
+            border-radius: 10px;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
         #spiritSanctuaryChrome { margin-bottom: 16px; }
         .spirit-sanctuary-owner-actions {
             display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; margin-bottom: 18px;
@@ -5202,6 +5245,17 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
         <div id="spiritSanctuaryRoot">
             <div id="spiritSanctuaryChrome" style="display:none;">
                 <h1 id="spiritSanctuaryPseudoBanner">—</h1>
+                <div id="spiritSanctuaryFriendsWrap" class="spirit-sanctuary-friends-wrap" style="display:none;">
+                    <div class="spirit-sanctuary-friends-legend" aria-hidden="true">
+                        <span class="spirit-san-legend-amis" data-key="san_friends_legend_amis">Mes amis</span>
+                        <span class="spirit-san-legend-sep">·</span>
+                        <span class="spirit-san-legend-abo" data-key="san_friends_legend_abo">Mes abonnements</span>
+                    </div>
+                    <label id="spiritSanctuaryFriendsLabel" class="spirit-sanctuary-friends-label" for="spiritSanctuaryFriendsSelect" data-key="san_friends_dd_lbl">Choisir un pseudo</label>
+                    <select id="spiritSanctuaryFriendsSelect" class="spirit-sanctuary-friends-select" autocomplete="off">
+                        <option value="" data-key="san_friends_ph">—</option>
+                    </select>
+                </div>
             </div>
             <div class="spirit-sanctuary-toolbar">
                 <!-- Profil public : une seule case néon pour toute la galerie (propriétaire). -->
@@ -5668,6 +5722,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'dash_buyer_offers_title': 'MES OFFRES ENVOYÉES (FAVORIS)', 'dash_buyer_offers_hint': 'Récap : figurine, pseudo vendeur, prix d’origine, ton offre. Clique une ligne pour rouvrir l’annonce (prix à jour si le vendeur a accepté).',
             'dash_seller_offers_title': 'OFFRES REÇUES SUR TES ANNONCES', 'dash_public_block_title': 'SANCTUAIRE PUBLIC', 'dash_public_url_hint': 'URL unique (partage) :',
             'dash_copy_url_btn': 'COPIER L’URL', 'dash_open_profile_btn': 'OUVRIR MON SANCTUAIRE PUBLIC', 'dash_friends_title': 'MES AMIS / ABONNEMENTS', 'dash_friends_hint': 'Pseudos cliquables pour ouvrir leur profil public.', 'dash_friends_full': 'VOIR LA LISTE COMPLÈTE',
+            'san_friends_legend_amis': 'Mes amis', 'san_friends_legend_abo': 'Mes abonnements', 'san_friends_dd_lbl': 'Menu — ouvrir un profil', 'san_friends_ph': '— Choisir un pseudo —', 'san_friends_group_amis': 'Mes amis (abonnés)', 'san_friends_group_abo': 'Mes abonnements (suivis)',
             'tab_sanctuary_msgs_h': '📩 MESSAGES SANCTUAIRE', 'tab_sanctuary_msgs_p': 'Alertes likes et commentaires sur tes photos du sanctuaire.',
             'tab_purchases_h': '🛒 MES ACHATS', 'tab_purchases_note': 'Les fonds sont bloqués en Séquestre Spirit. Une fois le bouton « REÇU » cliqué, le vendeur est payé et la transaction est définitive.',
             'th_date': 'Date', 'th_product': 'Produit', 'th_amount': 'Montant', 'th_status': 'Statut', 'th_actions_spirit': 'Actions Spirit Shield',
@@ -5802,6 +5857,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'dash_buyer_offers_title': 'MY SENT OFFERS (FAVORITES)', 'dash_buyer_offers_hint': 'Summary: figure, seller username, original price, your offer. Click a row to reopen the listing (price updates if the seller accepted).',
             'dash_seller_offers_title': 'OFFERS ON YOUR LISTINGS', 'dash_public_block_title': 'PUBLIC SANCTUARY', 'dash_public_url_hint': 'Unique URL (share):',
             'dash_copy_url_btn': 'COPY URL', 'dash_open_profile_btn': 'OPEN MY PUBLIC SANCTUARY', 'dash_friends_title': 'MY FRIENDS / FOLLOWING', 'dash_friends_hint': 'Click a username to open their public profile.', 'dash_friends_full': 'VIEW FULL LIST',
+            'san_friends_legend_amis': 'My followers', 'san_friends_legend_abo': 'Following', 'san_friends_dd_lbl': 'Open a profile', 'san_friends_ph': '— Pick a username —', 'san_friends_group_amis': 'My followers', 'san_friends_group_abo': 'Following',
             'tab_sanctuary_msgs_h': '📩 SANCTUARY MESSAGES', 'tab_sanctuary_msgs_p': 'Likes and comments on your sanctuary photos.',
             'tab_purchases_h': '🛒 MY PURCHASES', 'tab_purchases_note': 'Funds are held in Spirit Escrow. After you click RECEIVED, the seller is paid and the sale is final.',
             'th_date': 'Date', 'th_product': 'Product', 'th_amount': 'Amount', 'th_status': 'Status', 'th_actions_spirit': 'Spirit Shield actions',
@@ -5936,6 +5992,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'dash_buyer_offers_title': 'MIS OFERTAS ENVIADAS (FAVORITOS)', 'dash_buyer_offers_hint': 'Resumen: figura, vendedor, precio original, tu oferta. Pulsa una fila para reabrir el anuncio (el precio se actualiza si el vendedor aceptó).',
             'dash_seller_offers_title': 'OFERTAS EN TUS ANUNCIOS', 'dash_public_block_title': 'SANTUARIO PÚBLICO', 'dash_public_url_hint': 'URL única (compartir):',
             'dash_copy_url_btn': 'COPIAR URL', 'dash_open_profile_btn': 'ABRIR MI SANTUARIO PÚBLICO', 'dash_friends_title': 'AMIGOS / SEGUIDOS', 'dash_friends_hint': 'Pulsa un usuario para abrir su perfil público.', 'dash_friends_full': 'VER LISTA COMPLETA',
+            'san_friends_legend_amis': 'Mis seguidores', 'san_friends_legend_abo': 'Siguiendo', 'san_friends_dd_lbl': 'Abrir un perfil', 'san_friends_ph': '— Elige un usuario —', 'san_friends_group_amis': 'Mis seguidores', 'san_friends_group_abo': 'Siguiendo',
             'tab_sanctuary_msgs_h': '📩 MENSAJES DEL SANTUARIO', 'tab_sanctuary_msgs_p': 'Alertas de me gusta y comentarios en tus fotos del santuario.',
             'tab_purchases_h': '🛒 MIS COMPRAS', 'tab_purchases_note': 'Los fondos quedan en depósito Spirit. Al pulsar RECIBIDO, el vendedor cobra y la venta es definitiva.',
             'th_date': 'Fecha', 'th_product': 'Producto', 'th_amount': 'Importe', 'th_status': 'Estado', 'th_actions_spirit': 'Acciones Spirit Shield',
@@ -6070,6 +6127,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'dash_buyer_offers_title': '我发出的出价（收藏）', 'dash_buyer_offers_hint': '摘要：手办、卖家昵称、原价、你的出价。点击一行可重新打开商品（若卖家已接受，价格会更新）。',
             'dash_seller_offers_title': '你商品上收到的出价', 'dash_public_block_title': '公开圣地', 'dash_public_url_hint': '唯一链接（分享）：',
             'dash_copy_url_btn': '复制链接', 'dash_open_profile_btn': '打开我的公开圣地', 'dash_friends_title': '好友 / 关注', 'dash_friends_hint': '点击用户名打开其公开资料。', 'dash_friends_full': '查看完整列表',
+            'san_friends_legend_amis': '关注我的人', 'san_friends_legend_abo': '我的关注', 'san_friends_dd_lbl': '打开资料', 'san_friends_ph': '— 选择用户 —', 'san_friends_group_amis': '关注我的人', 'san_friends_group_abo': '我的关注',
             'tab_sanctuary_msgs_h': '📩 圣地消息', 'tab_sanctuary_msgs_p': '你圣地照片上的点赞与评论提醒。',
             'tab_purchases_h': '🛒 我的购买', 'tab_purchases_note': '资金由 Spirit 托管。点击「已收货」后卖家收款，交易完成。',
             'th_date': '日期', 'th_product': '商品', 'th_amount': '金额', 'th_status': '状态', 'th_actions_spirit': 'Spirit Shield 操作',
@@ -19423,6 +19481,16 @@ async function spiritFollowFetchRows(uid) {
     } catch (e) {}
     return [];
 }
+/** Lignes « on me suit » : follower_id = ami, followee_id = moi. */
+async function spiritFollowFetchFollowerRows(uid) {
+    uid = String(uid || '').trim();
+    if (!spiritIsUuid(uid) || !_spirit) return [];
+    try {
+        var out = await _spirit.from(SPIRIT_FOLLOW_TABLE).select('follower_id,created_at').eq('followee_id', uid).order('created_at', { ascending: false });
+        if (!out.error && Array.isArray(out.data)) return out.data;
+    } catch (eF) {}
+    return [];
+}
 async function spiritFollowResolveProfiles(ids) {
     var out = [];
     var uniq = [];
@@ -19475,6 +19543,68 @@ async function spiritFollowDelete(me, target) {
         return !(del && del.error);
     } catch (e) { return false; }
 }
+var spiritSanctuaryFriendsSelectWired = false;
+function spiritSanctuaryEnsureFriendsSelectHandler() {
+    if (spiritSanctuaryFriendsSelectWired) return;
+    var sel = document.getElementById('spiritSanctuaryFriendsSelect');
+    if (!sel) return;
+    spiritSanctuaryFriendsSelectWired = true;
+    sel.addEventListener('change', function () {
+        var v = String(sel.value || '').trim();
+        if (!v) return;
+        try { sel.selectedIndex = 0; } catch (eR) {}
+        try {
+            if (typeof spiritOpenPublicProfileUI === 'function') void spiritOpenPublicProfileUI(v);
+        } catch (eO) {}
+    });
+}
+async function spiritSanctuaryPopulateFriendsSelect() {
+    var wrap = document.getElementById('spiritSanctuaryFriendsWrap');
+    var sel = document.getElementById('spiritSanctuaryFriendsSelect');
+    var lab = document.getElementById('spiritSanctuaryFriendsLabel');
+    if (!wrap || !sel) return;
+    spiritSanctuaryEnsureFriendsSelectHandler();
+    function T(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
+    var profUid = (typeof spiritPublicViewUserId !== 'undefined' && spiritPublicViewUserId != null) ? String(spiritPublicViewUserId).trim() : '';
+    var me = (typeof spiritFollowGetCurrentUid === 'function') ? spiritFollowGetCurrentUid() : '';
+    var meN = typeof spiritNormUid === 'function' ? spiritNormUid(me) : String(me || '').trim().toLowerCase();
+    var profN = typeof spiritNormUid === 'function' ? spiritNormUid(profUid) : String(profUid || '').trim().toLowerCase();
+    if (!meN || !profN || meN !== profN || typeof _spirit === 'undefined' || !_spirit || !spiritIsUuid(meN)) {
+        wrap.style.display = 'none';
+        return;
+    }
+    wrap.style.display = 'block';
+    if (lab) lab.textContent = T('san_friends_dd_lbl');
+    sel.innerHTML = '';
+    var ph = document.createElement('option');
+    ph.value = '';
+    ph.textContent = T('san_friends_ph');
+    sel.appendChild(ph);
+    try {
+        var rowsAmis = await spiritFollowFetchFollowerRows(meN);
+        var rowsAbo = await spiritFollowFetchRows(meN);
+        var idsAmis = rowsAmis.map(function (r) { return String(r.follower_id || '').trim(); }).filter(Boolean);
+        var idsAbo = rowsAbo.map(function (r) { return String(r.followee_id || '').trim(); }).filter(Boolean);
+        var profAmis = await spiritFollowResolveProfiles(idsAmis);
+        var profAbo = await spiritFollowResolveProfiles(idsAbo);
+        function addGroup(labelKey, list) {
+            if (!list || !list.length) return;
+            var og = document.createElement('optgroup');
+            og.label = T(labelKey);
+            list.forEach(function (p) {
+                if (!p || !p.id) return;
+                var o = document.createElement('option');
+                o.value = String(p.id);
+                o.textContent = String(p.pseudo || p.id || '').trim() || String(p.id);
+                og.appendChild(o);
+            });
+            if (og.children.length) sel.appendChild(og);
+        }
+        addGroup('san_friends_group_amis', profAmis);
+        addGroup('san_friends_group_abo', profAbo);
+    } catch (ePop) {}
+}
+try { window.spiritSanctuaryPopulateFriendsSelect = spiritSanctuaryPopulateFriendsSelect; } catch (eWPop) {}
 function spiritFriendsRenderPreview() {
     var box = document.getElementById('spiritFriendsPreview');
     if (!box) return;
@@ -19510,6 +19640,7 @@ async function spiritFriendsRefreshList() {
         spiritFriendsCache = [];
         spiritFriendsRenderPreview();
         spiritFriendsRenderModal();
+        try { if (typeof spiritSanctuaryPopulateFriendsSelect === 'function') void spiritSanctuaryPopulateFriendsSelect(); } catch (eSanF0) {}
         return;
     }
     var rows = await spiritFollowFetchRows(me);
@@ -19517,6 +19648,10 @@ async function spiritFriendsRefreshList() {
     spiritFriendsCache = await spiritFollowResolveProfiles(ids);
     spiritFriendsRenderPreview();
     spiritFriendsRenderModal();
+    try {
+        var sPane = document.getElementById('spiritPublicPaneSanctuary');
+        if (sPane && sPane.style.display !== 'none' && typeof spiritSanctuaryPopulateFriendsSelect === 'function') void spiritSanctuaryPopulateFriendsSelect();
+    } catch (eSanFr) {}
 }
 async function spiritPublicRefreshSocialStats(uid) {
     uid = String(uid || spiritPublicViewUserId || '').trim();
@@ -21943,6 +22078,7 @@ async function spiritSanctuaryTabEnter() {
     if (me === String(uid)) await spiritSanctuaryMarkReadForOwner(uid);
     await spiritSanctuaryRender('public');
     await spiritSanctuaryRenderChat('public');
+    try { if (typeof spiritSanctuaryPopulateFriendsSelect === 'function') void spiritSanctuaryPopulateFriendsSelect(); } catch (eFrDd) {}
 }
 async function spiritAccountSanctuaryTabEnter() {
     var uid = spiritSanctuaryUid('account');
