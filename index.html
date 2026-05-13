@@ -3110,6 +3110,192 @@
         }
         .spirit-san-comments-toggle .spirit-san-acc-ic { font-size: 0.55rem; color: #888; transition: transform 0.2s ease; display: inline-block; }
         .spirit-san-comments-toggle.spirit-san-toggle-open .spirit-san-acc-ic { transform: rotate(180deg); }
+        /* Modale commentaires Sanctuaire */
+        #spiritSanCommentsModal {
+            position: fixed;
+            inset: 0;
+            z-index: 200050 !important;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        @media (min-width: 640px) {
+            #spiritSanCommentsModal { align-items: center; }
+        }
+        .spirit-san-com-modal-panel {
+            width: 100%;
+            max-width: 420px;
+            max-height: min(86dvh, 640px);
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(165deg, #12100c 0%, #0a0908 55%, #050505 100%);
+            border: 1px solid rgba(255, 102, 0, 0.55);
+            border-radius: 14px;
+            box-shadow: 0 0 0 1px rgba(255, 102, 0, 0.12), 0 24px 48px rgba(0, 0, 0, 0.65), 0 0 32px rgba(255, 102, 0, 0.18);
+            overflow: hidden;
+        }
+        .spirit-san-com-modal-head {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 102, 0, 0.28);
+            background: radial-gradient(120% 80% at 50% 0%, rgba(255, 102, 0, 0.14), transparent 55%);
+        }
+        .spirit-san-com-modal-title {
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #ff9444;
+            text-shadow: 0 0 14px rgba(255, 102, 0, 0.35);
+        }
+        .spirit-san-com-modal-close {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 102, 0, 0.45);
+            background: rgba(0, 0, 0, 0.5);
+            color: #ffb070;
+            font-size: 1rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .spirit-san-com-modal-close:hover { background: rgba(255, 102, 0, 0.12); }
+        .spirit-san-com-modal-scroll {
+            flex: 1;
+            min-height: 120px;
+            overflow-y: auto;
+            padding: 10px 12px 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .spirit-san-com-empty {
+            text-align: center;
+            padding: 28px 12px;
+            font-size: 0.72rem;
+            color: #666;
+            line-height: 1.5;
+        }
+        .spirit-san-com-row {
+            margin-bottom: 10px;
+            padding: 10px 11px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .spirit-san-com-row--depth1 {
+            margin-left: 14px;
+            border-left: 3px solid rgba(0, 204, 255, 0.55);
+            background: rgba(0, 60, 80, 0.12);
+        }
+        .spirit-san-com-row--depth2 {
+            margin-left: 26px;
+            border-left: 3px solid rgba(255, 102, 0, 0.45);
+        }
+        .spirit-san-com-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .spirit-san-com-who {
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #7fd6ff;
+        }
+        .spirit-san-com-reply-btn {
+            font-size: 0.55rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 102, 0, 0.4);
+            background: rgba(0, 0, 0, 0.35);
+            color: #ffaa66;
+            cursor: pointer;
+        }
+        .spirit-san-com-reply-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .spirit-san-com-body {
+            font-size: 0.72rem;
+            line-height: 1.45;
+            color: #ddd;
+            word-break: break-word;
+        }
+        .spirit-san-com-to {
+            font-size: 0.58rem;
+            color: #888;
+            margin-bottom: 6px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: rgba(255, 102, 0, 0.08);
+            border: 1px dashed rgba(255, 102, 0, 0.35);
+        }
+        .spirit-san-com-foot {
+            flex-shrink: 0;
+            padding: 10px 12px 12px;
+            border-top: 1px solid rgba(255, 102, 0, 0.22);
+            background: linear-gradient(0deg, rgba(10, 8, 6, 0.98), rgba(18, 14, 10, 0.92));
+        }
+        .spirit-san-com-textarea {
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 72px;
+            resize: vertical;
+            padding: 10px 11px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: #0c0c0c;
+            color: #eee;
+            font-size: 0.74rem;
+            font-family: inherit;
+            line-height: 1.4;
+        }
+        .spirit-san-com-textarea:focus {
+            outline: none;
+            border-color: rgba(255, 102, 0, 0.55);
+            box-shadow: 0 0 0 1px rgba(255, 102, 0, 0.2);
+        }
+        .spirit-san-com-send-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .spirit-san-com-cancel-reply {
+            font-size: 0.58rem;
+            color: #888;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .spirit-san-com-send {
+            font-size: 0.65rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            color: #0a0604;
+            background: linear-gradient(165deg, #ff8833, #ff6600);
+            box-shadow: 0 0 18px rgba(255, 102, 0, 0.35);
+        }
+        .spirit-san-com-send:disabled { opacity: 0.5; cursor: not-allowed; }
         #nav-account { position: relative; }
         #nav-account-sanctuary-dot {
             display: none; position: absolute; top: 2px; right: 2px; width: 9px; height: 9px; border-radius: 50%;
@@ -5451,6 +5637,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'pub_ia_avg': 'IA Score moy. :',
             'san_like_title': 'J’aime', 'san_comment_title': 'Commenter', 'san_login_like': 'Connecte-toi pour aimer.', 'san_login_comment': 'Connecte-toi pour commenter.',
             'san_prompt_comment': 'Ton commentaire :', 'san_no_comments': 'Aucun commentaire.', 'san_comments_toggle': 'Commentaires',
+            'san_comments_modal_title': 'Discussion — Sanctuaire', 'san_reply_btn': 'Répondre', 'san_replying_prefix': 'Réponse à', 'san_reply_cancel': 'Annuler la réponse', 'san_comments_placeholder': 'Écris un message…', 'san_comments_send': 'Publier', 'san_reply_notif': 'a répondu sur ta photo',
             'san_desc_ph': 'Description', 'san_desc_none': 'Aucune description.', 'san_neon_lbl': 'Néon', 'san_trash_title': 'CORBEILLE', 'san_work_prefix': 'Œuvre #',
             'san_neon_current': 'Couleur actuelle',
             'msg_login': 'Connecte-toi pour voir tes messages.', 'msg_supabase': 'Supabase indisponible.', 'msg_loading': 'Chargement des alertes…', 'msg_empty': 'Aucune alerte pour le moment.',
@@ -5584,6 +5771,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'pub_ia_avg': 'Avg. AI score:',
             'san_like_title': 'Like', 'san_comment_title': 'Comment', 'san_login_like': 'Sign in to like.', 'san_login_comment': 'Sign in to comment.',
             'san_prompt_comment': 'Your comment:', 'san_no_comments': 'No comments yet.', 'san_comments_toggle': 'Comments',
+            'san_comments_modal_title': 'Discussion — Sanctuary', 'san_reply_btn': 'Reply', 'san_replying_prefix': 'Replying to', 'san_reply_cancel': 'Cancel reply', 'san_comments_placeholder': 'Write a message…', 'san_comments_send': 'Post', 'san_reply_notif': 'replied on your photo',
             'san_desc_ph': 'Description', 'san_desc_none': 'No description.', 'san_neon_lbl': 'Neon', 'san_trash_title': 'TRASH', 'san_work_prefix': 'Piece #',
             'san_neon_current': 'Current color',
             'msg_login': 'Sign in to see your messages.', 'msg_supabase': 'Supabase unavailable.', 'msg_loading': 'Loading alerts…', 'msg_empty': 'No alerts yet.',
@@ -5717,6 +5905,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'pub_ia_avg': 'IA media:',
             'san_like_title': 'Me gusta', 'san_comment_title': 'Comentar', 'san_login_like': 'Inicia sesión para dar me gusta.', 'san_login_comment': 'Inicia sesión para comentar.',
             'san_prompt_comment': 'Tu comentario:', 'san_no_comments': 'Sin comentarios.', 'san_comments_toggle': 'Comentarios',
+            'san_comments_modal_title': 'Hilo — Santuario', 'san_reply_btn': 'Responder', 'san_replying_prefix': 'Respondiendo a', 'san_reply_cancel': 'Cancelar respuesta', 'san_comments_placeholder': 'Escribe un mensaje…', 'san_comments_send': 'Publicar', 'san_reply_notif': 'ha respondido en tu foto',
             'san_desc_ph': 'Descripción', 'san_desc_none': 'Sin descripción.', 'san_neon_lbl': 'Neón', 'san_trash_title': 'PAPELERA', 'san_work_prefix': 'Pieza n.º ',
             'san_neon_current': 'Color actual',
             'msg_login': 'Inicia sesión para ver tus mensajes.', 'msg_supabase': 'Supabase no disponible.', 'msg_loading': 'Cargando alertas…', 'msg_empty': 'Sin alertas por ahora.',
@@ -5850,6 +6039,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'pub_ia_avg': 'AI 平均分：',
             'san_like_title': '点赞', 'san_comment_title': '评论', 'san_login_like': '请登录后再点赞。', 'san_login_comment': '请登录后再评论。',
             'san_prompt_comment': '你的评论：', 'san_no_comments': '暂无评论。', 'san_comments_toggle': '评论',
+            'san_comments_modal_title': '讨论 — 圣地', 'san_reply_btn': '回复', 'san_replying_prefix': '回复对象', 'san_reply_cancel': '取消回复', 'san_comments_placeholder': '输入留言…', 'san_comments_send': '发布', 'san_reply_notif': '回复了你的照片',
             'san_desc_ph': '描述', 'san_desc_none': '暂无描述。', 'san_neon_lbl': '霓虹', 'san_trash_title': '删除', 'san_work_prefix': '作品 #',
             'san_neon_current': '当前颜色',
             'msg_login': '请登录查看消息。', 'msg_supabase': 'Supabase 不可用。', 'msg_loading': '正在加载提醒…', 'msg_empty': '暂无提醒。',
@@ -17777,6 +17967,8 @@ try { window.spiritAttachProductLoupe = spiritAttachProductLoupe; } catch (e) {}
      comment_text text not null,
      created_at timestamptz default now()
    );
+   -- Réponses aux commentaires : le client peut préfixer comment_text par [[SPIRIT_REPLY:<id_parent>]] (id = spirit_sanctuary_comments.id).
+   -- Option future : alter table public.spirit_sanctuary_comments add column if not exists parent_id bigint references public.spirit_sanctuary_comments(id) on delete cascade;
    create index if not exists idx_spirit_san_comments_owner on public.spirit_sanctuary_comments(owner_id, created_at desc);
    create table if not exists public.spirit_sanctuary_notifications (
      id bigint primary key generated always as identity,
@@ -17979,6 +18171,16 @@ function spiritEvalMarkMissingIf404(err) {
 }
 var spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
 
+function spiritSanctuaryParseStoredCommentText(raw) {
+    var s = String(raw || '').trim();
+    var m = /^\[\[SPIRIT_REPLY:(\d+)\]\]\s*/.exec(s);
+    if (m) {
+        var pid = parseInt(m[1], 10);
+        return { parentId: Number.isFinite(pid) ? pid : null, text: s.slice(m[0].length).trim() };
+    }
+    return { parentId: null, text: s };
+}
+
 async function spiritSanctuaryLoadSocialCache(ownerId, itemIds, viewerId) {
     spiritSanctuarySocialCache = { likesByItem: Object.create(null), commentsByItem: Object.create(null), myLikes: Object.create(null) };
     if (!spiritSanSocialCanUseSupabase()) return spiritSanctuarySocialCache;
@@ -18004,11 +18206,13 @@ async function spiritSanctuaryLoadSocialCache(ownerId, itemIds, viewerId) {
                 var iid = String((r && r.item_id) || '').trim();
                 if (!iid) return;
                 if (!Array.isArray(spiritSanctuarySocialCache.commentsByItem[iid])) spiritSanctuarySocialCache.commentsByItem[iid] = [];
+                var parsed = spiritSanctuaryParseStoredCommentText((r && r.comment_text) || '');
                 spiritSanctuarySocialCache.commentsByItem[iid].push({
                     id: r.id,
                     uid: String((r && r.user_id) || '').trim(),
                     label: String((r && (r.user_label || r.user_id)) || '').trim(),
-                    text: String((r && r.comment_text) || '').trim(),
+                    text: parsed.text,
+                    parentId: parsed.parentId,
                     created_at: r && r.created_at
                 });
             });
@@ -18303,6 +18507,249 @@ function spiritSanctuaryComments(itemId) {
     var arr = spiritSanctuarySocialCache.commentsByItem[itemId];
     return Array.isArray(arr) ? arr : [];
 }
+var spiritSanctuaryCommentsModalKeydown = null;
+function spiritSanctuaryCloseCommentsModal() {
+    var el = document.getElementById('spiritSanCommentsModal');
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    if (spiritSanctuaryCommentsModalKeydown) {
+        try { document.removeEventListener('keydown', spiritSanctuaryCommentsModalKeydown, true); } catch (eKd) {}
+        spiritSanctuaryCommentsModalKeydown = null;
+    }
+}
+try { window.spiritSanctuaryCloseCommentsModal = spiritSanctuaryCloseCommentsModal; } catch (eCl) {}
+
+function spiritSanctuaryCommentWhoLabel(c, pseudoMap) {
+    var uidC = String((c && c.uid) || '').trim();
+    var whoRaw = (uidC && pseudoMap && pseudoMap[uidC]) ? pseudoMap[uidC] : String((c && c.label) || '').trim();
+    if (!whoRaw) whoRaw = uidC ? spiritSanctuaryFallbackLabel(uidC) : '—';
+    return whoRaw;
+}
+function spiritSanctuaryGroupCommentThreads(comments) {
+    var list = (comments || []).slice();
+    var idSet = Object.create(null);
+    list.forEach(function (c) {
+        if (c && c.id != null) idSet[c.id] = true;
+    });
+    var roots = [];
+    var byParent = Object.create(null);
+    list.forEach(function (c) {
+        if (!c) return;
+        var p = c.parentId;
+        if (p && idSet[p]) {
+            var k = String(p);
+            if (!byParent[k]) byParent[k] = [];
+            byParent[k].push(c);
+        } else {
+            roots.push(c);
+        }
+    });
+    function sortByTime(a, b) {
+        return (new Date(a.created_at || 0).getTime()) - (new Date(b.created_at || 0).getTime());
+    }
+    roots.sort(sortByTime);
+    Object.keys(byParent).forEach(function (k) {
+        byParent[k].sort(sortByTime);
+    });
+    return { roots: roots, byParent: byParent };
+}
+function spiritSanctuaryFlattenCommentTree(group) {
+    var out = [];
+    function walk(node, depth) {
+        out.push({ c: node, depth: depth });
+        var kids = group.byParent[String(node.id)] || [];
+        kids.forEach(function (k) {
+            walk(k, depth + 1);
+        });
+    }
+    (group.roots || []).forEach(function (r) {
+        walk(r, 0);
+    });
+    return out;
+}
+function spiritSanctuaryFindCommentById(comments, id) {
+    var n = Number(id);
+    if (!Number.isFinite(n)) return null;
+    for (var i = 0; i < comments.length; i++) {
+        if (comments[i] && Number(comments[i].id) === n) return comments[i];
+    }
+    return null;
+}
+function spiritSanctuaryOpenCommentsModal(opts) {
+    opts = opts || {};
+    var itemId = String(opts.itemId || '').trim();
+    var ownerId = spiritNormUid(opts.ownerId);
+    var actorId = spiritNormUid(opts.actorId);
+    var pseudoMap = opts.pseudoMap || Object.create(null);
+    var neonHex = String(opts.neonHex || '#ff6600').trim() || '#ff6600';
+    var renderCtx = opts.ctx || 'account';
+    var sanTfn = (typeof opts.sanT === 'function') ? opts.sanT : function (k) { return (typeof spiritT === 'function') ? spiritT(k) : k; };
+    var focusComposer = !!opts.focusComposer;
+    if (!itemId) return;
+    spiritSanctuaryCloseCommentsModal();
+
+    var replyParentId = null;
+    var root = document.createElement('div');
+    root.id = 'spiritSanCommentsModal';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-modal', 'true');
+    root.addEventListener('click', function (e) {
+        if (e.target === root) spiritSanctuaryCloseCommentsModal();
+    });
+    var panel = document.createElement('div');
+    panel.className = 'spirit-san-com-modal-panel';
+    panel.addEventListener('click', function (e) { e.stopPropagation(); });
+    var head = document.createElement('div');
+    head.className = 'spirit-san-com-modal-head';
+    var title = document.createElement('div');
+    title.className = 'spirit-san-com-modal-title';
+    title.textContent = sanTfn('san_comments_modal_title');
+    var btnClose = document.createElement('button');
+    btnClose.type = 'button';
+    btnClose.className = 'spirit-san-com-modal-close';
+    btnClose.setAttribute('aria-label', (typeof spiritT === 'function') ? spiritT('btn_close_preview') : 'Fermer');
+    btnClose.textContent = '✕';
+    btnClose.onclick = function () { spiritSanctuaryCloseCommentsModal(); };
+    head.appendChild(title);
+    head.appendChild(btnClose);
+    var scroll = document.createElement('div');
+    scroll.className = 'spirit-san-com-modal-scroll';
+    var toBar = document.createElement('div');
+    toBar.className = 'spirit-san-com-to';
+    toBar.style.display = 'none';
+    var foot = document.createElement('div');
+    foot.className = 'spirit-san-com-foot';
+    var ta = document.createElement('textarea');
+    ta.className = 'spirit-san-com-textarea';
+    ta.setAttribute('aria-label', sanTfn('san_comments_placeholder'));
+    ta.placeholder = sanTfn('san_comments_placeholder');
+    var sendRow = document.createElement('div');
+    sendRow.className = 'spirit-san-com-send-row';
+    var btnCancelReply = document.createElement('button');
+    btnCancelReply.type = 'button';
+    btnCancelReply.className = 'spirit-san-com-cancel-reply';
+    btnCancelReply.style.display = 'none';
+    btnCancelReply.textContent = sanTfn('san_reply_cancel');
+    btnCancelReply.onclick = function () {
+        replyParentId = null;
+        toBar.style.display = 'none';
+        btnCancelReply.style.display = 'none';
+    };
+    var btnSend = document.createElement('button');
+    btnSend.type = 'button';
+    btnSend.className = 'spirit-san-com-send';
+    btnSend.textContent = sanTfn('san_comments_send');
+    sendRow.appendChild(btnCancelReply);
+    sendRow.appendChild(btnSend);
+    foot.appendChild(ta);
+    foot.appendChild(sendRow);
+    panel.appendChild(head);
+    panel.appendChild(scroll);
+    panel.appendChild(toBar);
+    panel.appendChild(foot);
+    root.appendChild(panel);
+    document.body.appendChild(root);
+
+    function syncReplyBar() {
+        if (!replyParentId) {
+            toBar.style.display = 'none';
+            btnCancelReply.style.display = 'none';
+            return;
+        }
+        var list = spiritSanctuaryComments(itemId);
+        var parent = spiritSanctuaryFindCommentById(list, replyParentId);
+        var plab = parent ? spiritSanctuaryCommentWhoLabel(parent, pseudoMap) : '—';
+        toBar.style.display = 'block';
+        toBar.textContent = sanTfn('san_replying_prefix') + ' ' + plab;
+        btnCancelReply.style.display = 'inline';
+    }
+    function paintList() {
+        scroll.innerHTML = '';
+        var list = spiritSanctuaryComments(itemId);
+        var group = spiritSanctuaryGroupCommentThreads(list);
+        var flat = spiritSanctuaryFlattenCommentTree(group);
+        if (!flat.length) {
+            var empty = document.createElement('div');
+            empty.className = 'spirit-san-com-empty';
+            empty.textContent = sanTfn('san_no_comments');
+            scroll.appendChild(empty);
+            return;
+        }
+        flat.forEach(function (row) {
+            var c = row.c;
+            var depth = row.depth;
+            var wrap = document.createElement('div');
+            wrap.className = 'spirit-san-com-row' + (depth === 1 ? ' spirit-san-com-row--depth1' : depth >= 2 ? ' spirit-san-com-row--depth2' : '');
+            var meta = document.createElement('div');
+            meta.className = 'spirit-san-com-meta';
+            var who = document.createElement('span');
+            who.className = 'spirit-san-com-who';
+            who.textContent = spiritSanctuaryCommentWhoLabel(c, pseudoMap);
+            var bRep = document.createElement('button');
+            bRep.type = 'button';
+            bRep.className = 'spirit-san-com-reply-btn';
+            bRep.textContent = sanTfn('san_reply_btn');
+            if (!actorId || !c || c.id == null) bRep.disabled = true;
+            bRep.onclick = function (ev) {
+                ev.stopPropagation();
+                if (!actorId) { alert(sanTfn('san_login_comment')); return; }
+                replyParentId = c.id;
+                syncReplyBar();
+                try { ta.focus(); } catch (eF) {}
+            };
+            meta.appendChild(who);
+            meta.appendChild(bRep);
+            var body = document.createElement('div');
+            body.className = 'spirit-san-com-body';
+            body.textContent = String((c && c.text) || '');
+            wrap.appendChild(meta);
+            wrap.appendChild(body);
+            scroll.appendChild(wrap);
+        });
+    }
+    paintList();
+    syncReplyBar();
+    if (!actorId) {
+        ta.disabled = true;
+        ta.placeholder = sanTfn('san_login_comment');
+        btnSend.disabled = true;
+    } else {
+        ta.disabled = false;
+        ta.placeholder = sanTfn('san_comments_placeholder');
+        btnSend.disabled = false;
+    }
+    if (focusComposer) {
+        try { setTimeout(function () { try { if (!ta.disabled) ta.focus(); } catch (eT) {} }, 80); } catch (eS) {}
+    }
+    btnSend.onclick = async function () {
+        if (!actorId) { alert(sanTfn('san_login_comment')); return; }
+        var txt = String(ta.value || '').trim();
+        if (!txt) return;
+        btnSend.disabled = true;
+        try {
+            var ok = await spiritSanctuaryAddComment(ownerId, itemId, actorId, txt, replyParentId);
+            if (ok) {
+                ta.value = '';
+                replyParentId = null;
+                spiritSanctuaryCloseCommentsModal();
+                if (String(actorId) !== String(ownerId)) spiritSanctuaryRefreshMessagesDot();
+                void spiritSanctuaryRender(renderCtx);
+                try { if (renderCtx === 'public') void spiritPublicRefreshSocialStats(ownerId); } catch (eP) {}
+            }
+        } finally {
+            btnSend.disabled = !actorId;
+        }
+    };
+    spiritSanctuaryCommentsModalKeydown = function (ev) {
+        if (!ev) return;
+        if (ev.key === 'Escape' || ev.keyCode === 27) {
+            ev.preventDefault();
+            spiritSanctuaryCloseCommentsModal();
+        }
+    };
+    document.addEventListener('keydown', spiritSanctuaryCommentsModalKeydown, true);
+}
+try { window.spiritSanctuaryOpenCommentsModal = spiritSanctuaryOpenCommentsModal; } catch (eOp) {}
+
 async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
     ownerId = spiritNormUid(ownerId);
     itemId = String(itemId || '').trim();
@@ -18335,12 +18782,21 @@ async function spiritSanctuaryToggleLike(ownerId, itemId, actorUid) {
     }
     return !was;
 }
-async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
+async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text, parentCommentId) {
     ownerId = spiritNormUid(ownerId);
     itemId = String(itemId || '').trim();
     actorUid = spiritNormUid(actorUid);
     text = String(text || '').trim();
     if (!itemId || !actorUid || !text || !spiritSanSocialCanUseSupabase()) return false;
+    var storeText = text;
+    var pidN = null;
+    if (parentCommentId != null && parentCommentId !== '') {
+        pidN = parseInt(parentCommentId, 10);
+        if (Number.isFinite(pidN)) storeText = '[[SPIRIT_REPLY:' + pidN + ']] ' + text;
+    }
+    var notifMsg = (pidN != null && Number.isFinite(pidN))
+        ? ((typeof spiritT === 'function') ? spiritT('san_reply_notif') : 'a répondu sur ta photo')
+        : 'a commenté ta photo';
     try {
         var clab = '';
         try { clab = await spiritSanctuaryActorDisplayLabel(actorUid); } catch (eC) { clab = ''; }
@@ -18350,15 +18806,29 @@ async function spiritSanctuaryAddComment(ownerId, itemId, actorUid, text) {
             owner_id: ownerId,
             user_id: actorUid,
             user_label: clab,
-            comment_text: text
-        });
+            comment_text: storeText
+        }).select('id,item_id,user_id,user_label,comment_text,created_at');
         if (ri && ri.error) throw ri.error;
+        if (ri && ri.data && ri.data[0]) {
+            var r = ri.data[0];
+            var parsed = spiritSanctuaryParseStoredCommentText((r && r.comment_text) || '');
+            var entry = {
+                id: r.id,
+                uid: String((r && r.user_id) || '').trim(),
+                label: String((r && (r.user_label || r.user_id)) || '').trim(),
+                text: parsed.text,
+                parentId: parsed.parentId,
+                created_at: r && r.created_at
+            };
+            if (!Array.isArray(spiritSanctuarySocialCache.commentsByItem[itemId])) spiritSanctuarySocialCache.commentsByItem[itemId] = [];
+            spiritSanctuarySocialCache.commentsByItem[itemId].push(entry);
+        }
     } catch (e) {
         spiritSanSocialHandleSupabaseError(e);
         try { alert('Commentaire : impossible — ' + (e && e.message ? e.message : e)); } catch (a) {}
         return false;
     }
-    await spiritSanctuaryPushNotif(ownerId, 'comment', itemId, actorUid, 'a commenté ta photo');
+    await spiritSanctuaryPushNotif(ownerId, 'comment', itemId, actorUid, notifMsg);
     return true;
 }
 
@@ -21722,48 +22192,40 @@ async function spiritSanctuaryRender(ctx) {
         bCom.style.cssText = 'padding:5px 8px;min-width:62px;background:rgba(0,0,0,0.6);border:1px solid ' + neonBorder + ';color:#ddd;font-size:0.62rem;cursor:pointer;box-shadow:0 0 8px ' + neonGlow + ';';
         bCom.textContent = '💬 ' + comments.length;
         bCom.title = sanT('san_comment_title');
-        bCom.onclick = async function (e) {
+        bCom.onclick = function (e) {
             e.stopPropagation();
-            if (!actorId) { alert(sanT('san_login_comment')); return; }
-            var txt = await spiritPrompt(sanT('san_prompt_comment'), '');
-            if (txt == null) return;
-            txt = String(txt || '').trim();
-            if (!txt) return;
-            await spiritSanctuaryAddComment(ownerId, itemId, actorId, txt);
-            if (String(actorId) !== String(ownerId)) spiritSanctuaryRefreshMessagesDot();
-            void spiritSanctuaryRender(ctx);
-            try { if (ctx === 'public') void spiritPublicRefreshSocialStats(ownerId); } catch (e1) {}
+            spiritSanctuaryOpenCommentsModal({
+                itemId: itemId,
+                ownerId: ownerId,
+                actorId: actorId,
+                pseudoMap: pseudoMap,
+                neonHex: neonHex,
+                ctx: ctx,
+                sanT: sanT,
+                focusComposer: true
+            });
         };
         overlay.appendChild(bLike);
         overlay.appendChild(bCom);
-        var commentsWrap = document.createElement('div');
-        commentsWrap.style.cssText = 'font-size:0.62rem;color:#8e8e8e;line-height:1.35;padding:4px 0;';
-        if (comments.length) {
-            commentsWrap.innerHTML = comments.map(function (c) {
-                var uidC = String((c && c.uid) || '').trim();
-                var whoRaw = (uidC && pseudoMap[uidC]) ? pseudoMap[uidC] : String((c && c.label) || '').trim();
-                if (!whoRaw) whoRaw = uidC ? spiritSanctuaryFallbackLabel(uidC) : '—';
-                var who = String(whoRaw).replace(/</g, '&lt;');
-                var tx = String((c && c.text) || '').replace(/</g, '&lt;');
-                return '<div style="margin-bottom:6px;"><span style="color:#79d6ff;">' + who + ':</span> ' + tx + '</div>';
-            }).join('');
-        } else {
-            commentsWrap.textContent = sanT('san_no_comments');
-        }
+        var commentsPanel = document.createElement('div');
+        commentsPanel.style.cssText = 'display:none;height:0;overflow:hidden;margin:0;padding:0;border:0;';
         var commentsToggle = document.createElement('button');
         commentsToggle.type = 'button';
         commentsToggle.className = 'spirit-san-comments-toggle';
-        commentsToggle.style.cssText = 'margin-top:8px;width:100%;text-align:left;padding:8px 10px;background:#121212;border:1px solid ' + neonSoft + ';color:#ccc;font-size:0.62rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;border-radius:4px;box-shadow:inset 0 0 0 1px ' + spiritSanctuaryNeonToRgba(neonHex, 0.12) + ';';
-        commentsToggle.innerHTML = '<span>' + String(sanT('san_comments_toggle')).replace(/</g, '') + ' (' + comments.length + ')</span><span class="spirit-san-acc-ic">▼</span>';
-        var commentsPanel = document.createElement('div');
-        commentsPanel.className = 'spirit-san-comments-panel';
-        commentsPanel.appendChild(commentsWrap);
+        commentsToggle.style.cssText = 'margin-top:8px;width:100%;text-align:left;padding:10px 12px;background:linear-gradient(165deg,rgba(32,24,18,0.98) 0%,#11100e 55%,#0a0908 100%);border:1px solid ' + neonSoft + ';color:#ececec;font-size:0.62rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;border-radius:8px;box-shadow:0 0 0 1px ' + spiritSanctuaryNeonToRgba(neonHex, 0.15) + ',0 0 20px ' + spiritSanctuaryNeonToRgba(neonHex, 0.14) + ';';
+        commentsToggle.innerHTML = '<span style="font-weight:900;letter-spacing:0.08em;text-transform:uppercase;">' + String(sanT('san_comments_toggle')).replace(/</g, '') + ' · ' + comments.length + '</span><span style="color:' + neonBorder + ';font-weight:900;font-size:0.85rem;line-height:1;">⧉</span>';
         commentsToggle.onclick = function (ev) {
             ev.stopPropagation();
-            var on = commentsPanel.classList.toggle('spirit-san-comments-open');
-            commentsToggle.classList.toggle('spirit-san-toggle-open', on);
-            var ic = commentsToggle.querySelector('.spirit-san-acc-ic');
-            if (ic) ic.textContent = on ? '▲' : '▼';
+            spiritSanctuaryOpenCommentsModal({
+                itemId: itemId,
+                ownerId: ownerId,
+                actorId: actorId,
+                pseudoMap: pseudoMap,
+                neonHex: neonHex,
+                ctx: ctx,
+                sanT: sanT,
+                focusComposer: false
+            });
         };
         return { overlay: overlay, commentsToggle: commentsToggle, commentsPanel: commentsPanel };
     }
@@ -23740,6 +24202,7 @@ var spiritSanctuaryLightboxIndex = 0;
 
 function spiritSanctuaryLightboxOpen(images, index) {
     try {
+        try { if (typeof spiritSanctuaryCloseCommentsModal === 'function') spiritSanctuaryCloseCommentsModal(); } catch (eCm0) {}
         images = Array.isArray(images) ? images : [];
         spiritSanctuaryLightboxImages = images.filter(function (s) { return !!s; });
         spiritSanctuaryLightboxIndex = Number.isFinite(Number(index)) ? Number(index) : 0;
@@ -26689,6 +27152,7 @@ function closeModals() {
     try { if (typeof spiritAutoEvalDismissWithoutSubmitSync === 'function') spiritAutoEvalDismissWithoutSubmitSync(); } catch (eEv) {}
     try { if (typeof spiritDetachProductLoupe === 'function') spiritDetachProductLoupe(); } catch (e) {}
     try { if (typeof spiritForumResetChatExpand === 'function') spiritForumResetChatExpand(); } catch (eFmX) {}
+    try { if (typeof spiritSanctuaryCloseCommentsModal === 'function') spiritSanctuaryCloseCommentsModal(); } catch (eSanCm) {}
     document.querySelectorAll('.overlay').forEach(function (m) {
         if (m.id === 'spiritPurchaseSuccessModal' || m.id === 'spiritSellerPrepModal') return;
         m.style.setProperty('display', 'none', 'important');
