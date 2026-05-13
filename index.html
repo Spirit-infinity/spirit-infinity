@@ -11017,17 +11017,29 @@ async function spiritCertRunSpiritEyesCoherence(model, images, title, reference,
             corpus += ' ' + String(pr[k].className || '').toLowerCase();
         }
     }
-    var bundle = spiritCertExpandUserBundle(title + ' ' + reference + ' ' + description);
+    var extraBundle = '';
+    try {
+        if (typeof currentMethod !== 'undefined' && currentMethod === 'statue') {
+            var smCo = document.getElementById('saleMatiere');
+            if (smCo && smCo.value) extraBundle += ' ' + String(smCo.value).trim();
+        }
+        var catCo = window.spiritSelectedCatalogRow;
+        if (catCo && typeof catCo === 'object') {
+            extraBundle += ' ' + String(catCo.model_name || '') + ' ' + String(catCo.brand || '') + ' ' + String(catCo.ref_code || '');
+        }
+    } catch (eCatCo) {}
+    var bundle = spiritCertExpandUserBundle(title + ' ' + reference + ' ' + description + extraBundle);
     var tokens = spiritCertExtractIaTokens(bundle);
     var hits = spiritCertTokenHitsCorpus(tokens, corpus);
-    var figurineRx = /(toy|figure|figurine|doll|statue|statuette|mask|helmet|armor|armour|robot|mecha|miniature|model|collectible|comic|plastic|figur|diecast|poncho|vestment|breastplate|cuirass|shield|sword|weapon|toyshop)/;
+    var figurineRx = /(toy|figure|figurine|doll|statue|statuette|bust|sculpture|mask|helmet|armor|armour|robot|mecha|miniature|model|collectible|comic|plastic|figur|diecast|poncho|vestment|breastplate|cuirass|shield|sword|weapon|toyshop)/;
     var figurineOk = figurineRx.test(corpus);
     var tokenCount = tokens.length;
     var coherent = false;
+    var statueModeCo = typeof currentMethod !== 'undefined' && currentMethod === 'statue';
     if (avgProb < 0.028 && !figurineOk) coherent = false;
     else if (tokenCount === 0) coherent = figurineOk && avgProb >= 0.06;
     else {
-        var minH = Math.max(1, Math.ceil(tokenCount * 0.2));
+        var minH = Math.max(1, Math.ceil(tokenCount * (statueModeCo ? 0.14 : 0.2)));
         if (hits >= minH) coherent = true;
         else if (figurineOk && hits >= 1) coherent = true;
         else if (figurineOk && avgProb >= 0.11) coherent = true;
@@ -11096,10 +11108,20 @@ async function goToScan() {
     const statusEl = document.getElementById('scanStatus');
     statusEl.removeAttribute('data-key');
     statusEl.innerHTML = "🔍 <span style='color:var(--neon-orange);'>" + tGs('cert_scan_status_running') + '</span>';
-    // Contrôle catalogue: si une référence est choisie mais peu cohérente avec le texte, on alerte tôt.
+    // Contrôle catalogue: réf alignée sur une ligne des dernières suggestions → message positif (la réf ne se répète pas dans le titre).
     try {
         var refNorm = spiritNormalizeCatalogSearch(reference);
-        var titleNorm = spiritNormalizeCatalogSearch(title + ' ' + description);
+        var brandPreTxt = '';
+        var matPreTxt = '';
+        try {
+            var bElPre = document.getElementById('saleBrand');
+            brandPreTxt = bElPre && bElPre.value ? String(bElPre.value).trim() : '';
+            if (typeof currentMethod !== 'undefined' && currentMethod === 'statue') {
+                var smElPre = document.getElementById('saleMatiere');
+                matPreTxt = smElPre && smElPre.value ? String(smElPre.value).trim() : '';
+            }
+        } catch (ePreFld) {}
+        var titleNorm = spiritNormalizeCatalogSearch(title + ' ' + description + ' ' + reference + ' ' + brandPreTxt + ' ' + matPreTxt);
         if (refNorm) {
             var picked = null;
             var lstCheck = Array.isArray(window.spiritLastCatalogRefSuggestions) ? window.spiritLastCatalogRefSuggestions : [];
@@ -11109,15 +11131,17 @@ async function goToScan() {
             if (picked) {
                 window.spiritSelectedCatalogRow = picked;
                 var modelNorm = spiritNormalizeCatalogSearch(picked.model_name || '');
+                var pickBrandN = spiritNormalizeCatalogSearch(picked.brand || '');
                 var overlap = 0;
+                if (pickBrandN && titleNorm.indexOf(pickBrandN) >= 0) overlap++;
+                if (refNorm && modelNorm.indexOf(refNorm) >= 0) overlap++;
                 var toks = modelNorm.split(/\s+/).filter(function (x) { return x && x.length > 3; });
                 for (var ti = 0; ti < toks.length; ti++) {
                     if (titleNorm.indexOf(toks[ti]) >= 0) overlap++;
                 }
+                statusEl.innerHTML += "<br><span style='color:#8bd98b;'>✓ Correspondance catalogue détectée: " + String(picked.ref_code) + ".</span>";
                 if (overlap === 0) {
-                    statusEl.innerHTML += "<br><span style='color:#ffb347;'>⚠ Réf choisie peu cohérente avec le titre/description (" + String(picked.ref_code) + ").</span>";
-                } else {
-                    statusEl.innerHTML += "<br><span style='color:#8bd98b;'>✓ Correspondance catalogue détectée: " + String(picked.ref_code) + ".</span>";
+                    statusEl.innerHTML += "<br><span style='color:#888; font-size:0.85rem;'>Astuce : tu peux reprendre quelques mots du nom catalogue dans le titre pour aider les acheteurs.</span>";
                 }
             }
         }
@@ -26676,6 +26700,37 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
