@@ -11357,7 +11357,6 @@ function spiritShowListingPublishSuccess(opts) {
         : 'Ta pièce est en ligne — les collectionneurs peuvent la découvrir.';
     var tag = tLoc(tagKey, tagFallback);
     var btnMarket = tLoc('cert_pub_success_btn_market', 'OUVRIR LE MARCHÉ');
-    var btnAds = tLoc('cert_pub_success_btn_ads', 'MES ANNONCES');
     var btnOk = tLoc('cert_pub_success_btn_ok', 'FERMER');
     var noImg = tLoc('cert_pub_success_no_thumb', 'APERÇU');
     var listTitle = String(opts.title || '').trim() || '—';
@@ -11400,7 +11399,6 @@ function spiritShowListingPublishSuccess(opts) {
         '</div></div>' +
         '<div class="spirit-publish-success-actions">' +
         '<button type="button" class="spirit-publish-success-btn-primary" data-spirit-pub-act="market">' + esc(btnMarket) + '</button>' +
-        '<button type="button" class="spirit-publish-success-btn-secondary" data-spirit-pub-act="ads">' + esc(btnAds) + '</button>' +
         '<button type="button" class="spirit-publish-success-btn-ghost" data-spirit-pub-act="close">' + esc(btnOk) + '</button>' +
         '</div></div>';
     root.onclick = function () { close(); };
@@ -11418,13 +11416,6 @@ function spiritShowListingPublishSuccess(opts) {
                     if (typeof navigateTo === 'function') navigateTo('market');
                     else if (typeof window.navigateTo === 'function') window.navigateTo('market');
                 } catch (e1) {}
-            } else if (a === 'ads') {
-                try {
-                    if (typeof showAccountModal === 'function') showAccountModal();
-                } catch (eA) {}
-                try {
-                    if (typeof showAccountTab === 'function') showAccountTab('annonces');
-                } catch (e2) {}
             }
         };
     });
