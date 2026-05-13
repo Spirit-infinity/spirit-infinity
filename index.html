@@ -19375,6 +19375,51 @@ function spiritIsMobileLikeUa() {
     } catch (eM) {}
     return false;
 }
+/**
+ * Copie vidéo en RAM (File stable pour upload). Galerie iOS/Android : seul arrayBuffer() échoue souvent après délai
+ * — secours Response#arrayBuffer puis FileReader.
+ */
+async function spiritVideoMaterializeToMemoryFile(blobOrFile, mimeFallback) {
+    var mime = String((blobOrFile && blobOrFile.type) || mimeFallback || 'video/mp4');
+    if (mime.indexOf('video/') !== 0) mime = 'video/mp4';
+    var baseName = 'listing_clip.mp4';
+    if (typeof File !== 'undefined' && blobOrFile instanceof File && blobOrFile.name) {
+        baseName = String(blobOrFile.name).split(/[/\\]/).pop() || baseName;
+    }
+    baseName = baseName.replace(/[^a-zA-Z0-9._-]/g, '_') || 'listing_clip.mp4';
+    function toFile(ab) {
+        if (!ab || ab.byteLength === 0) throw new Error('empty');
+        return new File([ab], baseName, { type: mime });
+    }
+    try {
+        if (blobOrFile && typeof blobOrFile.arrayBuffer === 'function') {
+            var ab0 = await blobOrFile.arrayBuffer();
+            return toFile(ab0);
+        }
+    } catch (e0) { /* suite */ }
+    try {
+        var ab1 = await new Response(blobOrFile).arrayBuffer();
+        return toFile(ab1);
+    } catch (e1) { /* suite */ }
+    return await new Promise(function (resolve, reject) {
+        try {
+            var fr = new FileReader();
+            fr.onload = function () {
+                try {
+                    resolve(toFile(fr.result));
+                } catch (eL) {
+                    reject(eL);
+                }
+            };
+            fr.onerror = function () {
+                reject(new Error('FileReader'));
+            };
+            fr.readAsArrayBuffer(blobOrFile);
+        } catch (eR) {
+            reject(eR);
+        }
+    });
+}
 /** Ref projet (sous-domaine) pour l’hôte Storage TUS : https://REF.storage.supabase.co */
 function spiritSupabaseProjectRef() {
     try {
@@ -19508,7 +19553,13 @@ async function spiritStorageUploadVideoPublicRest(bucket, pathStr, file, mime) {
         })
         .join('/');
     var url = base + '/storage/v1/object/' + encodeURIComponent(String(bucket)) + '/' + encPath;
-    var buf = file instanceof Blob ? await file.arrayBuffer() : file;
+    var buf;
+    try {
+        buf = file instanceof Blob ? await file.arrayBuffer() : file;
+    } catch (eBufRest) {
+        var fMem = await spiritVideoMaterializeToMemoryFile(file, mime);
+        buf = await fMem.arrayBuffer();
+    }
     try {
         var res = await fetch(url, {
             method: 'POST',
@@ -19548,9 +19599,7 @@ async function spiritStorageUploadVideoPublic(bucket, path, blob, fileHint) {
     var mobileLike = typeof spiritIsMobileLikeUa === 'function' && spiritIsMobileLikeUa();
     if (mobileLike && file && file.size > 0) {
         try {
-            var snapBuf = await file.arrayBuffer();
-            var baseName = (file.name && String(file.name).split(/[/\\]/).pop()) || hint.replace(/[^a-zA-Z0-9._-]/g, '_') || 'listing.mp4';
-            file = new File([snapBuf], baseName.replace(/[^a-zA-Z0-9._-]/g, '_'), { type: mime });
+            file = await spiritVideoMaterializeToMemoryFile(file, mime);
         } catch (eSnap) {
             lastMsg = 'snapshot: ' + (eSnap && eSnap.message ? String(eSnap.message) : String(eSnap));
         }
@@ -19575,7 +19624,16 @@ async function spiritStorageUploadVideoPublic(bucket, path, blob, fileHint) {
             } catch (eRf) {}
         }
         try {
-            var bodyForSdk = ai === 0 ? file : await file.arrayBuffer();
+            var bodyForSdk;
+            if (ai === 0) {
+                bodyForSdk = file;
+            } else {
+                try {
+                    bodyForSdk = await file.arrayBuffer();
+                } catch (eAb) {
+                    bodyForSdk = await spiritVideoMaterializeToMemoryFile(file, mime);
+                }
+            }
             var up = await _spirit.storage.from(bucket).upload(pathStr, bodyForSdk, uploadOpts);
             if (!up.error) {
                 return _spirit.storage.from(bucket).getPublicUrl(pathStr).data.publicUrl;
@@ -19817,6 +19875,18 @@ async function spiritCertVideoOnFileInputChange(input) {
         return;
     }
     spiritCertVideoMetaVw = vwMeta;
+    var mobileLikeVid = typeof spiritIsMobileLikeUa === 'function' && spiritIsMobileLikeUa();
+    if (mobileLikeVid && f.size > 0 && f.size <= SPIRIT_LISTING_VIDEO_COMPRESS_IF_BYTES) {
+        spiritCertVideoSetStatus('Copie vidéo…');
+        try {
+            f = await spiritVideoMaterializeToMemoryFile(f, f.type);
+        } catch (eMat) {
+            spiritCertVideoClearFileInput();
+            spiritCertVideoSetStatus('');
+            alert(tFn('cert_video_err_meta'));
+            return;
+        }
+    }
     var workFile = f;
     if (f.size > SPIRIT_LISTING_VIDEO_COMPRESS_IF_BYTES) {
         spiritCertVideoSetStatus(tFn('cert_video_compressing'));
