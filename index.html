@@ -1400,6 +1400,47 @@
             position: relative;
             z-index: 2;
         }
+        #accountModal .spirit-params-subnav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 0 0 16px;
+            align-items: center;
+        }
+        #accountModal .spirit-params-subtab {
+            font-size: 0.62rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 102, 0, 0.38);
+            background: #101010;
+            color: #c9c9c9;
+            cursor: pointer;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+        }
+        #accountModal .spirit-params-subtab.active {
+            color: #fff;
+            border-color: rgba(255, 187, 102, 0.95);
+            box-shadow:
+                0 0 0 1px rgba(255, 153, 51, 0.45),
+                0 0 22px rgba(255, 102, 0, 0.35);
+        }
+        #accountModal .spirit-params-onboarding-scroll {
+            margin-top: 4px;
+            padding: 14px 16px 18px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+            max-height: min(62vh, 580px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            font-size: 0.64rem;
+            color: #c6c6c6;
+            line-height: 1.5;
+            box-sizing: border-box;
+        }
         .showroom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .showroom-item { background: #111; border: 1px solid #222; padding: 10px; border-radius: 4px; text-align: center; }
         .stat-banner { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
@@ -4717,7 +4758,11 @@
 
 <div id="tab-params" class="account-page">
     <h3 data-key="params_h">PARAMÈTRES DU COMPTE</h3>
-    
+    <div class="spirit-params-subnav" role="tablist" aria-label="Paramètres">
+        <button type="button" class="spirit-params-subtab active" data-params-sub="main" onclick="spiritAccountParamsShowSub('main')"><span data-key="params_sub_settings">RÉGLAGES</span></button>
+        <button type="button" class="spirit-params-subtab" data-params-sub="onboarding" onclick="spiritAccountParamsShowSub('onboarding')"><span data-key="params_sub_onboarding">PRISE EN MAIN</span></button>
+    </div>
+    <div id="spiritParamsMainBlock">
     <div id="user-ratings" style="margin-bottom:20px; padding:10px; background:rgba(255,165,0,0.05); border:1px solid #333;">
         <h4 data-key="params_rep_h" style="color:var(--neon-orange); margin-top:0; font-size:0.8rem;">MA RÉPUTATION VENDEUR</h4>
         <div id="rating-stars" style="color:gold;">⭐⭐⭐⭐⭐ (5/5)</div>
@@ -4774,6 +4819,13 @@
     </div>
     <button class="btn-action" style="margin-top:10px; font-size:0.7rem;" onclick="changeRIB()" data-key="btn_rib_change">METTRE / CHANGER UN RIB ACTIF</button>
     <button class="btn-action" style="margin-top:10px; font-size:0.7rem; background:#222; color:#fff; border:1px solid #555;" onclick="spiritLogout()" data-key="btn_logout">DÉCONNEXION</button>
+    </div>
+    <div id="spiritParamsOnboardingBlock" style="display:none;">
+        <h4 data-key="params_onboarding_h4" style="color:var(--neon-orange); margin:0 0 8px; font-size:0.78rem; letter-spacing:0.08em;">Bien démarrer sur Spirit Infinity</h4>
+        <p data-key="params_onboarding_intro" style="font-size:0.65rem;color:#aaa;line-height:1.45;margin:0 0 10px;">Guide rapide : menus et parcours type.</p>
+        <div class="spirit-params-onboarding-scroll" data-key="params_onboarding_body"></div>
+        <p style="font-size:0.58rem;color:#666;margin-top:12px;line-height:1.4;" data-key="params_onboarding_replace_hint">Tu peux remplacer ce texte par ton dossier prise en main (clés params_onboarding_* dans les traductions).</p>
+    </div>
 </div>
 
             </div>
@@ -5321,7 +5373,7 @@
             'eval_page_h': 'ÉVALUATIONS', 'eval_page_p1': 'Avis reçus sur ton profil public. Tu peux répondre à chaque commentaire ; la réponse est visible par tous.', 'eval_page_p2': 'Pour laisser une note à quelqu’un, utilise le flux après une transaction (fenêtre d’évaluation ou notification).', 'eval_clear_all_btn': 'TOUT EFFACER LE FIL',
             'san_acc_h': 'SANCTUAIRE', 'san_acc_p': 'Galerie noire & néon — jusqu’à 15 pièces (bucket Storage sanctuary).', 'san_acc_clear_all_btn': 'EFFACER TOUTES LES PHOTOS', 'san_acc_clear_all_confirm': 'Supprimer toutes les photos de ton Sanctuaire (compte) ? Le Sanctuaire public affichera aussi une galerie vide jusqu’à nouveaux ajouts. Opération irréversible.', 'ui_neon_new': 'Néon (nouvelle photo)', 'ui_view': 'Vue', 'ui_v_list': 'Vue Liste', 'ui_v_grid': 'Vue Grille', 'ui_v_style': 'Vue Style', 'ui_v_style2': 'Vue Style 2',
             'san_chat_h': 'CHAT DU SANCTUAIRE', 'san_chat_rules': '@, .com et numéros de téléphone sont bloqués — marketplace Spirit.', 'san_chat_translate': 'Traduire les messages (langue du site)', 'san_chat_raz': 'Effacer le fil', 'san_chat_expand': 'Agrandir le chat', 'san_chat_reduce': 'Réduire le chat', 'san_chat_raz_confirm': 'Supprimer tous les messages de cette conversation pour vous deux ?', 'san_chat_raz_nop': 'Aucune conversation sélectionnée.', 'san_chat_raz_err': 'Impossible d’effacer le fil : ', 'san_chat_os_title': 'Nouveau message — Sanctuaire', 'ui_conversation': 'Conversation', 'ui_msg_ph': 'Message…', 'ui_send': 'ENVOYER',
-            'params_h': 'PARAMÈTRES DU COMPTE', 'params_rep_h': 'MA RÉPUTATION VENDEUR', 'ship_addr_h': 'ADRESSE POSTALE (LIVRAISON)', 'ship_ph_last': 'Nom', 'ship_ph_first': 'Prénom', 'ship_ph_street': 'Adresse', 'ship_ph_zip': 'Code postal', 'ship_ph_city': 'Ville', 'ship_ph_country': 'Pays',
+            'params_h': 'PARAMÈTRES DU COMPTE', 'params_sub_settings': 'RÉGLAGES', 'params_sub_onboarding': 'PRISE EN MAIN', 'params_onboarding_h4': 'Bien démarrer sur Spirit Infinity', 'params_onboarding_intro': 'Ce guide résume les menus principaux et un parcours type. Tu peux remplacer les textes par ton dossier prise en main (clés params_onboarding_* dans les traductions).', 'params_onboarding_body': '1) MARKETPLACE — Parcourir les annonces figurines et statues, ouvrir une fiche, favori ou liste d’envie, achat ou offre.\n\n2) VENDRE & CERTIFIER — Créer une annonce (photos, analyse IA selon la méthode), vidéo optionnelle ; sur la fiche produit : bouton CT (contrôle technique) pour l’historique lié à l’annonce.\n\n3) MON COMPTE — Dashboard (résumé, offres, lien profil / sanctuaire public), messages, achats, ventes, portefeuille, annonces, évaluations, liste d’envie, favoris reçus, onglet sanctuaire public, puis Paramètres.\n\n4) PARAMÈTRES — Onglet « Réglages » : pseudo, langue et devise, notifications navigateur, adresse de livraison, RIB vendeur, déconnexion. Onglet « Prise en main » : ce guide.\n\n5) FORUM — Échanges entre membres ; la charte est dans la fenêtre forum.\n\n6) PRÉCOMMANDES HOT TOYS — Veille sur les sorties et dates estimées ; l’achat de préco se fait sur les sites spécialisés, pas sur le marketplace.\n\n7) CONTACT & SUPPORT — Aide officielle pour un blocage ou une question compte / site.\n\n8) SÉCURITÉ — Rappels protection et bonnes pratiques.\n\nBon démarrage — Spirit Infinity.', 'params_onboarding_replace_hint': 'Pour coller ton dossier : édite params_onboarding_body, params_onboarding_intro et params_onboarding_h4 dans les blocs FR / EN / ES / ZH de base17.', 'params_rep_h': 'MA RÉPUTATION VENDEUR', 'ship_addr_h': 'ADRESSE POSTALE (LIVRAISON)', 'ship_ph_last': 'Nom', 'ship_ph_first': 'Prénom', 'ship_ph_street': 'Adresse', 'ship_ph_zip': 'Code postal', 'ship_ph_city': 'Ville', 'ship_ph_country': 'Pays',
             'ship_save_btn': 'ENREGISTRER ADRESSE', 'ship_save_hint': 'Renseignée une seule fois puis réutilisée à chaque achat.', 'btn_rib_change': 'METTRE / CHANGER UN RIB ACTIF', 'btn_logout': 'DÉCONNEXION',
             'reg_ph_user': 'Nom d\'utilisateur', 'reg_ph_email': 'Email', 'reg_ph_pass': 'Mot de passe', 'reg_remember': 'Rester connecté(e)',
             'pm_discuss_hint': 'Discussion · traduction selon la langue du site', 'pm_clear_thread': 'Effacer tout le fil', 'pm_chat_ph': 'Votre message…', 'pm_chat_ok': 'OK',
@@ -5454,7 +5506,7 @@
             'eval_page_h': 'REVIEWS', 'eval_page_p1': 'Reviews on your public profile. You can reply to each comment; replies are visible to everyone.', 'eval_page_p2': 'To rate someone, use the flow after a transaction (review window or notification).', 'eval_clear_all_btn': 'CLEAR ENTIRE FEED',
             'san_acc_h': 'SANCTUARY', 'san_acc_p': 'Black & neon gallery — up to 15 pieces (Storage sanctuary bucket).', 'san_acc_clear_all_btn': 'DELETE ALL PHOTOS', 'san_acc_clear_all_confirm': 'Delete all photos from your account Sanctuary? Your public gallery will be empty until you add new ones. This cannot be undone.', 'ui_neon_new': 'Neon (new photo)', 'ui_view': 'View', 'ui_v_list': 'List view', 'ui_v_grid': 'Grid view', 'ui_v_style': 'Style view', 'ui_v_style2': 'Style view 2',
             'san_chat_h': 'SANCTUARY CHAT', 'san_chat_rules': '@, .com and phone numbers are blocked — Spirit marketplace.', 'san_chat_translate': 'Translate messages (site language)', 'san_chat_raz': 'Clear thread', 'san_chat_expand': 'Expand chat', 'san_chat_reduce': 'Shrink chat', 'san_chat_raz_confirm': 'Delete all messages in this conversation for both of you?', 'san_chat_raz_nop': 'No conversation selected.', 'san_chat_raz_err': 'Could not clear thread: ', 'san_chat_os_title': 'New message — Sanctuary chat', 'ui_conversation': 'Conversation', 'ui_msg_ph': 'Message…', 'ui_send': 'SEND',
-            'params_h': 'ACCOUNT SETTINGS', 'params_rep_h': 'MY SELLER REPUTATION', 'ship_addr_h': 'SHIPPING ADDRESS', 'ship_ph_last': 'Last name', 'ship_ph_first': 'First name', 'ship_ph_street': 'Address', 'ship_ph_zip': 'Postal code', 'ship_ph_city': 'City', 'ship_ph_country': 'Country',
+            'params_h': 'ACCOUNT SETTINGS', 'params_sub_settings': 'SETTINGS', 'params_sub_onboarding': 'GETTING STARTED', 'params_onboarding_h4': 'Getting started on Spirit Infinity', 'params_onboarding_intro': 'A short tour of the main menus. Replace this copy with your own onboarding doc (params_onboarding_* keys in translations).', 'params_onboarding_body': '1) MARKETPLACE — Browse figure and statue listings, open a product page, wishlist / favorites, buy or make an offer.\n\n2) SELL & CERTIFY — Create a listing (photos, AI flow by method), optional video; on the product page use CT (technical log) for listing-related history.\n\n3) MY ACCOUNT — Dashboard (summary, offers, public profile / sanctuary), messages, purchases, sales, wallet, listings, reviews, wishlist, seller favorites, public sanctuary tab, then Settings.\n\n4) SETTINGS — « Settings » tab: display name, language & currency, browser push, shipping address, seller IBAN, sign out. « Getting started » tab: this guide.\n\n5) FORUM — Community chat; the charter is shown in the forum window.\n\n6) HOT TOYS PREORDERS — Upcoming releases and estimated dates; preorder purchase happens on specialist sites, not on the marketplace.\n\n7) CONTACT & SUPPORT — Official help for account or site issues.\n\n8) SECURITY — Safety reminders.\n\nEnjoy — Spirit Infinity.', 'params_onboarding_replace_hint': 'To paste your own doc: edit params_onboarding_body / intro / h4 in the FR / EN / ES / ZH translation blocks.', 'params_rep_h': 'MY SELLER REPUTATION', 'ship_addr_h': 'SHIPPING ADDRESS', 'ship_ph_last': 'Last name', 'ship_ph_first': 'First name', 'ship_ph_street': 'Address', 'ship_ph_zip': 'Postal code', 'ship_ph_city': 'City', 'ship_ph_country': 'Country',
             'ship_save_btn': 'SAVE ADDRESS', 'ship_save_hint': 'Enter once, reused on every purchase.', 'btn_rib_change': 'ADD / CHANGE ACTIVE IBAN', 'btn_logout': 'LOG OUT',
             'reg_ph_user': 'Username', 'reg_ph_email': 'Email', 'reg_ph_pass': 'Password', 'reg_remember': 'Stay signed in',
             'pm_discuss_hint': 'Discussion · translated to site language', 'pm_clear_thread': 'Clear entire thread', 'pm_chat_ph': 'Your message…', 'pm_chat_ok': 'OK',
@@ -5587,7 +5639,7 @@
             'eval_page_h': 'VALORACIONES', 'eval_page_p1': 'Opiniones en tu perfil público. Puedes responder a cada comentario; la respuesta es visible para todos.', 'eval_page_p2': 'Para valorar a alguien, usa el flujo tras una transacción (ventana de valoración o notificación).', 'eval_clear_all_btn': 'BORRAR TODO EL FEED',
             'san_acc_h': 'SANTUARIO', 'san_acc_p': 'Galería neón — hasta 15 piezas (bucket Storage sanctuary).', 'san_acc_clear_all_btn': 'BORRAR TODAS LAS FOTOS', 'san_acc_clear_all_confirm': '¿Eliminar todas las fotos de tu Santuario (cuenta)? La galería pública quedará vacía hasta que subas otras. No se puede deshacer.', 'ui_neon_new': 'Neón (foto nueva)', 'ui_view': 'Vista', 'ui_v_list': 'Vista lista', 'ui_v_grid': 'Vista cuadrícula', 'ui_v_style': 'Vista estilo', 'ui_v_style2': 'Vista estilo 2',
             'san_chat_h': 'CHAT DEL SANTUARIO', 'san_chat_rules': '@, .com y teléfonos bloqueados — marketplace Spirit.', 'san_chat_translate': 'Traducir mensajes (idioma del sitio)', 'san_chat_raz': 'Borrar hilo', 'san_chat_expand': 'Ampliar chat', 'san_chat_reduce': 'Reducir chat', 'san_chat_raz_confirm': '¿Eliminar todos los mensajes de esta conversación para ambos?', 'san_chat_raz_nop': 'No hay conversación seleccionada.', 'san_chat_raz_err': 'No se pudo borrar el hilo: ', 'san_chat_os_title': 'Nuevo mensaje — Santuario', 'ui_conversation': 'Conversación', 'ui_msg_ph': 'Mensaje…', 'ui_send': 'ENVIAR',
-            'params_h': 'AJUSTES DE LA CUENTA', 'params_rep_h': 'MI REPUTACIÓN COMO VENDEDOR', 'ship_addr_h': 'DIRECCIÓN POSTAL (ENVÍO)', 'ship_ph_last': 'Apellido', 'ship_ph_first': 'Nombre', 'ship_ph_street': 'Dirección', 'ship_ph_zip': 'Código postal', 'ship_ph_city': 'Ciudad', 'ship_ph_country': 'País',
+            'params_h': 'AJUSTES DE LA CUENTA', 'params_sub_settings': 'AJUSTES', 'params_sub_onboarding': 'INICIO RÁPIDO', 'params_onboarding_h4': 'Primeros pasos en Spirit Infinity', 'params_onboarding_intro': 'Resumen de menús y flujo típico. Sustituye estos textos por tu guía (claves params_onboarding_*).', 'params_onboarding_body': '1) MARKETPLACE — Anuncios de figuras y estatuas, ficha, favoritos / lista de deseos, compra u oferta.\n\n2) VENDER & CERTIFICAR — Publicar (fotos, IA según método), vídeo opcional; en la ficha: CT (registro técnico).\n\n3) MI CUENTA — Panel, mensajes, compras, ventas, cartera, anuncios, valoraciones, lista de deseos, favoritos recibidos, santuario público, Ajustes.\n\n4) AJUSTES — Pestaña « Ajustes »: alias, idioma y divisa, notificaciones, dirección, IBAN, cierre de sesión. Pestaña « Inicio rápido »: esta guía.\n\n5) FORO — Chat comunitario; la carta está en la ventana del foro.\n\n6) PREPEDIDOS HOT TOYS — Fechas estimadas; la compra del preorder es en tiendas especializadas, no en el market.\n\n7) CONTACTO & SOPORTE — Ayuda oficial.\n\n8) SEGURIDAD — Recordatorios.\n\n¡Buena colección! — Spirit Infinity.', 'params_onboarding_replace_hint': 'Para tu dossier: edita params_onboarding_body / intro / h4 en FR / EN / ES / ZH.', 'params_rep_h': 'MI REPUTACIÓN COMO VENDEDOR', 'ship_addr_h': 'DIRECCIÓN POSTAL (ENVÍO)', 'ship_ph_last': 'Apellido', 'ship_ph_first': 'Nombre', 'ship_ph_street': 'Dirección', 'ship_ph_zip': 'Código postal', 'ship_ph_city': 'Ciudad', 'ship_ph_country': 'País',
             'ship_save_btn': 'GUARDAR DIRECCIÓN', 'ship_save_hint': 'Una sola vez; se reutiliza en cada compra.', 'btn_rib_change': 'AÑADIR / CAMBIAR IBAN ACTIVO', 'btn_logout': 'CERRAR SESIÓN',
             'reg_ph_user': 'Usuario', 'reg_ph_email': 'Correo', 'reg_ph_pass': 'Contraseña', 'reg_remember': 'Permanecer conectado',
             'pm_discuss_hint': 'Discusión · traducción según idioma del sitio', 'pm_clear_thread': 'Borrar todo el hilo', 'pm_chat_ph': 'Tu mensaje…', 'pm_chat_ok': 'OK',
@@ -5720,7 +5772,7 @@
             'eval_page_h': '评价', 'eval_page_p1': '公开资料上收到的评价。你可以逐条回复；回复对所有人可见。', 'eval_page_p2': '要给他人评分，请在交易后使用评价流程（评价窗口或通知）。', 'eval_clear_all_btn': '清空全部动态',
             'san_acc_h': '圣地', 'san_acc_p': '黑底霓虹画廊 — 最多 15 件（Storage sanctuary 桶）。', 'san_acc_clear_all_btn': '删除全部照片', 'san_acc_clear_all_confirm': '删除账户圣地中的所有照片？公开圣地也会变空，直到重新上传。此操作不可撤销。', 'ui_neon_new': '霓虹（新照片）', 'ui_view': '视图', 'ui_v_list': '列表视图', 'ui_v_grid': '网格视图', 'ui_v_style': '风格视图', 'ui_v_style2': '风格视图 2',
             'san_chat_h': '圣地聊天', 'san_chat_rules': '@、.com 与电话号码已屏蔽 — Spirit 市场。', 'san_chat_translate': '翻译消息（网站语言）', 'san_chat_raz': '清空会话', 'san_chat_expand': '放大聊天', 'san_chat_reduce': '缩小聊天', 'san_chat_raz_confirm': '删除此会话中双方的所有消息？', 'san_chat_raz_nop': '未选择会话。', 'san_chat_raz_err': '无法清空会话：', 'san_chat_os_title': '新消息 — 圣地聊天', 'ui_conversation': '会话', 'ui_msg_ph': '消息…', 'ui_send': '发送',
-            'params_h': '账户设置', 'params_rep_h': '我的卖家信誉', 'ship_addr_h': '收货地址', 'ship_ph_last': '姓', 'ship_ph_first': '名', 'ship_ph_street': '地址', 'ship_ph_zip': '邮编', 'ship_ph_city': '城市', 'ship_ph_country': '国家',
+            'params_h': '账户设置', 'params_sub_settings': '常规设置', 'params_sub_onboarding': '新手指南', 'params_onboarding_h4': 'Spirit Infinity 快速上手', 'params_onboarding_intro': '主要菜单与典型流程概览。可将正文替换为你的上手文档（translations 中的 params_onboarding_*）。', 'params_onboarding_body': '1) 市场 — 浏览人偶/雕像上架，打开详情，心愿单/收藏，购买或出价。\n\n2) 出售与认证 — 发布上架（照片、按方式的 AI 流程）、可选视频；详情页的 CT 可查看与该上架相关的记录。\n\n3) 我的账户 — 仪表盘、消息、购买、销售、钱包、上架、评价、心愿单、卖家收到的收藏、公开圣地，再到设置。\n\n4) 设置 —「常规设置」：昵称、语言与货币、浏览器通知、收货地址、卖家 IBAN、退出。「新手指南」：本页内容。\n\n5) 论坛 — 社区交流；守则见论坛窗口。\n\n6) Hot Toys 预订 — 发售与预计日期；预订购买在专门网站完成，不在本市场内。\n\n7) 联系与支持 — 账户或站点问题的官方协助。\n\n8) 安全 — 安全提示。\n\n祝使用愉快 — Spirit Infinity。', 'params_onboarding_replace_hint': '替换为你的文档：编辑各语言块中的 params_onboarding_body / intro / h4。', 'params_rep_h': '我的卖家信誉', 'ship_addr_h': '收货地址', 'ship_ph_last': '姓', 'ship_ph_first': '名', 'ship_ph_street': '地址', 'ship_ph_zip': '邮编', 'ship_ph_city': '城市', 'ship_ph_country': '国家',
             'ship_save_btn': '保存地址', 'ship_save_hint': '填写一次，每次购买复用。', 'btn_rib_change': '添加 / 更换有效 IBAN', 'btn_logout': '退出登录',
             'reg_ph_user': '用户名', 'reg_ph_email': '邮箱', 'reg_ph_pass': '密码', 'reg_remember': '保持登录',
             'pm_discuss_hint': '讨论 · 按网站语言自动翻译', 'pm_clear_thread': '清空整个会话', 'pm_chat_ph': '输入消息…', 'pm_chat_ok': '确定',
@@ -17320,6 +17372,22 @@ function spiritAccountAccordionReveal(tab) {
 }
 try { window.spiritAccountAccordionReveal = spiritAccountAccordionReveal; } catch (eW) {}
 
+function spiritAccountParamsShowSub(which) {
+    var main = document.getElementById('spiritParamsMainBlock');
+    var ob = document.getElementById('spiritParamsOnboardingBlock');
+    if (!main || !ob) return;
+    which = String(which || 'main').toLowerCase();
+    var showOnb = which === 'onboarding';
+    main.style.display = showOnb ? 'none' : 'block';
+    ob.style.display = showOnb ? 'block' : 'none';
+    document.querySelectorAll('#tab-params .spirit-params-subtab').forEach(function (b) {
+        var sub = String(b.getAttribute('data-params-sub') || '');
+        var on = showOnb ? (sub === 'onboarding') : (sub === 'main');
+        b.classList.toggle('active', !!on);
+    });
+}
+try { window.spiritAccountParamsShowSub = spiritAccountParamsShowSub; } catch (eP) {}
+
 window.showAccountTab = function showAccountTab(tab) {
    
     // AJOUT : Sécurité ID avant chargement
@@ -17459,6 +17527,7 @@ window.showAccountTab = function showAccountTab(tab) {
     }
     if (tab === 'params') {
         console.log("[SPIRIT SYSTEM] Accès paramètres");
+        try { if (typeof spiritAccountParamsShowSub === 'function') spiritAccountParamsShowSub('main'); } catch (ePs) {}
         try { if (typeof spiritRenderRibDisplay === 'function') spiritRenderRibDisplay(); } catch (eR) {}
         try { if (typeof spiritRenderShippingAddressForm === 'function') spiritRenderShippingAddressForm(); } catch (eA) {}
         try { void spiritSyncAccountCountrySelectFromUser(); } catch (eCo) {}
