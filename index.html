@@ -11404,7 +11404,11 @@ function spiritShowListingPublishSuccess(opts) {
         '<button type="button" class="spirit-publish-success-btn-ghost" data-spirit-pub-act="close">' + esc(btnOk) + '</button>' +
         '</div></div>';
     root.onclick = function () { close(); };
-    root.querySelectorAll('[data-spirit-pub-act]').forEach(function (btn) {
+    var actBtns = root.querySelectorAll('[data-spirit-pub-act]');
+    var forEachBtn = (typeof actBtns.forEach === 'function')
+        ? function (fn) { actBtns.forEach(fn); }
+        : function (fn) { for (var bi = 0; bi < actBtns.length; bi++) fn(actBtns[bi]); };
+    forEachBtn(function (btn) {
         btn.onclick = function (ev) {
             ev.stopPropagation();
             var a = btn.getAttribute('data-spirit-pub-act');
@@ -11432,6 +11436,24 @@ function spiritShowListingPublishSuccess(opts) {
     } catch (eF) {}
 }
 try { window.spiritShowListingPublishSuccess = spiritShowListingPublishSuccess; } catch (eS) {}
+
+/** Batterie affichée panneau hardware — sur mobile / sans ledger le nœud peut être absent (évite crash après publish). */
+function spiritReadLedgerBatteryPercentFallback() {
+    try {
+        if (typeof batteryLevelPercent === 'number' && Number.isFinite(batteryLevelPercent)) {
+            return Math.round(batteryLevelPercent);
+        }
+    } catch (eB) {}
+    try {
+        var el = document.getElementById('ctrl-batt');
+        if (!el) return 0;
+        var t = String(el.textContent != null ? el.textContent : (el.innerText != null ? el.innerText : ''));
+        var n = parseInt(t, 10);
+        return Number.isFinite(n) ? n : 0;
+    } catch (eEl) {
+        return 0;
+    }
+}
 
 /**
  * Poster une annonce : products_lives + spirit_ledger + ledger_items (pas de transactions).
@@ -11921,19 +11943,28 @@ async function publierAnnonce() {
         const liRow = {
             mac_address: macID,
             model_name: modelNameForLedger,
-            battery_health: (typeof batteryLevelPercent === 'number' ? Math.round(batteryLevelPercent) : (parseInt(document.getElementById('ctrl-batt').innerText, 10) || 0)),
+            battery_health: spiritReadLedgerBatteryPercentFallback(),
             last_seen: new Date().toISOString(),
             is_certified: true,
             needs_pulse_alert: false
         };
-        const { error: liErr } = await _spirit.from('ledger_items').upsert([liRow], { onConflict: 'mac_address' });
-        if (liErr) console.warn('[SPIRIT] ledger_items (annonce):', liErr.message);
+        try {
+            const { error: liErr } = await _spirit.from('ledger_items').upsert([liRow], { onConflict: 'mac_address' });
+            if (liErr) console.warn('[SPIRIT] ledger_items (annonce):', liErr.message);
+        } catch (eLiUp) {
+            try { console.warn('[SPIRIT] ledger_items (annonce) exception:', eLiUp && eLiUp.message ? eLiUp.message : eLiUp); } catch (eL2) {}
+        }
 
         (function () {
             var _pi = (photoUrls && photoUrls[0]) ? String(photoUrls[0]).trim() : '';
             if (_pi.indexOf('data:') === 0) _pi = '';
             var _ps = (typeof spiritFormatMoney === 'function') ? spiritFormatMoney(Number(price), saleCurrency) : (Number(price).toFixed(2) + ' ' + saleCurrency);
-            spiritShowListingPublishSuccess({ mode: 'create', title: title, priceStr: _ps, imageUrl: _pi });
+            try {
+                spiritShowListingPublishSuccess({ mode: 'create', title: title, priceStr: _ps, imageUrl: _pi });
+            } catch (eSucc) {
+                try { console.warn('[SPIRIT] succès publication UI:', eSucc && eSucc.message ? eSucc.message : eSucc); } catch (eS2) {}
+                try { alert((typeof spiritT === 'function' ? spiritT('cert_pub_insert_ok') : 'ANNONCE PUBLIÉE !') + '\n\n' + String(title || '')); } catch (eA) {}
+            }
         })();
         try { if (typeof spiritCertVideoResetAfterPublish === 'function') spiritCertVideoResetAfterPublish(); } catch (eVzIns) {}
 
@@ -13463,14 +13494,17 @@ async function spiritLoadListingMessagesForProduct(productId) {
     function spiritCtWriteEventsLocal(rows) {
         try { localStorage.setItem(SPIRIT_CT_EVENTS_LS_KEY, JSON.stringify(Array.isArray(rows) ? rows : [])); } catch (e) {}
     }
-    /** Clé sémantique : même événement copié local + Supabase (id côté serveur seulement) partage la même clé. */
+    function spiritCtTraceNorm(t) {
+        return String(t || '').trim().toLowerCase();
+    }
+    /** Clé sémantique : même événement local + Supabase ; seconde arrondie évite doublon ms différentes. */
     function spiritCtSecondaryDedupeKey(r) {
         if (!r) return '';
         var ts = new Date(r.created_at || 0).getTime();
-        var tsMs = Number.isFinite(ts) ? ts : 0;
+        var tsSec = Number.isFinite(ts) ? Math.floor(ts / 1000) : 0;
         var pid = r.product_id != null && Number.isFinite(Number(r.product_id)) ? String(Number(r.product_id)) : '';
         return [
-            tsMs,
+            tsSec,
             String(r.event_type || 'sale').toLowerCase(),
             String(r.seller_id || '').trim(),
             String(r.buyer_id || '').trim(),
@@ -13534,7 +13568,8 @@ async function spiritLoadListingMessagesForProduct(productId) {
         } catch (eRpc) {}
         var acc = [];
         try {
-            if (fk) {
+            /* Pas de select figure_key seul : réinjecterait l’historique d’anciennes annonces / traces supprimées. */
+            if (fk && !tid && pid == null) {
                 var q1 = await _spirit.from('spirit_figure_ct_events').select('*').eq('figure_key', fk).order('created_at', { ascending: true }).limit(260);
                 if (q1.error) try { console.warn('[SPIRIT CT] select figure_key:', q1.error); } catch (e1) {}
                 if (!q1.error && Array.isArray(q1.data)) acc = acc.concat(q1.data);
@@ -13700,10 +13735,10 @@ async function spiritLoadListingMessagesForProduct(productId) {
             return;
         }
         var remoteRows = await spiritCtFetchEventsFromSupabase(key, traceOpen, pidOpen);
+        var traceNormOpen = spiritCtTraceNorm(traceOpen);
         var localRows = spiritCtReadEventsLocal().filter(function (r) {
             if (!r) return false;
-            if (key && String(r.figure_key || '') === key) return true;
-            if (traceOpen && String(r.trace_id || '').trim() === traceOpen) return true;
+            if (traceNormOpen && spiritCtTraceNorm(r.trace_id) === traceNormOpen) return true;
             if (pidOpen != null && r.product_id != null && Number(r.product_id) === Number(pidOpen)) return true;
             return false;
         });
@@ -26556,37 +26591,6 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
