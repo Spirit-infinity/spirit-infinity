@@ -17711,6 +17711,8 @@ var spiritPublicAnnoncesSessionRows = Object.create(null);
 var SPIRIT_PUBLIC_PROFILE_CACHE_TTL_MS = 5 * 60 * 1000;
 var SPIRIT_PUBLIC_IASCORE_CACHE_TTL_MS = 5 * 60 * 1000;
 var spiritSanctuaryItemsInFlight = Object.create(null);
+/** Incrémenté à chaque spiritSanctuaryRender — abandonne les rendus obsolètes après await (évite grilles doublées). */
+var spiritSanctuaryRenderSeq = { public: 0, account: 0 };
 
 function spiritSanSocialCanUseSupabase() {
     return !!(spiritSanSocialSupabaseEnabled && _spirit);
@@ -21033,6 +21035,24 @@ async function spiritPublicLoadAnnonces(uid, opts) {
         renderAnnonceRows(rows);
     }
 }
+function spiritSanctuaryDedupeSanctuaryItemRows(rows) {
+    if (!Array.isArray(rows)) return [];
+    var seen = Object.create(null);
+    var out = [];
+    for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        if (!r) continue;
+        var k = String(r.id != null ? r.id : '').trim();
+        if (!k) {
+            out.push(r);
+            continue;
+        }
+        if (seen[k]) continue;
+        seen[k] = true;
+        out.push(r);
+    }
+    return out;
+}
 async function spiritSanctuaryFetchItems(uid, viewerIsOwner) {
     if (typeof _spirit === 'undefined' || !_spirit) return [];
     uid = String(uid || '').trim();
@@ -21040,14 +21060,15 @@ async function spiritSanctuaryFetchItems(uid, viewerIsOwner) {
     viewerIsOwner = !!viewerIsOwner;
     var sKey = spiritSanctuarySessionCacheKey(uid, viewerIsOwner);
     if (viewerIsOwner && spiritSanctuaryItemsSessionRows[sKey] && Array.isArray(spiritSanctuaryItemsSessionRows[sKey])) {
-        return spiritSanctuaryItemsSessionRows[sKey].slice();
+        return spiritSanctuaryDedupeSanctuaryItemRows(spiritSanctuaryItemsSessionRows[sKey].slice());
     }
     var cKey = viewerIsOwner ? spiritSanctuaryItemsCacheKeyOwn(uid) : spiritSanctuaryItemsCacheKeyPub(uid);
     var ttlMs = viewerIsOwner ? SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS : SPIRIT_SANCTUARY_ITEMS_CACHE_TTL_MS_PUB;
     var cached = spiritLsCacheRead(cKey, ttlMs);
     if (Array.isArray(cached)) {
-        spiritSanctuaryItemsSessionRows[sKey] = cached;
-        return cached;
+        var cachedDedup = spiritSanctuaryDedupeSanctuaryItemRows(cached);
+        spiritSanctuaryItemsSessionRows[sKey] = cachedDedup;
+        return cachedDedup;
     }
     var flightKey = uid + '|' + (viewerIsOwner ? 'own' : 'pub');
     if (spiritSanctuaryItemsInFlight[flightKey]) return spiritSanctuaryItemsInFlight[flightKey];
@@ -21067,13 +21088,17 @@ async function spiritSanctuaryFetchItems(uid, viewerIsOwner) {
                 sort_order: (so != null && so !== '') ? Number(so) : 0
             };
         });
+        rows = spiritSanctuaryDedupeSanctuaryItemRows(rows);
         spiritLsCacheWrite(cKey, rows);
         return rows;
     } catch (e) { return []; }
     })();
     var rowsOut = await spiritSanctuaryItemsInFlight[flightKey];
     delete spiritSanctuaryItemsInFlight[flightKey];
-    if (Array.isArray(rowsOut)) spiritSanctuaryItemsSessionRows[sKey] = rowsOut;
+    if (Array.isArray(rowsOut)) {
+        rowsOut = spiritSanctuaryDedupeSanctuaryItemRows(rowsOut);
+        spiritSanctuaryItemsSessionRows[sKey] = rowsOut;
+    }
     return rowsOut;
 }
 async function spiritSanctuaryMarkReadForOwner(uid) {
@@ -21298,6 +21323,8 @@ async function spiritSanctuaryApplyPublicGlobalNeon(hex) {
 }
 async function spiritSanctuaryRender(ctx) {
     ctx = ctx === 'account' ? 'account' : 'public';
+    spiritSanctuaryRenderSeq[ctx] = (spiritSanctuaryRenderSeq[ctx] || 0) + 1;
+    var sanRun = spiritSanctuaryRenderSeq[ctx];
     var uid = spiritSanctuaryUid(ctx);
     var d = spiritSanctuaryDom(ctx);
     var grid = document.getElementById(d.grid);
@@ -21316,6 +21343,7 @@ async function spiritSanctuaryRender(ctx) {
     var isPublicVisitor = ctx === 'public' && !isOwner;
     var sanPubOwnerGlobalNeon = (ctx === 'public' && isOwner);
     var items = await spiritSanctuaryFetchItems(uid, isOwner);
+    if (spiritSanctuaryRenderSeq[ctx] !== sanRun) return;
     // Tableau des URLs déjà chargées (pour navigation Lightbox sans re-requête Supabase)
     var sanctuaryImageSrcs = items.map(function (x) { return x && x.src ? x.src : ''; }).filter(Boolean);
     var vm = spiritSanctuaryViewModeGet(ctx);
@@ -21328,17 +21356,8 @@ async function spiritSanctuaryRender(ctx) {
     else if (vm === 'icons-lg') modeClass = 'spirit-san-mode-icons-lg';
     else if (vm === 'style' || vm === 'insta') modeClass = 'spirit-san-mode-style';
     else if (vm === 'style2') modeClass = 'spirit-san-mode-style2';
-    grid.className = modeClass;
-    grid.innerHTML = '';
-    if (isOwner && ctx !== 'public' && items.length < 15) {
-        var add = document.createElement('div');
-        add.className = 'spirit-san-add-tile';
-        add.setAttribute('title', sanT('san_add_title'));
-        add.innerHTML = '+';
-        add.onclick = function () { document.getElementById(d.file).click(); };
-        grid.appendChild(add);
-    }
     try { await spiritSanctuaryLoadSocialCache(uid, items.map(function (x) { return x && x.id; }), actorIdSan); } catch (eSocLoad) {}
+    if (spiritSanctuaryRenderSeq[ctx] !== sanRun) return;
     var socialUids = [];
     items.forEach(function (it) {
         var iid = it && it.id;
@@ -21354,6 +21373,17 @@ async function spiritSanctuaryRender(ctx) {
     });
     var socialPseudoMap = Object.create(null);
     try { socialPseudoMap = await spiritSanctuaryResolvePseudoMap(socialUids); } catch (ePm) {}
+    if (spiritSanctuaryRenderSeq[ctx] !== sanRun) return;
+    grid.className = modeClass;
+    grid.innerHTML = '';
+    if (isOwner && ctx !== 'public' && items.length < 15) {
+        var add = document.createElement('div');
+        add.className = 'spirit-san-add-tile';
+        add.setAttribute('title', sanT('san_add_title'));
+        add.innerHTML = '+';
+        add.onclick = function () { document.getElementById(d.file).click(); };
+        grid.appendChild(add);
+    }
     var listLike = vm === 'list' || vm === 'details';
     var neonOpts = [['#ff6600', 'Orange Spirit'], ['#00ff88', 'Vert'], ['#00ccff', 'Cyan'], ['#ff00aa', 'Magenta'], ['#ffffff', 'Blanc'], ['#ffcc00', 'Or']];
     function spiritSanctuaryNeonToRgba(hex, a) {
