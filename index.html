@@ -13604,6 +13604,86 @@ async function spiritLoadListingMessagesForProduct(productId) {
         var merged = Object.keys(byKey).map(function (k) { return byKey[k]; });
         return non.concat(merged);
     }
+    /**
+     * Fusionne les listed « même annonce » quand une ligne a product_id et l’autre seulement trace_id,
+     * ou quand figure_key / seller diffèrent légèrement (local vs serveur). Utilise le pid/trace de la fiche ouverte.
+     */
+    function spiritCtMergeListedDuplicatesForProductContext(rows, pidOpen, traceOpen) {
+        var tnorm = spiritCtTraceNorm(traceOpen);
+        var pidN = pidOpen != null && Number.isFinite(Number(pidOpen)) ? Number(pidOpen) : null;
+        if (!Array.isArray(rows) || rows.length < 2) return rows;
+        var listedIx = [];
+        var i;
+        for (i = 0; i < rows.length; i++) {
+            if (rows[i] && String(rows[i].event_type || '').toLowerCase() === 'listed') listedIx.push(i);
+        }
+        if (listedIx.length < 2) return rows;
+        function rowTouchesOpen(r) {
+            if (!r) return false;
+            if (pidN != null && r.product_id != null && Number.isFinite(Number(r.product_id)) && Number(r.product_id) === pidN) return true;
+            if (tnorm) {
+                var tr = spiritCtTraceNorm(r.trace_id);
+                if (tr && tr === tnorm) return true;
+            }
+            return false;
+        }
+        function listedPairsDup(a, b) {
+            if (!a || !b) return false;
+            var pA = a.product_id != null && Number.isFinite(Number(a.product_id)) ? Number(a.product_id) : null;
+            var pB = b.product_id != null && Number.isFinite(Number(b.product_id)) ? Number(b.product_id) : null;
+            var tA = spiritCtTraceNorm(a.trace_id);
+            var tB = spiritCtTraceNorm(b.trace_id);
+            if (pA != null && pB != null && pA === pB) return true;
+            if (tA && tB && tA === tB) return true;
+            if (rowTouchesOpen(a) && rowTouchesOpen(b)) return true;
+            return false;
+        }
+        var parent = {};
+        function find(x) {
+            if (parent[x] === undefined) parent[x] = x;
+            if (parent[x] !== x) parent[x] = find(parent[x]);
+            return parent[x];
+        }
+        function union(x, y) {
+            var rx = find(x), ry = find(y);
+            if (rx !== ry) parent[ry] = rx;
+        }
+        for (i = 0; i < listedIx.length; i++) {
+            var li0 = listedIx[i];
+            if (parent[li0] === undefined) parent[li0] = li0;
+        }
+        var j;
+        for (i = 0; i < listedIx.length; i++) {
+            for (j = i + 1; j < listedIx.length; j++) {
+                if (listedPairsDup(rows[listedIx[i]], rows[listedIx[j]])) union(listedIx[i], listedIx[j]);
+            }
+        }
+        var rep = Object.create(null);
+        for (i = 0; i < listedIx.length; i++) {
+            var ix = listedIx[i];
+            var root = find(ix);
+            var rk = String(root);
+            rep[rk] = rep[rk] ? spiritCtPickBetterCtRow(rep[rk], rows[ix]) : rows[ix];
+        }
+        var newRows = [];
+        var seenRoot = Object.create(null);
+        for (i = 0; i < rows.length; i++) {
+            var r = rows[i];
+            if (!r || String(r.event_type || '').toLowerCase() !== 'listed') {
+                newRows.push(r);
+                continue;
+            }
+            var rt = find(i);
+            var rks = String(rt);
+            if (seenRoot[rks]) continue;
+            seenRoot[rks] = true;
+            newRows.push(rep[rks]);
+        }
+        newRows.sort(function (a, b) {
+            return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        });
+        return newRows;
+    }
     /** Clé sémantique : même événement local + Supabase ; seconde arrondie évite doublon ms différentes. */
     function spiritCtSecondaryDedupeKey(r) {
         if (!r) return '';
@@ -13862,6 +13942,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
             return false;
         });
         var rows = spiritCtDedupeCtEventRows(localRows.concat(remoteRows));
+        rows = spiritCtMergeListedDuplicatesForProductContext(rows, pidOpen, traceOpen);
         if (!rows.length) {
             wrap.style.display = 'none';
             try { btn.classList.remove('spirit-ct-btn-blink'); } catch (eB1) {}
