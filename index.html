@@ -1800,6 +1800,18 @@
         /* SECTION ACCOUNT PAGES */
         .account-page { display: none; }
         .account-page.active { display: block; }
+        #accountModal .spirit-account-onboarding-scroll {
+            margin-top: 10px;
+            padding: 14px 16px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+            max-height: min(68vh, 720px);
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 0.64rem;
+            color: #c8c8c8;
+            line-height: 1.5;
+        }
         /* Même largeur de colonne que « Portefeuille » (blocs compacts, centrés dans .dash-content) */
         #accountModal .dash-content #tab-portefeuille,
         #accountModal .dash-content #tab-achats,
@@ -4551,6 +4563,7 @@
                 <button type="button" id="btn-liste-envie" role="tab" aria-expanded="false" aria-controls="tab-liste-envie" onclick="showAccountTab('liste-envie')"><span data-key="account_wishlist_menu">LISTE D’ENVIE</span><span id="favorites-tab-sold" class="spirit-fav-menu-sold" data-key="fav_sold" aria-hidden="true"></span><span id="favorites-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-favoris-recus" role="tab" aria-expanded="false" aria-controls="tab-favoris-recus" onclick="showAccountTab('favoris-recus')"><span data-key="account_seller_fav_menu">FAVORIS</span><span id="seller-received-fav-tab-dot" class="spirit-tab-notif" aria-hidden="true"></span></button>
                 <button type="button" id="btn-params" role="tab" aria-expanded="false" aria-controls="tab-params" onclick="showAccountTab('params')"><span data-key="account_tab_settings">PARAMÈTRES</span></button>
+                <button type="button" id="btn-prise-en-main" role="tab" aria-expanded="false" aria-controls="tab-prise-en-main" onclick="showAccountTab('prise-en-main')"><span data-key="account_tab_onboarding">PRISE EN MAIN</span></button>
             </div>
             
             <div class="dash-content">
@@ -4774,6 +4787,93 @@
     </div>
     <button class="btn-action" style="margin-top:10px; font-size:0.7rem;" onclick="changeRIB()" data-key="btn_rib_change">METTRE / CHANGER UN RIB ACTIF</button>
     <button class="btn-action" style="margin-top:10px; font-size:0.7rem; background:#222; color:#fff; border:1px solid #555;" onclick="spiritLogout()" data-key="btn_logout">DÉCONNEXION</button>
+</div>
+
+<div id="tab-prise-en-main" class="account-page">
+    <h3 data-key="account_onboarding_h">PRISE EN MAIN</h3>
+    <div class="spirit-account-onboarding-scroll">Spirit Infinity — fonctionnement du site 
+Compte et connexion
+Tu crées un compte ou te connectes pour accéder à ton espace personnel : annonces, favoris, messages, évaluations, sanctuaire (galerie), et les réglages liés à ton profil public.
+
+Marketplace
+C’est la vitrine des annonces : tu parcours les figurines/statues (et catégories prévues), filtres et cartes avec photos, prix, état, etc. Tu peux mettre des annonces en favoris, ouvrir une fiche pour voir le détail (photos, description, contrôle technique, prix, livraison, vendeur, estimation des frais de douane).
+
+Publier / gérer tes annonces
+Tu peux publier une annonce avec photos et infos (produit, état, expédition, etc.). Tes annonces apparaissent sur le marché et dans « mes annonces » ; tu peux les modifier ou retirer selon les règles du flux (par ex. statut visible / masqué pour une absence).
+
+         . Publier: photos (obligatoires côté pratique)
+Le formulaire prévoit 5 emplacements (PHOTO 1 à 5), dans l’esprit Spirit Guard : couvrir la pièce sous plusieurs angles (visuellement : tête, corps, accessoires, boîte, carton.
+À la publication d’une nouvelle annonce, le site impose au minimum 3 photos vendeur valides  pour publier une annonce » et la publication si non elle sera bloquée. Bien remplir tous les champs nom de la figurine/statue, là marque, là référence le prix, le lieu d&#x27;envoie, fumeur ou non, carton brun ou non, à l&#x27;abris de la lumière etc.... ce qui donnera naissance a votre contrôle technique 
+
+          . Vidéo d’annonce (optionnelle) 
+Durée max : 20 secondes (sinon erreur explicite).
+Poids cible : après compression côté navigateur, la vidéo doit tenir dans une limite d’environ 16 Mo ; sinon message du type « compression encore trop lourde » / « max ~16 Mo » 
+La compression vise un MP4 pratique pour le web ; l’interface rappelle qu’une vidéo 4K / trop lourde peut échouer — astuce type 720p ou passage par WhatsApp puis réimport .
+Sur la fiche produit ouverte : la vidéo de l’annonce peut s’afficher dans le détail (libellé type « Vidéo annonce »). Elle complète les photos pour le contrôle visuel ; elle n’annule pas l’obligation des photos (min. 3 à la création).
+
+            .CT (Contrôle technique) : bouton « CT (Contrôle technique) » sur la fiche → panneau qui affiche l’historique / trace lié à l’annonce (événements type mise en ligne, etc., selon données). Ce n’est pas un « second menu caché » : c’est sur la fiche, après ouverture de l’annonce.
+
+          .
+Fiche produit et achat
+Sur une annonce, le détail regroupe galerie photos, vidéo, infos logistiques (taille d’envoi, transporteur si proposé), et le chemin vers le paiement ou faire offre . Les éléments « confiance » (certificat, signaux, historique de contrôle technique côté annonce) visent à rassurer sur l’authenticité et le suivi.
+
+Profil public
+Chaque utilisateur peut avoir une page publique : pseudo, lien à partager, onglets du type annonces visibles et Sanctuaire (galerie photos style vitrine). Des options comme masquer temporairement les annonces du marché pendant une absence peuvent exister pour le propriétaire du compte.
+
+Sanctuaire
+Galerie personnelle (photos « collection » / mise en scène). En consultation, tu ouvres une image en grand, tu peux défiler entre les photos (flèches, clavier ou glissement sur mobile).Le chat public rattaché au sanctuaire permet d’échanger sur le profil .tu peux laisser commentaire et like sur chaqu&#x27;une des photos d un sanctuaire tu peux t abonné a d autre sanctuaire.  
+
+Messagerie et social léger
+Des fils de messages / notifications peuvent être liés aux annonces, au profil ou au sanctuaire (likes, commentaires, alertes), pour que vendeur et acheteurs ou visiteurs restent en contact dans l’app. Chaque fils de messages est sécurisé 
+
+Liste d’envie (wishlist) vs Favoris 
+
+Mon compte → onglet du type « LISTE D’ENVIE ».
+Ce que tu ajoutes avec le cœur sur le marché y est recensé ; la Whishlist tu peux aussi enregistrer des recherches / filtres (marque, nom, ref, prix max, état, zone) pour des alertes. Le site de proposera Maximum 6 annonces qui corresponde a ta recherche si tu met une figurine qui n&#x27;est pas présente sur le site laisse ta wishlist et le site te dira quand une annonce sera en ligne par rapport a ta recherche 
+Effet côté vendeur : le site indique que le vendeur est averti dans Mon compte → Favoris (pastille / animation), car techniquement l’ajout cœur passe par la même famille de données « favoris » que le vendeur consulte.
+Favoris reçus (vendeur)
+
+Mon compte → onglet du type « FAVORIS » / cœurs reçus : tu vois qui s’intéresse à tes annonces (notifications associées).
+En résumé pour un novice : cœur = « je garde ça sous le coude » + le vendeur peut voir l’intérêt dans ses favoris ; liste d’envie = ton tableau de bord acheteur + alertes sur tes critères.
+
+le forum 
+Le forum est l’espace d’échange de la communauté : ce n’est pas le marché, c’est le lieu où l’on parle, s’entraide et partage autour des figurines et statues de collection.
+
+Concrètement, il sert à :
+
+Poser des questions : état d’une pièce, différences entre versions, conseils d’entretien ou de transport, doutes avant un achat, problème avec une commande (sans remplacer le support officiel quand il s’agit d’un dossier personnel).
+Partager du savoir : tutos, retours d’expérience, photos de mise en scène, comparatifs — ce que le fil d’annonces ne permet pas de développer.
+Faire vivre la communauté : présentations, débats calmes, veille sur les sorties ou rumeurs, ambiance « club » autour d’une même passion.
+Compléter le marketplace : sur le marché on achète et vend ; sur le forum on discute. Ça évite de saturer les annonces avec des conversations longues et garde des échanges plus lisibles pour tout le monde.
+En une phrase : le forum sert à apprendre, aider et échanger entre collectionneurs, pendant que le marché sert à trouver et conclure une transaction dans le cadre prévu par la plateforme.
+
+
+ Paiement / achat 
+Pas de réservation au sens « je bloque la figurine X jours sans payer ».
+La fiche propose l’achat (bouton type ACHAT DIRECT) et faire une offre ; les fonds sont en séquestre jusqu’à réception, protection Spirit Guard 8 % (pourcentages affichés sur les écrans concernés). Les détails exacts (délais, litige sous 24h, etc.) sont ceux affichés dans paiement / support au moment de l’action.
+
+
+ Litige visible par tout le monde
+Sur certaines cartes marché, un macaron / pastille « litige » peut apparaître quand le vendeur ou l&#x27;acheteur a un litige ouvert.
+Tout visiteur peut cliquer dessus : s’ouvre une fenêtre « Litiges visibles » avec pour chaque dossier : titre de transaction, vendeur / acheteur, montant, statut, raison / texte du litige, date — c’est volontairement transparent pour que n’importe qui comprenne le contexte public du conflit.
+Où ? Sur la carte du marché (pastille).
+
+Précommandes Hot Toys 
+Le menu Précommandes Hot Toys sert à t’informer des futures précommandes : tu y retrouves les annonces des pièces à venir, avec une date de sortie ou de disponibilité estimée quand elle est connue. C’est un outil de veille pour ne pas rater les grosses sorties et anticiper ton budget.
+
+Important : l’achat de la précommande ne se fait pas sur le marketplace Spirit. Les commandes se passent sur les sites spécialisés (boutiques import, distributeurs officiels ou partenaires, selon ce que vous indiquez vous-mêmes). Le marché Spirit reste dédié aux annonces entre collectionneurs ; la section préco, elle, prévient et oriente, sans remplacer la boutique où tu finalises le paiement.
+
+
+Contact &amp; support 
+Le menu Contact &amp; support est là pour t’aider quand tu as un problème, une question liée au site ou à ton compte, ou besoin d’explications sur le fonctionnement de Spirit Infinity (paiement, livraison, litige, annonce, profil, etc.). C’est le canal prévu pour le service client et l’assistance, pas pour discuter entre collectionneurs comme sur le forum, ni pour vendre ou acheter comme sur le marketplace.
+
+En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide ou obtenir une réponse officielle de l’équipe, plutôt que de poster une demande urgente au milieu d’autres sujets.
+
+
+
+
+
+</div>
 </div>
 
             </div>
@@ -5307,7 +5407,7 @@
             'reg_modal_connected': 'Tu es connecté(e).',
             'account_tab_dashboard': 'DASHBOARD', 'account_tab_public_sanctuary': 'SANCTUAIRE PUBLIC', 'account_tab_messages': 'MESSAGES', 'account_tab_purchases': 'MES ACHATS',
             'account_tab_sales': 'MES VENTES', 'account_tab_wallet': 'PORTEFEUILLE', 'account_tab_listings': 'MES ANNONCES',
-            'account_tab_reviews': 'ÉVALUATIONS', 'account_tab_sanctuary': 'SANCTUAIRE', 'account_tab_settings': 'PARAMÈTRES',
+            'account_tab_reviews': 'ÉVALUATIONS', 'account_tab_sanctuary': 'SANCTUAIRE', 'account_tab_settings': 'PARAMÈTRES', 'account_tab_onboarding': 'PRISE EN MAIN', 'account_onboarding_h': 'PRISE EN MAIN',
             'dash_title': '🏠 TABLEAU DE BORD', 'dash_intro': 'C\'est ici que s\'affiche ton résumé.', 'dash_seller_offer_alert': 'ALERTE OFFRES',
             'dash_buyer_offers_title': 'MES OFFRES ENVOYÉES (FAVORIS)', 'dash_buyer_offers_hint': 'Récap : figurine, pseudo vendeur, prix d’origine, ton offre. Clique une ligne pour rouvrir l’annonce (prix à jour si le vendeur a accepté).',
             'dash_seller_offers_title': 'OFFRES REÇUES SUR TES ANNONCES', 'dash_public_block_title': 'SANCTUAIRE PUBLIC', 'dash_public_url_hint': 'URL unique (partage) :',
@@ -5440,7 +5540,7 @@
             'reg_modal_connected': 'You are signed in.',
             'account_tab_dashboard': 'DASHBOARD', 'account_tab_public_sanctuary': 'PUBLIC SANCTUARY', 'account_tab_messages': 'MESSAGES', 'account_tab_purchases': 'MY PURCHASES',
             'account_tab_sales': 'MY SALES', 'account_tab_wallet': 'WALLET', 'account_tab_listings': 'MY LISTINGS',
-            'account_tab_reviews': 'REVIEWS', 'account_tab_sanctuary': 'SANCTUARY', 'account_tab_settings': 'SETTINGS',
+            'account_tab_reviews': 'REVIEWS', 'account_tab_sanctuary': 'SANCTUARY', 'account_tab_settings': 'SETTINGS', 'account_tab_onboarding': 'GETTING STARTED', 'account_onboarding_h': 'GETTING STARTED',
             'dash_title': '🏠 DASHBOARD', 'dash_intro': 'Your summary appears here.', 'dash_seller_offer_alert': 'OFFER ALERT',
             'dash_buyer_offers_title': 'MY SENT OFFERS (FAVORITES)', 'dash_buyer_offers_hint': 'Summary: figure, seller username, original price, your offer. Click a row to reopen the listing (price updates if the seller accepted).',
             'dash_seller_offers_title': 'OFFERS ON YOUR LISTINGS', 'dash_public_block_title': 'PUBLIC SANCTUARY', 'dash_public_url_hint': 'Unique URL (share):',
@@ -5573,7 +5673,7 @@
             'reg_modal_connected': 'Has iniciado sesión.',
             'account_tab_dashboard': 'PANEL', 'account_tab_public_sanctuary': 'SANTUARIO PÚBLICO', 'account_tab_messages': 'MENSAJES', 'account_tab_purchases': 'MIS COMPRAS',
             'account_tab_sales': 'MIS VENTAS', 'account_tab_wallet': 'CARTERA', 'account_tab_listings': 'MIS ANUNCIOS',
-            'account_tab_reviews': 'VALORACIONES', 'account_tab_sanctuary': 'SANTUARIO', 'account_tab_settings': 'AJUSTES',
+            'account_tab_reviews': 'VALORACIONES', 'account_tab_sanctuary': 'SANTUARIO', 'account_tab_settings': 'AJUSTES', 'account_tab_onboarding': 'GUÍA RÁPIDA', 'account_onboarding_h': 'GUÍA RÁPIDA',
             'dash_title': '🏠 PANEL', 'dash_intro': 'Aquí verás tu resumen.', 'dash_seller_offer_alert': 'ALERTA DE OFERTAS',
             'dash_buyer_offers_title': 'MIS OFERTAS ENVIADAS (FAVORITOS)', 'dash_buyer_offers_hint': 'Resumen: figura, vendedor, precio original, tu oferta. Pulsa una fila para reabrir el anuncio (el precio se actualiza si el vendedor aceptó).',
             'dash_seller_offers_title': 'OFERTAS EN TUS ANUNCIOS', 'dash_public_block_title': 'SANTUARIO PÚBLICO', 'dash_public_url_hint': 'URL única (compartir):',
@@ -5706,7 +5806,7 @@
             'reg_modal_connected': '你已登录。',
             'account_tab_dashboard': '概览', 'account_tab_public_sanctuary': '公开圣地', 'account_tab_messages': '消息', 'account_tab_purchases': '我的购买',
             'account_tab_sales': '我的销售', 'account_tab_wallet': '钱包', 'account_tab_listings': '我的上架',
-            'account_tab_reviews': '评价', 'account_tab_sanctuary': '圣地', 'account_tab_settings': '设置',
+            'account_tab_reviews': '评价', 'account_tab_sanctuary': '圣地', 'account_tab_settings': '设置', 'account_tab_onboarding': '入门指南', 'account_onboarding_h': '入门指南',
             'dash_title': '🏠 控制面板', 'dash_intro': '在此查看你的摘要。', 'dash_seller_offer_alert': '出价提醒',
             'dash_buyer_offers_title': '我发出的出价（收藏）', 'dash_buyer_offers_hint': '摘要：手办、卖家昵称、原价、你的出价。点击一行可重新打开商品（若卖家已接受，价格会更新）。',
             'dash_seller_offers_title': '你商品上收到的出价', 'dash_public_block_title': '公开圣地', 'dash_public_url_hint': '唯一链接（分享）：',
@@ -17337,7 +17437,7 @@ window.showAccountTab = function showAccountTab(tab) {
     try {
         var p = (typeof spiritParsePublicHash === 'function') ? spiritParsePublicHash() : null;
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
-        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params' || tab === 'portefeuille' || tab === 'messages' || tab === 'liste-envie' || tab === 'favoris-recus' || tab === 'evaluations')) {
+        if (p && p.userId && me && String(p.userId) !== me && (tab === 'achats' || tab === 'ventes' || tab === 'params' || tab === 'prise-en-main' || tab === 'portefeuille' || tab === 'messages' || tab === 'liste-envie' || tab === 'favoris-recus' || tab === 'evaluations')) {
             tab = 'dashboard';
         }
     } catch (e) {}
@@ -19308,7 +19408,7 @@ function spiritSyncAccountTabsForPublicVisitor() {
         var me = (typeof MY_TEST_ID !== 'undefined' && MY_TEST_ID != null) ? String(MY_TEST_ID).trim() : '';
         hide = !!(p && p.userId && me && String(p.userId) !== me);
     } catch (e) {}
-    ['btn-messages', 'btn-achats', 'btn-ventes', 'btn-portefeuille', 'btn-params', 'btn-favoris-recus'].forEach(function (id) {
+    ['btn-messages', 'btn-achats', 'btn-ventes', 'btn-portefeuille', 'btn-params', 'btn-prise-en-main', 'btn-favoris-recus'].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el) return;
         var wrap = (typeof el.closest === 'function') ? el.closest('.spirit-account-acc-item') : null;
