@@ -4750,6 +4750,9 @@
                 <h1 id="spiritPublicPseudo" style="margin:0 0 8px;color:#fff;font-size:1.35rem;letter-spacing:1px;flex:1;min-width:0;">—</h1>
                 <button type="button" id="spiritPublicScrollToChatBtn" class="btn-action" onclick="spiritPublicScrollToSanctuaryChat()" data-key="pub_goto_chat">ACCÉDER AU CHAT</button>
             </div>
+            <div id="spiritPublicOwnerMarketPauseWrap" style="display:none;width:100%;max-width:100%;margin-top:8px;">
+                <button type="button" id="spiritPublicPauseMarketBtn" class="btn-action" style="font-size:0.58rem;padding:7px 12px;width:100%;max-width:360px;background:#1a1410;border:1px solid #6a4a22;color:#e8c088;" onclick="void spiritToggleOwnerMarketPause()" data-key="pub_pause_market_btn_hide">MASQUER MES ANNONCES DU MARCHÉ</button>
+            </div>
             <p id="spiritPublicCountryRow" style="margin:0;font-size:0.8rem;color:#888;"><span id="spiritPublicCountry">—</span></p>
             <p id="spiritPublicIAScore" style="margin:10px 0 0;font-size:0.85rem;color:var(--spirit-green);font-weight:700;">IA Score : —</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;" id="spiritPublicSocialStats">
@@ -5260,7 +5263,7 @@
             'pay_title': 'FINALISER LE PAIEMENT', 'pay_total_lbl': 'Montant total :', 'pay_pick': 'Choisissez votre mode de paiement sécurisé Spirit Infinity :', 'pay_stripe': '💳 CARTE BANCAIRE (STRIPE)', 'pay_paypal': '🅿️ PAYPAL SÉCURISÉ', 'pay_footer': 'En cliquant sur un mode de paiement, vos fonds seront placés sous séquestre Spirit jusqu\'à réception de la figurine.',
             'prep_ship_h': 'PRÉPARER L\'EXPÉDITION', 'prep_ship_p': 'Un acheteur a validé le paiement — merci de préparer l\'envoi.', 'prep_ok': 'COMPRIS', 'btn_ok_short': 'OK',
             'pm_no_title': 'Sans titre', 'pm_no_desc': 'Aucune description disponible.', 'pm_chat_h': 'Discussion annonce', 'pm_chat_rules': 'N’échange pas de coordonnées externes — la transaction passe par Spirit.', 'pm_desc_lbl_cond': 'État', 'pm_desc_lbl_ref': 'Réf.', 'pm_desc_lbl_note': 'Info', 'pm_no_image': 'IMAGE NON DISPONIBLE DANS LE LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURINE',
-            'pub_back': '← MARKETPLACE', 'pub_brand': 'Profil public — Spirit Infinity', 'pub_copy_url': 'COPIER L’URL', 'pub_goto_chat': 'ACCÉDER AU CHAT', 'pub_chg_photo': 'CHANGER LA PHOTO', 'pub_add_san': '+ PHOTO SANCTUAIRE', 'pub_follow': 'SUIVRE', 'pub_ia': 'IA Score :', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
+            'pub_back': '← MARKETPLACE', 'pub_brand': 'Profil public — Spirit Infinity', 'pub_copy_url': 'COPIER L’URL', 'pub_goto_chat': 'ACCÉDER AU CHAT', 'pub_pause_market_btn_hide': 'MASQUER MES ANNONCES DU MARCHÉ', 'pub_pause_market_btn_show': 'RÉAFFICHER MES ANNONCES SUR LE MARCHÉ', 'pub_pause_market_confirm_hide': 'Retirer toutes tes annonces visibles du marketplace et du profil public ? (les ventes restent inchangées.)', 'pub_pause_market_confirm_show': 'Remettre toutes tes annonces masquées en ligne sur le marché ?', 'pub_pause_market_ok_hide': 'Annonces masquées. Elles n’apparaissent plus sur le marché.', 'pub_pause_market_ok_show': 'Annonces réactivées sur le marché.', 'pub_pause_market_none_hide': 'Aucune annonce à masquer (déjà masquées ou vendues).', 'pub_pause_market_none_show': 'Aucune annonce masquée à réactiver.', 'pub_pause_market_none_action': 'Rien à faire : pas d’annonce active à masquer ni d’annonce masquée à réactiver (ex. seulement des ventes).', 'pub_pause_market_err': 'Action impossible : ', 'pub_pause_market_login': 'Connecte-toi pour utiliser ce bouton.', 'listing_inactive_no_view': 'Cette annonce est momentanément indisponible.', 'my_ad_inactive': 'MASQUÉE MARCHÉ', 'pub_chg_photo': 'CHANGER LA PHOTO', 'pub_add_san': '+ PHOTO SANCTUAIRE', 'pub_follow': 'SUIVRE', 'pub_ia': 'IA Score :', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
             'pub_country_lbl': 'Pays (visible publiquement)', 'pub_save': 'ENREGISTRER', 'pub_tab_ads': 'ANNONCES', 'pub_tab_san': 'SANCTUAIRE', 'pub_ads_note': 'Annonces publiques (products_live)', 'pub_neon_border': 'Bordure néon (toute la galerie)', 'pub_san_chat_h': 'CHAT DU SANCTUAIRE', 'pub_san_chat_rules': 'Les caractères @, les domaines .com et les numéros de téléphone sont bloqués — marketplace Spirit uniquement.',
             'params_pseudo_lbl': 'MODIFIER PSEUDO', 'params_pseudo_ph': 'Nouveau pseudo', 'params_pseudo_save': 'ENREGISTRER LE PSEUDO',
             'params_push_h': 'Alertes quand l’application est fermée', 'params_push_p': 'Active les notifications du navigateur pour être prévenu (marché, messages, Sanctuaire) même sans l’onglet ouvert. Nécessite une clé VAPID dans le code + une fonction serveur Supabase qui envoie les push — voir le bloc SQL commenté « Web Push ».',
@@ -5393,7 +5396,7 @@
             'pay_title': 'COMPLETE PAYMENT', 'pay_total_lbl': 'Total amount:', 'pay_pick': 'Choose your secure Spirit Infinity payment method:', 'pay_stripe': '💳 CARD (STRIPE)', 'pay_paypal': '🅿️ SECURE PAYPAL', 'pay_footer': 'By choosing a method, funds are held in Spirit escrow until you receive the figure.',
             'prep_ship_h': 'PREPARE SHIPMENT', 'prep_ship_p': 'A buyer has paid — please prepare the shipment.', 'prep_ok': 'GOT IT', 'btn_ok_short': 'OK',
             'pm_no_title': 'Untitled', 'pm_no_desc': 'No description available.', 'pm_chat_h': 'Listing chat', 'pm_chat_rules': 'Do not share off-platform contacts — keep the deal on Spirit.', 'pm_desc_lbl_cond': 'Condition', 'pm_desc_lbl_ref': 'Ref.', 'pm_desc_lbl_note': 'Note', 'pm_no_image': 'IMAGE NOT AVAILABLE IN LEDGER', 'typ_statue': 'STATUE', 'typ_figure': 'FIGURE',
-            'pub_back': '← MARKETPLACE', 'pub_brand': 'Public profile — Spirit Infinity', 'pub_copy_url': 'COPY URL', 'pub_goto_chat': 'GO TO CHAT', 'pub_chg_photo': 'CHANGE PHOTO', 'pub_add_san': '+ SANCTUARY PHOTO', 'pub_follow': 'FOLLOW', 'pub_ia': 'AI score:', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
+            'pub_back': '← MARKETPLACE', 'pub_brand': 'Public profile — Spirit Infinity', 'pub_copy_url': 'COPY URL', 'pub_goto_chat': 'GO TO CHAT', 'pub_pause_market_btn_hide': 'HIDE MY LISTINGS FROM THE MARKET', 'pub_pause_market_btn_show': 'SHOW MY LISTINGS ON THE MARKET AGAIN', 'pub_pause_market_confirm_hide': 'Hide all your visible listings from the marketplace and public profile? (Sold items stay as sold.)', 'pub_pause_market_confirm_show': 'Put all your hidden listings back on the market?', 'pub_pause_market_ok_hide': 'Listings hidden. They no longer appear on the market.', 'pub_pause_market_ok_show': 'Listings are visible on the market again.', 'pub_pause_market_none_hide': 'Nothing to hide (already hidden or sold).', 'pub_pause_market_none_show': 'No hidden listings to restore.', 'pub_pause_market_none_action': 'Nothing to change: no active listings to hide and no hidden listings to restore (e.g. only sold items).', 'pub_pause_market_err': 'Could not complete: ', 'pub_pause_market_login': 'Sign in to use this.', 'listing_inactive_no_view': 'This listing is temporarily unavailable.', 'my_ad_inactive': 'HIDDEN FROM MARKET', 'pub_chg_photo': 'CHANGE PHOTO', 'pub_add_san': '+ SANCTUARY PHOTO', 'pub_follow': 'FOLLOW', 'pub_ia': 'AI score:', 'pub_likes': 'Likes', 'pub_followers': 'Followers', 'pub_following': 'Following',
             'pub_country_lbl': 'Country (public)', 'pub_save': 'SAVE', 'pub_tab_ads': 'LISTINGS', 'pub_tab_san': 'SANCTUARY', 'pub_ads_note': 'Public listings (products_live)', 'pub_neon_border': 'Neon border (whole gallery)', 'pub_san_chat_h': 'SANCTUARY CHAT', 'pub_san_chat_rules': '@, .com domains and phone numbers are blocked — Spirit marketplace only.',
             'params_pseudo_lbl': 'CHANGE USERNAME', 'params_pseudo_ph': 'New username', 'params_pseudo_save': 'SAVE USERNAME',
             'params_push_h': 'Alerts when the app is closed', 'params_push_p': 'Enable browser notifications for marketplace / account alerts without keeping the tab open. Requires a VAPID public key in the code plus a Supabase Edge Function (or backend) that sends pushes — see the commented SQL block « Web Push ».',
@@ -5526,7 +5529,7 @@
             'pay_title': 'FINALIZAR PAGO', 'pay_total_lbl': 'Importe total:', 'pay_pick': 'Elige tu método de pago seguro Spirit Infinity:', 'pay_stripe': '💳 TARJETA (STRIPE)', 'pay_paypal': '🅿️ PAYPAL SEGURO', 'pay_footer': 'Al elegir un método, los fondos quedan en depósito Spirit hasta recibir la figura.',
             'prep_ship_h': 'PREPARAR ENVÍO', 'prep_ship_p': 'Un comprador ha pagado — prepara el envío.', 'prep_ok': 'ENTENDIDO', 'btn_ok_short': 'OK',
             'pm_no_title': 'Sin título', 'pm_no_desc': 'Sin descripción.', 'pm_chat_h': 'Chat del anuncio', 'pm_chat_rules': 'No compartas contactos externos — la operación va por Spirit.', 'pm_desc_lbl_cond': 'Estado', 'pm_desc_lbl_ref': 'Ref.', 'pm_desc_lbl_note': 'Info', 'pm_no_image': 'IMAGEN NO DISPONIBLE EN LEDGER', 'typ_statue': 'ESTATUA', 'typ_figure': 'FIGURA',
-            'pub_back': '← MARKETPLACE', 'pub_brand': 'Perfil público — Spirit Infinity', 'pub_copy_url': 'COPIAR URL', 'pub_goto_chat': 'IR AL CHAT', 'pub_chg_photo': 'CAMBIAR FOTO', 'pub_add_san': '+ FOTO SANTUARIO', 'pub_follow': 'SEGUIR', 'pub_ia': 'Puntuación IA:', 'pub_likes': 'Me gusta', 'pub_followers': 'Seguidores', 'pub_following': 'Siguiendo',
+            'pub_back': '← MARKETPLACE', 'pub_brand': 'Perfil público — Spirit Infinity', 'pub_copy_url': 'COPIAR URL', 'pub_goto_chat': 'IR AL CHAT', 'pub_pause_market_btn_hide': 'OCULTAR MIS ANUNCIOS DEL MERCADO', 'pub_pause_market_btn_show': 'VOLVER A MOSTRAR MIS ANUNCIOS', 'pub_pause_market_confirm_hide': '¿Ocultar todos tus anuncios visibles del mercado y del perfil? (Los vendidos no cambian.)', 'pub_pause_market_confirm_show': '¿Reactivar todos los anuncios ocultos?', 'pub_pause_market_ok_hide': 'Anuncios ocultos.', 'pub_pause_market_ok_show': 'Anuncios visibles de nuevo.', 'pub_pause_market_none_hide': 'Nada que ocultar.', 'pub_pause_market_none_show': 'No hay anuncios ocultos.', 'pub_pause_market_none_action': 'Nada que hacer (solo vendidos u otros estados).', 'pub_pause_market_err': 'Error: ', 'pub_pause_market_login': 'Inicia sesión.', 'listing_inactive_no_view': 'Anuncio no disponible temporalmente.', 'my_ad_inactive': 'OCULTO MERCADO', 'pub_chg_photo': 'CAMBIAR FOTO', 'pub_add_san': '+ FOTO SANTUARIO', 'pub_follow': 'SEGUIR', 'pub_ia': 'Puntuación IA:', 'pub_likes': 'Me gusta', 'pub_followers': 'Seguidores', 'pub_following': 'Siguiendo',
             'pub_country_lbl': 'País (visible públicamente)', 'pub_save': 'GUARDAR', 'pub_tab_ads': 'ANUNCIOS', 'pub_tab_san': 'SANTUARIO', 'pub_ads_note': 'Anuncios públicos (products_live)', 'pub_neon_border': 'Borde neón (toda la galería)', 'pub_san_chat_h': 'CHAT DEL SANTUARIO', 'pub_san_chat_rules': '@, dominios .com y teléfonos bloqueados — solo marketplace Spirit.',
             'params_pseudo_lbl': 'CAMBIAR USUARIO', 'params_pseudo_ph': 'Nuevo usuario', 'params_pseudo_save': 'GUARDAR USUARIO',
             'params_push_h': 'Alertas con la app cerrada', 'params_push_p': 'Activa las notificaciones del navegador para alertas del mercado o cuenta sin mantener la pestaña abierta. Requiere clave VAPID y una Edge Function en Supabase que envíe los push (ver SQL comentado « Web Push »).',
@@ -5659,7 +5662,7 @@
             'pay_title': '完成支付', 'pay_total_lbl': '应付总额：', 'pay_pick': '选择 Spirit Infinity 安全支付方式：', 'pay_stripe': '💳 银行卡（STRIPE）', 'pay_paypal': '🅿️ 安全 PayPal', 'pay_footer': '选择支付方式后，资金将由 Spirit 托管，直至你收到手办。',
             'prep_ship_h': '准备发货', 'prep_ship_p': '买家已付款 — 请准备寄送。', 'prep_ok': '知道了', 'btn_ok_short': '确定',
             'pm_no_title': '无标题', 'pm_no_desc': '暂无描述。', 'pm_chat_h': '商品讨论', 'pm_chat_rules': '请勿交换站外联系方式 — 交易请走 Spirit。', 'pm_desc_lbl_cond': '成色', 'pm_desc_lbl_ref': '货号', 'pm_desc_lbl_note': '备注', 'pm_no_image': '账本中无可用图片', 'typ_statue': '雕像', 'typ_figure': '手办',
-            'pub_back': '← 市场', 'pub_brand': '公开资料 — Spirit Infinity', 'pub_copy_url': '复制链接', 'pub_goto_chat': '进入聊天', 'pub_chg_photo': '更换头像', 'pub_add_san': '+ 圣地照片', 'pub_follow': '关注', 'pub_ia': 'AI 评分：', 'pub_likes': '赞', 'pub_followers': '粉丝', 'pub_following': '关注',
+            'pub_back': '← 市场', 'pub_brand': '公开资料 — Spirit Infinity', 'pub_copy_url': '复制链接', 'pub_goto_chat': '进入聊天', 'pub_pause_market_btn_hide': '从市场隐藏我的全部上架', 'pub_pause_market_btn_show': '重新在市场显示我的上架', 'pub_pause_market_confirm_hide': '要从市场和公开资料隐藏所有可见上架吗？（已售不变）', 'pub_pause_market_confirm_show': '要恢复所有已隐藏的上架吗？', 'pub_pause_market_ok_hide': '已隐藏。', 'pub_pause_market_ok_show': '已重新显示。', 'pub_pause_market_none_hide': '没有可隐藏的上架。', 'pub_pause_market_none_show': '没有可恢复的上架。', 'pub_pause_market_none_action': '无需操作（可能只有已售等）。', 'pub_pause_market_err': '操作失败：', 'pub_pause_market_login': '请先登录。', 'listing_inactive_no_view': '该上架暂不可查看。', 'my_ad_inactive': '已从市场隐藏', 'pub_chg_photo': '更换头像', 'pub_add_san': '+ 圣地照片', 'pub_follow': '关注', 'pub_ia': 'AI 评分：', 'pub_likes': '赞', 'pub_followers': '粉丝', 'pub_following': '关注',
             'pub_country_lbl': '国家（公开显示）', 'pub_save': '保存', 'pub_tab_ads': '商品', 'pub_tab_san': '圣地', 'pub_ads_note': '公开上架（products_live）', 'pub_neon_border': '霓虹边框（整组照片）', 'pub_san_chat_h': '圣地聊天', 'pub_san_chat_rules': '@、.com 域名与电话已屏蔽 — 仅限 Spirit 市场。',
             'params_pseudo_lbl': '修改用户名', 'params_pseudo_ph': '新用户名', 'params_pseudo_save': '保存用户名',
             'params_push_h': '应用关闭时的提醒', 'params_push_p': '启用浏览器通知，在不打开标签页时接收市场/账户提醒。需在代码中配置 VAPID 公钥，并在 Supabase 部署发送推送的 Edge Function（见 SQL 注释 « Web Push »）。',
@@ -6565,6 +6568,17 @@ function normalizeSpiritCat(rawCat) {
     return 'figurine';
 }
 
+/** Annonces `inactive` : retirées du marché et du profil public ; le vendeur les voit encore dans Mon compte. */
+function spiritListingStatusNorm(item) {
+    return String(item && item.status != null ? item.status : '').trim().toLowerCase();
+}
+function spiritListingIsInactive(item) {
+    return spiritListingStatusNorm(item) === 'inactive';
+}
+function spiritListingIsMarketVisible(item) {
+    return !spiritListingIsInactive(item);
+}
+try { window.spiritListingIsInactive = spiritListingIsInactive; } catch (eIna) {}
 /** Rubrique marketplace : toujours respecter `products_live.cat` (figurine | statue) si présent — évite de mélanger les annonces quand `category` contient « 1/4 », « pvc », etc. */
 function spiritMarketListingKind(item) {
     if (!item) return 'figurine';
@@ -7071,6 +7085,10 @@ function spiritIsListingStatusSold(row) {
     return st === 'sold' || st === 'vendu';
 }
 try { window.spiritIsListingStatusSold = spiritIsListingStatusSold; } catch (eSoldF) {}
+function spiritIsListingInactive(row) {
+    return typeof spiritListingIsInactive === 'function' && spiritListingIsInactive(row);
+}
+try { window.spiritIsListingInactive = spiritIsListingInactive; } catch (eIna2) {}
 /**
  * Détail annonce par products_live.id (= product_id dans favorites).
  * Template Statue / Figurine via openProduct ; anti-doublon clic.
@@ -7337,6 +7355,7 @@ function spiritAcknowledgeFavoriteTab() {
    -- ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS has_shipper boolean NOT NULL DEFAULT false;
    -- ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS has_loose_joints boolean NOT NULL DEFAULT false;
    -- ALTER TABLE public.products_live ADD COLUMN IF NOT EXISTS has_complete_accessories boolean NOT NULL DEFAULT false;
+   -- Statut optionnel : inactive = masqué marché / profil public (vendeur réactive → available). Pas les sold/vendu.
    Ancien prix : enregistré à chaque changement de prix vendeur (publierAnnonce / édition). */
 async function spiritLoadFavoriteData() {
     if (!_spirit) return;
@@ -9943,6 +9962,7 @@ async function spiritFetchOwnerPseudo(uid) {
 function renderMarket(filteredData = null) {
         const sourceData = filteredData || marketData;
         const dataToRender = Array.isArray(sourceData) ? sourceData.filter(item => {
+            if (typeof spiritListingIsMarketVisible === 'function' && !spiritListingIsMarketVisible(item)) return false;
             const cat = spiritMarketListingKind(item);
             return marketKindMode === 'statues' ? cat === 'statue' : cat === 'figurine';
         }) : [];
@@ -12090,12 +12110,20 @@ function spiritRenderUserAnnoncesRows(container, myAnnonces) {
     }
     myAnnonces.forEach(a => {
         const div = document.createElement('div');
-        const opacity = a.status === 'sold' ? 'opacity: 0.6;' : '';
-        div.style = `background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px; margin-bottom:10px; ${opacity} border-left: 3px solid ${a.status === 'sold' ? '#555' : 'var(--neon-orange)'}; cursor:pointer;`;
+        const stAnn = String(a.status || '').trim().toLowerCase();
+        const isSoldAnn = stAnn === 'sold' || stAnn === 'vendu';
+        const isInactiveAnn = typeof spiritListingIsInactive === 'function' && spiritListingIsInactive(a);
+        const opacity = isSoldAnn || isInactiveAnn ? 'opacity: 0.65;' : '';
+        const borderLeftAnn = isSoldAnn ? '#555' : (isInactiveAnn ? '#664422' : 'var(--neon-orange)');
+        div.style = `background:#111; padding:15px; border:1px solid #333; display:flex; flex-direction:column; gap:10px; margin-bottom:10px; ${opacity} border-left: 3px solid ${borderLeftAnn}; cursor:pointer;`;
         const _annUrls = spiritImageUrlList(a);
         const displayImg = _annUrls.length ? _annUrls[0] : (a.img1 || a.img);
         const imgHtml = displayImg ? `<img src="${displayImg}" alt="" loading="lazy" decoding="async" style="width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:2px;">` : '<div style="width:50px; height:50px; background:#222; display:flex; align-items:center; justify-content:center; font-size:8px;">' + escAttr(aT('my_ad_no_img')) + '</div>';
-        const statusBadge = a.status === 'sold' ? '<span style="color:white; background:red; padding:2px 5px; font-size:0.6rem; font-weight:bold;">' + escAttr(aT('fav_sold')) + '</span>' : '<span style="color:var(--spirit-green); font-size:0.6rem;">' + escAttr(aT('my_ad_online')) + '</span>';
+        const statusBadge = isSoldAnn
+            ? '<span style="color:white; background:red; padding:2px 5px; font-size:0.6rem; font-weight:bold;">' + escAttr(aT('fav_sold')) + '</span>'
+            : (isInactiveAnn
+                ? '<span style="color:#f0e0c8; background:#3a3020; padding:2px 5px; font-size:0.6rem; font-weight:bold;">' + escAttr(aT('my_ad_inactive')) + '</span>'
+                : '<span style="color:var(--spirit-green); font-size:0.6rem;">' + escAttr(aT('my_ad_online')) + '</span>');
         const titleDisp = escAttr(a.title || a.name || aT('pm_no_title'));
         const btnEdit = escAttr(aT('my_ad_edit'));
         const btnDel = escAttr(aT('my_ad_delete'));
@@ -14131,6 +14159,15 @@ async function spiritLoadListingMessagesForProduct(productId) {
                 return;
             }
         }
+        if (typeof spiritIsListingInactive === 'function' && spiritIsListingInactive(item)) {
+            var meOpenIna = spiritNormUid((typeof spiritGetCurrentUserId === 'function' ? spiritGetCurrentUserId() : (typeof MY_TEST_ID !== 'undefined' ? MY_TEST_ID : '')) || '');
+            var oidOpenIna = typeof spiritOwnerId === 'function' ? spiritOwnerId(item.owner_id) : String(item.owner_id || '').trim().toLowerCase();
+            if (!meOpenIna || oidOpenIna !== meOpenIna) {
+                var inaMsg = (typeof spiritT === 'function') ? spiritT('listing_inactive_no_view') : 'Cette annonce est momentanément indisponible.';
+                alert(inaMsg);
+                return;
+            }
+        }
         var keepNegotiated = item._spiritDisplayPrice != null;
         if (!keepNegotiated) {
             delete item._spiritDisplayPrice;
@@ -14865,6 +14902,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         const cat = document.getElementById('fCat').value;
         const cond = document.getElementById('fCond').value;
         const filtered = marketData.filter(item => {
+            if (typeof spiritListingIsMarketVisible === 'function' && !spiritListingIsMarketVisible(item)) return false;
             let matchPrice = true;
             const itemPriceEur = typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0);
             if (pRange !== 'all') {
@@ -14892,6 +14930,7 @@ async function spiritLoadListingMessagesForProduct(productId) {
         const scale = document.getElementById('sScale') ? document.getElementById('sScale').value : 'all';
         const cond = document.getElementById('sCond') ? document.getElementById('sCond').value : 'all';
         const filtered = (Array.isArray(marketData) ? marketData : []).filter(item => {
+            if (typeof spiritListingIsMarketVisible === 'function' && !spiritListingIsMarketVisible(item)) return false;
             if (spiritMarketListingKind(item) !== 'statue') return false;
             const itemPrice = spiritConvertCurrency((typeof spiritProductsLivePriceEUR === 'function' ? spiritProductsLivePriceEUR(item) : Number(item.price || 0)), 'EUR', marketCurrencyMode);
             let matchPrice = true;
@@ -20710,6 +20749,11 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     if (avBtn) avBtn.style.display = isOwner ? 'inline-block' : 'none';
     var sanAddBtn = document.getElementById('spiritPublicSanctuaryAddBtn');
     if (sanAddBtn) sanAddBtn.style.display = isOwner ? 'inline-block' : 'none';
+    var pmWrap = document.getElementById('spiritPublicOwnerMarketPauseWrap');
+    if (pmWrap) pmWrap.style.display = isOwner ? 'block' : 'none';
+    if (isOwner) {
+        try { void spiritPublicUpdatePauseMarketButtonLabel(); } catch (ePmLb) {}
+    }
     // Visiteur: aucun contrôle de personnalisation sur le Sanctuaire public d'un autre compte.
     try {
         var neonRowPub = document.getElementById('spiritPublicSanNeonRow');
@@ -20915,7 +20959,9 @@ async function spiritPublicLoadAnnonces(uid, opts) {
     if (!box) return;
     function renderAnnonceRows(rows) {
         function pubT(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
-        rows = Array.isArray(rows) ? rows : [];
+        rows = Array.isArray(rows) ? rows.filter(function (p) {
+            return typeof spiritListingIsMarketVisible !== 'function' || spiritListingIsMarketVisible(p);
+        }) : [];
         if (!rows.length) {
             box.innerHTML = '<p style="color:#555;font-size:0.75rem;">' + String(pubT('pub_ad_empty')).replace(/</g, '&lt;') + '</p>';
             return;
@@ -21180,6 +21226,92 @@ function spiritSanctuarySetView(mode, ctx) {
     });
     void spiritSanctuaryRender(ctx);
 }
+async function spiritPublicUpdatePauseMarketButtonLabel() {
+    var btn = document.getElementById('spiritPublicPauseMarketBtn');
+    if (!btn || typeof _spirit === 'undefined' || !_spirit) return;
+    var t = typeof spiritT === 'function' ? spiritT : function (k) { return k; };
+    var me = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : '';
+    if (!me && typeof spiritSocialActorUid === 'function') me = spiritSocialActorUid();
+    if (!me) me = spiritOwnerId(spiritGetCurrentUserId());
+    me = String(me || '').trim();
+    var pv = (typeof spiritPublicViewUserId !== 'undefined' && spiritPublicViewUserId != null) ? String(spiritPublicViewUserId).trim() : '';
+    if (!pv || !spiritNormUid(me) || spiritNormUid(me) !== spiritNormUid(pv)) return;
+    var cand = [pv, spiritNormUid(pv)].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+    try {
+        var out = await _spirit.from('products_live').select('status').in('owner_id', cand).limit(200);
+        if (out.error) throw out.error;
+        var rows = out.data || [];
+        var hasVisible = false;
+        rows.forEach(function (r) {
+            var s = String(r && r.status != null ? r.status : '').trim().toLowerCase();
+            if (s === 'sold' || s === 'vendu' || s === 'inactive') return;
+            hasVisible = true;
+        });
+        btn.textContent = t(hasVisible ? 'pub_pause_market_btn_hide' : 'pub_pause_market_btn_show');
+    } catch (e) {
+        btn.textContent = t('pub_pause_market_btn_hide');
+    }
+}
+async function spiritToggleOwnerMarketPause() {
+    var t = typeof spiritT === 'function' ? spiritT : function (k) { return k; };
+    if (typeof _spirit === 'undefined' || !_spirit) {
+        alert(t('pub_pause_market_err') + 'Supabase');
+        return;
+    }
+    var me = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : '';
+    if (!me && typeof spiritSocialActorUid === 'function') me = spiritSocialActorUid();
+    if (!me) me = spiritOwnerId(spiritGetCurrentUserId());
+    me = String(me || '').trim();
+    if (!me) {
+        alert(t('pub_pause_market_login'));
+        return;
+    }
+    var cand = [me, spiritNormUid(me)].filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+    try {
+        var out = await _spirit.from('products_live').select('id,status').in('owner_id', cand).limit(200);
+        if (out.error) throw out.error;
+        var rows = out.data || [];
+        var toInactive = [];
+        var toActive = [];
+        rows.forEach(function (r) {
+            if (!r || r.id == null) return;
+            var s = String(r.status != null ? r.status : '').trim().toLowerCase();
+            if (s === 'sold' || s === 'vendu') return;
+            if (s === 'inactive') toActive.push(r.id);
+            else toInactive.push(r.id);
+        });
+        var hide = toInactive.length > 0;
+        var targetIds = hide ? toInactive : toActive;
+        var newStatus = hide ? 'inactive' : 'available';
+        if (!targetIds.length) {
+            alert(t(hide ? 'pub_pause_market_none_hide' : (toActive.length ? 'pub_pause_market_none_show' : 'pub_pause_market_none_action')));
+            return;
+        }
+        var okCf = true;
+        if (typeof spiritConfirm === 'function') okCf = await spiritConfirm(t(hide ? 'pub_pause_market_confirm_hide' : 'pub_pause_market_confirm_show'));
+        else okCf = window.confirm(t(hide ? 'pub_pause_market_confirm_hide' : 'pub_pause_market_confirm_show'));
+        if (!okCf) return;
+        for (var i = 0; i < targetIds.length; i += 40) {
+            var slice = targetIds.slice(i, i + 40);
+            var up = await _spirit.from('products_live').update({ status: newStatus }).in('id', slice);
+            if (up.error) throw up.error;
+        }
+        spiritInvalidateMarketCache();
+        try { if (typeof spiritRefreshAllMarketBuckets === 'function') await spiritRefreshAllMarketBuckets(); } catch (eR) {}
+        try { if (typeof updateUserAnnonces === 'function') await updateUserAnnonces(); } catch (eU) {}
+        try {
+            if (typeof spiritPublicViewUserId !== 'undefined' && spiritPublicViewUserId) {
+                await spiritPublicLoadAnnonces(String(spiritPublicViewUserId), { force: true });
+            }
+        } catch (eP) {}
+        try { await spiritPublicUpdatePauseMarketButtonLabel(); } catch (eL) {}
+        alert(t(hide ? 'pub_pause_market_ok_hide' : 'pub_pause_market_ok_show'));
+    } catch (e) {
+        alert(t('pub_pause_market_err') + (e && e.message ? e.message : e));
+    }
+}
+try { window.spiritToggleOwnerMarketPause = spiritToggleOwnerMarketPause; } catch (eTog) {}
+try { window.spiritPublicUpdatePauseMarketButtonLabel = spiritPublicUpdatePauseMarketButtonLabel; } catch (eLab) {}
 async function spiritPublicOpenAnnonce(rowOrPid, puid) {
     var row = (rowOrPid && typeof rowOrPid === 'object') ? Object.assign({}, rowOrPid) : null;
     var pid = row ? row.id : rowOrPid;
@@ -25271,7 +25403,9 @@ async function fetchMarketplaceFromSupabase(opts) {
     if (!append && opts.reset !== false && !opts.forceNetwork && !opts.invalidateAll) {
         var cached = spiritMarketCacheRead(key);
         if (cached && Array.isArray(cached.rows)) {
-            b.rows = cached.rows;
+            b.rows = cached.rows.filter(function (r) {
+                return typeof spiritListingIsMarketVisible !== 'function' || spiritListingIsMarketVisible(r);
+            });
             try {
                 b.rows.forEach(function (r) {
                     if (!r) return;
@@ -25358,6 +25492,9 @@ async function fetchMarketplaceFromSupabase(opts) {
     }
 
     var chunk = Array.isArray(data) ? data : [];
+    chunk = chunk.filter(function (r) {
+        return typeof spiritListingIsMarketVisible !== 'function' || spiritListingIsMarketVisible(r);
+    });
     /* Source de vérité = Supabase. Ne pas forcer « vendu » depuis localStorage (sinon une annonce
        republiée avec le même titre reste grisée après suppression des transactions). On nettoie les hints obsolètes. */
     try {
