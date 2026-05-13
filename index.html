@@ -2724,19 +2724,90 @@
             text-transform: uppercase;
             font-weight: 800;
         }
-        .spirit-sanctuary-friends-select {
-            width: 100%;
+        .spirit-sanctuary-friends-dd {
+            position: relative;
             max-width: 360px;
             margin: 0 auto;
-            display: block;
-            padding: 10px 12px;
+        }
+        .spirit-sanctuary-friends-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 11px 14px;
             font-size: 0.72rem;
-            background: linear-gradient(180deg, #0c1214 0%, #060a0c 100%);
-            border: 1px solid rgba(0, 180, 220, 0.4);
-            color: #e4f8ff;
-            border-radius: 10px;
+            font-weight: 600;
+            color: #eaf6ff;
+            background: linear-gradient(180deg, #141a22 0%, #0a0d12 100%);
+            border: 1px solid rgba(0, 200, 255, 0.35);
+            border-radius: 12px;
             cursor: pointer;
-            box-sizing: border-box;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.45);
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .spirit-sanctuary-friends-btn:hover {
+            border-color: rgba(0, 220, 255, 0.55);
+            color: #fff;
+        }
+        .spirit-sanctuary-friends-btn-caret {
+            flex-shrink: 0;
+            font-size: 0.65rem;
+            color: #00ccff;
+            opacity: 0.9;
+        }
+        .spirit-sanctuary-friends-panel {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 6px);
+            z-index: 120;
+            max-height: min(52vh, 420px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px 0;
+            background: linear-gradient(180deg, #101820 0%, #070a0e 100%);
+            border: 1px solid rgba(0, 200, 255, 0.28);
+            border-radius: 12px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04);
+            -webkit-overflow-scrolling: touch;
+        }
+        .spirit-sanctuary-friends-panel[hidden] {
+            display: none !important;
+        }
+        .spirit-sanctuary-friends-sec-h {
+            padding: 8px 14px 6px;
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .spirit-sanctuary-friends-sec-h--amis { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.25); }
+        .spirit-sanctuary-friends-sec-h--abo { color: #00ccff; text-shadow: 0 0 10px rgba(0, 204, 255, 0.25); }
+        .spirit-sanctuary-friends-row {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 0.72rem;
+            color: #e8ecf0;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+        }
+        .spirit-sanctuary-friends-row:last-child { border-bottom: none; }
+        .spirit-sanctuary-friends-row:hover {
+            background: rgba(0, 200, 255, 0.08);
+            color: #fff;
+        }
+        .spirit-sanctuary-friends-empty {
+            padding: 12px 14px;
+            font-size: 0.65rem;
+            color: #666;
+            line-height: 1.4;
         }
         #spiritSanctuaryChrome { margin-bottom: 16px; }
         .spirit-sanctuary-owner-actions {
@@ -3035,7 +3106,10 @@
         .spirit-sanctuary-chat .spirit-san-chat-line--mine .spirit-san-chat-when { color: #6a5a48; padding: 0 2px 0 6px; }
         .spirit-sanctuary-chat .spirit-san-chat-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 8px; font-size: 0.62rem; }
         .spirit-sanctuary-chat .spirit-san-chat-toolbar label { display: flex; align-items: center; gap: 6px; color: #aaa; cursor: pointer; }
-        /* Chat sanctuaire — profil public : carte et en-tête */
+        /* Chat sanctuaire — profil public : carte et en-tête (couleur = néon galerie via --san-chat-rgb) */
+        #spiritPublicSanctuaryChatAnchor {
+            --san-chat-rgb: 255,102,0;
+        }
         #spiritPublicSanctuaryChatAnchor.spirit-public-san-chat-panel {
             margin-top: 32px; padding: 0; border: none; background: transparent; border-top: none;
         }
@@ -3044,8 +3118,8 @@
         }
         #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-head-badge {
             flex-shrink: 0; width: 12px; height: 12px; margin-top: 4px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #fff4e0, var(--neon-orange) 45%, #661800 100%);
-            box-shadow: 0 0 14px rgba(255,102,0,0.75), 0 0 28px rgba(255,102,0,0.25);
+            background: radial-gradient(circle at 30% 30%, #fff4e0, rgb(var(--san-chat-rgb)) 45%, #1a0a06 100%);
+            box-shadow: 0 0 14px rgba(var(--san-chat-rgb), 0.75), 0 0 28px rgba(var(--san-chat-rgb), 0.25);
             animation: spirit-pub-chat-pulse 2.4s ease-in-out infinite;
         }
         @keyframes spirit-pub-chat-pulse {
@@ -3054,12 +3128,23 @@
         }
         #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-head h4 {
             margin: 0 0 6px; font-size: 0.78rem; letter-spacing: 0.12em; color: #fff;
-            text-shadow: 0 0 20px rgba(255,102,0,0.35);
+            text-shadow: 0 0 20px rgba(var(--san-chat-rgb), 0.45);
         }
         #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-rules {
             margin: 0; font-size: 0.62rem; color: #6a6a6a; line-height: 1.45; max-width: 52rem;
         }
-        #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-card, #forumModal .spirit-public-san-chat-card {
+        #spiritPublicSanctuaryChatAnchor .spirit-public-san-chat-card {
+            background: linear-gradient(180deg, rgba(14,16,22,0.97) 0%, rgba(6,7,10,0.99) 100%);
+            border: 1px solid rgba(var(--san-chat-rgb), 0.42); border-radius: 18px;
+            padding: 16px 14px 14px;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.04),
+                0 12px 40px rgba(0,0,0,0.5),
+                0 0 28px rgba(var(--san-chat-rgb), 0.35),
+                0 0 56px rgba(var(--san-chat-rgb), 0.12);
+            animation: spirit-pub-chat-card-neon 2.8s ease-in-out infinite;
+        }
+        #forumModal .spirit-public-san-chat-card {
             background: linear-gradient(180deg, rgba(14,16,22,0.97) 0%, rgba(6,7,10,0.99) 100%);
             border: 1px solid rgba(255,102,0,0.42); border-radius: 18px;
             padding: 16px 14px 14px;
@@ -3068,12 +3153,29 @@
                 0 12px 40px rgba(0,0,0,0.5),
                 0 0 28px rgba(255,102,0,0.35),
                 0 0 56px rgba(255,102,0,0.12);
-            animation: spirit-pub-chat-card-neon 2.8s ease-in-out infinite;
-        }
-        #forumModal .spirit-public-san-chat-card {
+            animation: spirit-pub-chat-card-neon-forum 2.8s ease-in-out infinite;
             flex: 1; min-height: 0; display: flex; flex-direction: column; margin-top: 0;
         }
         @keyframes spirit-pub-chat-card-neon {
+            0%, 100% {
+                border-color: rgba(var(--san-chat-rgb), 0.38);
+                box-shadow:
+                    inset 0 1px 0 rgba(255,255,255,0.04),
+                    0 12px 40px rgba(0,0,0,0.5),
+                    0 0 22px rgba(var(--san-chat-rgb), 0.28),
+                    0 0 48px rgba(var(--san-chat-rgb), 0.08);
+            }
+            50% {
+                border-color: rgba(var(--san-chat-rgb), 0.72);
+                box-shadow:
+                    inset 0 1px 0 rgba(255,200,160,0.06),
+                    0 12px 40px rgba(0,0,0,0.55),
+                    0 0 36px rgba(var(--san-chat-rgb), 0.52),
+                    0 0 72px rgba(var(--san-chat-rgb), 0.22),
+                    0 0 100px rgba(var(--san-chat-rgb), 0.08);
+            }
+        }
+        @keyframes spirit-pub-chat-card-neon-forum {
             0%, 100% {
                 border-color: rgba(255,102,0,0.38);
                 box-shadow:
@@ -3104,13 +3206,16 @@
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-toolbar {
             margin-top: 10px; padding: 10px 12px; background: rgba(0,0,0,0.35); border-radius: 10px; border: 1px solid #222;
         }
-        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs-wrap, #forumModal .spirit-san-chat-msgs-wrap {
+        #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs-wrap {
             margin-top: 12px; padding: 10px 8px; background: rgba(0,0,0,0.45);
             border: 1px solid #1e1e24; border-radius: 14px;
-            background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,102,0,0.07), transparent 55%);
+            background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(var(--san-chat-rgb), 0.09), transparent 55%);
         }
         #forumModal .spirit-san-chat-msgs-wrap {
-            margin-top: 10px; flex: 1; min-height: 0; display: flex; flex-direction: column;
+            margin-top: 10px; padding: 10px 8px; background: rgba(0,0,0,0.45);
+            border: 1px solid #1e1e24; border-radius: 14px;
+            background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,102,0,0.07), transparent 55%);
+            flex: 1; min-height: 0; display: flex; flex-direction: column;
         }
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs, #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs {
             max-height: min(360px, 46vh); margin-bottom: 0; font-size: 0.74rem; padding: 6px 4px;
@@ -5251,10 +5356,14 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
                         <span class="spirit-san-legend-sep">·</span>
                         <span class="spirit-san-legend-abo" data-key="san_friends_legend_abo">Mes abonnements</span>
                     </div>
-                    <label id="spiritSanctuaryFriendsLabel" class="spirit-sanctuary-friends-label" for="spiritSanctuaryFriendsSelect" data-key="san_friends_dd_lbl">Choisir un pseudo</label>
-                    <select id="spiritSanctuaryFriendsSelect" class="spirit-sanctuary-friends-select" autocomplete="off">
-                        <option value="" data-key="san_friends_ph">—</option>
-                    </select>
+                    <label id="spiritSanctuaryFriendsLabel" class="spirit-sanctuary-friends-label" for="spiritSanctuaryFriendsBtn" data-key="san_friends_dd_lbl">Choisir un pseudo</label>
+                    <div class="spirit-sanctuary-friends-dd">
+                        <button type="button" id="spiritSanctuaryFriendsBtn" class="spirit-sanctuary-friends-btn" aria-expanded="false" aria-haspopup="listbox">
+                            <span id="spiritSanctuaryFriendsBtnLabel" data-key="san_friends_ph">—</span>
+                            <span class="spirit-sanctuary-friends-btn-caret" aria-hidden="true">▾</span>
+                        </button>
+                        <div id="spiritSanctuaryFriendsPanel" class="spirit-sanctuary-friends-panel" role="listbox" hidden></div>
+                    </div>
                 </div>
             </div>
             <div class="spirit-sanctuary-toolbar">
@@ -5722,7 +5831,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'dash_buyer_offers_title': 'MES OFFRES ENVOYÉES (FAVORIS)', 'dash_buyer_offers_hint': 'Récap : figurine, pseudo vendeur, prix d’origine, ton offre. Clique une ligne pour rouvrir l’annonce (prix à jour si le vendeur a accepté).',
             'dash_seller_offers_title': 'OFFRES REÇUES SUR TES ANNONCES', 'dash_public_block_title': 'SANCTUAIRE PUBLIC', 'dash_public_url_hint': 'URL unique (partage) :',
             'dash_copy_url_btn': 'COPIER L’URL', 'dash_open_profile_btn': 'OUVRIR MON SANCTUAIRE PUBLIC', 'dash_friends_title': 'MES AMIS / ABONNEMENTS', 'dash_friends_hint': 'Pseudos cliquables pour ouvrir leur profil public.', 'dash_friends_full': 'VOIR LA LISTE COMPLÈTE',
-            'san_friends_legend_amis': 'Mes amis', 'san_friends_legend_abo': 'Mes abonnements', 'san_friends_dd_lbl': 'Menu — ouvrir un profil', 'san_friends_ph': '— Choisir un pseudo —', 'san_friends_group_amis': 'Mes amis (abonnés)', 'san_friends_group_abo': 'Mes abonnements (suivis)',
+            'san_friends_legend_amis': 'Amis mutuels', 'san_friends_legend_abo': 'Abonnements (sans retour)', 'san_friends_dd_lbl': 'Menu — ouvrir un profil', 'san_friends_ph': '— Choisir un pseudo —', 'san_friends_group_amis': 'Amis (abonnement mutuel)', 'san_friends_group_abo': 'Abonnements', 'san_friends_empty': 'Aucun pseudo à afficher.', 'san_friends_err': 'Impossible de charger la liste.',
             'tab_sanctuary_msgs_h': '📩 MESSAGES SANCTUAIRE', 'tab_sanctuary_msgs_p': 'Alertes likes et commentaires sur tes photos du sanctuaire.',
             'tab_purchases_h': '🛒 MES ACHATS', 'tab_purchases_note': 'Les fonds sont bloqués en Séquestre Spirit. Une fois le bouton « REÇU » cliqué, le vendeur est payé et la transaction est définitive.',
             'th_date': 'Date', 'th_product': 'Produit', 'th_amount': 'Montant', 'th_status': 'Statut', 'th_actions_spirit': 'Actions Spirit Shield',
@@ -5857,7 +5966,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'dash_buyer_offers_title': 'MY SENT OFFERS (FAVORITES)', 'dash_buyer_offers_hint': 'Summary: figure, seller username, original price, your offer. Click a row to reopen the listing (price updates if the seller accepted).',
             'dash_seller_offers_title': 'OFFERS ON YOUR LISTINGS', 'dash_public_block_title': 'PUBLIC SANCTUARY', 'dash_public_url_hint': 'Unique URL (share):',
             'dash_copy_url_btn': 'COPY URL', 'dash_open_profile_btn': 'OPEN MY PUBLIC SANCTUARY', 'dash_friends_title': 'MY FRIENDS / FOLLOWING', 'dash_friends_hint': 'Click a username to open their public profile.', 'dash_friends_full': 'VIEW FULL LIST',
-            'san_friends_legend_amis': 'My followers', 'san_friends_legend_abo': 'Following', 'san_friends_dd_lbl': 'Open a profile', 'san_friends_ph': '— Pick a username —', 'san_friends_group_amis': 'My followers', 'san_friends_group_abo': 'Following',
+            'san_friends_legend_amis': 'Mutual friends', 'san_friends_legend_abo': 'Following (one-way)', 'san_friends_dd_lbl': 'Open a profile', 'san_friends_ph': '— Pick a username —', 'san_friends_group_amis': 'Friends (mutual)', 'san_friends_group_abo': 'Subscriptions', 'san_friends_empty': 'No usernames to show yet.', 'san_friends_err': 'Could not load the list.',
             'tab_sanctuary_msgs_h': '📩 SANCTUARY MESSAGES', 'tab_sanctuary_msgs_p': 'Likes and comments on your sanctuary photos.',
             'tab_purchases_h': '🛒 MY PURCHASES', 'tab_purchases_note': 'Funds are held in Spirit Escrow. After you click RECEIVED, the seller is paid and the sale is final.',
             'th_date': 'Date', 'th_product': 'Product', 'th_amount': 'Amount', 'th_status': 'Status', 'th_actions_spirit': 'Spirit Shield actions',
@@ -5992,7 +6101,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'dash_buyer_offers_title': 'MIS OFERTAS ENVIADAS (FAVORITOS)', 'dash_buyer_offers_hint': 'Resumen: figura, vendedor, precio original, tu oferta. Pulsa una fila para reabrir el anuncio (el precio se actualiza si el vendedor aceptó).',
             'dash_seller_offers_title': 'OFERTAS EN TUS ANUNCIOS', 'dash_public_block_title': 'SANTUARIO PÚBLICO', 'dash_public_url_hint': 'URL única (compartir):',
             'dash_copy_url_btn': 'COPIAR URL', 'dash_open_profile_btn': 'ABRIR MI SANTUARIO PÚBLICO', 'dash_friends_title': 'AMIGOS / SEGUIDOS', 'dash_friends_hint': 'Pulsa un usuario para abrir su perfil público.', 'dash_friends_full': 'VER LISTA COMPLETA',
-            'san_friends_legend_amis': 'Mis seguidores', 'san_friends_legend_abo': 'Siguiendo', 'san_friends_dd_lbl': 'Abrir un perfil', 'san_friends_ph': '— Elige un usuario —', 'san_friends_group_amis': 'Mis seguidores', 'san_friends_group_abo': 'Siguiendo',
+            'san_friends_legend_amis': 'Amigos mutuos', 'san_friends_legend_abo': 'Siguiendo (sin retorno)', 'san_friends_dd_lbl': 'Abrir un perfil', 'san_friends_ph': '— Elige un usuario —', 'san_friends_group_amis': 'Amigos (mutuo)', 'san_friends_group_abo': 'Suscripciones', 'san_friends_empty': 'No hay usuarios que mostrar.', 'san_friends_err': 'No se pudo cargar la lista.',
             'tab_sanctuary_msgs_h': '📩 MENSAJES DEL SANTUARIO', 'tab_sanctuary_msgs_p': 'Alertas de me gusta y comentarios en tus fotos del santuario.',
             'tab_purchases_h': '🛒 MIS COMPRAS', 'tab_purchases_note': 'Los fondos quedan en depósito Spirit. Al pulsar RECIBIDO, el vendedor cobra y la venta es definitiva.',
             'th_date': 'Fecha', 'th_product': 'Producto', 'th_amount': 'Importe', 'th_status': 'Estado', 'th_actions_spirit': 'Acciones Spirit Shield',
@@ -6127,7 +6236,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'dash_buyer_offers_title': '我发出的出价（收藏）', 'dash_buyer_offers_hint': '摘要：手办、卖家昵称、原价、你的出价。点击一行可重新打开商品（若卖家已接受，价格会更新）。',
             'dash_seller_offers_title': '你商品上收到的出价', 'dash_public_block_title': '公开圣地', 'dash_public_url_hint': '唯一链接（分享）：',
             'dash_copy_url_btn': '复制链接', 'dash_open_profile_btn': '打开我的公开圣地', 'dash_friends_title': '好友 / 关注', 'dash_friends_hint': '点击用户名打开其公开资料。', 'dash_friends_full': '查看完整列表',
-            'san_friends_legend_amis': '关注我的人', 'san_friends_legend_abo': '我的关注', 'san_friends_dd_lbl': '打开资料', 'san_friends_ph': '— 选择用户 —', 'san_friends_group_amis': '关注我的人', 'san_friends_group_abo': '我的关注',
+            'san_friends_legend_amis': '互关好友', 'san_friends_legend_abo': '我关注对方', 'san_friends_dd_lbl': '打开资料', 'san_friends_ph': '— 选择用户 —', 'san_friends_group_amis': '好友（互关）', 'san_friends_group_abo': '单向关注', 'san_friends_empty': '暂无可显示的用户。', 'san_friends_err': '列表加载失败。',
             'tab_sanctuary_msgs_h': '📩 圣地消息', 'tab_sanctuary_msgs_p': '你圣地照片上的点赞与评论提醒。',
             'tab_purchases_h': '🛒 我的购买', 'tab_purchases_note': '资金由 Spirit 托管。点击「已收货」后卖家收款，交易完成。',
             'th_date': '日期', 'th_product': '商品', 'th_amount': '金额', 'th_status': '状态', 'th_actions_spirit': 'Spirit Shield 操作',
@@ -19543,27 +19652,87 @@ async function spiritFollowDelete(me, target) {
         return !(del && del.error);
     } catch (e) { return false; }
 }
-var spiritSanctuaryFriendsSelectWired = false;
-function spiritSanctuaryEnsureFriendsSelectHandler() {
-    if (spiritSanctuaryFriendsSelectWired) return;
-    var sel = document.getElementById('spiritSanctuaryFriendsSelect');
-    if (!sel) return;
-    spiritSanctuaryFriendsSelectWired = true;
-    sel.addEventListener('change', function () {
-        var v = String(sel.value || '').trim();
-        if (!v) return;
-        try { sel.selectedIndex = 0; } catch (eR) {}
+function spiritSanctuaryHexToRgbComma(hex) {
+    hex = String(hex || '').replace(/^#/, '').trim();
+    if (hex.length === 3) hex = hex.split('').map(function (c) { return c + c; }).join('');
+    var n = parseInt(hex, 16);
+    if (!Number.isFinite(n) || hex.length !== 6) return '255,102,0';
+    return ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255);
+}
+function spiritSanctuaryApplyPublicChatChromeNeon(hex) {
+    hex = String(hex || '').trim() || '#ff6600';
+    var anchor = document.getElementById('spiritPublicSanctuaryChatAnchor');
+    if (!anchor) return;
+    try {
+        anchor.style.setProperty('--san-chat-rgb', spiritSanctuaryHexToRgbComma(hex));
+    } catch (eRgb) {}
+}
+var spiritSanctuaryFriendsUiWired = false;
+function spiritSanctuaryFriendsClosePanel() {
+    var panel = document.getElementById('spiritSanctuaryFriendsPanel');
+    var btn = document.getElementById('spiritSanctuaryFriendsBtn');
+    if (panel) panel.hidden = true;
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+function spiritSanctuaryEnsureFriendsDropdownUi() {
+    if (spiritSanctuaryFriendsUiWired) return;
+    var wrap = document.getElementById('spiritSanctuaryFriendsWrap');
+    var btn = document.getElementById('spiritSanctuaryFriendsBtn');
+    var panel = document.getElementById('spiritSanctuaryFriendsPanel');
+    if (!wrap || !btn || !panel) return;
+    spiritSanctuaryFriendsUiWired = true;
+    btn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        var open = !panel.hidden;
+        if (open) spiritSanctuaryFriendsClosePanel();
+        else {
+            panel.hidden = false;
+            btn.setAttribute('aria-expanded', 'true');
+        }
+    });
+    document.addEventListener('click', function (ev) {
         try {
-            if (typeof spiritOpenPublicProfileUI === 'function') void spiritOpenPublicProfileUI(v);
-        } catch (eO) {}
+            if (!wrap.contains(ev.target)) spiritSanctuaryFriendsClosePanel();
+        } catch (eC) {}
+    }, true);
+    document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape' || ev.keyCode === 27) spiritSanctuaryFriendsClosePanel();
+    }, true);
+}
+function spiritSanctuaryFriendsAddSection(panel, clsH, titleKey, profiles, T) {
+    if (!profiles || !profiles.length) return;
+    var h = document.createElement('div');
+    h.className = 'spirit-sanctuary-friends-sec-h ' + clsH;
+    h.textContent = T(titleKey);
+    panel.appendChild(h);
+    profiles.forEach(function (p) {
+        if (!p || !p.id) return;
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'spirit-sanctuary-friends-row';
+        b.setAttribute('role', 'option');
+        b.dataset.uid = String(p.id);
+        b.textContent = String(p.pseudo || p.id || '').trim() || String(p.id);
+        b.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            spiritSanctuaryFriendsClosePanel();
+            var lbl = document.getElementById('spiritSanctuaryFriendsBtnLabel');
+            if (lbl) lbl.textContent = T('san_friends_ph');
+            try {
+                if (typeof spiritOpenPublicProfileUI === 'function') void spiritOpenPublicProfileUI(String(p.id));
+            } catch (eO) {}
+        });
+        panel.appendChild(b);
     });
 }
 async function spiritSanctuaryPopulateFriendsSelect() {
     var wrap = document.getElementById('spiritSanctuaryFriendsWrap');
-    var sel = document.getElementById('spiritSanctuaryFriendsSelect');
+    var panel = document.getElementById('spiritSanctuaryFriendsPanel');
+    var btn = document.getElementById('spiritSanctuaryFriendsBtn');
+    var lblBtn = document.getElementById('spiritSanctuaryFriendsBtnLabel');
     var lab = document.getElementById('spiritSanctuaryFriendsLabel');
-    if (!wrap || !sel) return;
-    spiritSanctuaryEnsureFriendsSelectHandler();
+    if (!wrap || !panel || !btn) return;
+    spiritSanctuaryEnsureFriendsDropdownUi();
     function T(k) { return (typeof spiritT === 'function') ? spiritT(k) : k; }
     var profUid = (typeof spiritPublicViewUserId !== 'undefined' && spiritPublicViewUserId != null) ? String(spiritPublicViewUserId).trim() : '';
     var me = (typeof spiritFollowGetCurrentUid === 'function') ? spiritFollowGetCurrentUid() : '';
@@ -19575,34 +19744,48 @@ async function spiritSanctuaryPopulateFriendsSelect() {
     }
     wrap.style.display = 'block';
     if (lab) lab.textContent = T('san_friends_dd_lbl');
-    sel.innerHTML = '';
-    var ph = document.createElement('option');
-    ph.value = '';
-    ph.textContent = T('san_friends_ph');
-    sel.appendChild(ph);
+    if (lblBtn) lblBtn.textContent = T('san_friends_ph');
+    panel.innerHTML = '';
+    spiritSanctuaryFriendsClosePanel();
     try {
-        var rowsAmis = await spiritFollowFetchFollowerRows(meN);
-        var rowsAbo = await spiritFollowFetchRows(meN);
-        var idsAmis = rowsAmis.map(function (r) { return String(r.follower_id || '').trim(); }).filter(Boolean);
-        var idsAbo = rowsAbo.map(function (r) { return String(r.followee_id || '').trim(); }).filter(Boolean);
-        var profAmis = await spiritFollowResolveProfiles(idsAmis);
-        var profAbo = await spiritFollowResolveProfiles(idsAbo);
-        function addGroup(labelKey, list) {
-            if (!list || !list.length) return;
-            var og = document.createElement('optgroup');
-            og.label = T(labelKey);
-            list.forEach(function (p) {
-                if (!p || !p.id) return;
-                var o = document.createElement('option');
-                o.value = String(p.id);
-                o.textContent = String(p.pseudo || p.id || '').trim() || String(p.id);
-                og.appendChild(o);
-            });
-            if (og.children.length) sel.appendChild(og);
+        var rowsFollowing = await spiritFollowFetchRows(meN);
+        var rowsFollowers = await spiritFollowFetchFollowerRows(meN);
+        var followeeSeen = {};
+        var followingIds = [];
+        (rowsFollowing || []).forEach(function (r) {
+            var id = String((r && r.followee_id) || '').trim();
+            if (!id || followeeSeen[id]) return;
+            followeeSeen[id] = true;
+            followingIds.push(id);
+        });
+        var followerSet = {};
+        (rowsFollowers || []).forEach(function (r) {
+            var id = String((r && r.follower_id) || '').trim();
+            if (id) followerSet[id] = true;
+        });
+        var mutualIds = [];
+        var subOnlyIds = [];
+        followingIds.forEach(function (fid) {
+            if (followerSet[fid]) mutualIds.push(fid);
+            else subOnlyIds.push(fid);
+        });
+        var profMutual = await spiritFollowResolveProfiles(mutualIds);
+        var profSub = await spiritFollowResolveProfiles(subOnlyIds);
+        if ((!profMutual || !profMutual.length) && (!profSub || !profSub.length)) {
+            var empty = document.createElement('div');
+            empty.className = 'spirit-sanctuary-friends-empty';
+            empty.textContent = T('san_friends_empty');
+            panel.appendChild(empty);
+            return;
         }
-        addGroup('san_friends_group_amis', profAmis);
-        addGroup('san_friends_group_abo', profAbo);
-    } catch (ePop) {}
+        spiritSanctuaryFriendsAddSection(panel, 'spirit-sanctuary-friends-sec-h--amis', 'san_friends_group_amis', profMutual, T);
+        spiritSanctuaryFriendsAddSection(panel, 'spirit-sanctuary-friends-sec-h--abo', 'san_friends_group_abo', profSub, T);
+    } catch (ePop) {
+        var err = document.createElement('div');
+        err.className = 'spirit-sanctuary-friends-empty';
+        err.textContent = T('san_friends_err');
+        panel.appendChild(err);
+    }
 }
 try { window.spiritSanctuaryPopulateFriendsSelect = spiritSanctuaryPopulateFriendsSelect; } catch (eWPop) {}
 function spiritFriendsRenderPreview() {
@@ -21598,6 +21781,7 @@ async function spiritReplyToEvaluation(evalId) {
 async function spiritOpenPublicProfileUI(userId, opts) {
     opts = opts || {};
     spiritPublicViewUserId = String(userId).trim();
+    try { if (typeof spiritSanctuaryApplyPublicChatChromeNeon === 'function') spiritSanctuaryApplyPublicChatChromeNeon('#ff6600'); } catch (eNeDef) {}
     try {
         var meOpenPub = typeof spiritMessagingOwnerUid === 'function' ? spiritMessagingOwnerUid() : '';
         if (!meOpenPub && typeof spiritSocialActorUid === 'function') meOpenPub = spiritSocialActorUid();
@@ -22784,6 +22968,13 @@ async function spiritSanctuaryRender(ctx) {
     });
     if (sanPubOwnerGlobalNeon) {
         try { spiritSanctuarySyncPublicNeonToolbar(items); } catch (eSynNe) {}
+    }
+    if (ctx === 'public') {
+        try {
+            var neonChat = '#ff6600';
+            if (items && items.length) neonChat = String((items[0] && items[0].neon) || '#ff6600').trim() || '#ff6600';
+            spiritSanctuaryApplyPublicChatChromeNeon(neonChat);
+        } catch (eNeChatPub) {}
     }
     try {
         if (ctx === 'public') void spiritPublicRefreshSocialStats(uid);
