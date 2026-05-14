@@ -3692,10 +3692,15 @@
                 padding-bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 0px)));
             }
         }
-        /* Bureau : la coque peut défiler si besoin (évite de couper le compositeur sous overflow-y:hidden) */
+        /* Bureau : scroll si le contenu dépasse — surtout « Agrandir le chat » où #forumContent en overflow:hidden (plus spécifique) bloquait le bas (champ + OK). */
         @media (min-width: 901px) {
             #forumModal #forumContent.forum-content-wrap {
                 overflow-y: auto !important;
+                min-height: 0;
+            }
+            #forumModal.spirit-forum-chat-expanded #forumContent.forum-content-wrap {
+                overflow-y: auto !important;
+                overflow-x: hidden;
                 min-height: 0;
             }
             #forumModal #forumViewPanel {
@@ -3703,7 +3708,15 @@
                 overflow-y: auto !important;
                 min-height: 0;
             }
+            #forumModal.spirit-forum-chat-expanded #forumViewPanel {
+                overflow-x: hidden;
+                overflow-y: auto !important;
+                min-height: 0;
+            }
             #forumModal .modal-content.forum-modal-shell {
+                overflow-y: auto !important;
+            }
+            #forumModal.spirit-forum-chat-expanded .modal-content.forum-modal-shell {
                 overflow-y: auto !important;
             }
         }
