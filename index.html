@@ -3692,6 +3692,19 @@
                 padding-bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 0px)));
             }
         }
+        /* Bureau uniquement : air sous le bouton OK (ombres / overflow carte) — ne pas modifier le mobile */
+        @media (min-width: 901px) {
+            #forumModal .modal-content.forum-modal-shell {
+                padding-bottom: 40px !important;
+            }
+            #forumModal .spirit-public-san-chat-card {
+                padding-bottom: 28px;
+            }
+            #forumModal .spirit-san-chat-composer {
+                margin-bottom: 12px;
+                padding-bottom: 10px;
+            }
+        }
         #spiritPublicProfileSection.spirit-san-chat-expanded {
             display: flex !important;
             flex-direction: column;
