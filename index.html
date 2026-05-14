@@ -3692,17 +3692,11 @@
                 padding-bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 0px)));
             }
         }
-        /* Bureau uniquement : air sous le bouton OK (ombres / overflow carte) — ne pas modifier le mobile */
+        /* Bureau : zone forum scrollable si le contenu dépasse (évite de couper le champ + bouton OK) */
         @media (min-width: 901px) {
-            #forumModal .modal-content.forum-modal-shell {
-                padding-bottom: 40px !important;
-            }
-            #forumModal .spirit-public-san-chat-card {
-                padding-bottom: 28px;
-            }
-            #forumModal .spirit-san-chat-composer {
-                margin-bottom: 12px;
-                padding-bottom: 10px;
+            #forumModal #forumContent.forum-content-wrap {
+                overflow-y: auto !important;
+                min-height: 0;
             }
         }
         #spiritPublicProfileSection.spirit-san-chat-expanded {
