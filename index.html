@@ -1692,7 +1692,10 @@
         #forumModal.spirit-forum-chat-expanded .spirit-public-san-chat-card { flex: 1; min-height: 0; }
         #forumModal.spirit-forum-chat-expanded .spirit-san-chat-msgs-wrap { flex: 1; min-height: 0; }
         #forumModal.spirit-forum-chat-expanded .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs {
-            min-height: min(62dvh, 620px); flex: 1; max-height: none;
+            min-height: 0 !important;
+            flex: 1 1 auto;
+            max-height: none;
+            overflow-y: auto;
         }
         #forumModal .spirit-forum-topics-scroll {
             flex-shrink: 0; max-height: min(26vh, 220px); overflow-y: auto; overflow-x: hidden;
@@ -1809,7 +1812,8 @@
                 0 0 80px rgba(255, 102, 0, 0.14),
                 inset 0 1px 0 rgba(255, 255, 255, 0.07);
             padding: 24px 22px 22px;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: hidden;
         }
         #forumModal .modal-content.forum-modal-shell::before {
             content: '';
@@ -3523,7 +3527,19 @@
                 0 0 72px rgba(255, 102, 0, 0.14),
                 0 0 1px rgba(0, 200, 255, 0.2);
             animation: spirit-pub-chat-card-neon-forum 2.6s ease-in-out infinite;
-            flex: 1; min-height: 0; display: flex; flex-direction: column; margin-top: 0;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            margin-top: 0;
+            overflow: hidden;
+        }
+        #forumModal .spirit-public-san-chat-card > .msg-safety-alert,
+        #forumModal .spirit-public-san-chat-card > .spirit-forum-welcome-details,
+        #forumModal .spirit-public-san-chat-card > .spirit-forum-chat-toolbar,
+        #forumModal .spirit-public-san-chat-card > #forumChatScopeBar,
+        #forumModal .spirit-public-san-chat-card > .spirit-san-chat-composer {
+            flex-shrink: 0;
         }
         @keyframes spirit-pub-chat-card-neon {
             0%, 100% {
@@ -3590,13 +3606,21 @@
                 radial-gradient(ellipse 100% 90% at 50% 0%, rgba(255, 102, 0, 0.1), transparent 52%),
                 linear-gradient(180deg, rgba(8, 10, 16, 0.92) 0%, rgba(2, 3, 6, 0.96) 100%);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 36px rgba(0, 0, 0, 0.45);
-            flex: 1; min-height: 0; display: flex; flex-direction: column;
+            flex: 1 1 0;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs, #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs {
             max-height: min(360px, 46vh); margin-bottom: 0; font-size: 0.74rem; padding: 6px 4px;
         }
         #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs {
-            max-height: none; flex: 1; min-height: 220px; overflow-y: auto; overflow-x: hidden;
+            max-height: none;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
             scrollbar-width: thin; scrollbar-color: rgba(255,102,0,0.45) #111;
         }
         #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs::-webkit-scrollbar { width: 6px; }
@@ -3606,11 +3630,17 @@
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-composer, #forumModal .spirit-san-chat-composer {
             display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; margin-top: 12px;
         }
-        #forumModal .spirit-san-chat-composer { flex-shrink: 0; margin-top: 14px; gap: 12px; }
+        #forumModal .spirit-san-chat-composer {
+            flex-shrink: 0;
+            margin-top: 12px;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
         #forumModal .spirit-san-chat-input {
-            flex: 1;
-            min-width: 160px;
-            padding: 13px 16px;
+            flex: 1 1 0%;
+            min-width: 0;
+            padding: 10px 12px;
             background: linear-gradient(180deg, rgba(12, 14, 20, 0.95) 0%, rgba(6, 8, 12, 0.98) 100%);
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: #f0f2f8;
@@ -3625,17 +3655,21 @@
             box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 102, 0, 0.2);
         }
         #forumModal .spirit-san-chat-composer .btn-action {
-            font-size: 0.7rem;
-            padding: 13px 22px;
-            border-radius: 14px;
-            font-weight: 900;
-            letter-spacing: 0.08em;
-            box-shadow: 0 0 24px rgba(255, 102, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.4);
+            flex: 0 0 auto;
+            align-self: center;
+            font-size: 0.62rem;
+            padding: 8px 14px;
+            border-radius: 11px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            line-height: 1.15;
+            white-space: nowrap;
+            box-shadow: 0 0 16px rgba(255, 102, 0, 0.28), 0 4px 14px rgba(0, 0, 0, 0.35);
             transition: transform 0.12s ease, box-shadow 0.2s ease;
         }
         #forumModal .spirit-san-chat-composer .btn-action:hover {
             transform: translateY(-1px);
-            box-shadow: 0 0 32px rgba(255, 120, 40, 0.5), 0 10px 26px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 0 22px rgba(255, 120, 40, 0.42), 0 6px 18px rgba(0, 0, 0, 0.4);
         }
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-input, #forumModal .spirit-san-chat-input {
             flex: 1; min-width: 160px; padding: 12px 14px; background: #0a0c10; border: 1px solid rgba(255,255,255,0.12);
@@ -3644,6 +3678,28 @@
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-composer .btn-action, #forumModal .spirit-san-chat-composer .btn-action {
             font-size: 0.68rem; padding: 12px 20px; border-radius: 12px;
             box-shadow: 0 0 20px rgba(255,102,0,0.15);
+        }
+        #forumModal .spirit-san-chat-input {
+            min-width: 0 !important;
+            flex: 1 1 0% !important;
+            font-size: 0.76rem;
+        }
+        #forumModal .spirit-san-chat-composer .btn-action {
+            font-size: 0.62rem !important;
+            padding: 8px 14px !important;
+        }
+        @media (max-width: 520px) {
+            #forumModal .spirit-san-chat-composer {
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            #forumModal .spirit-san-chat-input {
+                flex: 1 1 100% !important;
+                min-width: 0 !important;
+            }
+            #forumModal .spirit-san-chat-composer .btn-action {
+                margin-left: auto;
+            }
         }
         #spiritPublicProfileSection.spirit-san-chat-expanded {
             display: flex !important;
