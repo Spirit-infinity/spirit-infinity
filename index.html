@@ -1671,9 +1671,9 @@
         .forum-recent-pill { font-size: 0.52rem; background: rgba(255,102,0,0.25); color: var(--neon-orange); padding: 2px 8px; border-radius: 3px; font-weight: 800; letter-spacing: 0.06em; }
         .forum-tag { font-size: 0.6rem; background: var(--neon-orange); color: black; padding: 2px 6px; border-radius: 2px; font-weight: bold; }
         #forumModal .modal-content.forum-modal-shell { display: flex; flex-direction: column; max-width: 900px; max-height: 90vh; min-height: min(620px, 90vh); box-sizing: border-box; }
-        #forumContent.forum-content-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+        #forumContent.forum-content-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-x: hidden; overflow-y: auto; }
         #forumViewPanel {
-            display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 14px; overflow: hidden;
+            display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 14px; overflow-x: hidden; overflow-y: auto;
         }
         #forumModal .spirit-forum-chat-toolbar {
             display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; margin: 0 0 10px;
@@ -1687,8 +1687,8 @@
         }
         #forumModal.spirit-forum-chat-expanded .spirit-forum-topics-scroll,
         #forumModal.spirit-forum-chat-expanded .spirit-forum-modal-head { display: none !important; }
-        #forumModal.spirit-forum-chat-expanded #forumContent.forum-content-wrap { flex: 1; min-height: 0; overflow: hidden; }
-        #forumModal.spirit-forum-chat-expanded #forumViewPanel { flex: 1; min-height: 0; }
+        #forumModal.spirit-forum-chat-expanded #forumContent.forum-content-wrap { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; }
+        #forumModal.spirit-forum-chat-expanded #forumViewPanel { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; }
         #forumModal.spirit-forum-chat-expanded .spirit-forum-chat-stack { flex: 1; min-height: 0; }
         #forumModal.spirit-forum-chat-expanded .spirit-public-san-chat-card { flex: 1; min-height: 0; }
         #forumModal.spirit-forum-chat-expanded .spirit-san-chat-msgs-wrap { flex: 1; min-height: 0; }
@@ -1814,7 +1814,7 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.07);
             padding: 24px 22px max(22px, calc(14px + env(safe-area-inset-bottom, 0px)));
             overflow-x: hidden;
-            overflow-y: hidden;
+            overflow-y: auto;
         }
         #forumModal .modal-content.forum-modal-shell::before {
             content: '';
@@ -3618,7 +3618,7 @@
         }
         #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs {
             max-height: none;
-            flex: 1 1 auto;
+            flex: 1 1 0%;
             min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
@@ -3627,6 +3627,11 @@
         #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs::-webkit-scrollbar { width: 6px; }
         #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs::-webkit-scrollbar-thumb {
             background: linear-gradient(180deg, rgba(255,102,0,0.5), rgba(0,200,255,0.35)); border-radius: 6px;
+        }
+        /* Contre .chat-messages { flex:1 } : flex-basis auto = min-height de contenu trop grand → compositeur rogné sous overflow:hidden de la carte */
+        #forumModal #forumChat.chat-messages.spirit-san-chat-msgs {
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
         }
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-composer {
             display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; margin-top: 12px;
@@ -3690,34 +3695,6 @@
         @media (max-width: 520px) {
             #forumModal .spirit-public-san-chat-card {
                 padding-bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 0px)));
-            }
-        }
-        /* Bureau : scroll si le contenu dépasse — surtout « Agrandir le chat » où #forumContent en overflow:hidden (plus spécifique) bloquait le bas (champ + OK). */
-        @media (min-width: 901px) {
-            #forumModal #forumContent.forum-content-wrap {
-                overflow-y: auto !important;
-                min-height: 0;
-            }
-            #forumModal.spirit-forum-chat-expanded #forumContent.forum-content-wrap {
-                overflow-y: auto !important;
-                overflow-x: hidden;
-                min-height: 0;
-            }
-            #forumModal #forumViewPanel {
-                overflow-x: hidden;
-                overflow-y: auto !important;
-                min-height: 0;
-            }
-            #forumModal.spirit-forum-chat-expanded #forumViewPanel {
-                overflow-x: hidden;
-                overflow-y: auto !important;
-                min-height: 0;
-            }
-            #forumModal .modal-content.forum-modal-shell {
-                overflow-y: auto !important;
-            }
-            #forumModal.spirit-forum-chat-expanded .modal-content.forum-modal-shell {
-                overflow-y: auto !important;
             }
         }
         #spiritPublicProfileSection.spirit-san-chat-expanded {
