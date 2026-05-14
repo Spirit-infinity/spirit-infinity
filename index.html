@@ -3692,11 +3692,19 @@
                 padding-bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 0px)));
             }
         }
-        /* Bureau : zone forum scrollable si le contenu dépasse (évite de couper le champ + bouton OK) */
+        /* Bureau : la coque peut défiler si besoin (évite de couper le compositeur sous overflow-y:hidden) */
         @media (min-width: 901px) {
             #forumModal #forumContent.forum-content-wrap {
                 overflow-y: auto !important;
                 min-height: 0;
+            }
+            #forumModal #forumViewPanel {
+                overflow-x: hidden;
+                overflow-y: auto !important;
+                min-height: 0;
+            }
+            #forumModal .modal-content.forum-modal-shell {
+                overflow-y: auto !important;
             }
         }
         #spiritPublicProfileSection.spirit-san-chat-expanded {
