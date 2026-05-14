@@ -2874,6 +2874,113 @@
             background: #111; border: 1px solid #333; color: #ccc; font-size: 0.65rem; padding: 8px 12px; cursor: pointer;
         }
         #spiritSanctuaryRoot .spirit-sanctuary-toolbar button.active { border-color: var(--neon-orange); color: var(--neon-orange); }
+        #spiritPublicSanNeonRow { flex-wrap: wrap; align-items: center; }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-dd {
+            position: relative;
+            flex: 1 1 200px;
+            max-width: min(100%, 320px);
+            min-width: 0;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 11px 14px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #eaf6ff;
+            background: linear-gradient(180deg, #141a22 0%, #0a0d12 100%);
+            border: 1px solid rgba(0, 200, 255, 0.35);
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.45);
+            -webkit-appearance: none;
+            appearance: none;
+            text-align: left;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-btn:hover:not(:disabled) {
+            border-color: rgba(0, 220, 255, 0.55);
+            color: #fff;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-swatch {
+            width: 18px;
+            height: 18px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-btn-label {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-btn-caret {
+            flex-shrink: 0;
+            font-size: 0.65rem;
+            color: #00ccff;
+            opacity: 0.9;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-panel {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 6px);
+            z-index: 140;
+            max-height: min(60vh, 440px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px 0;
+            background: linear-gradient(180deg, #101820 0%, #070a0e 100%);
+            border: 1px solid rgba(0, 200, 255, 0.28);
+            border-radius: 12px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04);
+            -webkit-overflow-scrolling: touch;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-panel[hidden] {
+            display: none !important;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-opt {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            text-align: left;
+            padding: 12px 14px;
+            min-height: 48px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            color: #e8ecf0;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-opt:last-child { border-bottom: none; }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-opt:hover {
+            background: rgba(0, 200, 255, 0.1);
+            color: #fff;
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-opt--active {
+            background: rgba(0, 200, 255, 0.14);
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-opt-swatch {
+            width: 22px;
+            height: 22px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+        }
+        #spiritSanctuaryRoot .spirit-sanctuary-neon-opt-txt { flex: 1; min-width: 0; }
         #spiritSanctuaryGrid.spirit-san-mode-list { display: flex; flex-direction: column; gap: 16px; }
         #spiritSanctuaryGrid.spirit-san-mode-list .spirit-san-card {
             display: flex; flex-direction: column; gap: 16px; align-items: stretch; background: #0a0a0a; border: 1px solid #222; padding: 12px;
@@ -5368,16 +5475,17 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             </div>
             <div class="spirit-sanctuary-toolbar">
                 <!-- Profil public : une seule case néon pour toute la galerie (propriétaire). -->
-                <div id="spiritPublicSanNeonRow" style="display:none;align-items:center;gap:8px;">
+                <div id="spiritPublicSanNeonRow" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;">
                 <span data-key="pub_neon_border" style="font-size:0.65rem;color:#888;">Bordure néon (galerie)</span>
-                <select id="spiritSanctuaryNeonSelect" aria-label="Couleur néon">
-                    <option value="#ff6600">Orange Spirit</option>
-                    <option value="#00ff88">Vert</option>
-                    <option value="#00ccff">Cyan</option>
-                    <option value="#ff00aa">Magenta</option>
-                    <option value="#ffffff">Blanc</option>
-                    <option value="#ffcc00">Or</option>
-                </select>
+                <div id="spiritPublicNeonDd" class="spirit-sanctuary-neon-dd">
+                    <input type="hidden" id="spiritSanctuaryNeonSelect" value="#ff6600" autocomplete="off" />
+                    <button type="button" id="spiritSanctuaryNeonBtn" class="spirit-sanctuary-neon-btn" aria-expanded="false" aria-haspopup="listbox">
+                        <span class="spirit-sanctuary-neon-swatch" id="spiritSanctuaryNeonSwatch" style="background:#ff6600;"></span>
+                        <span id="spiritSanctuaryNeonBtnLabel" class="spirit-sanctuary-neon-btn-label">Orange Spirit</span>
+                        <span class="spirit-sanctuary-neon-btn-caret" aria-hidden="true">▾</span>
+                    </button>
+                    <div id="spiritSanctuaryNeonPanel" class="spirit-sanctuary-neon-panel" role="listbox" hidden></div>
+                </div>
                 </div>
                 <span style="flex:1"></span>
                 <label data-key="ui_view" style="font-size:0.65rem;color:#888;">Vue</label>
@@ -5873,7 +5981,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'san_prompt_comment': 'Ton commentaire :', 'san_no_comments': 'Aucun commentaire.', 'san_comments_toggle': 'Commentaires',
             'san_comments_modal_title': 'Discussion — Sanctuaire', 'san_reply_btn': 'Répondre', 'san_replying_prefix': 'Réponse à', 'san_reply_cancel': 'Annuler la réponse', 'san_comments_placeholder': 'Écris un message…', 'san_comments_send': 'Publier', 'san_reply_notif': 'a répondu sur ta photo',
             'san_desc_ph': 'Description', 'san_desc_none': 'Aucune description.', 'san_neon_lbl': 'Néon', 'san_trash_title': 'CORBEILLE', 'san_work_prefix': 'Œuvre #',
-            'san_neon_current': 'Couleur actuelle',
+            'san_neon_current': 'Couleur actuelle', 'san_neon_orange': 'Orange Spirit', 'san_neon_green': 'Vert', 'san_neon_cyan': 'Cyan', 'san_neon_magenta': 'Magenta', 'san_neon_white': 'Blanc', 'san_neon_gold': 'Or', 'san_neon_blue': 'Bleu', 'san_neon_red': 'Rouge', 'san_neon_violet': 'Violet',
             'msg_login': 'Connecte-toi pour voir tes messages.', 'msg_supabase': 'Supabase indisponible.', 'msg_loading': 'Chargement des alertes…', 'msg_empty': 'Aucune alerte pour le moment.',
             'msg_new_activity': 'Nouvelle activité',
             'msg_syn_liked_photo': 'a aimé ta photo', 'msg_syn_commented_prefix': 'a commenté :',
@@ -6008,7 +6116,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'san_prompt_comment': 'Your comment:', 'san_no_comments': 'No comments yet.', 'san_comments_toggle': 'Comments',
             'san_comments_modal_title': 'Discussion — Sanctuary', 'san_reply_btn': 'Reply', 'san_replying_prefix': 'Replying to', 'san_reply_cancel': 'Cancel reply', 'san_comments_placeholder': 'Write a message…', 'san_comments_send': 'Post', 'san_reply_notif': 'replied on your photo',
             'san_desc_ph': 'Description', 'san_desc_none': 'No description.', 'san_neon_lbl': 'Neon', 'san_trash_title': 'TRASH', 'san_work_prefix': 'Piece #',
-            'san_neon_current': 'Current color',
+            'san_neon_current': 'Current color', 'san_neon_orange': 'Orange Spirit', 'san_neon_green': 'Green', 'san_neon_cyan': 'Cyan', 'san_neon_magenta': 'Magenta', 'san_neon_white': 'White', 'san_neon_gold': 'Gold', 'san_neon_blue': 'Blue', 'san_neon_red': 'Red', 'san_neon_violet': 'Violet',
             'msg_login': 'Sign in to see your messages.', 'msg_supabase': 'Supabase unavailable.', 'msg_loading': 'Loading alerts…', 'msg_empty': 'No alerts yet.',
             'msg_new_activity': 'New activity',
             'msg_syn_liked_photo': 'liked your photo', 'msg_syn_commented_prefix': 'commented:',
@@ -6143,7 +6251,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'san_prompt_comment': 'Tu comentario:', 'san_no_comments': 'Sin comentarios.', 'san_comments_toggle': 'Comentarios',
             'san_comments_modal_title': 'Hilo — Santuario', 'san_reply_btn': 'Responder', 'san_replying_prefix': 'Respondiendo a', 'san_reply_cancel': 'Cancelar respuesta', 'san_comments_placeholder': 'Escribe un mensaje…', 'san_comments_send': 'Publicar', 'san_reply_notif': 'ha respondido en tu foto',
             'san_desc_ph': 'Descripción', 'san_desc_none': 'Sin descripción.', 'san_neon_lbl': 'Neón', 'san_trash_title': 'PAPELERA', 'san_work_prefix': 'Pieza n.º ',
-            'san_neon_current': 'Color actual',
+            'san_neon_current': 'Color actual', 'san_neon_orange': 'Orange Spirit', 'san_neon_green': 'Verde', 'san_neon_cyan': 'Cian', 'san_neon_magenta': 'Magenta', 'san_neon_white': 'Blanco', 'san_neon_gold': 'Oro', 'san_neon_blue': 'Azul', 'san_neon_red': 'Rojo', 'san_neon_violet': 'Violeta',
             'msg_login': 'Inicia sesión para ver tus mensajes.', 'msg_supabase': 'Supabase no disponible.', 'msg_loading': 'Cargando alertas…', 'msg_empty': 'Sin alertas por ahora.',
             'msg_new_activity': 'Nueva actividad',
             'msg_syn_liked_photo': 'le gustó tu foto', 'msg_syn_commented_prefix': 'comentó:',
@@ -6278,7 +6386,7 @@ En pratique : tu passes par ce menu pour signaler un souci, demander de l’aide
             'san_prompt_comment': '你的评论：', 'san_no_comments': '暂无评论。', 'san_comments_toggle': '评论',
             'san_comments_modal_title': '讨论 — 圣地', 'san_reply_btn': '回复', 'san_replying_prefix': '回复对象', 'san_reply_cancel': '取消回复', 'san_comments_placeholder': '输入留言…', 'san_comments_send': '发布', 'san_reply_notif': '回复了你的照片',
             'san_desc_ph': '描述', 'san_desc_none': '暂无描述。', 'san_neon_lbl': '霓虹', 'san_trash_title': '删除', 'san_work_prefix': '作品 #',
-            'san_neon_current': '当前颜色',
+            'san_neon_current': '当前颜色', 'san_neon_orange': 'Spirit 橙', 'san_neon_green': '绿', 'san_neon_cyan': '青', 'san_neon_magenta': '品红', 'san_neon_white': '白', 'san_neon_gold': '金', 'san_neon_blue': '蓝', 'san_neon_red': '红', 'san_neon_violet': '紫',
             'msg_login': '请登录查看消息。', 'msg_supabase': 'Supabase 不可用。', 'msg_loading': '正在加载提醒…', 'msg_empty': '暂无提醒。',
             'msg_new_activity': '新动态',
             'msg_syn_liked_photo': '赞了你的照片', 'msg_syn_commented_prefix': '评论：',
@@ -21832,10 +21940,16 @@ async function spiritOpenPublicProfileUI(userId, opts) {
     try {
         var neonRowPub = document.getElementById('spiritPublicSanNeonRow');
         if (neonRowPub) neonRowPub.style.display = isOwner ? 'flex' : 'none';
-        var neonSel = document.getElementById('spiritSanctuaryNeonSelect');
-        if (neonSel) {
-            neonSel.disabled = !isOwner;
-            neonSel.style.opacity = !isOwner ? '0.45' : '1';
+        var neonBtn = document.getElementById('spiritSanctuaryNeonBtn');
+        var neonDd = document.getElementById('spiritPublicNeonDd');
+        if (neonBtn) {
+            neonBtn.disabled = !isOwner;
+            neonBtn.style.opacity = !isOwner ? '0.45' : '1';
+            neonBtn.style.pointerEvents = !isOwner ? 'none' : 'auto';
+        }
+        if (neonDd) {
+            neonDd.style.opacity = !isOwner ? '0.45' : '1';
+            neonDd.style.pointerEvents = !isOwner ? 'none' : 'auto';
         }
         document.querySelectorAll('#spiritSanctuaryRoot .spirit-san-view').forEach(function (b) {
             b.disabled = !isOwner;
@@ -22481,26 +22595,163 @@ async function spiritAccountSanctuaryClearAllPhotos() {
     await spiritSanctuaryRender('account');
 }
 try { window.spiritAccountSanctuaryClearAllPhotos = spiritAccountSanctuaryClearAllPhotos; } catch (eClr) {}
+function spiritSanctuaryNeonNormHex(h) {
+    h = String(h || '').trim().replace(/^#/, '').toLowerCase();
+    if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+    return (h.length === 6 && /^[0-9a-f]+$/.test(h)) ? '#' + h : '';
+}
+function spiritSanctuaryNeonPresetTuples() {
+    function L(k, fb) {
+        try { return (typeof spiritT === 'function') ? spiritT(k) : fb; } catch (eL) { return fb; }
+    }
+    return [
+        ['#ff6600', L('san_neon_orange', 'Orange Spirit')],
+        ['#00ff88', L('san_neon_green', 'Vert')],
+        ['#00ccff', L('san_neon_cyan', 'Cyan')],
+        ['#ff00aa', L('san_neon_magenta', 'Magenta')],
+        ['#ffffff', L('san_neon_white', 'Blanc')],
+        ['#ffcc00', L('san_neon_gold', 'Or')],
+        ['#2266ff', L('san_neon_blue', 'Bleu')],
+        ['#ff2233', L('san_neon_red', 'Rouge')],
+        ['#aa44ff', L('san_neon_violet', 'Violet')]
+    ];
+}
+function spiritSanctuaryNeonSameHex(a, b) {
+    var na = spiritSanctuaryNeonNormHex(a);
+    var nb = spiritSanctuaryNeonNormHex(b);
+    if (!na || !nb) return false;
+    return na === nb;
+}
+var spiritPublicNeonDdWired = false;
+function spiritSanctuaryPublicNeonDdClose() {
+    var p = document.getElementById('spiritSanctuaryNeonPanel');
+    var b = document.getElementById('spiritSanctuaryNeonBtn');
+    if (p) p.hidden = true;
+    if (b) b.setAttribute('aria-expanded', 'false');
+}
+function spiritSanctuaryPublicNeonDdLabelForHex(hex) {
+    var n = spiritSanctuaryNeonNormHex(hex);
+    var tu = spiritSanctuaryNeonPresetTuples();
+    for (var i = 0; i < tu.length; i++) {
+        if (spiritSanctuaryNeonNormHex(tu[i][0]) === n) return tu[i][1];
+    }
+    try { return (typeof spiritT === 'function') ? spiritT('san_neon_current') : 'Couleur actuelle'; } catch (eLb) { return 'Couleur actuelle'; }
+}
+function spiritSanctuaryPublicNeonDdSetUi(hex) {
+    var hid = document.getElementById('spiritSanctuaryNeonSelect');
+    var sw = document.getElementById('spiritSanctuaryNeonSwatch');
+    var lab = document.getElementById('spiritSanctuaryNeonBtnLabel');
+    var raw = String(hex != null ? hex : '').trim() || '#ff6600';
+    var hexUse = spiritSanctuaryNeonNormHex(raw) || '#ff6600';
+    if (hid && hid.tagName === 'INPUT') hid.value = hexUse;
+    if (sw) sw.style.background = hexUse;
+    if (lab) lab.textContent = spiritSanctuaryPublicNeonDdLabelForHex(hexUse);
+    var pan = document.getElementById('spiritSanctuaryNeonPanel');
+    if (pan) {
+        Array.prototype.forEach.call(pan.querySelectorAll('.spirit-sanctuary-neon-opt'), function (btn) {
+            var v = String(btn.getAttribute('data-neon-hex') || '').trim();
+            btn.classList.toggle('spirit-sanctuary-neon-opt--active', spiritSanctuaryNeonSameHex(v, hexUse));
+        });
+    }
+}
+function spiritSanctuaryPublicNeonDdRebuildPanel() {
+    var pan = document.getElementById('spiritSanctuaryNeonPanel');
+    if (!pan) return;
+    pan.innerHTML = '';
+    spiritSanctuaryNeonPresetTuples().forEach(function (row) {
+        var h = row[0], lb = row[1];
+        var ob = document.createElement('button');
+        ob.type = 'button';
+        ob.className = 'spirit-sanctuary-neon-opt';
+        ob.setAttribute('role', 'option');
+        ob.setAttribute('data-neon-hex', h);
+        var swEl = document.createElement('span');
+        swEl.className = 'spirit-sanctuary-neon-opt-swatch';
+        swEl.style.background = h;
+        var tx = document.createElement('span');
+        tx.className = 'spirit-sanctuary-neon-opt-txt';
+        tx.textContent = lb;
+        ob.appendChild(swEl);
+        ob.appendChild(tx);
+        ob.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            spiritSanctuaryPublicNeonDdClose();
+            spiritSanctuaryPublicNeonDdSetUi(h);
+            void spiritSanctuaryApplyPublicGlobalNeon(h);
+        });
+        pan.appendChild(ob);
+    });
+}
+function spiritSanctuaryPublicNeonDdInit() {
+    if (spiritPublicNeonDdWired) return;
+    var wrap = document.getElementById('spiritPublicNeonDd');
+    var btn = document.getElementById('spiritSanctuaryNeonBtn');
+    var pan = document.getElementById('spiritSanctuaryNeonPanel');
+    if (!wrap || !btn || !pan) return;
+    spiritPublicNeonDdWired = true;
+    try {
+        btn.setAttribute('aria-label', (typeof spiritT === 'function') ? spiritT('pub_neon_border') : 'Neon border');
+    } catch (eAr) {}
+    spiritSanctuaryPublicNeonDdRebuildPanel();
+    try {
+        var hv = document.getElementById('spiritSanctuaryNeonSelect');
+        spiritSanctuaryPublicNeonDdSetUi(hv ? hv.value : '#ff6600');
+    } catch (e0) {}
+    btn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        if (btn.disabled) return;
+        var open = !pan.hidden;
+        if (open) spiritSanctuaryPublicNeonDdClose();
+        else {
+            spiritSanctuaryPublicNeonDdRebuildPanel();
+            try {
+                var hv2 = document.getElementById('spiritSanctuaryNeonSelect');
+                spiritSanctuaryPublicNeonDdSetUi(hv2 ? hv2.value : '#ff6600');
+            } catch (e1) {}
+            pan.hidden = false;
+            btn.setAttribute('aria-expanded', 'true');
+        }
+    });
+    document.addEventListener('click', function (ev) {
+        try {
+            if (!wrap.contains(ev.target)) spiritSanctuaryPublicNeonDdClose();
+        } catch (eC) {}
+    }, true);
+    document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape' || ev.keyCode === 27) spiritSanctuaryPublicNeonDdClose();
+    }, true);
+}
 function spiritSanctuarySyncPublicNeonToolbar(items) {
-    var sel = document.getElementById('spiritSanctuaryNeonSelect');
-    if (!sel) return;
     var col = '#ff6600';
     if (items && items.length) {
         col = String((items[0] && items[0].neon) || '#ff6600').trim() || '#ff6600';
     }
-    sel.dataset.spiritProgrammatic = '1';
+    col = spiritSanctuaryNeonNormHex(col) || '#ff6600';
+    var el = document.getElementById('spiritSanctuaryNeonSelect');
+    if (!el) return;
+    if (el.tagName === 'INPUT' && String(el.type || '').toLowerCase() === 'hidden') {
+        el.dataset.spiritProgrammatic = '1';
+        try {
+            el.value = col;
+            spiritSanctuaryPublicNeonDdSetUi(col);
+        } finally {
+            try { delete el.dataset.spiritProgrammatic; } catch (eD) {}
+        }
+        return;
+    }
+    el.dataset.spiritProgrammatic = '1';
     try {
         var hasOpt = false;
-        Array.prototype.forEach.call(sel.options || [], function (o) { if (String(o.value) === col) hasOpt = true; });
+        Array.prototype.forEach.call(el.options || [], function (o) { if (String(o.value) === col) hasOpt = true; });
         if (!hasOpt && col) {
             var ox = document.createElement('option');
             ox.value = col;
             ox.textContent = (typeof spiritT === 'function') ? spiritT('san_neon_current') : 'Couleur actuelle';
-            sel.insertBefore(ox, sel.firstChild);
+            el.insertBefore(ox, el.firstChild);
         }
-        sel.value = col;
+        el.value = col;
     } finally {
-        try { delete sel.dataset.spiritProgrammatic; } catch (eD) {}
+        try { delete el.dataset.spiritProgrammatic; } catch (eD2) {}
     }
 }
 async function spiritSanctuaryApplyPublicGlobalNeon(hex) {
@@ -22592,7 +22843,7 @@ async function spiritSanctuaryRender(ctx) {
         grid.appendChild(add);
     }
     var listLike = vm === 'list' || vm === 'details';
-    var neonOpts = [['#ff6600', 'Orange Spirit'], ['#00ff88', 'Vert'], ['#00ccff', 'Cyan'], ['#ff00aa', 'Magenta'], ['#ffffff', 'Blanc'], ['#ffcc00', 'Or']];
+    var neonOpts = spiritSanctuaryNeonPresetTuples();
     function spiritSanctuaryNeonToRgba(hex, a) {
         hex = String(hex || '#ff6600').replace(/^#/, '').trim();
         if (hex.length === 3) hex = hex.split('').map(function (ch) { return ch + ch; }).join('');
@@ -23030,13 +23281,7 @@ function spiritSanctuaryWireOnce() {
     spiritSanctuaryBindFileInput('account');
     if (!spiritSanctuaryWireOnce._pubNeonToolbar) {
         spiritSanctuaryWireOnce._pubNeonToolbar = true;
-        var pnSel = document.getElementById('spiritSanctuaryNeonSelect');
-        if (pnSel) {
-            pnSel.addEventListener('change', function () {
-                if (pnSel.dataset.spiritProgrammatic === '1') return;
-                void spiritSanctuaryApplyPublicGlobalNeon(pnSel.value);
-            });
-        }
+        try { spiritSanctuaryPublicNeonDdInit(); } catch (eNeDd) {}
     }
     if (!spiritSanctuaryWireOnce._addBtns) {
         spiritSanctuaryWireOnce._addBtns = true;
