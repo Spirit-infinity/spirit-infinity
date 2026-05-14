@@ -1715,15 +1715,6 @@
             margin: 0; font-size: 0.78rem; letter-spacing: 0.12em; color: #fff;
             text-shadow: 0 0 20px rgba(255,102,0,0.35);
         }
-        #forumModal .spirit-forum-scope-bar {
-            font-size: 0.65rem; color: #8a8a8a; padding: 10px 12px; margin: 0 0 10px;
-            align-items: center; gap: 10px; flex-wrap: wrap;
-            background: rgba(0,0,0,0.35); border-radius: 10px; border: 1px solid #222;
-        }
-        #forumModal .spirit-public-san-chat-card .msg-safety-alert {
-            margin-bottom: 10px; text-align: left; font-weight: 600; font-size: 0.62rem; line-height: 1.45;
-            background: rgba(255,51,51,0.08); border: 1px solid rgba(255,80,80,0.45); color: #f0a0a0;
-        }
         #forumModal .spirit-forum-welcome-details {
             margin: 0 0 10px;
             padding: 8px 10px 10px;
@@ -1797,6 +1788,272 @@
         #topicEditor.forum-topic-editor-full input#topicTitle, #topicEditor.forum-topic-editor-full select#topicTag { width: 100%; box-sizing: border-box; flex-shrink: 0; }
         #topicEditor .forum-topic-actions { flex-shrink: 0; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 14px 4px 6px; margin-top: 8px; border-top: 1px solid rgba(255,102,0,0.35); background: linear-gradient(180deg, rgba(17,17,17,0) 0%, #141414 12%); }
         #topicEditor .forum-topic-actions .btn-action { min-height: 40px; padding: 10px 18px; font-size: 0.72rem; }
+
+        /* FORUM — design premium (tous les éléments conservés, couche visuelle) */
+        #forumModal.overlay {
+            background:
+                radial-gradient(ellipse 90% 70% at 50% 35%, rgba(255, 102, 0, 0.16), transparent 52%),
+                radial-gradient(ellipse 60% 50% at 80% 20%, rgba(0, 200, 255, 0.08), transparent 45%),
+                rgba(0, 2, 8, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        #forumModal .modal-content.forum-modal-shell {
+            position: relative;
+            background: linear-gradient(168deg, #12151d 0%, #0a0c12 42%, #05060a 100%);
+            border: 1px solid rgba(255, 102, 0, 0.38);
+            border-radius: 22px;
+            box-shadow:
+                0 0 0 1px rgba(0, 200, 255, 0.1),
+                0 28px 90px rgba(0, 0, 0, 0.78),
+                0 0 80px rgba(255, 102, 0, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.07);
+            padding: 24px 22px 22px;
+            overflow: hidden;
+        }
+        #forumModal .modal-content.forum-modal-shell::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 102, 0, 0.95) 28%, rgba(0, 220, 255, 0.75) 50%, rgba(255, 102, 0, 0.95) 72%, transparent 100%);
+            opacity: 0.92;
+            pointer-events: none;
+            z-index: 1;
+        }
+        #forumModal .spirit-forum-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 6;
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(8, 10, 16, 0.75);
+            color: #e8ecf4;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.15s ease, transform 0.12s ease;
+        }
+        #forumModal .spirit-forum-close-btn:hover {
+            background: rgba(255, 102, 0, 0.18);
+            border-color: rgba(255, 102, 0, 0.55);
+            color: #fff;
+            box-shadow: 0 0 28px rgba(255, 102, 0, 0.35);
+            transform: scale(1.04);
+        }
+        #forumModal .spirit-forum-modal-head {
+            position: relative;
+            z-index: 2;
+            padding: 6px 52px 16px 4px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+            border-radius: 0 0 14px 14px;
+        }
+        #forumModal .spirit-forum-modal-head h2 {
+            font-size: clamp(0.76rem, 2.5vw, 0.95rem);
+            letter-spacing: 0.18em;
+            font-weight: 900;
+            color: #f4f6fb;
+            text-shadow:
+                0 0 28px rgba(255, 102, 0, 0.5),
+                0 0 56px rgba(0, 200, 255, 0.18),
+                0 1px 0 rgba(0, 0, 0, 0.9);
+        }
+        #forumModal #btn-new-topic {
+            font-size: 0.62rem !important;
+            letter-spacing: 0.12em;
+            font-weight: 900;
+            padding: 11px 18px !important;
+            border-radius: 12px !important;
+            border: 1px solid rgba(255, 160, 60, 0.65) !important;
+            background: linear-gradient(165deg, rgba(255, 120, 30, 0.95), rgba(180, 60, 0, 0.92)) !important;
+            color: #0a0604 !important;
+            box-shadow: 0 0 22px rgba(255, 102, 0, 0.45), 0 8px 24px rgba(0, 0, 0, 0.45);
+            transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+        #forumModal #btn-new-topic:hover {
+            filter: brightness(1.08);
+            box-shadow: 0 0 32px rgba(255, 140, 40, 0.6), 0 10px 28px rgba(0, 0, 0, 0.5);
+            transform: translateY(-1px);
+        }
+        #forumModal #forumViewPanel {
+            gap: 16px;
+        }
+        #forumModal .forum-post,
+        #forumModal .forum-topic-card {
+            background: linear-gradient(165deg, rgba(18, 22, 30, 0.92) 0%, rgba(8, 10, 14, 0.96) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 3px solid var(--neon-orange);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+        #forumModal .forum-post-clickable:hover,
+        #forumModal .forum-topic-card.forum-post-clickable:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 102, 0, 0.45);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 28px rgba(255, 102, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            background: linear-gradient(165deg, rgba(26, 30, 40, 0.95) 0%, rgba(12, 14, 20, 0.98) 100%);
+        }
+        #forumModal .forum-tag {
+            font-size: 0.58rem;
+            letter-spacing: 0.08em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #ff7700, #ff4400);
+            color: #0a0502;
+            font-weight: 900;
+            box-shadow: 0 0 14px rgba(255, 102, 0, 0.45);
+        }
+        #forumModal .forum-recent-pill {
+            font-size: 0.52rem;
+            letter-spacing: 0.1em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 102, 0, 0.18);
+            color: #ffb870;
+            border: 1px solid rgba(255, 102, 0, 0.35);
+        }
+        #forumModal .forum-acc-section {
+            border-radius: 16px;
+            border: 1px solid rgba(255, 102, 0, 0.22);
+            background: linear-gradient(180deg, rgba(14, 16, 22, 0.88) 0%, rgba(6, 8, 12, 0.94) 100%);
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            margin-bottom: 12px;
+        }
+        #forumModal .forum-acc-head {
+            padding: 14px 16px;
+            font-size: 0.74rem;
+            letter-spacing: 0.08em;
+            background: linear-gradient(90deg, rgba(22, 26, 34, 0.98) 0%, rgba(14, 16, 22, 0.95) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        #forumModal .forum-acc-head:hover {
+            background: linear-gradient(90deg, rgba(32, 38, 48, 1) 0%, rgba(20, 24, 32, 0.98) 100%);
+            color: #fff;
+        }
+        #forumModal .forum-acc-count {
+            color: #9aa3b2;
+            font-weight: 700;
+        }
+        #forumModal .forum-acc-body {
+            padding: 10px 12px 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        #forumModal .forum-topic-card-meta {
+            color: #9aa3b2;
+            margin-top: 8px;
+        }
+        #forumModal .spirit-forum-topics-scroll {
+            max-height: min(28vh, 240px);
+            padding: 12px 10px 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 102, 0, 0.2);
+            background:
+                radial-gradient(ellipse 100% 90% at 50% 0%, rgba(255, 102, 0, 0.1), transparent 55%),
+                linear-gradient(180deg, rgba(10, 12, 18, 0.95) 0%, rgba(4, 5, 8, 0.98) 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 40px rgba(0, 0, 0, 0.35);
+        }
+        #forumModal .spirit-forum-welcome-details {
+            border-radius: 14px;
+            border: 1px solid rgba(0, 200, 255, 0.22);
+            background: linear-gradient(165deg, rgba(12, 20, 28, 0.9) 0%, rgba(6, 8, 14, 0.95) 100%);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            padding: 10px 12px 12px;
+        }
+        #forumModal .spirit-forum-welcome-details summary {
+            font-size: 0.66rem;
+            letter-spacing: 0.06em;
+        }
+        #forumModal .spirit-forum-welcome-body {
+            color: #c5ccd8;
+            line-height: 1.55;
+        }
+        #forumModal .spirit-forum-chat-toolbar {
+            gap: 12px;
+            padding: 10px 12px;
+            margin: 0 0 12px;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            justify-content: flex-end;
+        }
+        #forumModal .spirit-forum-chat-toolbar .btn-action {
+            border-radius: 11px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.06em;
+            transition: transform 0.12s ease, box-shadow 0.2s ease !important;
+        }
+        #forumModal .spirit-forum-chat-toolbar .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 18px rgba(255, 102, 0, 0.25) !important;
+        }
+        #forumModal .spirit-forum-scope-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 0.65rem;
+            color: #9aa3b2;
+            margin: 0 0 12px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 102, 0, 0.28);
+            background: linear-gradient(90deg, rgba(18, 14, 10, 0.9) 0%, rgba(8, 10, 16, 0.92) 100%);
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+            gap: 12px;
+        }
+        #forumModal .spirit-forum-scope-bar .btn-action {
+            border-radius: 10px !important;
+        }
+        #forumModal #forumChatScopeTitle {
+            text-shadow: 0 0 18px rgba(255, 102, 0, 0.45);
+        }
+        #forumModal .spirit-public-san-chat-card .msg-safety-alert {
+            margin-bottom: 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.62rem;
+            line-height: 1.45;
+            border-radius: 12px;
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 80, 80, 0.55);
+            background: linear-gradient(165deg, rgba(50, 16, 16, 0.55) 0%, rgba(24, 8, 8, 0.75) 100%);
+            color: #ffc8c8;
+            box-shadow: 0 0 20px rgba(255, 60, 60, 0.12);
+        }
+        #forumModal #topicEditor.forum-topic-editor-full h3 {
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 20px rgba(255, 102, 0, 0.35);
+        }
+        #forumModal #topicEditor.forum-topic-editor-full input#topicTitle,
+        #forumModal #topicEditor.forum-topic-editor-full select#topicTag,
+        #forumModal #topicEditor.forum-topic-editor-full textarea#topicBody {
+            border-radius: 12px !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: rgba(6, 8, 12, 0.85) !important;
+            color: #e8ecf4 !important;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
+        }
+        #forumModal #topicEditor.forum-topic-editor-full input#topicTitle:focus,
+        #forumModal #topicEditor.forum-topic-editor-full select#topicTag:focus,
+        #forumModal #topicEditor.forum-topic-editor-full textarea#topicBody:focus {
+            outline: none;
+            border-color: rgba(255, 102, 0, 0.55) !important;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 102, 0, 0.25);
+        }
+
         /* SECTION ACCOUNT PAGES */
         .account-page { display: none; }
         .account-page.active { display: block; }
@@ -3252,15 +3509,20 @@
             animation: spirit-pub-chat-card-neon 2.8s ease-in-out infinite;
         }
         #forumModal .spirit-public-san-chat-card {
-            background: linear-gradient(180deg, rgba(14,16,22,0.97) 0%, rgba(6,7,10,0.99) 100%);
-            border: 1px solid rgba(255,102,0,0.42); border-radius: 18px;
-            padding: 16px 14px 14px;
+            position: relative;
+            background:
+                radial-gradient(ellipse 90% 55% at 50% 0%, rgba(255, 102, 0, 0.12), transparent 58%),
+                linear-gradient(188deg, rgba(18, 22, 32, 0.98) 0%, rgba(6, 8, 14, 0.99) 100%);
+            border: 1px solid rgba(255, 102, 0, 0.48);
+            border-radius: 20px;
+            padding: 18px 16px 16px;
             box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.04),
-                0 12px 40px rgba(0,0,0,0.5),
-                0 0 28px rgba(255,102,0,0.35),
-                0 0 56px rgba(255,102,0,0.12);
-            animation: spirit-pub-chat-card-neon-forum 2.8s ease-in-out infinite;
+                inset 0 1px 0 rgba(255, 255, 255, 0.06),
+                0 16px 48px rgba(0, 0, 0, 0.55),
+                0 0 36px rgba(255, 102, 0, 0.38),
+                0 0 72px rgba(255, 102, 0, 0.14),
+                0 0 1px rgba(0, 200, 255, 0.2);
+            animation: spirit-pub-chat-card-neon-forum 2.6s ease-in-out infinite;
             flex: 1; min-height: 0; display: flex; flex-direction: column; margin-top: 0;
         }
         @keyframes spirit-pub-chat-card-neon {
@@ -3284,21 +3546,22 @@
         }
         @keyframes spirit-pub-chat-card-neon-forum {
             0%, 100% {
-                border-color: rgba(255,102,0,0.38);
+                border-color: rgba(255, 102, 0, 0.42);
                 box-shadow:
-                    inset 0 1px 0 rgba(255,255,255,0.04),
-                    0 12px 40px rgba(0,0,0,0.5),
-                    0 0 22px rgba(255,102,0,0.28),
-                    0 0 48px rgba(255,102,0,0.08);
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                    0 14px 44px rgba(0, 0, 0, 0.52),
+                    0 0 26px rgba(255, 102, 0, 0.32),
+                    0 0 52px rgba(255, 102, 0, 0.1),
+                    0 0 1px rgba(0, 200, 255, 0.12);
             }
             50% {
-                border-color: rgba(255,160,60,0.72);
+                border-color: rgba(255, 180, 80, 0.85);
                 box-shadow:
-                    inset 0 1px 0 rgba(255,200,160,0.06),
-                    0 12px 40px rgba(0,0,0,0.55),
-                    0 0 36px rgba(255,120,0,0.55),
-                    0 0 72px rgba(255,102,0,0.22),
-                    0 0 100px rgba(0,200,255,0.06);
+                    inset 0 1px 0 rgba(255, 220, 180, 0.08),
+                    0 18px 52px rgba(0, 0, 0, 0.58),
+                    0 0 44px rgba(255, 140, 40, 0.62),
+                    0 0 88px rgba(255, 102, 0, 0.28),
+                    0 0 120px rgba(0, 200, 255, 0.1);
             }
         }
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-field label { font-size: 0.62rem; color: #8a8a8a; }
@@ -3319,9 +3582,14 @@
             background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(var(--san-chat-rgb), 0.09), transparent 55%);
         }
         #forumModal .spirit-san-chat-msgs-wrap {
-            margin-top: 10px; padding: 10px 8px; background: rgba(0,0,0,0.45);
-            border: 1px solid #1e1e24; border-radius: 14px;
-            background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,102,0,0.07), transparent 55%);
+            margin-top: 12px;
+            padding: 12px 10px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 102, 0, 0.22);
+            background:
+                radial-gradient(ellipse 100% 90% at 50% 0%, rgba(255, 102, 0, 0.1), transparent 52%),
+                linear-gradient(180deg, rgba(8, 10, 16, 0.92) 0%, rgba(2, 3, 6, 0.96) 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 36px rgba(0, 0, 0, 0.45);
             flex: 1; min-height: 0; display: flex; flex-direction: column;
         }
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-msgs, #forumModal .spirit-san-chat-msgs-wrap .spirit-san-chat-msgs {
@@ -3338,7 +3606,37 @@
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-composer, #forumModal .spirit-san-chat-composer {
             display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; margin-top: 12px;
         }
-        #forumModal .spirit-san-chat-composer { flex-shrink: 0; margin-top: 10px; }
+        #forumModal .spirit-san-chat-composer { flex-shrink: 0; margin-top: 14px; gap: 12px; }
+        #forumModal .spirit-san-chat-input {
+            flex: 1;
+            min-width: 160px;
+            padding: 13px 16px;
+            background: linear-gradient(180deg, rgba(12, 14, 20, 0.95) 0%, rgba(6, 8, 12, 0.98) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f0f2f8;
+            font-size: 0.8rem;
+            border-radius: 14px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.35);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        #forumModal .spirit-san-chat-input:focus {
+            outline: none;
+            border-color: rgba(255, 102, 0, 0.55);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 102, 0, 0.2);
+        }
+        #forumModal .spirit-san-chat-composer .btn-action {
+            font-size: 0.7rem;
+            padding: 13px 22px;
+            border-radius: 14px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            box-shadow: 0 0 24px rgba(255, 102, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.4);
+            transition: transform 0.12s ease, box-shadow 0.2s ease;
+        }
+        #forumModal .spirit-san-chat-composer .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 32px rgba(255, 120, 40, 0.5), 0 10px 26px rgba(0, 0, 0, 0.45);
+        }
         #spiritPublicSanctuaryChatAnchor .spirit-san-chat-input, #forumModal .spirit-san-chat-input {
             flex: 1; min-width: 160px; padding: 12px 14px; background: #0a0c10; border: 1px solid rgba(255,255,255,0.12);
             color: #eee; font-size: 0.78rem; border-radius: 12px;
@@ -5006,7 +5304,7 @@
 
 <div id="forumModal" class="overlay">
     <div class="modal-content forum-modal-shell" style="text-align:left;">
-        <button onclick="closeSpiritMenu()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; cursor:pointer;">✕</button>
+        <button type="button" class="spirit-forum-close-btn" onclick="closeSpiritMenu()" aria-label="Fermer">✕</button>
         <div class="spirit-forum-modal-head">
             <h2 id="forum-main-title" data-key="forum_title_full">FORUM SPIRIT INFINITY</h2>
             <button type="button" id="btn-new-topic" class="btn-action" onclick="showTopicEditor()" style="font-size:0.6rem;" data-key="forum_btn_new_topic">+ NOUVEAU SUJET</button>
